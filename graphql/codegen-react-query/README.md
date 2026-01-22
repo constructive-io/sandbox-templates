@@ -6,7 +6,7 @@ Usage:
 
 - Make sure you have GraphQL server running for codegen to work
 
-- Run `pnpm run generate` from this directory to generate the SDK into `src/generated`.
+- Run `pnpm run codegen` from this directory to generate the SDK into `src/generated`.
 
 Notes:
 
