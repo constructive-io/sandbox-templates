@@ -6,4 +6,8 @@ export default defineConfig({
   reactQuery: {
     enabled: true,
   },
+  orm: {
+    output: './src/generated/',
+    useSharedTypes: true
+  },
 });

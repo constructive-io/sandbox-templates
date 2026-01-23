@@ -4,9 +4,10 @@ export default defineConfig({
   endpoint: 'http://api.localhost:3000/graphql',
   output: './src/generated/',
   reactQuery: {
-    enabled: false,
+    enabled: true,
   },
   orm: {
     output: './src/generated/',
+    useSharedTypes:true
   },
 });
