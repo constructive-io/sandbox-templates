@@ -7,15 +7,13 @@
  * 
  */
 
-import { generateOrmCommand } from '@constructive-io/graphql-codegen';
+import { generate } from '@constructive-io/graphql-codegen';
+import config from './codegen.config';
 
 async function main() {
   console.log('Starting GraphQL code generation...\n');
 
-  const result = await generateOrmCommand({
-    config: './codegen.config.ts',
-    verbose: true,
-  });
+  const result = await generate(config);
 
   if (!result.success) {
     console.error('\n❌', result.message);
