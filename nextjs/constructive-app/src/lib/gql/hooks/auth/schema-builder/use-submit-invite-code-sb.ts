@@ -1,0 +1,23 @@
+import { useMutation } from '@tanstack/react-query';
+
+import { useSubmitInviteCodeMutation } from '@sdk/auth';
+
+/**
+ * Schema-builder submit invite code hook using SDK-generated mutation
+ */
+export function useSubmitInviteCodeSb() {
+	const submitInviteMutation = useSubmitInviteCodeMutation();
+
+	return useMutation({
+		mutationKey: ['invite', 'submit-invite-code'],
+		mutationFn: async (token: string) => {
+			const result = await submitInviteMutation.mutateAsync({
+				input: { token },
+			});
+			if (!result.submitInviteCode?.boolean) {
+				throw new Error('Invite could not be accepted.');
+			}
+			return { success: true };
+		},
+	});
+}
