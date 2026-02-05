@@ -7,20 +7,8 @@ import { detectSchemaContextFromPath, type SchemaContext } from '@/lib/runtime/c
 
 import { AuthSlice, createAuthSlice, deserializeAuthSlice, serializeAuthSlice } from './auth-slice';
 // Modularize the store so that we can stitch multiple store slices together
-import {
-	createDataGridSlice,
-	DataGridSlice,
-	deserializeDataGridSlice,
-	serializeDataGridSlice,
-} from './data-grid-slice';
-import {
-	createDraftRowsSlice,
-	deserializeDraftRowsSlice,
-	DraftRowsSlice,
-	serializeDraftRowsSlice,
-} from './draft-rows-slice';
+// Data grid, draft rows, and policy slices removed - dashboard functionality has been removed from the application
 import { createEnvSlice, deserializeEnvSlice, EnvSlice, serializeEnvSlice } from './env-slice';
-import { createPolicySlice, deserializePolicySlice, PolicySlice, serializePolicySlice } from './policy-slice';
 import {
 	createPreferencesSlice,
 	deserializePreferencesSlice,
@@ -29,56 +17,41 @@ import {
 } from './preferences-slice';
 import { createSchemaSlice, deserializeSchemaSlice, SchemaSlice, serializeSchemaSlice } from './schema-slice';
 
-export type AppState = DataGridSlice &
-	SchemaSlice &
+export type AppState = SchemaSlice &
 	AuthSlice &
 	EnvSlice &
-	DraftRowsSlice &
-	PolicySlice &
 	PreferencesSlice;
 
 export const useAppStore = create<AppState>()(
 	persist(
 		(...args) => ({
-			...createDataGridSlice(...args),
 			...createSchemaSlice(...args),
 			...createAuthSlice(...args),
 			...createEnvSlice(...args),
-			...createDraftRowsSlice(...args),
-			...createPolicySlice(...args),
 			...createPreferencesSlice(...args),
 		}),
 		{
 			name: 'constructive-app-store',
-			partialize: (state) => ({
-				...serializeDataGridSlice(state),
-				...serializeSchemaSlice(state),
-				...serializeAuthSlice(state),
-				...serializeEnvSlice(state),
-				...serializeDraftRowsSlice(state),
-				...serializePolicySlice(state),
-				...serializePreferencesSlice(state),
+			serialize: (state) => ({
+				...serializeSchemaSlice(state.state),
+				...serializeAuthSlice(state.state),
+				...serializeEnvSlice(state.state),
+				...serializePreferencesSlice(state.state),
 			}),
 			onRehydrateStorage: () => (state) => {
 				if (state) {
 					// Rehydrate all slices
-					const dataGridState = deserializeDataGridSlice(state);
 					const schemaState = deserializeSchemaSlice(state);
 					const authState = deserializeAuthSlice(state);
 					const envState = deserializeEnvSlice(state);
-					const draftRowsState = deserializeDraftRowsSlice(state);
-					const policyState = deserializePolicySlice(state);
 					const preferencesState = deserializePreferencesSlice(state);
 
 					// Apply the rehydrated state
 					Object.assign(
 						state,
-						dataGridState,
 						schemaState,
 						authState,
 						envState,
-						draftRowsState,
-						policyState,
 						preferencesState,
 					);
 				}

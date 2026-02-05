@@ -85,7 +85,7 @@ export default function HomePage() {
 	);
 
 	const handleRowClick = (orgId: string) => {
-		router.push(`/orgs/${orgId}/databases` as string as Route);
+		router.push(`/orgs/${orgId}/members` as string as Route);
 	};
 
 	return (

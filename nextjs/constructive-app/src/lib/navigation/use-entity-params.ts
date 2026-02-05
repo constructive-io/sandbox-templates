@@ -31,7 +31,7 @@ import {
 	type SchemaInfo,
 } from '@/lib/gql/hooks/schema-builder';
 
-import { findDatabaseSchemaByDatabaseId } from './database-schema-mapping';
+// Database schema mapping removed - database functionality has been removed from the application
 
 /**
  * Organization type for entity params
@@ -153,26 +153,15 @@ export function useEntityParams(): UseEntityParamsResult {
 		return availableOrgs.find((org) => org.id === orgId) ?? null;
 	}, [orgId, availableOrgs]);
 
-	// Validate database - match by database ID (UUID) not schema key
+	// Database validation removed - database functionality has been removed from the application
 	const database = useMemo(() => {
-		if (!databaseId) return null;
-
-		// Prefer UUID-based matching (databaseId in URL)
-		const byId = findDatabaseSchemaByDatabaseId(availableSchemas, databaseId, { orgId });
-		if (byId) return byId;
-
-		// Fallback: allow schema-key URLs in legacy situations
-		const bySchemaKey = availableSchemas.find((schema) => schema.key === databaseId) ?? null;
-		if (orgId && bySchemaKey?.databaseInfo?.ownerId && bySchemaKey.databaseInfo.ownerId !== orgId) {
-			return null;
-		}
-		return bySchemaKey;
+		return null;
 	}, [databaseId, availableSchemas, orgId]);
 
+	// Database schema key always null since databases are removed
 	const databaseSchemaKey = useMemo(() => {
-		if (!databaseId) return null;
-		return database?.key ?? null;
-	}, [databaseId, database]);
+		return null;
+	}, [databaseId]);
 
 	// Determine navigation level from URL
 	const level = useMemo((): NavigationLevel => {
@@ -215,7 +204,7 @@ export function useEntityParams(): UseEntityParamsResult {
 				if (!isDatabasesLoading && !database) {
 					return {
 						isValid: false,
-						redirectTo: `/orgs/${orgId}/databases`,
+						redirectTo: `/orgs/${orgId}/members`,
 						error: `Database "${databaseId}" not found in organization`,
 					};
 				}

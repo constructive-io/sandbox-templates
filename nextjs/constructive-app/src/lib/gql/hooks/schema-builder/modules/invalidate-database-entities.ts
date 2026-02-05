@@ -1,7 +1,7 @@
 import type { QueryClient, QueryKey } from '@tanstack/react-query';
 
 import { useAppStore } from '@/store/app-store';
-import { isDashboardCacheScopeKey } from '@/lib/gql/hooks/dashboard/dashboard-query-keys';
+// Dashboard query keys removed - dashboard functionality has been removed from the application
 
 import { domainKeys } from '@sdk/app-public';
 import { apiSchemaQueryKeys } from '../apis/use-api-schemas';
@@ -20,38 +20,35 @@ import { userDatabasesQueryKeys } from '../use-user-databases';
 const invalidateQueryKey = (queryClient: QueryClient, queryKey: QueryKey) =>
 	queryClient.invalidateQueries({ queryKey });
 
-function invalidateDashboardQueries(queryClient: QueryClient, databaseId?: string | null) {
-	const matchesDashboard = (queryKey: readonly unknown[]): boolean => {
-		const [root, scope] = queryKey as unknown[];
-		if (root !== 'dashboard') return false;
-		if (!databaseId) return true;
-		return isDashboardCacheScopeKey(scope) && scope.databaseId === databaseId;
-	};
-
-	// 1. REMOVE schema queries (meta + relations) — force fresh fetch, no stale data.
-	//    This prevents stale-while-revalidate from showing wrong columns/tables after schema changes.
-	queryClient.removeQueries({
-		predicate: (query) => {
-			if (!matchesDashboard(query.queryKey)) return false;
-			const type = query.queryKey[2];
-			return type === 'meta' || type === 'relations';
-		},
-	});
-
-	// 2. INVALIDATE data queries (rows, counts) — stale-while-revalidate is fine for row data
-	return queryClient.invalidateQueries({
-		predicate: (query) => matchesDashboard(query.queryKey),
-	});
-}
+// Dashboard query invalidation removed - dashboard functionality has been removed from the application
+// function invalidateDashboardQueries(queryClient: QueryClient, databaseId?: string | null) {
+// 	const matchesDashboard = (queryKey: readonly unknown[]): boolean => {
+// 		const [root, scope] = queryKey as unknown[];
+// 		if (root !== 'dashboard') return false;
+// 		if (!databaseId) return true;
+// 		return isDashboardCacheScopeKey(scope) && scope.databaseId === databaseId;
+// 	};
+// 	queryClient.removeQueries({
+// 		predicate: (query) => {
+// 			if (!matchesDashboard(query.queryKey)) return false;
+// 			const type = query.queryKey[2];
+// 			return type === 'meta' || type === 'relations';
+// 		},
+// 	});
+// 	return queryClient.invalidateQueries({
+// 		predicate: (query) => matchesDashboard(query.queryKey),
+// 	});
+// }
 
 export async function invalidateDatabaseEntities(queryClient: QueryClient, databaseId?: string | null) {
 	const tasks: Array<Promise<unknown>> = [];
 
-	if (databaseId) {
-		try {
-			useAppStore.getState().clearDraftRowsForDatabase(databaseId);
-		} catch {}
-	}
+	// Draft rows clearing removed - dashboard functionality has been removed
+	// if (databaseId) {
+	// 	try {
+	// 		useAppStore.getState().clearDraftRowsForDatabase(databaseId);
+	// 	} catch {}
+	// }
 
 	if (databaseId) {
 		tasks.push(invalidateQueryKey(queryClient, databaseTablesQueryKeys.byDatabase(databaseId)));
@@ -64,8 +61,8 @@ export async function invalidateDatabaseEntities(queryClient: QueryClient, datab
 		tasks.push(invalidateQueryKey(queryClient, ['database-table']));
 	}
 
-	// Dashboard/CRM queries (secondary auth /data). These are scoped by { databaseId, endpoint }.
-	tasks.push(invalidateDashboardQueries(queryClient, databaseId));
+	// Dashboard query invalidation removed - dashboard functionality has been removed
+	// tasks.push(invalidateDashboardQueries(queryClient, databaseId));
 
 	// Global database context
 	// CRITICAL: Must invalidate BOTH split query keys since useSchemaBuilderSelectors uses them

@@ -38,8 +38,8 @@ export interface RouteConfig {
 // =============================================================================
 // ROUTE CONFIGURATION - Single source of truth for all routes
 // =============================================================================
-// Entity Hierarchy: Organizations → Databases
-// All database operations are scoped under /orgs/[orgId]/databases/[databaseId]
+// Entity Hierarchy: Organizations
+// All operations are scoped under /orgs/[orgId]
 // =============================================================================
 
 export const APP_ROUTES = {
@@ -56,18 +56,6 @@ export const APP_ROUTES = {
 	// ==========================================================================
 	// ORGANIZATION-SCOPED ROUTES - Organization management under /orgs/[orgId]
 	// ==========================================================================
-
-	/** Organization databases list */
-	ORG_DATABASES: {
-		path: '/orgs/[orgId]/databases' as Route,
-		searchParams: {
-			search: parseAsString,
-			page: parseAsInteger.withDefault(1),
-			limit: parseAsInteger.withDefault(20),
-		},
-		access: 'protected' as RouteAccessType,
-		context: 'schema-builder' as SchemaContext,
-	},
 
 	/** Organization members */
 	ORG_MEMBERS: {
@@ -92,81 +80,6 @@ export const APP_ROUTES = {
 	/** Organization settings */
 	ORG_SETTINGS: {
 		path: '/orgs/[orgId]/settings' as Route,
-		searchParams: {
-			tab: parseAsString.withDefault('general'),
-		},
-		access: 'protected' as RouteAccessType,
-		context: 'schema-builder' as SchemaContext,
-	},
-
-	// ==========================================================================
-	// ORG-SCOPED DATABASE ROUTES - Database operations under /orgs/[orgId]/databases/[databaseId]
-	// ==========================================================================
-
-	/** Database overview - redirects to schemas */
-	ORG_DATABASE: {
-		path: '/orgs/[orgId]/databases/[databaseId]' as Route,
-		searchParams: {},
-		access: 'protected' as RouteAccessType,
-		context: 'schema-builder' as SchemaContext,
-	},
-
-	/** Schema builder - create/edit tables, columns, relationships */
-	ORG_DATABASE_SCHEMAS: {
-		path: '/orgs/[orgId]/databases/[databaseId]/schemas' as Route,
-		searchParams: {
-			search: parseAsString,
-			sort: parseAsString.withDefault('name'),
-			order: parseAsString.withDefault('asc'),
-			page: parseAsInteger.withDefault(1),
-			limit: parseAsInteger.withDefault(20),
-			selected: parseAsArrayOf(parseAsString),
-		},
-		access: 'protected' as RouteAccessType,
-		context: 'schema-builder' as SchemaContext,
-	},
-
-	/** Data editor - CRUD operations (dashboard context) */
-	ORG_DATABASE_DATA: {
-		path: '/orgs/[orgId]/databases/[databaseId]/data' as Route,
-		searchParams: {
-			view: parseAsString.withDefault('grid'),
-			tab: parseAsString,
-			tableName: parseAsString,
-			search: parseAsString,
-			sort: parseAsString,
-			order: parseAsString.withDefault('asc'),
-			page: parseAsInteger.withDefault(1),
-			limit: parseAsInteger.withDefault(50),
-		},
-		access: 'public' as RouteAccessType,
-		context: 'dashboard' as SchemaContext,
-	},
-
-	/** Services - API management, extensions */
-	ORG_DATABASE_SERVICES: {
-		path: '/orgs/[orgId]/databases/[databaseId]/services' as Route,
-		searchParams: {},
-		access: 'protected' as RouteAccessType,
-		context: 'schema-builder' as SchemaContext,
-	},
-
-	/** Security - RLS policies and permissions */
-	ORG_DATABASE_SECURITY: {
-		path: '/orgs/[orgId]/databases/[databaseId]/security' as Route,
-		searchParams: {
-			search: parseAsString,
-			type: parseAsString,
-			status: parseAsString,
-			role: parseAsString,
-		},
-		access: 'protected' as RouteAccessType,
-		context: 'schema-builder' as SchemaContext,
-	},
-
-	/** Database settings */
-	ORG_DATABASE_SETTINGS: {
-		path: '/orgs/[orgId]/databases/[databaseId]/settings' as Route,
 		searchParams: {
 			tab: parseAsString.withDefault('general'),
 		},
@@ -332,69 +245,24 @@ export function buildRoute<TRoute extends AppRouteKey>(
 }
 
 /**
- * Build an organization-scoped route URL with the given org ID.
- * Replaces [orgId] placeholder with the actual org ID.
+ * Build an organization-scoped route URL.
+ * Replaces [orgId] placeholder with actual ID.
  *
- * @param routeKey - The organization route key from APP_ROUTES
+ * @param routeKey - The org route key from APP_ROUTES
  * @param orgId - The organization ID
  * @param searchParams - Optional query parameters
  * @returns A typed Route string
  *
  * @example
- * buildOrgRoute('ORG_DATABASES', 'org-123') // '/orgs/org-123/databases'
+ * buildOrgRoute('ORG_MEMBERS', 'org-123') // '/orgs/org-123/members'
  */
 export function buildOrgRoute(
-	routeKey: 'ORG_DATABASES' | 'ORG_MEMBERS' | 'ORG_INVITES' | 'ORG_SETTINGS',
+	routeKey: 'ORG_MEMBERS' | 'ORG_INVITES' | 'ORG_SETTINGS',
 	orgId: string,
 	searchParams?: Record<string, string | string[] | number | boolean | null>,
 ): Route {
 	const route = APP_ROUTES[routeKey];
 	let path = route.path.replace('[orgId]', orgId);
-
-	if (searchParams) {
-		const url = new URL(path, 'http://localhost');
-		Object.entries(searchParams).forEach(([key, value]) => {
-			if (value !== null && value !== undefined) {
-				if (Array.isArray(value)) {
-					value.forEach((v) => url.searchParams.append(key, String(v)));
-				} else {
-					url.searchParams.set(key, String(value));
-				}
-			}
-		});
-		path = url.pathname + url.search;
-	}
-
-	return path as Route;
-}
-
-/**
- * Build an organization-scoped database route URL.
- * Replaces [orgId] and [databaseId] placeholders with actual IDs.
- *
- * @param routeKey - The org database route key from APP_ROUTES
- * @param orgId - The organization ID
- * @param databaseId - The database ID
- * @param searchParams - Optional query parameters
- * @returns A typed Route string
- *
- * @example
- * buildOrgDatabaseRoute('ORG_DATABASE_SCHEMAS', 'org-123', 'db-456') // '/orgs/org-123/databases/db-456/schemas'
- */
-export function buildOrgDatabaseRoute(
-	routeKey:
-		| 'ORG_DATABASE'
-		| 'ORG_DATABASE_SCHEMAS'
-		| 'ORG_DATABASE_DATA'
-		| 'ORG_DATABASE_SERVICES'
-		| 'ORG_DATABASE_SECURITY'
-		| 'ORG_DATABASE_SETTINGS',
-	orgId: string,
-	databaseId: string,
-	searchParams?: Record<string, string | string[] | number | boolean | null>,
-): Route {
-	const route = APP_ROUTES[routeKey];
-	let path = route.path.replace('[orgId]', orgId).replace('[databaseId]', databaseId);
 
 	if (searchParams) {
 		const url = new URL(path, 'http://localhost');
@@ -570,17 +438,9 @@ export const navigationUtils = {
 export const ROUTE_PATHS = {
 	ROOT: APP_ROUTES.ROOT.path,
 	// Organization-scoped routes
-	ORG_DATABASES: APP_ROUTES.ORG_DATABASES.path,
 	ORG_MEMBERS: APP_ROUTES.ORG_MEMBERS.path,
 	ORG_INVITES: APP_ROUTES.ORG_INVITES.path,
 	ORG_SETTINGS: APP_ROUTES.ORG_SETTINGS.path,
-	// Org-scoped database routes (primary routes)
-	ORG_DATABASE: APP_ROUTES.ORG_DATABASE.path,
-	ORG_DATABASE_SCHEMAS: APP_ROUTES.ORG_DATABASE_SCHEMAS.path,
-	ORG_DATABASE_DATA: APP_ROUTES.ORG_DATABASE_DATA.path,
-	ORG_DATABASE_SERVICES: APP_ROUTES.ORG_DATABASE_SERVICES.path,
-	ORG_DATABASE_SECURITY: APP_ROUTES.ORG_DATABASE_SECURITY.path,
-	ORG_DATABASE_SETTINGS: APP_ROUTES.ORG_DATABASE_SETTINGS.path,
 	// Organizations routes
 	ORGANIZATIONS: APP_ROUTES.ORGANIZATIONS.path,
 	// Account routes

@@ -23,7 +23,7 @@ import type {
 	TableDefinition,
 } from '@/lib/schema';
 import { dbLightToSchemaData } from '@/lib/schema';
-import { findDatabaseSchemaByDatabaseId } from '@/lib/navigation/database-schema-mapping';
+// Database schema mapping removed - database functionality has been removed from the application
 
 import { useAccessibleDatabases } from './use-accessible-databases';
 import { useDatabaseConstraints } from './use-database-constraints';
@@ -156,10 +156,10 @@ export function SchemaBuilderDataProvider({ children }: { children: ReactNode })
 	const urlOrgId = (params?.orgId as string) ?? null;
 	const [urlTableName, setUrlTableName] = useTableSelection();
 
+	// Database schema key lookup removed - database functionality has been removed
 	const urlSchemaKey = useMemo(() => {
-		if (!urlDatabaseId) return null;
-		return findDatabaseSchemaByDatabaseId(availableSchemas, urlDatabaseId, { orgId: urlOrgId })?.key ?? null;
-	}, [availableSchemas, urlDatabaseId, urlOrgId]);
+		return null;
+	}, [urlDatabaseId, urlOrgId]);
 
 	const selectedSchemaKey = urlSchemaKey ?? storeSelectedSchemaKey;
 

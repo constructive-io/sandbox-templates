@@ -11,12 +11,9 @@ import { useCurrentUserAppMembership } from '@/lib/gql/hooks/schema-builder/app'
 import { useEntityParams, useSidebarNavigation } from '@/lib/navigation';
 import { cn } from '@/lib/utils';
 import { useSchemaBuilderAuth, useSidebarPinned, useSidebarPinnedActions } from '@/store/app-store';
-import { ApiEntitySwitcher } from '@/components/app-shell/api-entity-switcher';
 import { AppShell } from '@/components/app-shell/app-shell';
 import type { EntityLevel, TopBarConfig } from '@/components/app-shell/app-shell.types';
-import { DatabaseEntitySwitcher } from '@/components/app-shell/database-entity-switcher';
-import { filterPublicApi, useDashboardContext } from '@/components/dashboard/dashboard-context-selector';
-import { UserDropdown } from '@/components/dashboard/user-dropdown';
+// UserDropdown removed - dashboard components have been removed from the application
 import { ConstructiveIcon } from '@/components/icons/constructive-icon';
 import { ConstructiveLogo } from '@/components/icons/constructive-logo';
 import { CreateOrganizationCard } from '@/components/organizations/create-organization-card';
@@ -100,17 +97,7 @@ function AuthenticatedShellInner({ children, hideSidebar }: AuthenticatedShellPr
 	const { toggleSidebarPinned } = useSidebarPinnedActions();
 
 	// Get entity state from URL params (source of truth)
-	// Note: databaseId and availableDatabases are handled by DatabaseEntitySwitcher
-	const { orgId, level: entityLevel, availableOrgs } = useEntityParams();
-
-	// Check if we're on a dashboard/data route
-	const isDashboardRoute = pathname?.match(/\/databases\/[^/]+\/data/) ? true : false;
-
-	// Get dashboard context with public API filter applied
-	// This ensures only the 'public' API is shown in the switcher
-	const dashboardContext = useDashboardContext({
-		apiFilter: filterPublicApi,
-	});
+	const { orgId, availableOrgs } = useEntityParams();
 
 	const handleLogout = React.useCallback(() => {
 		logoutMutation.mutate();
@@ -122,19 +109,15 @@ function AuthenticatedShellInner({ children, hideSidebar }: AuthenticatedShellPr
 		onLogout: handleLogout,
 	});
 
-	// Handle org selection - navigates to org databases route (URL is source of truth)
+	// Handle org selection - navigates to org members route (URL is source of truth)
 	const handleOrgChange = React.useCallback(
 		(newOrgId: string) => {
-			router.push(buildOrgRoute('ORG_DATABASES', newOrgId));
+			router.push(buildOrgRoute('ORG_MEMBERS', newOrgId));
 		},
 		[router],
 	);
 
-	// Note: Database selection is handled by DatabaseEntitySwitcher component
-
 	// Build entity levels for breadcrumbs based on URL params
-	// Only organization level is included here - database selection is handled
-	// by the DatabaseEntitySwitcher component (passed via databaseSwitcher prop)
 	const entityLevels = React.useMemo((): EntityLevel[] => {
 		const levels: EntityLevel[] = [];
 
@@ -162,16 +145,10 @@ function AuthenticatedShellInner({ children, hideSidebar }: AuthenticatedShellPr
 				createLabel: 'Create organization',
 				viewAllHref: '/',
 			});
-
-			// NOTE: Database level is NOT added here - it's handled by DatabaseEntitySwitcher
-			// component which provides richer functionality (search, create, edit, etc.)
 		}
 
 		return levels;
 	}, [orgId, availableOrgs, handleOrgChange, stack, refetchOrganizations]);
-
-	// Database switcher should show when we're at database level
-	const showDatabaseSwitcher = entityLevel === 'database';
 
 	const topBarConfig: TopBarConfig = {
 		sidebarLogo: (
@@ -190,24 +167,8 @@ function AuthenticatedShellInner({ children, hideSidebar }: AuthenticatedShellPr
 			</Link>
 		),
 		entityLevels,
-		// Only pass database switcher when we're at the right level in the hierarchy
-		databaseSwitcher: showDatabaseSwitcher ? (
-			<>
-				<DatabaseEntitySwitcher />
-				{/* API selector only visible on dashboard routes - filtered to public schema only */}
-				{isDashboardRoute && (
-					<>
-						<span className='text-muted-foreground/40 select-none' aria-hidden='true'>
-							/
-						</span>
-						<ApiEntitySwitcher context={dashboardContext} />
-					</>
-				)}
-			</>
-		) : undefined,
 		actions: (
 			<>
-				<UserDropdown />
 				<ThemeSwitcher />
 			</>
 		),
