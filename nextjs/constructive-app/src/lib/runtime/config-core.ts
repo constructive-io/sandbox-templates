@@ -1,14 +1,10 @@
 import { createLogger } from '@/lib/logger';
 
 import { getRuntimeConfig } from './get-runtime-config';
-import type { RuntimeConfigKey } from './runtime-config.types';
 
 export type SchemaContext = 'schema-builder' | 'dashboard';
 
 export const schemaContexts: readonly SchemaContext[] = ['schema-builder', 'dashboard'];
-
-/** Sub-endpoint targets within the schema-builder context */
-export type SchemaBuilderSubEndpoint = 'app-public' | 'auth' | 'admin' | 'api';
 
 const logger = createLogger({ scope: 'config-core' });
 
@@ -54,38 +50,6 @@ export function getSchemaBuilderEndpoint(): string {
 	});
 
 	return endpoint;
-}
-
-// --------------------------------------------------------------------------
-// Schema-builder sub-endpoint resolution
-// --------------------------------------------------------------------------
-
-const SUB_ENDPOINT_ENV_KEYS: Record<SchemaBuilderSubEndpoint, RuntimeConfigKey> = {
-	'app-public': 'NEXT_PUBLIC_APP_PUBLIC_GRAPHQL_ENDPOINT',
-	auth: 'NEXT_PUBLIC_AUTH_GRAPHQL_ENDPOINT',
-	admin: 'NEXT_PUBLIC_ADMIN_GRAPHQL_ENDPOINT',
-	api: 'NEXT_PUBLIC_SCHEMA_BUILDER_GRAPHQL_ENDPOINT', // api reuses the legacy key
-};
-
-/**
- * Get a schema-builder sub-endpoint dynamically.
- * Priority:
- *   1. Per-sub-endpoint env var (e.g. NEXT_PUBLIC_AUTH_GRAPHQL_ENDPOINT)
- *   2. Main schema-builder endpoint (NEXT_PUBLIC_SCHEMA_BUILDER_GRAPHQL_ENDPOINT)
- *   3. Hardcoded default (api.localhost:3000/graphql)
- */
-export function getSchemaBuilderSubEndpoint(sub: SchemaBuilderSubEndpoint): string {
-	// 1. Check per-sub-endpoint override
-	const subValue = getRuntimeConfig(SUB_ENDPOINT_ENV_KEYS[sub]);
-	if (subValue) {
-		logger.debug('getSchemaBuilderSubEndpoint called', { sub, resolved: subValue, source: 'sub-endpoint-env' });
-		return subValue;
-	}
-
-	// 2. Fall back to the main schema-builder endpoint (shared across all sub-endpoints)
-	const mainValue = getSchemaBuilderEndpoint();
-	logger.debug('getSchemaBuilderSubEndpoint called', { sub, resolved: mainValue, source: 'main-endpoint' });
-	return mainValue;
 }
 
 // Legacy constant for backwards compatibility (evaluated at module load time)

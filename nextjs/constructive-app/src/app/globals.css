@@ -1,160 +1,22 @@
 /* =============================================================================
- * apps/admin Global Styles
+ * Constructive Boilerplate - Global Styles
  * 
- * Base design system is imported from @constructive-io/ui.
+ * Base design system is imported from @constructive-io/ui (published npm package).
  * This file contains only app-specific overrides and extensions.
  * ============================================================================= */
 
 /* Import base design system (includes tailwindcss, tw-animate-css, design tokens, base utilities) */
-@import '@constructive-io/ui/src/styles/globals.css';
+@import '@constructive-io/ui/globals.css';
 
-/* Ensure Tailwind scans admin app source files for class detection */
+/* Ensure Tailwind scans app source files for class detection */
 @source "../";
 
-/* App-specific: Leaflet map styles */
-@import 'leaflet/dist/leaflet.css';
+/* Scan @constructive-io/ui compiled output so Tailwind detects classes used in UI components.
+   The published package's @source "../components" resolves to a non-existent src/components/,
+   so we must explicitly point Tailwind at the dist/ directory. */
+@source "../../node_modules/@constructive-io/ui/dist";
 
 @plugin "@tailwindcss/typography";
-
-/* Custom Leaflet marker styles */
-.custom-marker {
-	background: transparent !important;
-	border: none !important;
-}
-
-.custom-marker div {
-	transition: transform 0.2s ease;
-}
-
-.custom-marker:hover div {
-	transform: rotate(-45deg) scale(1.1);
-}
-
-/* =============================================================================
- * App-specific: Data Grid / Virtual Table Performance & Styling
- * ============================================================================= */
-@layer utilities {
-	/* Performance optimizations for data grid */
-	[data-slot='virtual-table-container'] {
-		/* Enable hardware acceleration */
-		transform: translateZ(0);
-		will-change: scroll-position;
-
-		/* Smooth scrolling */
-		scroll-behavior: smooth;
-		-webkit-overflow-scrolling: touch;
-
-		/* Contain layout for better performance */
-		contain: layout style paint;
-	}
-
-	/* Table sticky column support */
-	[data-slot='virtual-table-container'] table {
-		border-collapse: separate !important;
-		border-spacing: 0 !important;
-	}
-
-	/* Ensure sticky columns work with virtualization */
-	[data-slot='virtual-table-container'] td[style*='position: sticky'],
-	[data-slot='virtual-table-container'] th[style*='position: sticky'] {
-		z-index: 1;
-		/* Prevent subpixel rendering issues */
-		transform: translateZ(0);
-		backface-visibility: hidden;
-	}
-
-	/* Higher z-index for header sticky columns */
-	[data-slot='virtual-table-container'] thead th[style*='position: sticky'] {
-		z-index: 3;
-	}
-
-	/* Enhanced shadow for pinned columns */
-	[data-slot='virtual-table-container'] .sticky-column::after {
-		content: '';
-		position: absolute;
-		top: 0;
-		bottom: 0;
-		width: 1px;
-		background: linear-gradient(
-			to bottom,
-			transparent 0%,
-			hsl(var(--border) / 0.3) 20%,
-			hsl(var(--border) / 0.3) 80%,
-			transparent 100%
-		);
-	}
-
-	/* Position the border line for left-pinned columns */
-	[data-slot='virtual-table-container'] .sticky-column[style*='left']::after {
-		right: -1px;
-	}
-
-	/* Position the border line for right-pinned columns */
-	[data-slot='virtual-table-container'] .sticky-column[style*='right']::after {
-		left: -1px;
-	}
-
-	/* Selection column should have highest z-index when sticky */
-	[data-slot='virtual-table-container'] th[style*='position: sticky']:has([role='checkbox']),
-	[data-slot='virtual-table-container'] td[style*='position: sticky']:has([role='checkbox']) {
-		z-index: 2;
-	}
-
-	[data-slot='virtual-table-container'] thead th[style*='position: sticky']:has([role='checkbox']) {
-		z-index: 4;
-	}
-
-	/* Add subtle transition for hover states on pinned columns */
-	[data-slot='virtual-table-container'] .sticky-column {
-		transition: background-color 0.15s ease;
-	}
-
-	/* Custom scrollbar styling with better visibility */
-	[data-slot='virtual-table-container'] {
-		scrollbar-width: thin;
-		scrollbar-color: hsl(var(--muted-foreground) / 0.3) hsl(var(--muted) / 0.1);
-	}
-
-	[data-slot='virtual-table-container']::-webkit-scrollbar {
-		height: 12px;
-		width: 12px;
-	}
-
-	[data-slot='virtual-table-container']::-webkit-scrollbar-track {
-		background: hsl(var(--muted) / 0.1);
-		border-radius: 6px;
-	}
-
-	[data-slot='virtual-table-container']::-webkit-scrollbar-thumb {
-		background-color: hsl(var(--muted-foreground) / 0.3);
-		border-radius: 6px;
-		border: 2px solid transparent;
-		background-clip: content-box;
-	}
-
-	[data-slot='virtual-table-container']::-webkit-scrollbar-thumb:hover {
-		background-color: hsl(var(--muted-foreground) / 0.5);
-	}
-
-	/* Dark mode scrollbar adjustments */
-	.dark [data-slot='virtual-table-container']::-webkit-scrollbar-track {
-		background: hsl(var(--muted) / 0.05);
-	}
-
-	.dark [data-slot='virtual-table-container']::-webkit-scrollbar-thumb {
-		background-color: hsl(var(--muted-foreground) / 0.2);
-	}
-
-	.dark [data-slot='virtual-table-container']::-webkit-scrollbar-thumb:hover {
-		background-color: hsl(var(--muted-foreground) / 0.4);
-	}
-
-	/* Ensure proper stacking context for the entire data grid */
-	[data-slot='data-grid'] {
-		position: relative;
-		z-index: 0;
-	}
-}
 
 /* =============================================================================
  * App-specific: Skeleton & Loading Transitions

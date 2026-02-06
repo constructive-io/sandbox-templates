@@ -12,7 +12,7 @@ import { createElement, useCallback, useMemo, type ReactNode } from 'react';
 import { useParams } from 'next/navigation';
 import { createContext, useContextSelector } from '@fluentui/react-context-selector';
 
-import { transformUserDatabases } from '@/lib/gql/schema-builder/transformers';
+import { transformUserDatabases } from './transformers/transformers';
 import { useTableSelection } from '@/lib/navigation';
 import { useAppStore, useShallow } from '@/store/app-store';
 import type { CurrentDatabaseApi, SchemaInfo as StoreSchemaInfo } from '@/store/schema-slice';
@@ -23,7 +23,7 @@ import type {
 	TableDefinition,
 } from '@/lib/schema';
 import { dbLightToSchemaData } from '@/lib/schema';
-// Database schema mapping removed - database functionality has been removed from the application
+import { findDatabaseSchemaByDatabaseId } from '@/lib/navigation/database-schema-mapping';
 
 import { useAccessibleDatabases } from './use-accessible-databases';
 import { useDatabaseConstraints } from './use-database-constraints';
@@ -156,10 +156,10 @@ export function SchemaBuilderDataProvider({ children }: { children: ReactNode })
 	const urlOrgId = (params?.orgId as string) ?? null;
 	const [urlTableName, setUrlTableName] = useTableSelection();
 
-	// Database schema key lookup removed - database functionality has been removed
 	const urlSchemaKey = useMemo(() => {
-		return null;
-	}, [urlDatabaseId, urlOrgId]);
+		if (!urlDatabaseId) return null;
+		return findDatabaseSchemaByDatabaseId(availableSchemas, urlDatabaseId, { orgId: urlOrgId })?.key ?? null;
+	}, [availableSchemas, urlDatabaseId, urlOrgId]);
 
 	const selectedSchemaKey = urlSchemaKey ?? storeSelectedSchemaKey;
 

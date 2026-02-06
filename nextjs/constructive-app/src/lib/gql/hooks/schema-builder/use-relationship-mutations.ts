@@ -287,30 +287,24 @@ export function useCreateManyToMany() {
 			const junctionTableId = junctionTable.id;
 			const junctionTableName = junctionTable.name;
 
-			// Step 2: Create id field + grant permissions in parallel (grant is non-fatal)
-			const [idFieldResult] = await Promise.all([
-				createFieldMutation.mutateAsync({
-					input: {
-						field: {
-							name: 'id',
-							type: 'uuid',
-							tableId: junctionTableId,
-							databaseId,
-							isRequired: true,
-							defaultValue: 'uuid_generate_v4()',
-						},
+			// Steps 2–6: All DDL on the junction table is serialized to avoid
+			// PostgreSQL "tuple concurrently updated" errors. Concurrent DDL
+			// statements on the same table modify the same pg_class catalog row,
+			// which PostgreSQL rejects under MVCC.
+
+			// Step 2: Create id field
+			const idFieldResult = await createFieldMutation.mutateAsync({
+				input: {
+					field: {
+						name: 'id',
+						type: 'uuid',
+						tableId: junctionTableId,
+						databaseId,
+						isRequired: true,
+						defaultValue: 'uuid_generate_v4()',
 					},
-				}),
-				// Auto-grant permissions (non-blocking, non-fatal)
-				createGrant({
-					databaseId,
-					tableName: junctionTableName,
-					privileges: ['select', 'insert', 'update', 'delete'],
-					roleName: 'authenticated',
-				}).catch((error) => {
-					console.warn(`Failed to grant permissions for junction table: ${error instanceof Error ? error.message : 'Unknown error'}`);
-				}),
-			]);
+				},
+			});
 
 			const idField = idFieldResult.createField?.field;
 			if (!idField?.id) {
@@ -318,48 +312,34 @@ export function useCreateManyToMany() {
 			}
 			const idFieldId = idField.id;
 
-			// Step 3: Create PK constraint + both FK fields in parallel
+			// Step 3: Create PK constraint on id field
+			await createPkMutation.mutateAsync({
+				input: {
+					primaryKeyConstraint: {
+						tableId: junctionTableId,
+						databaseId,
+						fieldIds: [idFieldId],
+						name: `${input.junctionTableName}_pkey`,
+						type: 'p',
+					},
+				},
+			});
+
+			// Step 4: Create FK fields sequentially
 			const fieldAName = `${input.tableAName}_id`;
 			const fieldBName = `${input.tableBName}_id`;
 
-			const [, fieldAResult, fieldBResult] = await Promise.all([
-				// Create primary key constraint
-				createPkMutation.mutateAsync({
-					input: {
-						primaryKeyConstraint: {
-							tableId: junctionTableId,
-							databaseId,
-							fieldIds: [idFieldId],
-							name: `${input.junctionTableName}_pkey`,
-							type: 'p',
-						},
+			const fieldAResult = await createFieldMutation.mutateAsync({
+				input: {
+					field: {
+						name: fieldAName,
+						type: 'uuid',
+						tableId: junctionTableId,
+						databaseId,
+						isRequired: true,
 					},
-				}),
-				// Create FK field for table A
-				createFieldMutation.mutateAsync({
-					input: {
-						field: {
-							name: fieldAName,
-							type: 'uuid',
-							tableId: junctionTableId,
-							databaseId,
-							isRequired: true,
-						},
-					},
-				}),
-				// Create FK field for table B
-				createFieldMutation.mutateAsync({
-					input: {
-						field: {
-							name: fieldBName,
-							type: 'uuid',
-							tableId: junctionTableId,
-							databaseId,
-							isRequired: true,
-						},
-					},
-				}),
-			]);
+				},
+			});
 
 			const fieldA = fieldAResult.createField?.field;
 			if (!fieldA?.id) {
@@ -367,47 +347,58 @@ export function useCreateManyToMany() {
 			}
 			const fieldAId = fieldA.id;
 
+			const fieldBResult = await createFieldMutation.mutateAsync({
+				input: {
+					field: {
+						name: fieldBName,
+						type: 'uuid',
+						tableId: junctionTableId,
+						databaseId,
+						isRequired: true,
+					},
+				},
+			});
+
 			const fieldB = fieldBResult.createField?.field;
 			if (!fieldB?.id) {
 				throw new Error('Failed to create FK field for table B');
 			}
 			const fieldBId = fieldB.id;
 
-			// Step 4: Create both FK constraints in parallel
-			await Promise.all([
-				createFkMutation.mutateAsync({
-					input: {
-						foreignKeyConstraint: {
-							databaseId,
-							tableId: junctionTableId,
-							fieldIds: [fieldAId],
-							refTableId: input.tableAId,
-							refFieldIds: [input.tableAPrimaryKeyFieldId],
-							name: `${input.junctionTableName}_${input.tableAName}_fkey`,
-							deleteAction,
-							updateAction,
-							type: 'f',
-						},
+			// Step 5: Create FK constraints sequentially
+			await createFkMutation.mutateAsync({
+				input: {
+					foreignKeyConstraint: {
+						databaseId,
+						tableId: junctionTableId,
+						fieldIds: [fieldAId],
+						refTableId: input.tableAId,
+						refFieldIds: [input.tableAPrimaryKeyFieldId],
+						name: `${input.junctionTableName}_${input.tableAName}_fkey`,
+						deleteAction,
+						updateAction,
+						type: 'f',
 					},
-				}),
-				createFkMutation.mutateAsync({
-					input: {
-						foreignKeyConstraint: {
-							databaseId,
-							tableId: junctionTableId,
-							fieldIds: [fieldBId],
-							refTableId: input.tableBId,
-							refFieldIds: [input.tableBPrimaryKeyFieldId],
-							name: `${input.junctionTableName}_${input.tableBName}_fkey`,
-							deleteAction,
-							updateAction,
-							type: 'f',
-						},
-					},
-				}),
-			]);
+				},
+			});
 
-			// Step 5: Create composite unique constraint on (a_id, b_id) to prevent duplicate pairs
+			await createFkMutation.mutateAsync({
+				input: {
+					foreignKeyConstraint: {
+						databaseId,
+						tableId: junctionTableId,
+						fieldIds: [fieldBId],
+						refTableId: input.tableBId,
+						refFieldIds: [input.tableBPrimaryKeyFieldId],
+						name: `${input.junctionTableName}_${input.tableBName}_fkey`,
+						deleteAction,
+						updateAction,
+						type: 'f',
+					},
+				},
+			});
+
+			// Step 6: Create composite unique constraint on (a_id, b_id) to prevent duplicate pairs
 			await createUniqueMutation.mutateAsync({
 				input: {
 					uniqueConstraint: {
@@ -418,6 +409,16 @@ export function useCreateManyToMany() {
 						type: 'u',
 					},
 				},
+			});
+
+			// Step 7: Grant permissions (non-fatal, after all DDL is complete)
+			await createGrant({
+				databaseId,
+				tableName: junctionTableName,
+				privileges: ['select', 'insert', 'update', 'delete'],
+				roleName: 'authenticated',
+			}).catch((error) => {
+				console.warn(`Failed to grant permissions for junction table: ${error instanceof Error ? error.message : 'Unknown error'}`);
 			});
 
 			return {

@@ -1,5 +1,8 @@
 import type { ApiToken } from '@/store/auth-slice';
 import { getSchemaContext, type SchemaContext } from '@/app-config';
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger({ scope: 'token-manager' });
 
 /**
  * Scope identifier for dashboard tokens (e.g., databaseId).
@@ -111,8 +114,8 @@ export class TokenManager {
 			// Update in-memory cache
 			const cacheKey = TokenManager.cacheKey(ctx, effectiveScope);
 			TokenManager.cache[cacheKey] = { token, rememberMe };
-		} catch {
-			// Silent failure - storage might not be available
+		} catch (e) {
+			logger.warn('Failed to persist token', { ctx, error: e });
 		}
 	}
 
@@ -166,8 +169,8 @@ export class TokenManager {
 			const result = { token, rememberMe } as const;
 			TokenManager.cache[cacheKey] = { token, rememberMe };
 			return result;
-		} catch {
-			// Return safe defaults on parsing error
+		} catch (e) {
+			logger.warn('Failed to read token from storage', { ctx, error: e });
 			return { token: null, rememberMe: false };
 		}
 	}
@@ -188,8 +191,8 @@ export class TokenManager {
 			sessionStorage.removeItem(TOKEN_STORAGE_KEY(ctx, effectiveScope));
 			localStorage.removeItem(REMEMBER_ME_KEY(ctx, effectiveScope));
 			delete TokenManager.cache[cacheKey];
-		} catch {
-			// Silent failure - continue cleanup
+		} catch (e) {
+			logger.warn('Failed to clear token from storage', { ctx, error: e });
 		}
 	}
 
@@ -225,8 +228,8 @@ export class TokenManager {
 					delete TokenManager.cache[key];
 				}
 			});
-		} catch {
-			// Silent failure
+		} catch (e) {
+			logger.warn('Failed to clear dashboard tokens', { error: e });
 		}
 	}
 
@@ -251,8 +254,8 @@ export class TokenManager {
 					if (scope && !scopes.includes(scope)) scopes.push(scope);
 				}
 			}
-		} catch {
-			// Silent failure
+		} catch (e) {
+			logger.warn('Failed to enumerate dashboard scopes', { error: e });
 		}
 		return scopes;
 	}

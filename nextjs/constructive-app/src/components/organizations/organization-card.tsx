@@ -131,7 +131,7 @@ export function OrganizationCard({
 						<DropdownMenuItem asChild>
 							<Link href={href as Route} className='gap-2'>
 								<ExternalLinkIcon className='h-4 w-4' />
-							View databases
+							View organization
 							</Link>
 						</DropdownMenuItem>
 						{canDelete && (

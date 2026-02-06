@@ -49,9 +49,6 @@ export {
 	type PrepareInputOptions,
 } from './mutation-input';
 
-// Form integration hook
-export { useFormMutationInput } from './hooks/use-form-mutation-input';
-
 // Additional utilities
 export * from './type-mapping';
 

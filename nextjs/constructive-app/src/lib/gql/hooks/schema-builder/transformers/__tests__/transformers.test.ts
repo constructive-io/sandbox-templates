@@ -12,7 +12,7 @@ import type {
 	PrimaryKeyConstraint,
 	UniqueConstraint,
 	UserDatabase,
-} from '../../hooks/schema-builder/use-user-databases';
+} from '../../use-user-databases';
 
 import { transformUserDatabase } from '../transformers';
 

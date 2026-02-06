@@ -214,3 +214,129 @@ describe('Data Invalidation Fix Documentation', () => {
 		expect(true).toBe(true); // Documentation test always passes
 	});
 });
+
+// ============================================================================
+// Invalidation Coverage Guardrails
+// ============================================================================
+
+/**
+ * Static assertion test: ensures every mutation hook in the schema-builder
+ * directory either calls invalidateDatabaseEntities() or is explicitly
+ * listed in SKIP_INVALIDATION. This catches new mutation files that forget
+ * to opt in.
+ *
+ * How to fix a failure:
+ * 1. If your new hook mutates database entities → import and call
+ *    invalidateDatabaseEntities(queryClient, databaseId) in onSuccess
+ * 2. If it does NOT affect database entities → add to SKIP_INVALIDATION with a reason
+ */
+describe('Invalidation Coverage Guardrails', () => {
+	/**
+	 * Files that MUST call invalidateDatabaseEntities in their onSuccess handler.
+	 * Sorted alphabetically for easy diffing.
+	 */
+	const MUST_INVALIDATE = new Set([
+		'use-create-database-provision.ts',
+		'use-create-database.ts',
+		'use-create-table.ts',
+		'use-delete-database.ts',
+		'use-delete-table.ts',
+		'use-field-mutations.ts',
+		'use-index-mutations.ts',
+		'use-relationship-mutations.ts',
+		'use-table-grants.ts',
+		'use-update-database.ts',
+		'use-update-table.ts',
+	]);
+
+	/**
+	 * Mutation-shaped files that intentionally do NOT call invalidateDatabaseEntities.
+	 * Each entry must have a reason.
+	 */
+	const SKIP_INVALIDATION: Record<string, string> = {
+		// Smart tags only update PostGraphile metadata, not database entities
+		'use-field-smart-tags.ts': 'smart tags are PostGraphile metadata, not database entities',
+	};
+
+	/**
+	 * Glob pattern for mutation-shaped filenames at the top level of the
+	 * schema-builder hooks directory (not subdirectories — those have their
+	 * own invalidation strategies).
+	 */
+	const MUTATION_FILE_PATTERN = /^use-(create|update|delete|field|relationship|index|table)-.*\.ts$/;
+
+	it('every mutation hook file should appear in MUST_INVALIDATE or SKIP_INVALIDATION', async () => {
+		const fs = await import('node:fs');
+		const path = await import('node:path');
+
+		const hooksDir = path.resolve(__dirname, '..');
+		const files = fs.readdirSync(hooksDir).filter((f: string) => MUTATION_FILE_PATTERN.test(f));
+
+		const uncategorized: string[] = [];
+		for (const file of files) {
+			if (!MUST_INVALIDATE.has(file) && !(file in SKIP_INVALIDATION)) {
+				uncategorized.push(file);
+			}
+		}
+
+		if (uncategorized.length > 0) {
+			throw new Error(
+				`New mutation hook(s) found that are not in MUST_INVALIDATE or SKIP_INVALIDATION:\n` +
+					uncategorized.map((f) => `  - ${f}`).join('\n') +
+					`\n\nIf the hook mutates database entities, add it to MUST_INVALIDATE.\n` +
+					`Otherwise, add it to SKIP_INVALIDATION with a reason.`,
+			);
+		}
+	});
+
+	it('every MUST_INVALIDATE file should actually import invalidateDatabaseEntities', async () => {
+		const fs = await import('node:fs');
+		const path = await import('node:path');
+
+		const hooksDir = path.resolve(__dirname, '..');
+		const missing: string[] = [];
+
+		for (const file of MUST_INVALIDATE) {
+			const filePath = path.join(hooksDir, file);
+			if (!fs.existsSync(filePath)) {
+				missing.push(`${file} (file not found)`);
+				continue;
+			}
+			const content = fs.readFileSync(filePath, 'utf-8');
+			if (!content.includes('invalidateDatabaseEntities')) {
+				missing.push(`${file} (does not call invalidateDatabaseEntities)`);
+			}
+		}
+
+		if (missing.length > 0) {
+			throw new Error(
+				`MUST_INVALIDATE files that don't call invalidateDatabaseEntities:\n` +
+					missing.map((f) => `  - ${f}`).join('\n'),
+			);
+		}
+	});
+
+	it('SKIP_INVALIDATION entries should not call invalidateDatabaseEntities', async () => {
+		const fs = await import('node:fs');
+		const path = await import('node:path');
+
+		const hooksDir = path.resolve(__dirname, '..');
+		const unexpected: string[] = [];
+
+		for (const file of Object.keys(SKIP_INVALIDATION)) {
+			const filePath = path.join(hooksDir, file);
+			if (!fs.existsSync(filePath)) continue;
+			const content = fs.readFileSync(filePath, 'utf-8');
+			if (content.includes('invalidateDatabaseEntities')) {
+				unexpected.push(`${file} (listed in SKIP but calls invalidateDatabaseEntities)`);
+			}
+		}
+
+		if (unexpected.length > 0) {
+			throw new Error(
+				`Files in SKIP_INVALIDATION that actually call invalidateDatabaseEntities (move to MUST_INVALIDATE):\n` +
+					unexpected.map((f) => `  - ${f}`).join('\n'),
+			);
+		}
+	});
+});

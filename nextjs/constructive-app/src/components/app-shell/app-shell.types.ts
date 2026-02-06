@@ -59,16 +59,9 @@ export interface TopBarConfig {
 	breadcrumbPrefix?: React.ReactNode;
 
 	/**
-	 * Entity hierarchy levels (org -> database)
-	 * Database level is handled separately via databaseSwitcher
+	 * Entity hierarchy levels (e.g., organization)
 	 */
 	entityLevels: EntityLevel[];
-
-	/**
-	 * Custom database switcher component
-	 * Rendered after entity levels in the breadcrumb
-	 */
-	databaseSwitcher?: React.ReactNode;
 
 	/**
 	 * Status badge configuration

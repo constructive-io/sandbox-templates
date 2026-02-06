@@ -39,7 +39,7 @@ export interface RouteConfig {
 // ROUTE CONFIGURATION - Single source of truth for all routes
 // =============================================================================
 // Entity Hierarchy: Organizations
-// All operations are scoped under /orgs/[orgId]
+// Organization management is scoped under /orgs/[orgId]
 // =============================================================================
 
 export const APP_ROUTES = {
@@ -104,6 +104,13 @@ export const APP_ROUTES = {
 	// ==========================================================================
 	// ACCOUNT ROUTES - User account management
 	// ==========================================================================
+	ACCOUNT_PROFILE: {
+		path: '/account/profile' as Route,
+		searchParams: {},
+		access: 'protected' as RouteAccessType,
+		context: 'schema-builder' as SchemaContext,
+	},
+
 	ACCOUNT_SETTINGS: {
 		path: '/account/settings' as Route,
 		searchParams: {
@@ -245,10 +252,10 @@ export function buildRoute<TRoute extends AppRouteKey>(
 }
 
 /**
- * Build an organization-scoped route URL.
- * Replaces [orgId] placeholder with actual ID.
+ * Build an organization-scoped route URL with the given org ID.
+ * Replaces [orgId] placeholder with the actual org ID.
  *
- * @param routeKey - The org route key from APP_ROUTES
+ * @param routeKey - The organization route key from APP_ROUTES
  * @param orgId - The organization ID
  * @param searchParams - Optional query parameters
  * @returns A typed Route string
@@ -444,6 +451,7 @@ export const ROUTE_PATHS = {
 	// Organizations routes
 	ORGANIZATIONS: APP_ROUTES.ORGANIZATIONS.path,
 	// Account routes
+	ACCOUNT_PROFILE: APP_ROUTES.ACCOUNT_PROFILE.path,
 	ACCOUNT_SETTINGS: APP_ROUTES.ACCOUNT_SETTINGS.path,
 	// Help routes
 	HELP_CENTER: APP_ROUTES.HELP_CENTER.path,

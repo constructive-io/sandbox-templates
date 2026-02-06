@@ -11,12 +11,11 @@
  * - No stale persisted state issues
  * - Type-safe with validation
  *
- * Entity Hierarchy: App (root) → Org → Database
+ * Entity Hierarchy: App (root) → Org
  *
  * Routes:
  * - `/` - Root level (organizations list)
  * - `/orgs/[orgId]/*` - Organization level
- * - `/orgs/[orgId]/databases/[databaseId]/*` - Database level
  */
 'use client';
 
@@ -25,13 +24,9 @@ import { useParams } from 'next/navigation';
 
 import {
 	useOrganizations,
-	useSchemaBuilderDataSelector,
 	type OrganizationWithRole,
 	type OrgRole,
-	type SchemaInfo,
 } from '@/lib/gql/hooks/schema-builder';
-
-// Database schema mapping removed - database functionality has been removed from the application
 
 /**
  * Organization type for entity params
@@ -54,7 +49,7 @@ export type { OrgRole };
 /**
  * Navigation level based on URL path params
  */
-export type NavigationLevel = 'root' | 'org' | 'database';
+export type NavigationLevel = 'root' | 'org';
 
 /**
  * Entity validation result
@@ -71,20 +66,15 @@ export interface EntityValidation {
 export interface UseEntityParamsResult {
 	// Current entity IDs from URL (null if not in URL)
 	orgId: string | null;
-	databaseId: string | null;
-	/** Schema key used by schema-builder selection (e.g. `db-${databaseId}`) */
-	databaseSchemaKey: string | null;
 
 	// Validated entity data (null if ID not in URL or invalid)
 	organization: Organization | null;
-	database: SchemaInfo | null;
 
 	// Navigation level derived from URL
 	level: NavigationLevel;
 
 	// Available entities for current context
 	availableOrgs: Organization[];
-	availableDatabases: SchemaInfo[];
 
 	// Validation state
 	validation: EntityValidation;
@@ -92,7 +82,6 @@ export interface UseEntityParamsResult {
 
 	// Helper to check if an entity ID is valid
 	isValidOrgId: (id: string) => boolean;
-	isValidDatabaseId: (id: string) => boolean;
 }
 
 /**
@@ -135,11 +124,6 @@ export function useEntityParams(): UseEntityParamsResult {
 
 	// Extract entity IDs from URL path params
 	const orgId = (params?.orgId as string) ?? null;
-	const databaseId = (params?.databaseId as string) ?? null;
-
-	// Get available databases from schema builder data provider
-	const availableSchemas = useSchemaBuilderDataSelector((state) => state.availableSchemas);
-	const isDatabasesLoading = useSchemaBuilderDataSelector((state) => state.isLoading);
 
 	// Get organizations from GraphQL
 	const { organizations: rawOrganizations, isLoading: isOrgsLoading } = useOrganizations();
@@ -153,72 +137,23 @@ export function useEntityParams(): UseEntityParamsResult {
 		return availableOrgs.find((org) => org.id === orgId) ?? null;
 	}, [orgId, availableOrgs]);
 
-	// Database validation removed - database functionality has been removed from the application
-	const database = useMemo(() => {
-		return null;
-	}, [databaseId, availableSchemas, orgId]);
-
-	// Database schema key always null since databases are removed
-	const databaseSchemaKey = useMemo(() => {
-		return null;
-	}, [databaseId]);
 
 	// Determine navigation level from URL
 	const level = useMemo((): NavigationLevel => {
-		if (databaseId) return 'database';
 		if (orgId) return 'org';
 		return 'root';
-	}, [orgId, databaseId]);
+	}, [orgId]);
 
 	// Validation helper functions
 	const isValidOrgId = useMemo(() => (id: string) => availableOrgs.some((org) => org.id === id), [availableOrgs]);
 
-	const isValidDatabaseId = useMemo(
-		() => (id: string) => availableSchemas.some((schema) => schema.databaseInfo?.id === id || schema.key === id),
-		[availableSchemas],
-	);
-
 	// Combined loading state
-	const isLoading = isDatabasesLoading || isOrgsLoading;
+	const isLoading = isOrgsLoading;
 
 	// Compute validation result
 	const validation = useMemo((): EntityValidation => {
 		// If no entity IDs in URL, we're at root level - always valid
-		if (!orgId && !databaseId) {
-			return { isValid: true };
-		}
-
-		// Validate database route
-		if (databaseId) {
-			// If org is present, enforce it exists and database belongs to it
-			if (orgId) {
-				// Wait for orgs to load before validating
-				if (!isOrgsLoading && !organization) {
-					return {
-						isValid: false,
-						redirectTo: '/',
-						error: `Organization "${orgId}" not found`,
-					};
-				}
-				// Wait for databases to load before validating database exists
-				if (!isDatabasesLoading && !database) {
-					return {
-						isValid: false,
-						redirectTo: `/orgs/${orgId}/members`,
-						error: `Database "${databaseId}" not found in organization`,
-					};
-				}
-				return { isValid: true };
-			}
-
-			// Database not found - redirect to root
-			if (!isDatabasesLoading && !database) {
-				return {
-					isValid: false,
-					redirectTo: '/',
-					error: `Database "${databaseId}" not found`,
-				};
-			}
+		if (!orgId) {
 			return { isValid: true };
 		}
 
@@ -236,24 +171,20 @@ export function useEntityParams(): UseEntityParamsResult {
 		}
 
 		return { isValid: true };
-	}, [orgId, databaseId, organization, database, isDatabasesLoading, isOrgsLoading]);
+	}, [orgId, organization, isOrgsLoading]);
 
 	return {
 		// Entity IDs from URL
 		orgId,
-		databaseId,
-		databaseSchemaKey,
 
 		// Validated entities
 		organization,
-		database,
 
 		// Navigation level
 		level,
 
 		// Available entities
 		availableOrgs,
-		availableDatabases: availableSchemas,
 
 		// Validation
 		validation,
@@ -261,6 +192,5 @@ export function useEntityParams(): UseEntityParamsResult {
 
 		// Helpers
 		isValidOrgId,
-		isValidDatabaseId,
 	};
 }

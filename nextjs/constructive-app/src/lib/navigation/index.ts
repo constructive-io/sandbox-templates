@@ -10,7 +10,19 @@ export {
 	type UseEntityParamsResult,
 } from './use-entity-params';
 
-// Database-related exports removed - database functionality has been removed from the application
+export {
+	findDatabaseSchemaByDatabaseId,
+	getSchemaKeyFromDatabaseId,
+	getDatabaseIdFromSchemaKey,
+	type DatabaseSchemaMatchOptions,
+} from './database-schema-mapping';
+
+export {
+	DATABASE_SECTION_ROUTE_KEYS,
+	getDatabaseRouteKeyFromSection,
+	getDatabaseSectionFromPathname,
+	type DatabaseSection,
+} from './database-route-section';
 
 // nuqs-based URL state hooks
 export {

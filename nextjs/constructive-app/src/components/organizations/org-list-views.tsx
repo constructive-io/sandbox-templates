@@ -158,7 +158,7 @@ export function OrgCard({ org, onClick, onEdit, onDelete, index }: OrgCardProps)
 
 				{/* Arrow indicator */}
 				<div className='border-border/30 flex items-center justify-between border-t pt-4'>
-					<span className='text-muted-foreground text-[11px] font-medium'>View Databases</span>
+					<span className='text-muted-foreground text-[11px] font-medium'>View Organization</span>
 					<ArrowRight
 						className={cn(
 							'text-muted-foreground/50 h-4 w-4 transition-all duration-200',
@@ -304,7 +304,7 @@ export function OrgListRow({ org, onClick, onEdit, onDelete, index }: OrgListRow
 									onClick();
 								}}
 							>
-								View databases
+								View organization
 							</DropdownMenuItem>
 							{onEdit && (
 								<DropdownMenuItem

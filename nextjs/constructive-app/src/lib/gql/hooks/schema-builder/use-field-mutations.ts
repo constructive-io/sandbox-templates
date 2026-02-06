@@ -4,7 +4,7 @@
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { cellTypeToBackendType, mapConstraintsToFieldPatch } from '@/lib/gql/schema-builder/field-constraints-mapper';
+import { cellTypeToBackendType, mapConstraintsToFieldPatch } from './transformers/field-constraints-mapper';
 import type { FieldDefinition } from '@/lib/schema';
 
 // SDK hooks for field mutations

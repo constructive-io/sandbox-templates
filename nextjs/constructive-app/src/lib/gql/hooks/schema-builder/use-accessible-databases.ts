@@ -25,8 +25,8 @@ import {
 	fetchFieldsQuery,
 	fetchSchemasQuery,
 	fetchTablesQuery,
+	fetchUsersQuery,
 } from '@sdk/api';
-import { fetchUsersQuery } from '@sdk/api';
 
 import { useOrganizations } from './organizations';
 import {

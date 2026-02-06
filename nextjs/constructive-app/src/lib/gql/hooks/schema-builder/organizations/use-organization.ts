@@ -10,8 +10,8 @@ import type { SchemaContext } from '@/app-config';
 import {
 	fetchUserQuery,
 	fetchUsersQuery,
+	fetchOrgMembershipsQuery,
 } from '@sdk/api';
-import { fetchOrgMembershipsQuery } from '@sdk/api';
 import { useAppStore, useShallow } from '@/store/app-store';
 
 import {

@@ -7,6 +7,7 @@ import { parseAsString, useQueryState } from 'nuqs';
 
 import { useSchemaBuilderSelectors, useVisualizerSchema } from '@/lib/gql/hooks/schema-builder';
 import { useShowSystemTablesInVisualizer } from '@/store/app-store';
+import { NoDatabasesEmptyState } from '@/components/databases';
 import {
 	ContentFadeIn,
 	SchemaBuilderSkeleton,
@@ -169,8 +170,11 @@ export function SchemasRoute() {
 					{/* Initial loading state - full page skeleton */}
 					{showSkeleton && !remoteSchemasError && <SchemaBuilderSkeleton />}
 
-					{/* Main content - only show when not in error/loading state */}
-					{!remoteSchemasError && !showSkeleton && (
+					{/* Empty state - show when no databases exist (but not during initial load or error) */}
+					{!remoteSchemasError && !showSkeleton && !hasDatabases && <NoDatabasesEmptyState />}
+
+					{/* Main content - only show when not in error/loading state AND has databases */}
+					{!remoteSchemasError && !showSkeleton && hasDatabases && (
 						<ContentFadeIn className='flex min-h-0 min-w-0 flex-1'>
 							{leftPanelVisible && <SchemaBuilderSidebar />}
 

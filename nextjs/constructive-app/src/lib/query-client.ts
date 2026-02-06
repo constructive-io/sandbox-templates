@@ -136,7 +136,11 @@ function handleGlobalAuthError(error: unknown, queryKey?: readonly unknown[]): v
 
 	// If we can't determine context, log and skip (don't blindly clear everything)
 	if (!context) {
-		logger.debug('Auth error detected but could not determine context from query key', { queryKey });
+		if (process.env.NODE_ENV === 'development') {
+			logger.warn('Auth error with unrecognized query key — this query won\'t trigger logout. Add context to the key.', { queryKey });
+		} else {
+			logger.debug('Auth error detected but could not determine context from query key', { queryKey });
+		}
 		return;
 	}
 

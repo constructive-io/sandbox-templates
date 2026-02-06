@@ -74,13 +74,8 @@ Keep these from `package.json`:
 
 ### ❌ Remove These Features
 
-1. **Database Management**
-   - Data grid components (`src/components/dashboard/data-grid/`)
-   - Table management UI
-   - Schema exploration
-   - Database connection features
-   - Cell registry, form registry for database types
-   - PostgreSQL type handling (`ast-adapter.ts`)
+1. **Database Management Submenu Under Organization page**
+   - All the databases sidebar content on single organization page
 
 2. **Complex State Management**
    - Remove `data-grid-slice.ts`
@@ -96,23 +91,12 @@ Keep these from `package.json`:
    - Seeding scripts (unless basic demo data)
    - GraphiQL devtool integration
 
-4. **Heavy Dependencies**
-   - `@glideapps/glide-data-grid` (canvas-based grid)
-   - `@xyflow/react` (flow diagrams)
-   - `react-leaflet`, `leaflet` (maps)
-   - `ace-builds`, `react-ace` (code editor)
-   - `pg-ast`, `pgsql-deparser` (PostgreSQL parsing)
-   - `introspectron` (schema introspection)
-   - `@dnd-kit/*` (drag and drop, unless needed for basic UI)
-   - `match-sorter` (advanced filtering)
-   - `inflection`, `pluralize` (unless needed for basic features)
-
-5. **Testing Infrastructure** 
+4. **Testing Infrastructure** 
    - Remove extensive test suites if they're database-specific
    - Keep basic component tests
    - Keep test setup but remove heavy test fixtures
 
-6. **Dev mode**
+5. **Dev mode**
    - Remove all dev mode related stuff
 
 ### ❌ Files/Directories to Remove

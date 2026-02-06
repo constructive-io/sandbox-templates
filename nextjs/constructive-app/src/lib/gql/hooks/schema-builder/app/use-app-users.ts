@@ -11,8 +11,8 @@ import {
 	type AppMembershipsQueryVariables,
 	fetchAppMembershipsQuery,
 	useUpdateAppMembershipMutation,
+	fetchUsersQuery,
 } from '@sdk/api';
-import { fetchUsersQuery } from '@sdk/api';
 
 interface ActorNode {
 	id: string;

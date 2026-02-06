@@ -17,8 +17,8 @@ import {
 	fetchSchemasQuery,
 	fetchTablesQuery,
 	fetchUniqueConstraintsQuery,
+	fetchUsersQuery,
 } from '@sdk/api';
-import { fetchUsersQuery } from '@sdk/api';
 
 import {
 	type DatabaseTableNode,

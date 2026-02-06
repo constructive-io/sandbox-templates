@@ -10,13 +10,11 @@ import {
 	detectSchemaContextFromPath,
 	getDefaultEndpoint,
 	getSchemaBuilderEndpoint,
-	getSchemaBuilderSubEndpoint,
 	getSchemaContext,
 	schemaBuilderGraphqlEndpoint,
 	schemaContexts,
 	setSchemaContext,
 	type DirectConnectConfig,
-	type SchemaBuilderSubEndpoint,
 	type SchemaContext,
 } from '../config-core';
 import {
@@ -154,57 +152,6 @@ describe('Runtime Configuration', () => {
 		});
 	});
 
-	describe('getSchemaBuilderSubEndpoint', () => {
-		it('returns per-sub-endpoint env var when set', () => {
-			(window as any).__RUNTIME_CONFIG__ = {
-				NEXT_PUBLIC_AUTH_GRAPHQL_ENDPOINT: 'http://auth.prod/graphql',
-			};
-			expect(getSchemaBuilderSubEndpoint('auth')).toBe('http://auth.prod/graphql');
-		});
-
-		it('falls back to main schema-builder endpoint when no sub-endpoint env', () => {
-			(window as any).__RUNTIME_CONFIG__ = {
-				NEXT_PUBLIC_SCHEMA_BUILDER_GRAPHQL_ENDPOINT: 'http://main.prod/graphql',
-			};
-			// admin has no per-sub env set, should use main
-			expect(getSchemaBuilderSubEndpoint('admin')).toBe('http://main.prod/graphql');
-		});
-
-		it('falls back to hardcoded default when no env vars set', () => {
-			(window as any).__RUNTIME_CONFIG__ = {};
-			const result = getSchemaBuilderSubEndpoint('app-public');
-			const buildTimeValue = BUILD_TIME_ENV_VALUES['NEXT_PUBLIC_SCHEMA_BUILDER_GRAPHQL_ENDPOINT'];
-			expect(result).toBe(buildTimeValue || DEFAULT_SCHEMA_BUILDER_ENDPOINT);
-		});
-
-		it('per-sub env takes priority over main endpoint', () => {
-			(window as any).__RUNTIME_CONFIG__ = {
-				NEXT_PUBLIC_SCHEMA_BUILDER_GRAPHQL_ENDPOINT: 'http://main.prod/graphql',
-				NEXT_PUBLIC_ADMIN_GRAPHQL_ENDPOINT: 'http://admin.prod/graphql',
-			};
-			expect(getSchemaBuilderSubEndpoint('admin')).toBe('http://admin.prod/graphql');
-			// auth still falls back to main
-			expect(getSchemaBuilderSubEndpoint('auth')).toBe('http://main.prod/graphql');
-		});
-
-		it('api sub-endpoint reuses the legacy SCHEMA_BUILDER key', () => {
-			(window as any).__RUNTIME_CONFIG__ = {
-				NEXT_PUBLIC_SCHEMA_BUILDER_GRAPHQL_ENDPOINT: 'http://legacy.api/graphql',
-			};
-			expect(getSchemaBuilderSubEndpoint('api')).toBe('http://legacy.api/graphql');
-		});
-
-		it('resolves all four sub-endpoints', () => {
-			(window as any).__RUNTIME_CONFIG__ = {};
-			const subs: SchemaBuilderSubEndpoint[] = ['app-public', 'auth', 'admin', 'api'];
-			for (const sub of subs) {
-				const result = getSchemaBuilderSubEndpoint(sub);
-				expect(typeof result).toBe('string');
-				expect(result.length).toBeGreaterThan(0);
-			}
-		});
-	});
-
 	describe('Endpoint Priority: Docker runtime > Build-time > Default', () => {
 		it('Docker runtime takes precedence', () => {
 			(window as any).__RUNTIME_CONFIG__ = {
@@ -323,7 +270,7 @@ describe('Runtime Configuration', () => {
 
 	describe('RUNTIME_CONFIG_KEYS', () => {
 		it('has expected structure', () => {
-			expect(RUNTIME_CONFIG_KEYS.length).toBe(24);
+			expect(RUNTIME_CONFIG_KEYS.length).toBe(21);
 			expect(new Set(RUNTIME_CONFIG_KEYS).size).toBe(RUNTIME_CONFIG_KEYS.length); // No duplicates
 			for (const key of RUNTIME_CONFIG_KEYS) {
 				expect(key.startsWith('NEXT_PUBLIC_')).toBe(true);

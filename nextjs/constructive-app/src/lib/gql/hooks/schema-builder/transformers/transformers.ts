@@ -6,7 +6,7 @@ import type {
 	PrimaryKeyConstraint,
 	UniqueConstraint,
 	UserDatabase,
-} from '@/lib/gql/hooks/schema-builder/use-user-databases';
+} from '../use-user-databases';
 import { mapToFrontendCellType } from '@/lib/gql/type-mapping';
 import type { CellType } from '@/lib/types/cell-types';
 import type {

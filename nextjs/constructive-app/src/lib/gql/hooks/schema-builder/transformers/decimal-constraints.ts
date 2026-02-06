@@ -144,7 +144,7 @@ function parseConstraintExpression(node: any, result: { precision?: number; scal
 	if (!innerFuncCall) return;
 
 	const innerFuncName = innerFuncCall.funcname?.[0]?.String?.sval;
-	
+
 	// Get the constraint value (ival)
 	const constraintValue = rexprConst.ival?.ival;
 	if (typeof constraintValue !== 'number') return;

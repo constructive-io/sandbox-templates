@@ -1,10 +1,8 @@
 import {
 	appEndpoints,
 	getDefaultEndpoint,
-	getSchemaBuilderSubEndpoint,
 	getSchemaContext as coreGetCtx,
 	setSchemaContext as coreSetCtx,
-	type SchemaBuilderSubEndpoint,
 	type SchemaContext,
 } from '@/lib/runtime/config-core';
 import { createLogger } from '@/lib/logger';
@@ -12,7 +10,7 @@ import { useAppStore } from '@/store/app-store';
 import type { AppState } from '@/store/app-store';
 
 export { detectSchemaContextFromPath } from '@/lib/runtime/config-core';
-export type { SchemaBuilderSubEndpoint, SchemaContext } from '@/lib/runtime/config-core';
+export type { SchemaContext } from '@/lib/runtime/config-core';
 
 export const setSchemaContext = coreSetCtx;
 export const getSchemaContext = coreGetCtx;
@@ -74,28 +72,6 @@ export function getEndpoint(ctx: SchemaContext = getSchemaContext()): string | n
 	});
 
 	return endpoint;
-}
-
-/**
- * Get the effective endpoint for a schema-builder sub-endpoint.
- *
- * When the schema-builder UI override is set, ALL sub-endpoints use that override
- * (user is pointing at a different server where a single endpoint exposes everything).
- * Otherwise falls back to per-sub-endpoint resolution (runtime config → env → default).
- */
-export function getSubEndpoint(sub: SchemaBuilderSubEndpoint): string {
-	// If schema-builder has a UI override, use it for all sub-endpoints
-	try {
-		const state: AppState = useAppStore.getState();
-		const o = state.endpointOverrides?.['schema-builder'];
-		if (o && o.trim().length) {
-			return o.trim();
-		}
-	} catch {
-		// Store not available yet
-	}
-
-	return getSchemaBuilderSubEndpoint(sub);
 }
 
 export const homePathByContext: Record<SchemaContext, string> = {

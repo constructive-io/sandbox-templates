@@ -25,7 +25,7 @@ function BreadcrumbSeparator() {
 }
 
 export function TopBar({ config, sidebarWidth = 56, className }: TopBarProps) {
-	const { sidebarLogo, entityLevels, databaseSwitcher, status, search, actions } = config;
+	const { sidebarLogo, entityLevels, status, search, actions } = config;
 
 	// Filter to only show levels that have an active entity or are the first level
 	const visibleLevels = entityLevels.filter((level, index) => {
@@ -34,10 +34,6 @@ export function TopBar({ config, sidebarWidth = 56, className }: TopBarProps) {
 		const prevLevel = entityLevels[index - 1];
 		return prevLevel?.activeEntityId != null;
 	});
-
-	// Check if we should show the database switcher (after last visible entity level)
-	const showDatabaseSwitcher =
-		databaseSwitcher && (visibleLevels.length === 0 || visibleLevels[visibleLevels.length - 1]?.activeEntityId != null);
 
 	return (
 		<header className={cn('bg-background flex h-12 items-center border-b', 'transition-all duration-200', className)}>
@@ -60,12 +56,9 @@ export function TopBar({ config, sidebarWidth = 56, className }: TopBarProps) {
 				{visibleLevels.map((level, index) => (
 					<React.Fragment key={level.id}>
 						<EntitySwitcher level={level} size='sm' />
-						{(index < visibleLevels.length - 1 || showDatabaseSwitcher) && <BreadcrumbSeparator />}
+						{index < visibleLevels.length - 1 && <BreadcrumbSeparator />}
 					</React.Fragment>
 				))}
-
-				{/* Database switcher (after entity levels) */}
-				{showDatabaseSwitcher && databaseSwitcher}
 
 				{/* Status badge */}
 				{status && <StatusBadge label={status.label} variant={status.variant} />}

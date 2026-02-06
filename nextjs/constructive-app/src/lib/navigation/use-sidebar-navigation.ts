@@ -25,17 +25,14 @@ export interface UseSidebarNavigationResult {
 	navigation: NavGroup[];
 	/** Active organization ID from URL params */
 	activeOrgId: string | null;
-	/** Active database ID from URL params */
-	activeDatabaseId: string | null;
 }
 
 /**
  * Hook to determine the current navigation level and return appropriate sidebar config
  *
  * Level detection is URL-BASED for robust, shareable state:
- * - Entity hierarchy: App (root) → Org → Database
- * - If databaseId in URL → 'database' level
- * - Else if orgId in URL → 'org' level
+ * - Entity hierarchy: App (root) → Org
+ * - If orgId in URL → 'org' level
  * - Else → 'root' level
  *
  * This ensures the sidebar reflects the current URL context.
@@ -46,7 +43,7 @@ export function useSidebarNavigation(options: UseSidebarNavigationOptions = {}):
 	const { isAppAdmin, onLogout, settingsRender } = options;
 
 	// Get entity IDs and level from URL params (source of truth)
-	const { orgId, databaseId, level } = useEntityParams();
+	const { orgId, level } = useEntityParams();
 
 	// Create the route active checker
 	const checkRouteActive = useMemo(
@@ -62,17 +59,15 @@ export function useSidebarNavigation(options: UseSidebarNavigationOptions = {}):
 			onLogout,
 			settingsRender,
 			activeOrgId: orgId ?? undefined,
-			activeDatabaseId: databaseId ?? undefined,
 			isRouteActive: checkRouteActive,
 		};
 
 		return getSidebarConfig(level, configOptions);
-	}, [level, pathname, isAppAdmin, onLogout, settingsRender, orgId, databaseId, checkRouteActive]);
+	}, [level, pathname, isAppAdmin, onLogout, settingsRender, orgId, checkRouteActive]);
 
 	return {
 		level,
 		navigation,
 		activeOrgId: orgId,
-		activeDatabaseId: databaseId,
 	};
 }

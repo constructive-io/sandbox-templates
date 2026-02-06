@@ -81,7 +81,7 @@ export {
 // The new selectors read directly from React Query, deriving all state.
 
 // Domain hooks - MIGRATED to SDK
-// Use directly from @sdk/{target}:
+// Use directly from @sdk/api:
 // - useDomainsQuery, useDomainQuery
 // - useCreateDomainMutation, useUpdateDomainMutation, useDeleteDomainMutation
 // - domainKeys (from query-keys.ts), invalidate.domain (from invalidation.ts)

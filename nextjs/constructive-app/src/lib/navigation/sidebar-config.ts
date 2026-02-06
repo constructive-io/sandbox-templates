@@ -1,12 +1,8 @@
 import {
 	RiAccountCircleLine,
-	RiDatabase2Line,
 	RiMailLine,
 	RiOrganizationChart,
-	RiServerLine,
 	RiSettings3Line,
-	RiShieldCheckLine,
-	RiTableLine,
 	RiTeamLine,
 	RiUserLine,
 	RiUserSettingsLine,
@@ -19,9 +15,8 @@ import { APP_ROUTES } from '@/app-routes';
  * Navigation level based on entity context
  * - root: No organization selected (app-level view)
  * - org: Organization selected (org-level view)
- * - database: Database selected within an organization
  */
-export type NavigationLevel = 'root' | 'org' | 'database';
+export type NavigationLevel = 'root' | 'org';
 
 export interface SidebarConfigOptions {
 	/** Current pathname for active state detection */
@@ -34,8 +29,6 @@ export interface SidebarConfigOptions {
 	settingsRender?: React.ReactNode;
 	/** Active organization ID (for building org-specific routes) */
 	activeOrgId?: string;
-	/** Active database ID (for building database-specific routes) */
-	activeDatabaseId?: string;
 	/** Function to check if a route is active */
 	isRouteActive?: (routeKey: string) => boolean;
 }
@@ -106,6 +99,13 @@ function getRootNavigation(options: SidebarConfigOptions): NavGroup[] {
 		position: 'top',
 		items: [
 			{
+				id: 'account-profile',
+				label: 'Profile',
+				icon: RiAccountCircleLine,
+				href: APP_ROUTES.ACCOUNT_PROFILE.path,
+				isActive: isRouteActive?.('ACCOUNT_PROFILE'),
+			},
+			{
 				id: 'account-settings',
 				label: 'Account',
 				icon: RiUserSettingsLine,
@@ -119,8 +119,8 @@ function getRootNavigation(options: SidebarConfigOptions): NavGroup[] {
 }
 
 /**
- * Get navigation items for the ORG level (org selected, no database)
- * Shows: Databases, Members, Invites, Settings
+ * Get navigation items for the ORG level (org selected)
+ * Shows: Members, Invites, Settings
  * Account actions are in the top bar UserDropdown.
  */
 function getOrgNavigation(options: SidebarConfigOptions): NavGroup[] {
@@ -163,89 +163,6 @@ function getOrgNavigation(options: SidebarConfigOptions): NavGroup[] {
 }
 
 /**
- * Get navigation items for the DATABASE level (database selected within an org)
- * Shows: Data, Schemas, Services, Security, Settings
- * Routes are scoped under /orgs/[orgId]/databases/[databaseId]/...
- * Account actions are in the top bar UserDropdown.
- */
-function getDatabaseNavigation(options: SidebarConfigOptions): NavGroup[] {
-	const { settingsRender, activeOrgId, activeDatabaseId, pathname } = options;
-
-	// Build database-specific paths under org context
-	const basePath = activeOrgId && activeDatabaseId ? `/orgs/${activeOrgId}/databases/${activeDatabaseId}` : '';
-
-	// Check if a database route is active by matching the pathname pattern
-	const isDatabaseRouteActive = (route: 'data' | 'schemas' | 'services' | 'security' | 'settings') => {
-		if (!basePath) return false;
-		const pattern = new RegExp(`^/orgs/[^/]+/databases/[^/]+/${route}`);
-		return pattern.test(pathname);
-	};
-
-	const mainItems: NavItem[] = [
-		{
-			id: 'data',
-			label: 'Data',
-			icon: RiDatabase2Line,
-			href: `${basePath}/data`,
-			isActive: isDatabaseRouteActive('data'),
-		},
-		{
-			id: 'schemas',
-			label: 'Schemas',
-			icon: RiTableLine,
-			href: `${basePath}/schemas`,
-			isActive: isDatabaseRouteActive('schemas'),
-		},
-		{
-			id: 'services',
-			label: 'Services',
-			icon: RiServerLine,
-			href: `${basePath}/services`,
-			isActive: isDatabaseRouteActive('services'),
-		},
-		{
-			id: 'security',
-			label: 'Security',
-			icon: RiShieldCheckLine,
-			href: `${basePath}/security`,
-			isActive: isDatabaseRouteActive('security'),
-		},
-	];
-
-	const groups: NavGroup[] = [
-		{
-			id: 'main',
-			position: 'top',
-			items: mainItems,
-		},
-	];
-
-	// Settings with optional custom render (e.g., RuntimeEndpointsDialog)
-	const settingsItem: NavItem = settingsRender
-		? {
-				id: 'settings',
-				label: 'Settings',
-				icon: RiSettings3Line,
-				render: settingsRender,
-			}
-		: {
-				id: 'settings',
-				label: 'Settings',
-				icon: RiSettings3Line,
-				href: `${basePath}/settings`,
-				isActive: isDatabaseRouteActive('settings'),
-			};
-
-	groups.push({
-		id: 'footer',
-		position: 'bottom',
-		items: [settingsItem],
-	});
-
-	return groups;
-}
-
-/**
  * Get sidebar navigation configuration based on the current level
  * Default case returns root navigation as a safe fallback
  */
@@ -255,8 +172,6 @@ export function getSidebarConfig(level: NavigationLevel, options: SidebarConfigO
 			return getRootNavigation(options);
 		case 'org':
 			return getOrgNavigation(options);
-		case 'database':
-			return getDatabaseNavigation(options);
 		default:
 			// Default to root navigation as the safest fallback
 			// This ensures users see the organizations list if level is somehow undefined

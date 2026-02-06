@@ -1,5 +1,5 @@
 // API mutation hooks - MIGRATED to SDK
-// Use directly from @sdk/{target}:
+// Use directly from @sdk/api:
 // - useCreateApiMutation, useUpdateApiMutation, useDeleteApiMutation
 // - useCreateApiSchemaMutation
 // For cache invalidation, use apiQueryKeys from this file

@@ -13,8 +13,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 
 import type { SchemaContext } from '@/app-config';
-import { useCreateUserMutation } from '@sdk/api';
-import { fetchOrgMembershipsQuery } from '@sdk/api';
+import { useCreateUserMutation, fetchOrgMembershipsQuery } from '@sdk/api';
 import { prepareCreateInput } from '@/lib/gql/mutation-input';
 
 import { ROLE_TYPE, type Organization } from './organization.types';
@@ -77,7 +76,7 @@ export interface UseCreateOrganizationResult {
  * const { createOrganization, isCreating, error } = useCreateOrganization({
  *   onSuccess: (result) => {
  *     toast.success(`Created ${result.organization.displayName}`);
- *     router.push(`/orgs/${result.organization.id}/members`);
+ *     router.push(`/orgs/${result.organization.id}/databases`);
  *   },
  * });
  *
