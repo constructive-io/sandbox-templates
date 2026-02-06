@@ -1,18 +1,8 @@
 /**
  * Authentication hooks
  *
- * Two separate implementations:
- * - Schema-builder: SDK-generated mutations (codegen'd from api.localhost)
- * - Dashboard: Manual GraphQL queries (dynamic schema per database)
- *
- * Components should import the specific hooks they need:
- *   import { useLoginSb } from '@/lib/gql/hooks/auth';        // Schema-builder pages
- *   import { useLoginDashboard } from '@/lib/gql/hooks/auth'; // Dashboard pages
+ * Uses SDK-generated mutations (codegen'd from api.localhost)
  */
-
-// ============================================================================
-// Schema-builder hooks (SDK-based, for app-level auth)
-// ============================================================================
 
 export {
 	useLoginSb,
@@ -27,28 +17,7 @@ export {
 	useSubmitOrgInviteCodeSb,
 } from './schema-builder';
 
-// ============================================================================
-// Dashboard hooks (manual queries, for per-database auth)
-// ============================================================================
-
-export {
-	useLoginDashboard,
-	useRegisterDashboard,
-	useLogoutDashboard,
-	useExtendTokenDashboard,
-	useForgotPasswordDashboard,
-	useResetPasswordDashboard,
-	useSendVerificationEmailDashboard,
-	useVerifyEmailDashboard,
-} from './dashboard';
-
-// ============================================================================
-// Default exports for app-level pages (schema-builder context)
-// ============================================================================
-
-// These are the hooks used by /login, /register, /forgot-password, etc.
-// They target the schema-builder endpoint
-// TODO: will solely rely on the auth.<base> endpoint in the future
+// Default exports for app-level pages
 export { useLoginSb as useLogin } from './schema-builder';
 export { useRegisterSb as useRegister } from './schema-builder';
 export { useLogoutSb as useLogout } from './schema-builder';

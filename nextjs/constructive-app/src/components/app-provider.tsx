@@ -7,7 +7,6 @@ import { getEndpoint } from '@/app-config';
 import { getAuthHeaders } from '@/graphql/execute';
 import { configure } from '@sdk/api';
 import { AuthProvider } from '@/lib/auth/auth-context';
-import { SchemaBuilderDataProvider } from '@/lib/gql/hooks/schema-builder';
 import { queryClient } from '@/lib/query-client';
 
 // Initialize the SDK client at module load time (before any queries can fire).
@@ -22,9 +21,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 	return (
 		<QueryClientProvider client={queryClient}>
 			<AuthProvider>
-				<NuqsAdapter>
-					<SchemaBuilderDataProvider>{children}</SchemaBuilderDataProvider>
-				</NuqsAdapter>
+				<NuqsAdapter>{children}</NuqsAdapter>
 			</AuthProvider>
 		</QueryClientProvider>
 	);

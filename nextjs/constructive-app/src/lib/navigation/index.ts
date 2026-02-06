@@ -10,20 +10,6 @@ export {
 	type UseEntityParamsResult,
 } from './use-entity-params';
 
-export {
-	findDatabaseSchemaByDatabaseId,
-	getSchemaKeyFromDatabaseId,
-	getDatabaseIdFromSchemaKey,
-	type DatabaseSchemaMatchOptions,
-} from './database-schema-mapping';
-
-export {
-	DATABASE_SECTION_ROUTE_KEYS,
-	getDatabaseRouteKeyFromSection,
-	getDatabaseSectionFromPathname,
-	type DatabaseSection,
-} from './database-route-section';
-
 // nuqs-based URL state hooks
 export {
 	useTableSelection,

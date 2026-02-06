@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils';
 import { useSchemaBuilderAuth, useSidebarPinned, useSidebarPinnedActions } from '@/store/app-store';
 import { AppShell } from '@/components/app-shell/app-shell';
 import type { EntityLevel, TopBarConfig } from '@/components/app-shell/app-shell.types';
-import { UserDropdown } from '@/components/dashboard/user-dropdown';
+import { UserDropdown } from '@/components/app-shell/user-dropdown';
 import { ConstructiveIcon } from '@/components/icons/constructive-icon';
 import { ConstructiveLogo } from '@/components/icons/constructive-logo';
 import { CreateOrganizationCard } from '@/components/organizations/create-organization-card';

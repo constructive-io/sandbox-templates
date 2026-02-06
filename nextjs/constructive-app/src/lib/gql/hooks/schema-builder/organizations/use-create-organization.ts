@@ -14,7 +14,6 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import type { SchemaContext } from '@/app-config';
 import { useCreateUserMutation, fetchOrgMembershipsQuery } from '@sdk/api';
-import { prepareCreateInput } from '@/lib/gql/mutation-input';
 
 import { ROLE_TYPE, type Organization } from './organization.types';
 import { organizationsQueryKeys } from './use-organizations';
@@ -101,11 +100,11 @@ export function useCreateOrganization(options: UseCreateOrganizationOptions = {}
 	const createOrganization = async (input: CreateOrganizationInput): Promise<CreateOrganizationResult> => {
 		// Step 1: Create User as Organization
 		// The database trigger `membership_mbr_create` automatically creates owner membership
-		const userInput = prepareCreateInput({
+		const userInput: Record<string, unknown> = {
 			displayName: input.displayName,
-			username: input.username,
 			type: ROLE_TYPE.ORGANIZATION,
-		});
+		};
+		if (input.username) userInput.username = input.username;
 		const userResult = await createUserMutation.mutateAsync({
 			input: { user: userInput },
 		});
