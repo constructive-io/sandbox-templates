@@ -3,7 +3,7 @@
  * Tier 4 wrapper: adds table selection handling after deletion
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useDeleteTableMutation } from '@sdk/app-public';
+import { useDeleteTableMutation } from '@sdk/api';
 
 import { invalidateDatabaseEntities } from './modules/invalidate-database-entities';
 import { useSchemaBuilderSelectors } from './use-schema-builder-selectors';

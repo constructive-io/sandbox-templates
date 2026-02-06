@@ -5,7 +5,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 
-import { fetchSitesQuery } from '@sdk/app-public';
+import { fetchSitesQuery } from '@sdk/api';
 
 import { siteQueryKeys } from './use-sites';
 

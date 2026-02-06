@@ -25,7 +25,7 @@ import {
 	fetchIndicesQuery,
 	fetchPrimaryKeyConstraintsQuery,
 	fetchUniqueConstraintsQuery,
-} from '@sdk/app-public';
+} from '@sdk/api';
 
 // Constraint types
 export interface PrimaryKeyConstraint {

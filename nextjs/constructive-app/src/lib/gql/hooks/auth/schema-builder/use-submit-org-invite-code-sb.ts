@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 
-import { useSubmitOrgInviteCodeMutation } from '@sdk/auth';
+import { useSubmitOrgInviteCodeMutation } from '@sdk/api';
 
 /**
  * Schema-builder submit org invite code hook using SDK-generated mutation

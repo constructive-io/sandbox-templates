@@ -5,7 +5,7 @@ import {
 	useCreateOrgInviteMutation,
 	useDeleteOrgInviteMutation,
 	useUpdateOrgInviteMutation,
-} from '@sdk/admin';
+} from '@sdk/api';
 
 import { orgInvitesQueryKeys } from './use-org-invites';
 

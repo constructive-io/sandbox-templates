@@ -5,7 +5,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { useAppStore, useShallow } from '@/store/app-store';
-import { useCreateDatabaseProvisionModuleMutation } from '@sdk/app-public';
+import { useCreateDatabaseProvisionModuleMutation } from '@sdk/api';
 
 import { invalidateDatabaseEntities } from './modules/invalidate-database-entities';
 import { useSchemaBuilderSelectors } from './use-schema-builder-selectors';

@@ -8,7 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import {
 	fetchSitesQuery,
 	type Site,
-} from '@sdk/app-public';
+} from '@sdk/api';
 
 export const siteQueryKeys = {
 	all: ['sites'] as const,

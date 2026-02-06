@@ -3,11 +3,11 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { execute } from '@sdk/auth';
+import { execute } from '@sdk/api';
 
 import { useResetPassword } from '../auth';
 
-vi.mock('@sdk/auth/hooks/client');
+vi.mock('@sdk/api/hooks/client');
 
 const mockExecute = execute as ReturnType<typeof vi.fn>;
 

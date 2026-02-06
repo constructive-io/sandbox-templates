@@ -8,7 +8,7 @@
  * The SDK types are the source of truth for the auth schema.
  */
 
-import type { SignInRecord } from '@sdk/auth';
+import type { SignInRecord } from '@sdk/api';
 
 // Re-export shared utilities and types
 export { toApiToken } from '@/lib/auth/token-utils';
@@ -16,7 +16,7 @@ export type { ApiToken } from '@/store/auth-slice';
 
 // Use SDK's SignInRecord as the canonical auth result type
 // SignUpRecord has the same shape
-export type { SignInRecord as AuthResultRecord } from '@sdk/auth';
+export type { SignInRecord as AuthResultRecord } from '@sdk/api';
 
 // Local alias for use within this file
 type AuthResultRecord = SignInRecord;

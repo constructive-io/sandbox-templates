@@ -9,7 +9,7 @@ import {
 	userQueryKey,
 	useUpdateUserMutation,
 	useUserQuery,
-} from '@sdk/auth';
+} from '@sdk/api';
 import { useAppStore, useShallow } from '@/store/app-store';
 
 // TODO: Backend migration removed userProfile and emailsByOwnerId from User type

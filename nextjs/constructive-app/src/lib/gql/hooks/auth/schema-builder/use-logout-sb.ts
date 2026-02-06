@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { TokenManager } from '@/lib/auth/token-manager';
 import { useAuthActions } from '@/store/app-store';
 import { ROUTE_PATHS } from '@/app-routes';
-import { useSignOutMutation } from '@sdk/auth';
+import { useSignOutMutation } from '@sdk/api';
 
 import { authKeys } from '../../query-keys';
 

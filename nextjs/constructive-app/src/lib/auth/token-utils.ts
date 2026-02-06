@@ -1,5 +1,5 @@
 import type { ApiToken } from '@/store/auth-slice';
-import type { SignInRecord, SignUpRecord } from '@sdk/auth';
+import type { SignInRecord, SignUpRecord } from '@sdk/api';
 
 /**
  * Sign-in/sign-up result record type.

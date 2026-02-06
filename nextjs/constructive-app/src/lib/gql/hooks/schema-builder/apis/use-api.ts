@@ -5,7 +5,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 
-import { fetchApiByDatabaseIdAndNameQuery } from '@sdk/app-public';
+import { fetchApiByDatabaseIdAndNameQuery } from '@sdk/api';
 
 import { apiQueryKeys } from './use-apis';
 

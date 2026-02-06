@@ -68,7 +68,6 @@ function documentToString(document: ExecutableDocument): string {
 export function getAuthHeaders(ctx: SchemaContext = getSchemaContext(), scope?: string): Record<string, string> {
 	const state = useAppStore.getState();
 	if (shouldBypassAuth(ctx, state.directConnect)) {
-		logger.debug('getAuthHeaders: auth bypassed', { ctx, scope });
 		return {};
 	}
 
@@ -79,23 +78,11 @@ export function getAuthHeaders(ctx: SchemaContext = getSchemaContext(), scope?: 
 
 	const { token } = TokenManager.getToken(ctx, effectiveScope);
 
-	logger.debug('getAuthHeaders: token retrieval', {
-		ctx,
-		scope,
-		effectiveScope,
-		hasToken: !!token,
-		tokenId: token?.id,
-		isExpired: token ? TokenManager.isTokenExpired(token) : null,
-	});
-
 	if (token) {
 		const isExpired = TokenManager.isTokenExpired(token);
 		if (!isExpired) {
 			return { Authorization: TokenManager.formatAuthHeader(token) };
 		}
-		logger.warn('getAuthHeaders: token expired', { ctx, scope, tokenId: token.id });
-	} else {
-		logger.warn('getAuthHeaders: no token found', { ctx, scope, effectiveScope });
 	}
 
 	return {};

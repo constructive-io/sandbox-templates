@@ -34,7 +34,7 @@ import {
 import {
 	useDeleteOrgMembershipMutation,
 	useUpdateOrgMembershipMutation,
-} from '@sdk/admin';
+} from '@sdk/api';
 import { useAppStore, useShallow } from '@/store/app-store';
 
 import { RoleBadge } from './role-badge';

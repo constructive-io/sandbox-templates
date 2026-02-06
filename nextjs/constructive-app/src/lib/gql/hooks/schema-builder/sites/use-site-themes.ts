@@ -5,7 +5,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 
-import { fetchSiteThemesQuery } from '@sdk/app-public';
+import { fetchSiteThemesQuery } from '@sdk/api';
 
 export const siteThemeQueryKeys = {
 	all: ['site-themes'] as const,

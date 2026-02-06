@@ -3,7 +3,7 @@
  * Tier 4 wrapper: adds table re-selection after update
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useUpdateTableMutation } from '@sdk/app-public';
+import { useUpdateTableMutation } from '@sdk/api';
 
 import { invalidateDatabaseEntities } from './modules/invalidate-database-entities';
 import { useSchemaBuilderSelectors } from './use-schema-builder-selectors';

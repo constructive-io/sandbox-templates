@@ -3,14 +3,14 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { execute } from '@sdk/auth';
+import { execute } from '@sdk/api';
 import { TokenManager } from '@/lib/auth/token-manager';
 import { useAppStore, useAuth, useAuthActions } from '@/store/app-store';
 
 import { useExtendToken } from '../auth';
 
 // Mock dependencies
-vi.mock('@sdk/auth/hooks/client');
+vi.mock('@sdk/api/hooks/client');
 vi.mock('@/lib/auth/token-manager');
 vi.mock('@/store/app-store');
 

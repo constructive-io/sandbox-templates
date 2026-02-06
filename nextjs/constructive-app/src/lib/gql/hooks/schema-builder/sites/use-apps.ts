@@ -5,7 +5,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 
-import { fetchAppsQuery } from '@sdk/app-public';
+import { fetchAppsQuery } from '@sdk/api';
 
 export const appQueryKeys = {
 	all: ['apps'] as const,

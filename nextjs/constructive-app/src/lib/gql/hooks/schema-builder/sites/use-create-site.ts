@@ -12,7 +12,7 @@ import {
 	createSiteMutationDocument,
 	type CreateSiteMutationResult,
 	type CreateSiteMutationVariables,
-} from '@sdk/app-public';
+} from '@sdk/api';
 
 import { siteQueryKeys } from './use-sites';
 

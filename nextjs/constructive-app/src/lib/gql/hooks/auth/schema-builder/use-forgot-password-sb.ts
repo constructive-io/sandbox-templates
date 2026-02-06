@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 
-import { useForgotPasswordMutation } from '@sdk/auth';
+import { useForgotPasswordMutation } from '@sdk/api';
 
 import { authKeys } from '../../query-keys';
 

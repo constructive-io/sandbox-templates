@@ -5,7 +5,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 
-import { fetchApiSchemasQuery } from '@sdk/app-public';
+import { fetchApiSchemasQuery } from '@sdk/api';
 
 export const apiSchemaQueryKeys = {
 	all: ['api-schemas'] as const,

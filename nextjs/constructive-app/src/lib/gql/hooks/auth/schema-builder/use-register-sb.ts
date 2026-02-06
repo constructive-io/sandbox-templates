@@ -12,7 +12,7 @@ import {
 	fetchAppMembershipByActorIdQuery,
 	useSendVerificationEmailMutation,
 	useSignUpMutation,
-} from '@sdk/auth';
+} from '@sdk/api';
 
 import { authKeys } from '../../query-keys';
 

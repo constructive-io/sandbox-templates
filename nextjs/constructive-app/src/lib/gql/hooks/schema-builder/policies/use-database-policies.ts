@@ -9,7 +9,7 @@ import {
 	fetchPoliciesQuery,
 	fetchSchemasQuery,
 	fetchTablesQuery,
-} from '@sdk/app-public';
+} from '@sdk/api';
 
 interface FieldNode {
 	id: string;

@@ -3,7 +3,7 @@
  * Tier 4 wrapper: adds auto-grant permissions and table selection
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useCreateTableMutation } from '@sdk/app-public';
+import { useCreateTableMutation } from '@sdk/api';
 
 import { invalidateDatabaseEntities } from './modules/invalidate-database-entities';
 import { useSchemaBuilderSelectors } from './use-schema-builder-selectors';

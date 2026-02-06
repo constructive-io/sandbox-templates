@@ -5,7 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { TokenManager } from '@/lib/auth/token-manager';
 import { useAuthActions } from '@/store/app-store';
 import { getHomePath } from '@/app-config';
-import { useDeleteUserMutation } from '@sdk/auth';
+import { useDeleteUserMutation } from '@sdk/api';
 
 import { authKeys } from '../../query-keys';
 

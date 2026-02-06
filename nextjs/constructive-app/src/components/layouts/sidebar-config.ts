@@ -189,6 +189,13 @@ export function getSidebarNavigation(params: SidebarConfigParams): NavGroup[] {
 				position: 'top',
 				items: [
 					{
+						id: 'profile',
+						label: 'Profile',
+						icon: RiUserLine,
+						href: '/account/profile',
+						isActive: isActive(pathname, '/account/profile'),
+					},
+					{
 						id: 'settings',
 						label: 'Settings',
 						icon: RiSettings3Line,

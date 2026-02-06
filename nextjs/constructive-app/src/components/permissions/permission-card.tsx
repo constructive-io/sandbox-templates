@@ -13,7 +13,7 @@ import {
 	useCreateOrgPermissionMutation,
 	useUpdateAppPermissionMutation,
 	useUpdateOrgPermissionMutation,
-} from '@sdk/admin';
+} from '@sdk/api';
 
 import { PermissionItem, PermissionType } from './permissions.types';
 

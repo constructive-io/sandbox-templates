@@ -3,7 +3,7 @@
  * Tier 4 wrapper: uses SDK + transform + custom cache invalidation
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useCreateFieldMutation } from '@sdk/app-public';
+import { useCreateFieldMutation } from '@sdk/api';
 import { databasePoliciesQueryKeys } from './use-database-policies';
 
 export type PolicyFieldType = 'uuid' | 'uuid[]' | 'timestamptz' | 'boolean';

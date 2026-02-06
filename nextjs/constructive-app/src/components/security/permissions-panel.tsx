@@ -20,7 +20,7 @@ import { cn } from '@/lib/utils';
 import {
 	useDeleteAppPermissionMutation,
 	useDeleteOrgPermissionMutation,
-} from '@sdk/admin';
+} from '@sdk/api';
 
 import { PermissionCard } from '../permissions/permission-card';
 import { PermissionItem, PermissionType } from '../permissions/permissions.types';
@@ -108,8 +108,8 @@ export function PermissionsPanel({ permissionsData, isLoading, onRefetch }: Perm
 	return (
 		<div className='space-y-5'>
 			<Collapsible open={appExpanded} onOpenChange={setAppExpanded}>
-				<Card className='gap-3 py-3 shadow-none'>
-					<CardHeader className='flex flex-row items-center justify-between px-4'>
+				<Card className='gap-0 py-3 shadow-none'>
+					<CardHeader className='flex flex-row items-center justify-between px-4 pb-0'>
 						<CollapsibleTrigger className='flex flex-1 cursor-pointer items-center justify-start gap-2'>
 							<ChevronDown
 								className={cn(
@@ -132,7 +132,7 @@ export function PermissionsPanel({ permissionsData, isLoading, onRefetch }: Perm
 						</Button>
 					</CardHeader>
 					<CollapsibleContent innerClassName='pb-0'>
-						<CardContent className='px-4'>
+						<CardContent className='px-4 pt-0'>
 							{isLoading ? (
 								<p className='text-muted-foreground py-2 text-xs'>Loading...</p>
 							) : appPermissions.length === 0 ? (
@@ -156,8 +156,8 @@ export function PermissionsPanel({ permissionsData, isLoading, onRefetch }: Perm
 			</Collapsible>
 
 			<Collapsible open={membershipExpanded} onOpenChange={setMembershipExpanded}>
-				<Card className='gap-3 py-3 shadow-none'>
-					<CardHeader className='flex flex-row items-center justify-between px-4'>
+				<Card className='gap-0 py-3 shadow-none'>
+					<CardHeader className='flex flex-row items-center justify-between px-4 pb-0'>
 						<CollapsibleTrigger className='flex flex-1 cursor-pointer items-center justify-start gap-2'>
 							<ChevronDown
 								className={cn(
@@ -180,7 +180,7 @@ export function PermissionsPanel({ permissionsData, isLoading, onRefetch }: Perm
 						</Button>
 					</CardHeader>
 					<CollapsibleContent innerClassName='pb-0'>
-						<CardContent className='px-4'>
+						<CardContent className='px-4 pt-0'>
 							{isLoading ? (
 								<p className='text-muted-foreground py-2 text-xs'>Loading...</p>
 							) : membershipPermissions.length === 0 ? (

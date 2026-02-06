@@ -18,7 +18,7 @@ import { useAppStore, useShallow } from '@/store/app-store';
 import {
 	fetchFieldsQuery,
 	fetchTablesQuery,
-} from '@sdk/app-public';
+} from '@sdk/api';
 
 export interface FieldSmartTagsMap {
 	/** Map of "tableName.fieldName" -> smartTags object */

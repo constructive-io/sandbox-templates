@@ -6,7 +6,7 @@ import { TokenManager } from '@/lib/auth/token-manager';
 import { toApiToken } from '@/lib/auth/token-utils';
 import { useAuthActions } from '@/store/app-store';
 import type { UserProfile } from '@/store/auth-slice';
-import { useSignInMutation } from '@sdk/auth';
+import { useSignInMutation } from '@sdk/api';
 
 import { authKeys } from '../../query-keys';
 

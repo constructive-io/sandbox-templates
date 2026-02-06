@@ -8,7 +8,7 @@ import { useAppStore, useShallow } from '@/store/app-store';
 import {
 	fetchSchemasQuery,
 	useCreateDatabaseMutation,
-} from '@sdk/app-public';
+} from '@sdk/api';
 
 import { invalidateDatabaseEntities } from './modules/invalidate-database-entities';
 import { useSchemaBuilderSelectors } from './use-schema-builder-selectors';

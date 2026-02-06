@@ -3,7 +3,7 @@ import type { QueryClient, QueryKey } from '@tanstack/react-query';
 import { useAppStore } from '@/store/app-store';
 // Dashboard query keys removed - dashboard functionality has been removed from the application
 
-import { domainKeys } from '@sdk/app-public';
+import { domainKeys } from '@sdk/api';
 import { apiSchemaQueryKeys } from '../apis/use-api-schemas';
 import { apiQueryKeys } from '../apis/use-apis';
 import { databaseServicesQueryKeys } from '../apis/use-database-services';

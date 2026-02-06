@@ -12,7 +12,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 
 import type { SchemaContext } from '@/app-config';
-import { useDeleteUserMutation } from '@sdk/auth';
+import { useDeleteUserMutation } from '@sdk/api';
 
 import { organizationsQueryKeys } from './use-organizations';
 

@@ -9,7 +9,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import type { SchemaContext } from '@/app-config';
-import { useUpdateUserMutation } from '@sdk/auth';
+import { useUpdateUserMutation } from '@sdk/api';
 
 import type { OrganizationSettings } from './organization.types';
 import { organizationsQueryKeys } from './use-organizations';

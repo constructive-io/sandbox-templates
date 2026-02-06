@@ -17,7 +17,7 @@ import {
 	useDeleteUniqueConstraintMutation,
 	useUpdateFieldMutation,
 	useUpdatePrimaryKeyConstraintMutation,
-} from '@sdk/app-public';
+} from '@sdk/api';
 
 // SDK hooks for constraint mutations
 

@@ -12,7 +12,7 @@ import {
 	useEmailsQuery,
 	useUpdateEmailMutation,
 	useVerifyEmailMutation as useSDKVerifyEmailMutation,
-} from '@sdk/auth';
+} from '@sdk/api';
 
 import { accountProfileQueryKeys } from './use-account-profile';
 

@@ -12,8 +12,8 @@ import {
 	useCreateInviteMutation,
 	useDeleteInviteMutation,
 	useUpdateInviteMutation,
-} from '@sdk/admin';
-import { fetchUsersQuery } from '@sdk/auth';
+} from '@sdk/api';
+import { fetchUsersQuery } from '@sdk/api';
 
 import {
 	transformActiveInvite,

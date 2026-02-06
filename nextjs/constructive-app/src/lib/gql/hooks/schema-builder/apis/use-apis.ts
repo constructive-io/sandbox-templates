@@ -8,7 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import {
 	fetchApisQuery,
 	type Api,
-} from '@sdk/app-public';
+} from '@sdk/api';
 
 export const apiQueryKeys = {
 	all: ['apis'] as const,

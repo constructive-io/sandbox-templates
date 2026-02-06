@@ -5,7 +5,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 
-import { fetchSiteModulesQuery } from '@sdk/app-public';
+import { fetchSiteModulesQuery } from '@sdk/api';
 
 export const siteModuleQueryKeys = {
 	all: ['site-modules'] as const,

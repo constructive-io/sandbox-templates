@@ -9,8 +9,8 @@ import type { SchemaContext } from '@/app-config';
 import {
 	fetchOrgClaimedInvitesQuery,
 	fetchOrgInvitesQuery,
-} from '@sdk/admin';
-import { fetchUsersQuery } from '@sdk/auth';
+} from '@sdk/api';
+import { fetchUsersQuery } from '@sdk/api';
 
 import {
 	transformActiveInvite,

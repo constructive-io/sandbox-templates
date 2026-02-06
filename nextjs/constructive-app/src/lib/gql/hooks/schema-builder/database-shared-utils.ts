@@ -5,7 +5,7 @@
 import type {
 	Field,
 	Table,
-} from '@sdk/app-public';
+} from '@sdk/api';
 
 // =============================================================================
 // Shared Types

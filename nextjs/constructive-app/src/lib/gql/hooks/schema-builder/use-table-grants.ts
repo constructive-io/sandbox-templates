@@ -8,7 +8,7 @@ import {
 	fetchFieldsQuery,
 	fetchTableByDatabaseIdAndNameQuery,
 	useCreateTableGrantMutation,
-} from '@sdk/app-public';
+} from '@sdk/api';
 
 import { invalidateDatabaseEntities } from './modules/invalidate-database-entities';
 

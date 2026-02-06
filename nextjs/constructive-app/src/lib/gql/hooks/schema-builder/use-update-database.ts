@@ -4,7 +4,7 @@
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { useUpdateDatabaseMutation } from '@sdk/app-public';
+import { useUpdateDatabaseMutation } from '@sdk/api';
 
 import { invalidateDatabaseEntities } from './modules/invalidate-database-entities';
 

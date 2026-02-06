@@ -11,7 +11,7 @@ import {
 	useAppMembershipDefaultsQuery,
 	useCreateAppMembershipDefaultMutation,
 	useUpdateAppMembershipDefaultMutation,
-} from '@sdk/admin';
+} from '@sdk/api';
 import { useAppStore, useShallow } from '@/store/app-store';
 
 export interface AppMembershipDefaultSettings {

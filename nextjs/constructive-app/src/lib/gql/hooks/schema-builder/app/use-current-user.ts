@@ -9,7 +9,7 @@ import type { SchemaContext } from '@/app-config';
 import {
 	useCurrentUserQuery as useCurrentUserQuerySdk,
 	currentUserQueryKey,
-} from '@sdk/auth';
+} from '@sdk/api';
 import { useAppStore, useShallow } from '@/store/app-store';
 
 export interface CurrentUser {

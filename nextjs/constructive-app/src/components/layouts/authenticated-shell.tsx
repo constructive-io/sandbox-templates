@@ -13,7 +13,6 @@ import { cn } from '@/lib/utils';
 import { useSchemaBuilderAuth, useSidebarPinned, useSidebarPinnedActions } from '@/store/app-store';
 import { AppShell } from '@/components/app-shell/app-shell';
 import type { EntityLevel, TopBarConfig } from '@/components/app-shell/app-shell.types';
-// UserDropdown removed - dashboard components have been removed from the application
 import { ConstructiveIcon } from '@/components/icons/constructive-icon';
 import { ConstructiveLogo } from '@/components/icons/constructive-logo';
 import { CreateOrganizationCard } from '@/components/organizations/create-organization-card';
@@ -109,13 +108,15 @@ function AuthenticatedShellInner({ children, hideSidebar }: AuthenticatedShellPr
 		onLogout: handleLogout,
 	});
 
-	// Handle org selection - navigates to org members route (URL is source of truth)
+	// Handle org selection - navigates to org databases route (URL is source of truth)
 	const handleOrgChange = React.useCallback(
 		(newOrgId: string) => {
-			router.push(buildOrgRoute('ORG_MEMBERS', newOrgId));
+			router.push(buildOrgRoute('ORG_DATABASES', newOrgId));
 		},
 		[router],
 	);
+
+	// Note: Database selection is handled by DatabaseEntitySwitcher component
 
 	// Build entity levels for breadcrumbs based on URL params
 	const entityLevels = React.useMemo((): EntityLevel[] => {
@@ -167,11 +168,7 @@ function AuthenticatedShellInner({ children, hideSidebar }: AuthenticatedShellPr
 			</Link>
 		),
 		entityLevels,
-		actions: (
-			<>
-				<ThemeSwitcher />
-			</>
-		),
+		actions: <ThemeSwitcher />,
 	};
 
 	return (

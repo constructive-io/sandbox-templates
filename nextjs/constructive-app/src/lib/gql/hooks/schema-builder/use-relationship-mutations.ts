@@ -16,7 +16,7 @@ import {
 	useCreateUniqueConstraintMutation,
 	useDeleteForeignKeyConstraintMutation,
 	useUpdateForeignKeyConstraintMutation,
-} from '@sdk/app-public';
+} from '@sdk/api';
 
 // SDK hooks for M2M junction table creation
 

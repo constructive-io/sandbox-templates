@@ -7,7 +7,7 @@ import type { SchemaContext } from '@/app-config';
 import {
 	useAppMembershipByActorIdQuery,
 	appMembershipByActorIdQueryKey,
-} from '@sdk/admin';
+} from '@sdk/api';
 import { useAppStore, useShallow } from '@/store/app-store';
 
 export interface AppMembership {

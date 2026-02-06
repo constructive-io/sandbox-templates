@@ -3,7 +3,7 @@
  * Tier 4 wrapper: uses SDK + business logic (auto-grant) + custom cache invalidation
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useCreateTableMutation } from '@sdk/app-public';
+import { useCreateTableMutation } from '@sdk/api';
 import { useCreateTableGrant } from '../use-table-grants';
 import { databasePoliciesQueryKeys } from './use-database-policies';
 

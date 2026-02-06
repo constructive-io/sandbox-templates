@@ -1,7 +1,7 @@
 /**
  * GraphQL exports for the application.
  *
- * Schema-builder operations use the SDK directly from @sdk/{target}.
+ * Schema-builder operations use the SDK directly from @sdk/api.
  * Dashboard operations use dynamically generated queries via TypedDocumentString.
  */
 import { TypedDocumentString } from './typed-document';

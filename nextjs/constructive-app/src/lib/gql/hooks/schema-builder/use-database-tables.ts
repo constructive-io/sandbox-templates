@@ -8,7 +8,7 @@ import {
 	fetchFieldsQuery,
 	fetchTableQuery,
 	fetchTablesQuery,
-} from '@sdk/app-public';
+} from '@sdk/api';
 
 import {
 	type DatabaseFieldNode,
