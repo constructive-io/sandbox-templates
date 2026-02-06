@@ -11,7 +11,7 @@ import {
 	useOrgMembershipDefaultByEntityIdQuery,
 	useUpdateOrgMembershipDefaultByEntityIdMutation,
 } from '@sdk/api';
-import { useAppStore, useShallow } from '@/store/app-store';
+import { useAppStore } from '@/store/app-store';
 
 export interface OrgMembershipDefault {
 	id: string;
@@ -36,11 +36,7 @@ export interface UseOrgMembershipDefaultOptions {
 export function useOrgMembershipDefault(options: UseOrgMembershipDefaultOptions) {
 	const { orgId, enabled = true, context = 'schema-builder' } = options;
 
-	const { isAuthenticated } = useAppStore(
-		useShallow((state) => ({
-			isAuthenticated: state.authByContext[context]?.isAuthenticated || false,
-		})),
-	);
+	const isAuthenticated = useAppStore((state) => state.auth.isAuthenticated);
 
 	const { data, isLoading, error, refetch } = useOrgMembershipDefaultByEntityIdQuery(
 		{ entityId: orgId },

@@ -1,146 +1,426 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { useShallow } from 'zustand/shallow';
+/**
+ * Vanilla app store — replaces zustand with useSyncExternalStore + localStorage.
+ *
+ * The store is a plain JS singleton. React components subscribe via the
+ * exported hooks which use `useSyncExternalStore` under the hood.
+ */
+import { useSyncExternalStore, useCallback, useRef } from 'react';
 
-import { AuthSlice, createAuthSlice, deserializeAuthSlice, serializeAuthSlice } from './auth-slice';
-import { createEnvSlice, deserializeEnvSlice, EnvSlice, serializeEnvSlice } from './env-slice';
+import { TokenManager } from '@/lib/auth/token-manager';
+import { createLogger } from '@/lib/logger';
+import { queryClient } from '@/lib/query-client';
+import type { DirectConnectConfig, SchemaContext } from '@/lib/runtime/config-core';
+import { DEFAULT_DIRECT_CONNECT, schemaContexts } from '@/lib/runtime/config-core';
+import { isDirectConnectSupported } from '@/lib/runtime/direct-connect';
+
 import {
-	createPreferencesSlice,
-	deserializePreferencesSlice,
-	PreferencesSlice,
-	serializePreferencesSlice,
+	type AuthState,
+	type UserProfile,
+	type ApiToken,
+	initialAuthState,
+	serializeAuth,
+	deserializeAuth,
+	isTokenExpired,
+	getAuthHeader,
+} from './auth-slice';
+import {
+	type EnvState,
+	createInitialEnvState,
+	getEffectiveEndpoint as getEffectiveEndpointHelper,
+	persistEndpointOverride,
+	serializeEnv,
+	deserializeEnv,
+} from './env-slice';
+import {
+	type PreferencesState,
+	initialPreferencesState,
+	serializePreferences,
+	deserializePreferences,
 } from './preferences-slice';
 
-export type AppState = AuthSlice & EnvSlice & PreferencesSlice;
+// Re-export slice types for consumers
+export type { AuthState, UserProfile, ApiToken } from './auth-slice';
+export type { EnvState } from './env-slice';
+export type { PreferencesState, SidebarSectionsExpanded } from './preferences-slice';
 
-export const useAppStore = create<AppState>()(
-	persist(
-		(...args) => ({
-			...createAuthSlice(...args),
-			...createEnvSlice(...args),
-			...createPreferencesSlice(...args),
-		}),
-		{
-			name: 'constructive-app-store',
-			partialize: (state) => ({
-				...serializeAuthSlice(state),
-				...serializeEnvSlice(state),
-				...serializePreferencesSlice(state),
-			}),
-			onRehydrateStorage: () => (state) => {
-				if (state) {
-					const authState = deserializeAuthSlice(state);
-					const envState = deserializeEnvSlice(state);
-					const preferencesState = deserializePreferencesSlice(state);
-					Object.assign(state, authState, envState, preferencesState);
-				}
+// ── Combined state ─────────────────────────────────────────────────────
+
+export interface AppState {
+	auth: AuthState;
+	env: EnvState;
+	preferences: PreferencesState;
+}
+
+// ── Persistence ────────────────────────────────────────────────────────
+
+const STORAGE_KEY = 'constructive-app-store';
+
+function loadPersistedState(): Partial<AppState> {
+	try {
+		if (typeof window === 'undefined') return {};
+		const raw = localStorage.getItem(STORAGE_KEY);
+		if (!raw) return {};
+		const parsed = JSON.parse(raw);
+		return {
+			auth: deserializeAuth(parsed.auth),
+			env: deserializeEnv(parsed.env),
+			preferences: deserializePreferences(parsed.preferences),
+		};
+	} catch {
+		return {};
+	}
+}
+
+function persistState(state: AppState): void {
+	try {
+		if (typeof window === 'undefined') return;
+		const serialized = {
+			auth: serializeAuth(state.auth),
+			env: serializeEnv(state.env),
+			preferences: serializePreferences(state.preferences),
+		};
+		localStorage.setItem(STORAGE_KEY, JSON.stringify(serialized));
+	} catch {}
+}
+
+// ── Store singleton ────────────────────────────────────────────────────
+
+type Listener = () => void;
+
+const authLogger = createLogger({ scope: 'auth', includeTimestamp: false });
+const directConnectLogger = createLogger({ scope: 'direct-connect', includeTimestamp: false });
+
+function createAppStore() {
+	const persisted = loadPersistedState();
+	let state: AppState = {
+		auth: persisted.auth ?? { ...initialAuthState },
+		env: persisted.env ?? createInitialEnvState(),
+		preferences: persisted.preferences ?? { ...initialPreferencesState },
+	};
+	const listeners = new Set<Listener>();
+
+	function getState(): AppState {
+		return state;
+	}
+
+	function setState(next: Partial<AppState>) {
+		state = { ...state, ...next };
+		persistState(state);
+		listeners.forEach((l) => l());
+	}
+
+	function subscribe(listener: Listener): () => void {
+		listeners.add(listener);
+		return () => listeners.delete(listener);
+	}
+
+	// ── Auth actions ─────────────────────────────────────────────────
+
+	function setAuthenticated(user: UserProfile, token: ApiToken, rememberMe = false) {
+		setState({
+			auth: { isAuthenticated: true, isLoading: false, user, token, rememberMe },
+		});
+	}
+
+	function setUnauthenticated() {
+		const a = state.auth;
+		if (!a.isAuthenticated && !a.isLoading) return;
+		setState({
+			auth: { isAuthenticated: false, isLoading: false, user: null, token: null, rememberMe: false },
+		});
+	}
+
+	function setLoading(loading: boolean) {
+		if (state.auth.isLoading === loading) return;
+		setState({ auth: { ...state.auth, isLoading: loading } });
+	}
+
+	function updateToken(token: ApiToken) {
+		setState({ auth: { ...state.auth, token } });
+	}
+
+	function clearToken() {
+		setState({ auth: { ...state.auth, token: null, isAuthenticated: false } });
+	}
+
+	function updateUser(userUpdate: Partial<UserProfile>) {
+		const current = state.auth.user;
+		if (!current) return;
+		setState({ auth: { ...state.auth, user: { ...current, ...userUpdate } } });
+	}
+
+	// ── Env actions ──────────────────────────────────────────────────
+
+	function resetAuthForContext(ctx: SchemaContext, reason: string) {
+		if (ctx === 'dashboard') return;
+		authLogger.info(`Resetting auth for ${ctx} due to ${reason}`);
+		TokenManager.clearToken(ctx);
+		try { queryClient.clear(); } catch {}
+		setUnauthenticated();
+		setLoading(false);
+	}
+
+	function setEndpointOverride(ctx: SchemaContext, url: string | null) {
+		const value = url?.trim() || null;
+		const current = state.env.endpointOverrides[ctx]?.trim() || null;
+		if (current === value) return;
+		setState({
+			env: { ...state.env, endpointOverrides: { ...state.env.endpointOverrides, [ctx]: value } },
+		});
+		persistEndpointOverride(ctx, value);
+		resetAuthForContext(ctx, 'endpoint override change');
+	}
+
+	function setEndpointOverrideFromSync(ctx: SchemaContext, url: string | null) {
+		const value = url?.trim() || null;
+		const current = state.env.endpointOverrides[ctx] ?? null;
+		if (current === value) return;
+		setState({
+			env: { ...state.env, endpointOverrides: { ...state.env.endpointOverrides, [ctx]: value } },
+		});
+		resetAuthForContext(ctx, 'endpoint override sync');
+	}
+
+	function clearEndpointOverride(ctx: SchemaContext) {
+		if ((state.env.endpointOverrides[ctx] ?? null) === null) return;
+		setState({
+			env: { ...state.env, endpointOverrides: { ...state.env.endpointOverrides, [ctx]: null } },
+		});
+		persistEndpointOverride(ctx, null);
+		resetAuthForContext(ctx, 'endpoint override cleared');
+	}
+
+	function resetEndpointOverrides() {
+		const previous = state.env.endpointOverrides;
+		const empty = Object.fromEntries(schemaContexts.map((c) => [c, null])) as Record<SchemaContext, null>;
+		setState({ env: { ...state.env, endpointOverrides: empty } });
+		schemaContexts.forEach((ctx) => {
+			persistEndpointOverride(ctx, null);
+			if (previous[ctx] !== null) resetAuthForContext(ctx, 'endpoint overrides reset');
+		});
+	}
+
+	function getEffectiveEndpoint(ctx: SchemaContext) {
+		return getEffectiveEndpointHelper(state.env, ctx);
+	}
+
+	// ── Direct Connect actions ───────────────────────────────────────
+
+	function setDirectConnect(ctx: SchemaContext, config: DirectConnectConfig) {
+		if (!isDirectConnectSupported(ctx)) {
+			directConnectLogger.warn(`Direct Connect not supported for '${ctx}'`);
+			return;
+		}
+		const current = state.env.directConnect[ctx];
+		if (current.enabled === config.enabled && current.endpoint === config.endpoint && current.skipAuth === config.skipAuth) return;
+		setState({
+			env: {
+				...state.env,
+				directConnect: {
+					...state.env.directConnect,
+					[ctx]: {
+						enabled: config.enabled,
+						endpoint: config.enabled && config.endpoint?.trim() ? config.endpoint.trim() : null,
+						skipAuth: config.skipAuth,
+					},
+				},
 			},
-		},
-	),
+		});
+		try { queryClient.clear(); } catch {}
+		const ep = config.enabled && config.endpoint ? ` → ${config.endpoint}` : '';
+		const ai = config.enabled ? (config.skipAuth ? ' (no auth)' : ' (with auth)') : '';
+		directConnectLogger.info(`${ctx}: ${config.enabled ? 'enabled' : 'disabled'}${ep}${ai}`);
+	}
+
+	function clearDirectConnect(ctx: SchemaContext) {
+		const current = state.env.directConnect[ctx];
+		if (!current.enabled && current.endpoint === null) return;
+		setState({
+			env: {
+				...state.env,
+				directConnect: { ...state.env.directConnect, [ctx]: { ...DEFAULT_DIRECT_CONNECT } },
+			},
+		});
+		try { queryClient.clear(); } catch {}
+		directConnectLogger.info(`${ctx}: cleared`);
+	}
+
+	// ── Preferences actions ──────────────────────────────────────────
+
+	function setSidebarSectionExpanded(section: 'app' | 'system', expanded: boolean) {
+		setState({
+			preferences: {
+				...state.preferences,
+				sidebarSectionsExpanded: { ...state.preferences.sidebarSectionsExpanded, [section]: expanded },
+			},
+		});
+	}
+
+	function toggleSidebarSection(section: 'app' | 'system') {
+		setSidebarSectionExpanded(section, !state.preferences.sidebarSectionsExpanded[section]);
+	}
+
+	function resetSidebarSections() {
+		setState({
+			preferences: {
+				...state.preferences,
+				sidebarSectionsExpanded: { app: true, system: false },
+			},
+		});
+	}
+
+	function setSidebarPinned(pinned: boolean) {
+		setState({ preferences: { ...state.preferences, sidebarPinned: pinned } });
+	}
+
+	function toggleSidebarPinned() {
+		setSidebarPinned(!state.preferences.sidebarPinned);
+	}
+
+	return {
+		getState,
+		subscribe,
+		// Auth
+		setAuthenticated,
+		setUnauthenticated,
+		setLoading,
+		updateToken,
+		clearToken,
+		updateUser,
+		// Env
+		setEndpointOverride,
+		setEndpointOverrideFromSync,
+		clearEndpointOverride,
+		resetEndpointOverrides,
+		getEffectiveEndpoint,
+		// Direct Connect
+		setDirectConnect,
+		clearDirectConnect,
+		// Preferences
+		setSidebarSectionExpanded,
+		toggleSidebarSection,
+		resetSidebarSections,
+		setSidebarPinned,
+		toggleSidebarPinned,
+	};
+}
+
+export const appStore = createAppStore();
+
+// ── Selector hook (replaces zustand's useStore) ────────────────────────
+
+function shallowEqual(a: unknown, b: unknown): boolean {
+	if (Object.is(a, b)) return true;
+	if (typeof a !== 'object' || typeof b !== 'object' || a === null || b === null) return false;
+	const keysA = Object.keys(a as Record<string, unknown>);
+	const keysB = Object.keys(b as Record<string, unknown>);
+	if (keysA.length !== keysB.length) return false;
+	for (const key of keysA) {
+		if (!Object.is((a as any)[key], (b as any)[key])) return false;
+	}
+	return true;
+}
+
+function useSelector<T>(selector: (state: AppState) => T): T {
+	const selectorRef = useRef(selector);
+	const cachedRef = useRef<{ value: T } | null>(null);
+	selectorRef.current = selector;
+
+	const getSnapshot = useCallback(() => {
+		const next = selectorRef.current(appStore.getState());
+		if (cachedRef.current !== null && shallowEqual(cachedRef.current.value, next)) {
+			return cachedRef.current.value;
+		}
+		cachedRef.current = { value: next };
+		return next;
+	}, []);
+
+	return useSyncExternalStore(appStore.subscribe, getSnapshot, getSnapshot);
+}
+
+// ── Backward-compatible useAppStore ────────────────────────────────────
+// Provides .getState() for non-React code (execute.ts, env-sync.ts)
+
+interface AppStoreCompat {
+	getState: () => AppState;
+	(selector: (state: AppState) => any): any;
+}
+
+export const useAppStore: AppStoreCompat = Object.assign(
+	function useAppStoreHook<T>(selector: (state: AppState) => T): T {
+		return useSelector(selector);
+	},
+	{ getState: appStore.getState },
 );
 
-// Export the useShallow hook for performance optimizations
-export { useShallow };
+// ── Exported hooks ─────────────────────────────────────────────────────
 
-/* ==== Exported hooks ==== */
-
-// Auth hooks
-
-/**
- * Hook to access schema-builder (app-level) auth state.
- */
-export const useSchemaBuilderAuth = () => {
-	return useAppStore(
-		useShallow((state) => {
-			const s = state.schemaBuilderAuth;
-			return {
-				isAuthenticated: s.isAuthenticated,
-				isLoading: s.isLoading,
-				user: s.user,
-				token: s.token,
-				rememberMe: s.rememberMe,
-			};
-		}),
-	);
-};
+export const useSchemaBuilderAuth = () =>
+	useSelector((s) => s.auth);
 
 export const useAuth = useSchemaBuilderAuth;
 
-export const useAuthActions = () =>
-	useAppStore(
-		useShallow((state) => ({
-			setAuthenticated: state.setAuthenticated,
-			setUnauthenticated: state.setUnauthenticated,
-			setLoading: state.setLoading,
-			updateToken: state.updateToken,
-			clearToken: state.clearToken,
-			updateUser: state.updateUser,
-			isTokenExpired: state.isTokenExpired,
-			getAuthHeader: state.getAuthHeader,
-		})),
-	);
+export const useAuthActions = () => ({
+	setAuthenticated: appStore.setAuthenticated,
+	setUnauthenticated: appStore.setUnauthenticated,
+	setLoading: appStore.setLoading,
+	updateToken: appStore.updateToken,
+	clearToken: appStore.clearToken,
+	updateUser: appStore.updateUser,
+	isTokenExpired: () => isTokenExpired(appStore.getState().auth.token),
+	getAuthHeader: () => getAuthHeader(appStore.getState().auth),
+});
 
-// Env slice hooks
 export const useEnv = () =>
-	useAppStore(
-		useShallow((state) => ({
-			endpointOverrides: state.endpointOverrides,
-			getEffectiveEndpoint: state.getEffectiveEndpoint,
-		})),
-	);
+	useSelector((s) => ({
+		endpointOverrides: s.env.endpointOverrides,
+		getEffectiveEndpoint: appStore.getEffectiveEndpoint,
+	}));
 
-export const useEnvActions = () =>
-	useAppStore(
-		useShallow((state) => ({
-			setEndpointOverride: state.setEndpointOverride,
-			clearEndpointOverride: state.clearEndpointOverride,
-			resetEndpointOverrides: state.resetEndpointOverrides,
-		})),
-	);
+export const useEnvActions = () => ({
+	setEndpointOverride: appStore.setEndpointOverride,
+	clearEndpointOverride: appStore.clearEndpointOverride,
+	resetEndpointOverrides: appStore.resetEndpointOverrides,
+});
 
-// Direct Connect hooks
-export const useDirectConnect = () => {
-	return useAppStore(
-		useShallow((state) => {
-			const config = state.directConnect['schema-builder'];
-			return {
-				config,
-				isEnabled: config?.enabled ?? false,
-				endpoint: config?.endpoint ?? null,
-				skipAuth: config?.skipAuth ?? true,
-			};
-		}),
-	);
-};
+export const useDirectConnect = () =>
+	useSelector((s) => {
+		const config = s.env.directConnect['schema-builder'];
+		return {
+			config,
+			isEnabled: config?.enabled ?? false,
+			endpoint: config?.endpoint ?? null,
+			skipAuth: config?.skipAuth ?? true,
+		};
+	});
 
-export const useDirectConnectActions = () =>
-	useAppStore(
-		useShallow((state) => ({
-			setDirectConnect: state.setDirectConnect,
-			clearDirectConnect: state.clearDirectConnect,
-			isDirectConnectEnabled: state.isDirectConnectEnabled,
-			getDirectConnectEndpoint: state.getDirectConnectEndpoint,
-			shouldBypassAuth: state.shouldBypassAuth,
-		})),
-	);
+export const useDirectConnectActions = () => ({
+	setDirectConnect: appStore.setDirectConnect,
+	clearDirectConnect: appStore.clearDirectConnect,
+	isDirectConnectEnabled: (ctx: SchemaContext) => appStore.getState().env.directConnect[ctx]?.enabled ?? false,
+	getDirectConnectEndpoint: (ctx: SchemaContext) => {
+		const dc = appStore.getState().env.directConnect[ctx];
+		return dc?.enabled ? dc.endpoint : null;
+	},
+	shouldBypassAuth: (ctx: SchemaContext) => {
+		const dc = appStore.getState().env.directConnect[ctx];
+		return dc?.enabled && dc?.skipAuth === true;
+	},
+});
 
-// Preferences hooks (app-level UI preferences)
-export const useSidebarSections = () => useAppStore((state) => state.sidebarSectionsExpanded);
-export const useSidebarSectionActions = () =>
-	useAppStore(
-		useShallow((state) => ({
-			setSidebarSectionExpanded: state.setSidebarSectionExpanded,
-			toggleSidebarSection: state.toggleSidebarSection,
-			resetSidebarSections: state.resetSidebarSections,
-		})),
-	);
+export const useSidebarSections = () =>
+	useSelector((s) => s.preferences.sidebarSectionsExpanded);
 
-// Main sidebar pinned state hooks
-export const useSidebarPinned = () => useAppStore((state) => state.sidebarPinned);
-export const useSidebarPinnedActions = () =>
-	useAppStore(
-		useShallow((state) => ({
-			setSidebarPinned: state.setSidebarPinned,
-			toggleSidebarPinned: state.toggleSidebarPinned,
-		})),
-	);
+export const useSidebarSectionActions = () => ({
+	setSidebarSectionExpanded: appStore.setSidebarSectionExpanded,
+	toggleSidebarSection: appStore.toggleSidebarSection,
+	resetSidebarSections: appStore.resetSidebarSections,
+});
+
+export const useSidebarPinned = () =>
+	useSelector((s) => s.preferences.sidebarPinned);
+
+export const useSidebarPinnedActions = () => ({
+	setSidebarPinned: appStore.setSidebarPinned,
+	toggleSidebarPinned: appStore.toggleSidebarPinned,
+});

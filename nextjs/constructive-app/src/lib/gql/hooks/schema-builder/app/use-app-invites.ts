@@ -4,7 +4,7 @@
  */
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { useAppStore, useShallow } from '@/store/app-store';
+import { useAppStore } from '@/store/app-store';
 import type { SchemaContext } from '@/app-config';
 import {
 	fetchClaimedInvitesQuery,
@@ -67,11 +67,7 @@ export function useAppInvites(options: UseAppInvitesOptions = {}) {
 	const { enabled = true, first = 20, offset = 0, context = 'schema-builder' } = options;
 	void context; // Context handled by SDK execute-adapter
 
-	const { isAuthenticated } = useAppStore(
-		useShallow((state) => ({
-			isAuthenticated: state.authByContext[context]?.isAuthenticated || false,
-		})),
-	);
+	const isAuthenticated = useAppStore((state) => state.auth.isAuthenticated);
 
 	const { data, isLoading, error, refetch } = useQuery<AppInvitesQueryResult>({
 		queryKey: appInvitesQueryKeys.active(context, { first, offset }),
@@ -151,11 +147,7 @@ export function useAppClaimedInvites(options: UseAppInvitesOptions = {}) {
 	const { enabled = true, first = 20, offset = 0, context = 'schema-builder' } = options;
 	void context; // Context handled by SDK execute-adapter
 
-	const { isAuthenticated } = useAppStore(
-		useShallow((state) => ({
-			isAuthenticated: state.authByContext[context]?.isAuthenticated || false,
-		})),
-	);
+	const isAuthenticated = useAppStore((state) => state.auth.isAuthenticated);
 
 	const { data, isLoading, error, refetch } = useQuery<AppClaimedInvitesQueryResult>({
 		queryKey: appInvitesQueryKeys.claimed(context, { first, offset }),

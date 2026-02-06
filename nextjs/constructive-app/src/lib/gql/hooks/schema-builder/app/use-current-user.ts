@@ -10,7 +10,7 @@ import {
 	useCurrentUserQuery as useCurrentUserQuerySdk,
 	currentUserQueryKey,
 } from '@sdk/api';
-import { useAppStore, useShallow } from '@/store/app-store';
+import { useAppStore } from '@/store/app-store';
 
 export interface CurrentUser {
 	id: string;
@@ -37,11 +37,7 @@ export interface UseCurrentUserResult {
 
 export function useCurrentUser(options: UseCurrentUserOptions = {}): UseCurrentUserResult {
 	const { enabled = true, context = 'schema-builder' } = options;
-	const { token } = useAppStore(
-		useShallow((state) => ({
-			token: state.authByContext[context]?.token || null,
-		})),
-	);
+	const token = useAppStore((state) => state.auth.token);
 
 	// Use the SDK's currentUser query which relies on backend auth context
 	const { data, isLoading, error, refetch } = useCurrentUserQuerySdk({

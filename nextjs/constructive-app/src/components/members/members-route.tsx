@@ -35,7 +35,7 @@ import {
 	useDeleteOrgMembershipMutation,
 	useUpdateOrgMembershipMutation,
 } from '@sdk/api';
-import { useAppStore, useShallow } from '@/store/app-store';
+import { useAppStore } from '@/store/app-store';
 
 import { RoleBadge } from './role-badge';
 
@@ -186,11 +186,8 @@ export function MembersRoute({ orgId, orgName = 'Organization', organization }: 
 	const isSelfOrg = organization.isSelfOrg;
 	const canManageMembers = organization.role === 'owner' || organization.role === 'admin';
 
-	const { actorId } = useAppStore(
-		useShallow((state) => ({
-			actorId:
-				state.authByContext['schema-builder']?.user?.id || state.authByContext['schema-builder']?.token?.userId || null,
-		})),
+	const actorId = useAppStore(
+		(state) => state.auth.user?.id || state.auth.token?.userId || null,
 	);
 
 	const [currentPage, setCurrentPage] = useState(1);

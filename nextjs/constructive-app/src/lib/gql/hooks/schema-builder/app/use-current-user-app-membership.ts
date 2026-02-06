@@ -8,7 +8,7 @@ import {
 	useAppMembershipByActorIdQuery,
 	appMembershipByActorIdQueryKey,
 } from '@sdk/api';
-import { useAppStore, useShallow } from '@/store/app-store';
+import { useAppStore } from '@/store/app-store';
 
 export interface AppMembership {
 	id: string;
@@ -66,11 +66,10 @@ export function useCurrentUserAppMembership(
 	options: UseCurrentUserAppMembershipOptions = {},
 ): UseCurrentUserAppMembershipResult {
 	const { enabled = true, userId, context = 'schema-builder' } = options;
-	const { user, token } = useAppStore(
-		useShallow((state) => ({
-			user: state.authByContext[context]?.user || null,
-			token: state.authByContext[context]?.token || null,
-		})),
+	const { user, token } = useAppStore((state) => ({
+		user: state.auth.user,
+		token: state.auth.token,
+	}),
 	);
 
 	// Determine the actor ID to use

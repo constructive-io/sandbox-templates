@@ -9,7 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import type { SchemaContext } from '@/app-config';
 import { fetchOrgMembershipsQuery, fetchUsersQuery } from '@sdk/api';
-import { useAppStore, useShallow } from '@/store/app-store';
+import { useAppStore } from '@/store/app-store';
 
 import {
 	type OrganizationWithRole,
@@ -130,13 +130,11 @@ function transformMembershipToOrg(membership: MembershipNode, actorId: string): 
 export function useOrganizations(options: UseOrganizationsOptions = {}): UseOrganizationsResult {
 	const { enabled = true, first = 50, offset = 0, context = 'schema-builder' } = options;
 
-	const { user, token, isAuthLoading } = useAppStore(
-		useShallow((state) => ({
-			user: state.authByContext[context]?.user || null,
-			token: state.authByContext[context]?.token || null,
-			isAuthLoading: state.authByContext[context]?.isLoading ?? true,
-		}))
-	);
+	const { user, token, isAuthLoading } = useAppStore((state) => ({
+		user: state.auth.user,
+		token: state.auth.token,
+		isAuthLoading: state.auth.isLoading,
+	}));
 
 	const actorId = user?.id || token?.userId;
 

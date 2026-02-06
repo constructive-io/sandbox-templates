@@ -1,12 +1,9 @@
 'use client';
 
-import { useEffect } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 
 import { useAuthContext } from '@/lib/auth/auth-context';
-import { useEntityParams } from '@/lib/navigation';
 import { easings, transitions, variants } from '@/lib/motion/motion-config';
-import { useDashboardScope } from '@/store/app-store';
 
 import { AuthEmbedded } from './auth-embedded';
 
@@ -50,16 +47,6 @@ function AuthLoadingSpinner() {
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
 	const { isAuthenticated, isLoading } = useAuthContext();
-	const { databaseId } = useEntityParams();
-	const { setDashboardScope } = useDashboardScope();
-
-	// Set the dashboard scope when on a database route
-	// This ensures scoped auth tokens are used for the correct database
-	useEffect(() => {
-		if (databaseId) {
-			setDashboardScope(databaseId);
-		}
-	}, [databaseId, setDashboardScope]);
 
 	return (
 		<AnimatePresence mode='wait'>

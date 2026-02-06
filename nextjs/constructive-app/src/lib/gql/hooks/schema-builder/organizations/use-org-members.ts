@@ -4,7 +4,7 @@
  */
 import { useQuery } from '@tanstack/react-query';
 
-import { useAppStore, useShallow } from '@/store/app-store';
+import { useAppStore } from '@/store/app-store';
 import type { SchemaContext } from '@/app-config';
 import { fetchOrgMembershipsQuery, fetchUsersQuery } from '@sdk/api';
 
@@ -112,11 +112,7 @@ export function useOrgMembers(options: UseOrgMembersOptions): UseOrgMembersResul
 	const { orgId, enabled = true, first = 20, offset = 0, context = 'schema-builder' } = options;
 	void context; // Context handled by SDK execute-adapter
 
-	const { isAuthenticated } = useAppStore(
-		useShallow((state) => ({
-			isAuthenticated: state.authByContext[context]?.isAuthenticated || false,
-		})),
-	);
+	const isAuthenticated = useAppStore((state) => state.auth.isAuthenticated);
 
 	const { data, isLoading, error, refetch } = useQuery<QueryResult>({
 		queryKey: organizationsQueryKeys.members(context, orgId, { first, offset }),

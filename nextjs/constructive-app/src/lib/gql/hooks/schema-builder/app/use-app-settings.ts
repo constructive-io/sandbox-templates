@@ -12,7 +12,7 @@ import {
 	useCreateAppMembershipDefaultMutation,
 	useUpdateAppMembershipDefaultMutation,
 } from '@sdk/api';
-import { useAppStore, useShallow } from '@/store/app-store';
+import { useAppStore } from '@/store/app-store';
 
 export interface AppMembershipDefaultSettings {
 	id: string;
@@ -48,11 +48,7 @@ export interface UseAppSettingsResult {
 export function useAppSettings(options: UseAppSettingsOptions = {}): UseAppSettingsResult {
 	const { enabled = true, context = 'schema-builder' } = options;
 
-	const { isAuthenticated } = useAppStore(
-		useShallow((state) => ({
-			isAuthenticated: state.authByContext[context]?.isAuthenticated || false,
-		})),
-	);
+	const isAuthenticated = useAppStore((state) => state.auth.isAuthenticated);
 
 	const { data, isLoading, error, refetch } = useAppMembershipDefaultsQuery(
 		{ first: 1 },

@@ -4,7 +4,7 @@
  */
 import { useQuery } from '@tanstack/react-query';
 
-import { useAppStore, useShallow } from '@/store/app-store';
+import { useAppStore } from '@/store/app-store';
 import type { SchemaContext } from '@/app-config';
 import {
 	fetchOrgClaimedInvitesQuery,
@@ -65,11 +65,7 @@ export function useOrgInvites(options: UseOrgInvitesOptions) {
 	const { orgId, enabled = true, first = 20, offset = 0, context = 'schema-builder' } = options;
 	void context; // Context handled by SDK execute-adapter
 
-	const { isAuthenticated } = useAppStore(
-		useShallow((state) => ({
-			isAuthenticated: state.authByContext[context]?.isAuthenticated || false,
-		})),
-	);
+	const isAuthenticated = useAppStore((state) => state.auth.isAuthenticated);
 
 	const { data, isLoading, error, refetch } = useQuery<OrgInvitesQueryResult>({
 		queryKey: orgInvitesQueryKeys.active(context, orgId, { first, offset }),
@@ -150,11 +146,7 @@ export function useOrgClaimedInvites(options: UseOrgInvitesOptions) {
 	const { orgId, enabled = true, first = 20, offset = 0, context = 'schema-builder' } = options;
 	void context; // Context handled by SDK execute-adapter
 
-	const { isAuthenticated } = useAppStore(
-		useShallow((state) => ({
-			isAuthenticated: state.authByContext[context]?.isAuthenticated || false,
-		})),
-	);
+	const isAuthenticated = useAppStore((state) => state.auth.isAuthenticated);
 
 	const { data, isLoading, error, refetch } = useQuery<OrgClaimedInvitesQueryResult>({
 		queryKey: orgInvitesQueryKeys.claimed(context, orgId, { first, offset }),

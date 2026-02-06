@@ -12,7 +12,7 @@ import {
 	fetchUsersQuery,
 	fetchOrgMembershipsQuery,
 } from '@sdk/api';
-import { useAppStore, useShallow } from '@/store/app-store';
+import { useAppStore } from '@/store/app-store';
 
 import {
 	type Organization,
@@ -150,12 +150,10 @@ function transformMember(member: MemberNode): OrganizationMember {
 export function useOrganization(options: UseOrganizationOptions): UseOrganizationResult {
 	const { orgId, enabled = true, context = 'schema-builder' } = options;
 
-	const { user, token } = useAppStore(
-		useShallow((state) => ({
-			user: state.authByContext[context]?.user || null,
-			token: state.authByContext[context]?.token || null,
-		}))
-	);
+	const { user, token } = useAppStore((state) => ({
+		user: state.auth.user,
+		token: state.auth.token,
+	}));
 
 	const actorId = user?.id || token?.userId;
 

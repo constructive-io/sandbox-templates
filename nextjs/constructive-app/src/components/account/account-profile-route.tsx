@@ -9,7 +9,7 @@ import {
 	useUpdateUser,
 	useUpdateUserProfile,
 } from '@/lib/gql/hooks/schema-builder/account/use-account-profile';
-import { useAppStore, useShallow } from '@/store/app-store';
+import { useAppStore } from '@/store/app-store';
 import { Avatar, AvatarFallback } from '@constructive-io/ui/avatar';
 import { Button } from '@constructive-io/ui/button';
 import { Input } from '@constructive-io/ui/input';
@@ -48,11 +48,7 @@ function getInitials(displayName: string | null, username: string | null): strin
 }
 
 export function AccountProfileRoute() {
-	const { userId } = useAppStore(
-		useShallow((state) => ({
-			userId: state.authByContext['schema-builder']?.user?.id || '',
-		})),
-	);
+	const userId = useAppStore((state) => state.auth.user?.id || '');
 
 	const { profile, isLoading } = useAccountProfile({ userId, enabled: !!userId });
 	const { updateUser, isUpdating: isUpdatingUser } = useUpdateUser();

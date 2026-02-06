@@ -7,7 +7,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { RiLockLine } from '@remixicon/react';
 
 import { cn } from '@/lib/utils';
-import { useAppStore } from '@/store/app-store';
+import { appStore } from '@/store/app-store';
 import { TokenManager } from '@/lib/auth/token-manager';
 
 import { DataError, DataErrorType, parseError } from './error-handler';
@@ -93,31 +93,22 @@ export function AuthErrorBanner({
 
 	const router = useRouter();
 	const queryClient = useQueryClient();
-	const setUnauthenticated = useAppStore((state) => state.setUnauthenticated);
-
 	const [countdown, setCountdown] = useState(countdownSeconds);
 	const [isRedirecting, setIsRedirecting] = useState(false);
 
 	const clearAuthAndRedirect = useCallback(() => {
 		setIsRedirecting(true);
 
-		// Clear auth state for the specific context only (context-aware)
-		if (context === 'dashboard') {
-			// Dashboard: clear auth for the specific scope
-			setUnauthenticated('dashboard', dashboardScope ?? undefined);
-			TokenManager.clearToken('dashboard', dashboardScope ?? undefined);
-		} else {
-			// Schema-builder: clear schema-builder auth only
-			setUnauthenticated('schema-builder');
-			TokenManager.clearToken('schema-builder');
-		}
+		// Clear auth state
+		appStore.setUnauthenticated();
+		TokenManager.clearToken('schema-builder');
 
-		// Invalidate React Query caches (keep it broad for simplicity)
+		// Invalidate React Query caches
 		queryClient.clear();
 
 		// Redirect to root
 		router.push(redirectPath);
-	}, [setUnauthenticated, queryClient, router, redirectPath, context, dashboardScope]);
+	}, [queryClient, router, redirectPath]);
 
 	useEffect(() => {
 		if (countdown <= 0) {

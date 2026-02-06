@@ -5,7 +5,7 @@
  */
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { useAppStore, useShallow } from '@/store/app-store';
+import { useAppStore } from '@/store/app-store';
 import type { SchemaContext } from '@/app-config';
 import {
 	type AppMembershipsQueryVariables,
@@ -124,11 +124,7 @@ export function useAppUsers(options: UseAppUsersOptions = {}): UseAppUsersResult
 		context = 'schema-builder',
 	} = options;
 
-	const { isAuthenticated } = useAppStore(
-		useShallow((state) => ({
-			isAuthenticated: state.authByContext[context]?.isAuthenticated || false,
-		})),
-	);
+	const isAuthenticated = useAppStore((state) => state.auth.isAuthenticated);
 
 	// Build filter object for GraphQL
 	const graphqlFilter = filter

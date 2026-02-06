@@ -10,7 +10,7 @@ import {
 	useUpdateUserMutation,
 	useUserQuery,
 } from '@sdk/api';
-import { useAppStore, useShallow } from '@/store/app-store';
+import { useAppStore } from '@/store/app-store';
 
 // TODO: Backend migration removed userProfile and emailsByOwnerId from User type
 // These fields need backend consultation for proper replacement
@@ -57,11 +57,7 @@ export interface UseAccountProfileResult {
 export function useAccountProfile(options: UseAccountProfileOptions): UseAccountProfileResult {
 	const { userId, enabled = true, context = 'schema-builder' } = options;
 
-	const { isAuthenticated } = useAppStore(
-		useShallow((state) => ({
-			isAuthenticated: state.authByContext[context]?.isAuthenticated || false,
-		})),
-	);
+	const isAuthenticated = useAppStore((state) => state.auth.isAuthenticated);
 
 	const { data, isLoading, error, refetch } = useUserQuery(
 		{ id: userId },

@@ -9,7 +9,7 @@ import { useLogout } from '@/lib/gql/hooks/auth';
 import type { DirectConnectConfig, SchemaContext } from '@/lib/runtime/config-core';
 import { shouldBypassAuth } from '@/lib/runtime/direct-connect';
 import { initEnvOverridesSync } from '@/lib/runtime/env-sync';
-import { useAppStore, useAuth, useAuthActions } from '@/store/app-store';
+import { useAppStore, useAuth, useAuthActions, appStore } from '@/store/app-store';
 import type { UserProfile } from '@/store/auth-slice';
 import { detectSchemaContextFromPath } from '@/app-config';
 
@@ -60,14 +60,11 @@ export function useAuthContext(): AuthContextType {
  * @param userEmail - Email from previous auth state
  * @param scope - Optional scope for dashboard tokens (e.g., databaseId)
  */
-function initializeAuthForContext(
-	targetCtx: SchemaContext,
+function initializeAuth(
 	authActions: ReturnType<typeof useAuthActions>,
 	directConnect: Record<SchemaContext, DirectConnectConfig>,
-	userEmail: string,
-	scope?: string,
 ) {
-	const isAuthBypassed = shouldBypassAuth(targetCtx, directConnect);
+	const isAuthBypassed = shouldBypassAuth('schema-builder', directConnect);
 
 	// Direct Connect with skipAuth: mark as authenticated with synthetic token
 	if (isAuthBypassed) {
@@ -80,39 +77,31 @@ function initializeAuthForContext(
 				accessTokenExpiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
 			},
 			false,
-			targetCtx,
-			scope,
 		);
 		return;
 	}
 
-	// Get token from storage (scoped for dashboard)
-	const { token, rememberMe } = TokenManager.getToken(targetCtx, scope);
+	const { token, rememberMe } = TokenManager.getToken('schema-builder');
 
 	if (!token) {
-		// Deterministic unauthenticated state: stop loading so UI can render embedded auth
-		authActions.setUnauthenticated(targetCtx, scope);
-		authActions.setLoading(false, targetCtx, scope);
+		authActions.setUnauthenticated();
+		authActions.setLoading(false);
 		return;
 	}
 
-	const isExpired = TokenManager.isTokenExpired(token);
-
-	if (isExpired) {
-		// Token is expired, clear it
-		TokenManager.clearToken(targetCtx, scope);
-		authActions.setUnauthenticated(targetCtx, scope);
-		authActions.setLoading(false, targetCtx, scope);
+	if (TokenManager.isTokenExpired(token)) {
+		TokenManager.clearToken('schema-builder');
+		authActions.setUnauthenticated();
+		authActions.setLoading(false);
 		return;
 	}
 
-	// Token is valid, restore auth state
 	const user: UserProfile = {
 		id: token.userId ?? token.id,
-		email: userEmail,
+		email: '',
 	};
 
-	authActions.setAuthenticated(user, token, rememberMe, targetCtx, scope);
+	authActions.setAuthenticated(user, token, rememberMe);
 }
 
 /**
@@ -133,9 +122,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	const authActions = useAuthActions();
 
 	// Get Direct Connect state - subscribe to changes
-	const directConnect = useAppStore((state) => state.directConnect);
-	// Get current dashboard scope
-	const dashboardScope = useAppStore((state) => state.dashboardScope.databaseId);
+	const directConnect = useAppStore((state) => state.env.directConnect);
 	const isAuthBypassed = shouldBypassAuth(ctx, directConnect);
 
 	// Use the new custom hooks
@@ -146,35 +133,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	// Track if auth has been initialized to avoid redundant initializations
 	const hasInitialized = useRef(false);
 
-	// Check authentication status for current context
+	// Check authentication status
 	const checkAuthStatus = useCallback(() => {
-		const scope = ctx === 'dashboard' ? dashboardScope ?? undefined : undefined;
-		initializeAuthForContext(ctx, authActions, directConnect, '', scope);
-	}, [authActions, ctx, directConnect, dashboardScope]);
+		initializeAuth(authActions, directConnect);
+	}, [authActions, directConnect]);
 
-	// Initialize auth state on mount - initialize BOTH contexts
-	// This is critical for the two-tier auth system:
-	// - Schema-builder auth must be checked regardless of starting route
-	// - Dashboard auth is checked when on /orgs/[orgId]/databases/[databaseId]/data routes
+	// Initialize auth state on mount
 	useEffect(() => {
-		// Skip if already initialized to prevent re-runs
 		if (hasInitialized.current) return;
 		hasInitialized.current = true;
 
-		// Ensure cross-tab token sync is active
 		TokenManager.initStorageSync();
 		initEnvOverridesSync();
 
-		// Always initialize schema-builder (Tier 1) auth first
-		// This ensures the AppShell can determine visibility correctly
-		initializeAuthForContext('schema-builder', authActions, directConnect, '');
+		initializeAuth(authActions, directConnect);
 	}, [authActions, directConnect]);
-
-	// Initialize dashboard auth when scope changes
-	useEffect(() => {
-		if (ctx !== 'dashboard' || !dashboardScope) return;
-		initializeAuthForContext('dashboard', authActions, directConnect, '', dashboardScope);
-	}, [ctx, dashboardScope, authActions, directConnect]);
 
 	// Set up token expiration monitoring and automatic refresh
 	useEffect(() => {
@@ -233,7 +206,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	// Stable action callbacks to prevent context re-renders
 	const login = useCallback(
 		async (credentials: LoginFormData) => {
-			const scope = ctx === 'dashboard' ? dashboardScope ?? undefined : undefined;
 			// When auth bypassed, simulate success without network
 			if (isAuthBypassed) {
 				authActions.setAuthenticated(
@@ -245,8 +217,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 						accessTokenExpiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
 					},
 					Boolean(credentials.rememberMe),
-					ctx,
-					scope,
 				);
 				return;
 			}
@@ -256,7 +226,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 			// which loses the form's local error state when login fails.
 			await loginMutation.mutateAsync(credentials);
 		},
-		[ctx, dashboardScope, isAuthBypassed, authActions, loginMutation],
+		[isAuthBypassed, authActions, loginMutation],
 	);
 
 	const logout = useCallback(async () => {

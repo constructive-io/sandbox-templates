@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { TokenManager } from '@/lib/auth/token-manager';
-import { useAppStore, useAuthActions } from '@/store/app-store';
+import { appStore, useAuthActions } from '@/store/app-store';
 import { useExtendTokenExpiresMutation } from '@sdk/api';
 
 import { authKeys } from '../../query-keys';
@@ -22,8 +22,8 @@ export function useExtendTokenSb() {
 		mutationKey: authKeys.extendToken.queryKey,
 		mutationFn: async (intervalInput?: { hours?: number; minutes?: number; days?: number }) => {
 			// Capture rememberMe at mutation time
-			const rememberMe = useAppStore.getState().schemaBuilderAuth.rememberMe;
-			const currentToken = useAppStore.getState().schemaBuilderAuth.token;
+			const rememberMe = appStore.getState().auth.rememberMe;
+			const currentToken = appStore.getState().auth.token;
 
 			if (!currentToken) {
 				throw new Error('Token extension failed: No current token');
@@ -53,7 +53,7 @@ export function useExtendTokenSb() {
 		onSuccess: ({ token, rememberMe }) => {
 			// Update token in storage and state
 			TokenManager.setToken(token, rememberMe, 'schema-builder');
-			authActions.updateToken(token, 'schema-builder');
+			authActions.updateToken(token);
 
 			// Invalidate auth-related queries
 			queryClient.invalidateQueries({ queryKey: authKeys._def });

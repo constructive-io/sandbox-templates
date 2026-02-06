@@ -3,7 +3,7 @@ import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query';
 import { DataError, DataErrorType } from '@/lib/gql/error-handler';
 import { createLogger } from '@/lib/logger';
 import type { SchemaContext } from '@/lib/runtime/config-core';
-import { useAppStore } from '@/store/app-store';
+import { appStore } from '@/store/app-store';
 
 const logger = createLogger({ scope: 'query-client' });
 
@@ -157,54 +157,17 @@ function handleGlobalAuthError(error: unknown, queryKey?: readonly unknown[]): v
 
 	logger.info('Context-aware auth error detected', { context, queryKey });
 
-	// Access store state directly (useAppStore is a Zustand store with getState())
-	const state = useAppStore.getState();
+	appStore.setUnauthenticated();
 
-	if (context === 'schema-builder') {
-		// Tier 1 auth error: clear schema-builder auth only
-		state.setUnauthenticated('schema-builder');
+	// Cancel queries for the affected context
+	queryClient.cancelQueries({
+		predicate: (query) => {
+			const qCtx = detectContextFromQueryKey(query.queryKey);
+			return qCtx === context || qCtx === null;
+		},
+	});
 
-		// Cancel schema-builder queries only
-		queryClient.cancelQueries({
-			predicate: (query) => {
-				const qCtx = detectContextFromQueryKey(query.queryKey);
-				return qCtx === 'schema-builder' || qCtx === null;
-			},
-		});
-
-		logger.info('Schema-builder auth cleared');
-	} else if (context === 'dashboard') {
-		// Tier 2 auth error: clear dashboard auth for specific scope
-		const dashboardScope = queryKey ? extractDashboardScope(queryKey) : null;
-
-		if (dashboardScope) {
-			// Clear auth for the specific database
-			state.setUnauthenticated('dashboard', dashboardScope);
-
-			// Cancel queries for this specific dashboard scope
-			queryClient.cancelQueries({
-				predicate: (query) => {
-					const qScope = extractDashboardScope(query.queryKey);
-					return qScope === dashboardScope;
-				},
-			});
-
-			logger.info('Dashboard auth cleared for scope', { scope: dashboardScope });
-		} else {
-			// No specific scope, clear current dashboard scope
-			const currentScope = state.dashboardScope.databaseId;
-			if (currentScope) {
-				state.setUnauthenticated('dashboard', currentScope);
-			}
-
-			// Cancel all dashboard queries
-			queryClient.cancelQueries({
-				predicate: (query) => detectContextFromQueryKey(query.queryKey) === 'dashboard',
-			});
-
-			logger.info('Dashboard auth cleared for current scope', { scope: currentScope });
-		}
-	}
+	logger.info('Auth cleared due to auth error', { context });
 
 	// Reset the flag after cooldown
 	setTimeout(() => {

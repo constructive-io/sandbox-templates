@@ -18,18 +18,14 @@ import { showErrorToast } from '@constructive-io/ui/toast';
 import { ChevronRight, Loader2, Settings } from 'lucide-react';
 
 import { useDeleteUser } from '@/lib/gql/hooks/schema-builder/account/use-delete-user';
-import { useAppStore, useShallow } from '@/store/app-store';
+import { useAppStore } from '@/store/app-store';
 import { PageHeaderWithIcon } from '@/components/shared/page-header-with-icon';
 
 import { EditPasswordCard } from './edit-password-card';
 
 function DeleteAccountSection() {
 	const [isDeleting, setIsDeleting] = useState(false);
-	const { user } = useAppStore(
-		useShallow((state) => ({
-			user: state.authByContext['schema-builder']?.user,
-		})),
-	);
+	const user = useAppStore((state) => state.auth.user);
 	const { deleteUser } = useDeleteUser();
 
 	const handleDeleteAccount = async () => {

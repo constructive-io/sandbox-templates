@@ -74,7 +74,7 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
 	}, [searchParams]);
 
 	// Get Direct Connect state - subscribe to changes
-	const directConnect = useAppStore((state) => state.directConnect);
+	const directConnect = useAppStore((state) => state.env.directConnect);
 	const isAuthBypassed = shouldBypassAuth(ctx, directConnect);
 
 	// Get app membership for permission checks (only when authenticated and permission required)

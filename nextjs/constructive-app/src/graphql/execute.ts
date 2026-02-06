@@ -67,16 +67,11 @@ function documentToString(document: ExecutableDocument): string {
  */
 export function getAuthHeaders(ctx: SchemaContext = getSchemaContext(), scope?: string): Record<string, string> {
 	const state = useAppStore.getState();
-	if (shouldBypassAuth(ctx, state.directConnect)) {
+	if (shouldBypassAuth(ctx, state.env.directConnect)) {
 		return {};
 	}
 
-	// For dashboard, use the provided scope or the current dashboard scope
-	const effectiveScope = ctx === 'dashboard'
-		? (scope ?? state.dashboardScope.databaseId ?? undefined)
-		: undefined;
-
-	const { token } = TokenManager.getToken(ctx, effectiveScope);
+	const { token } = TokenManager.getToken(ctx, scope);
 
 	if (token) {
 		const isExpired = TokenManager.isTokenExpired(token);
@@ -203,16 +198,14 @@ export async function executeInContext<TDocument extends ExecutableDocument>(
 	options?: ExecuteInContextOptions,
 ): Promise<ResultOfDocument<TDocument>> {
 	const state = useAppStore.getState();
-	const isAuthBypassed = shouldBypassAuth(ctx, state.directConnect);
+	const isAuthBypassed = shouldBypassAuth(ctx, state.env.directConnect);
 
-	// Get the dashboard scope for scoped token operations
-	const dashboardScope =
-		ctx === 'dashboard' ? (options?.authScope ?? state.dashboardScope.databaseId ?? undefined) : undefined;
+	const dashboardScope = ctx === 'dashboard' ? options?.authScope : undefined;
 
 	const endpointOverride = options?.endpoint?.trim() ? options.endpoint.trim() : null;
 
 	// Resolve endpoint
-	const directConnectEndpoint = getDirectConnectEndpoint(ctx, state.directConnect);
+	const directConnectEndpoint = getDirectConnectEndpoint(ctx, state.env.directConnect);
 	const standardEndpoint = getEndpoint(ctx);
 	const url = endpointOverride || directConnectEndpoint || standardEndpoint;
 
