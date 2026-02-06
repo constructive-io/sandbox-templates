@@ -29,7 +29,7 @@ export function useDeleteUser() {
 	const mutation = useDeleteUserMutation({
 		onSuccess: () => {
 			TokenManager.clearToken(ctx);
-			authActions.setUnauthenticated(ctx);
+			authActions.setUnauthenticated();
 			queryClient.invalidateQueries({ queryKey: authKeys._def });
 			queryClient.clear();
 			router.push(getHomePath(ctx) as Route);

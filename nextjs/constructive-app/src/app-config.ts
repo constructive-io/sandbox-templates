@@ -39,7 +39,7 @@ export function getEndpoint(ctx: SchemaContext = getSchemaContext()): string | n
 	// 1. Check UI override (store)
 	try {
 		const state: AppState = useAppStore.getState();
-		const o = state.endpointOverrides?.[ctx];
+		const o = state.env.endpointOverrides?.[ctx];
 		if (o && o.trim().length) {
 			endpoint = o.trim();
 			source = 'ui-override';

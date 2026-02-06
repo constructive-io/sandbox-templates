@@ -61,7 +61,7 @@ export function useLoginSb() {
 			};
 
 			// Update auth state
-			authActions.setAuthenticated(user, token, rememberMe, 'schema-builder');
+			authActions.setAuthenticated(user, token, rememberMe);
 
 			// Invalidate any auth-related queries
 			queryClient.invalidateQueries({ queryKey: authKeys._def });

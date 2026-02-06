@@ -45,7 +45,7 @@ interface DirectConnectDialogProps {
  */
 export function DirectConnectDialog({ trigger, open: controlledOpen, onOpenChange }: DirectConnectDialogProps) {
 	const mounted = useMounted();
-	const { isEnabled, endpoint, skipAuth } = useDirectConnect('dashboard');
+	const { isEnabled, endpoint, skipAuth } = useDirectConnect();
 	const { setDirectConnect, clearDirectConnect } = useDirectConnectActions();
 
 	// Internal open state (used when not controlled)

@@ -24,7 +24,7 @@ interface DirectConnectIndicatorProps {
  * Direct Connect only affects the Dashboard/CRM, not the Schema Builder.
  */
 export function DirectConnectIndicator({ onClick, className }: DirectConnectIndicatorProps) {
-	const { isEnabled, endpoint, skipAuth } = useDirectConnect('dashboard');
+	const { isEnabled, endpoint, skipAuth } = useDirectConnect();
 
 	// Don't render anything if Direct Connect is not enabled
 	if (!isEnabled) {

@@ -32,13 +32,9 @@ export function useLogoutSb() {
 			}
 		},
 		onSuccess: () => {
-			// Clear schema-builder token
+			// Clear token and auth state
 			TokenManager.clearToken('schema-builder');
-			authActions.setUnauthenticated('schema-builder');
-
-			// Schema-builder logout cascades to clear ALL dashboard tokens
-			TokenManager.clearAllDashboardTokens();
-			authActions.clearAllDashboardAuth();
+			authActions.setUnauthenticated();
 
 			// Invalidate all queries
 			queryClient.invalidateQueries({ queryKey: authKeys._def });

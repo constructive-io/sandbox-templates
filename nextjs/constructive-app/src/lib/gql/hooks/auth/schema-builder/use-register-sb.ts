@@ -71,7 +71,7 @@ export function useRegisterSb() {
 					id: userId,
 					email: email || '',
 				};
-				authActions.setAuthenticated(user, token, rememberMe, 'schema-builder');
+				authActions.setAuthenticated(user, token, rememberMe);
 				queryClient.invalidateQueries({ queryKey: authKeys._def });
 				return;
 			}
@@ -85,14 +85,14 @@ export function useRegisterSb() {
 				// Best-effort: still navigate to check-email even if sending fails
 			}
 
-			authActions.setUnauthenticated('schema-builder');
+			authActions.setUnauthenticated();
 			queryClient.invalidateQueries({ queryKey: authKeys._def });
 
 			const url = `${ROUTE_PATHS.CHECK_EMAIL}?type=verification&email=${encodeURIComponent(email)}`;
 			router.push(url as Route);
 		},
 		onError: () => {
-			authActions.setUnauthenticated('schema-builder');
+			authActions.setUnauthenticated();
 		},
 	});
 }

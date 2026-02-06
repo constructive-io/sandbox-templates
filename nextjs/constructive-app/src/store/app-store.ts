@@ -1,6 +1,4 @@
 /**
- * Vanilla app store — replaces zustand with useSyncExternalStore + localStorage.
- *
  * The store is a plain JS singleton. React components subscribe via the
  * exported hooks which use `useSyncExternalStore` under the hood.
  */
