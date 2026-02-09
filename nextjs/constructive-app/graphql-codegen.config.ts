@@ -13,6 +13,7 @@ import type { GraphQLSDKConfigTarget } from '@constructive-io/graphql-codegen';
 const config: Record<string, GraphQLSDKConfigTarget> = {
 	api: {
 		reactQuery: true,
+		orm: false,
 		endpoint: process.env.CODEGEN_API_ENDPOINT ?? 'http://api.localhost:3000/graphql',
 		output: './src/graphql/schema-builder-sdk/api',
 	},
