@@ -37,7 +37,6 @@ export default defineConfig({
 
 	// Code generation options
 	codegen: {
-		maxFieldDepth: 5, // Reasonable depth for nested selections
 		skipQueryField: true, // Don't include 'query' field in mutation payloads
 	},
 });
