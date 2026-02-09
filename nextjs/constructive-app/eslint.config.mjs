@@ -1,6 +1,3 @@
-// For more info, see https://github.com/storybookjs/eslint-plugin-storybook#configuration-flat-config-format
-import storybook from 'eslint-plugin-storybook';
-
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { FlatCompat } from '@eslint/eslintrc';
@@ -14,7 +11,7 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   {
-    ignores: ['.next/**/*', 'src/components/dashboard/data-grid/glide-grid-examples/**/*', 'src/graphql/**/*'],
+    ignores: ['.next/**/*', 'src/graphql/**/*'],
   },
   ...compat.extends('next/core-web-vitals', 'next/typescript'),
   {
@@ -23,7 +20,6 @@ const eslintConfig = [
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
       '@next/next/no-img-element': 'off',
-      // Allow 'any' types for dynamic database management app
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unused-vars': [
         'warn',
@@ -38,16 +34,6 @@ const eslintConfig = [
       'react-hooks/exhaustive-deps': 'warn',
     },
   },
-  {
-    files: ['**/__tests__/**/*.{ts,tsx}', '**/*.test.{ts,tsx}'],
-    rules: {
-      '@typescript-eslint/no-unused-vars': 'off',
-      'prefer-const': 'off',
-      'react/display-name': 'off',
-      'import/no-anonymous-default-export': 'off',
-    },
-  },
-  ...storybook.configs['flat/recommended'],
 ];
 
 export default eslintConfig;
