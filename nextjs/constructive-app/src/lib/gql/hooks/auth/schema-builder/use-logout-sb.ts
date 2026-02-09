@@ -11,7 +11,6 @@ import { authKeys } from '../../query-keys';
 
 /**
  * Schema-builder logout hook using SDK-generated mutation
- * Schema-builder logout cascades to clear all dashboard tokens
  */
 export function useLogoutSb() {
 	const queryClient = useQueryClient();

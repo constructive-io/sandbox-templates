@@ -2,100 +2,22 @@ import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query';
 
 import { DataError, DataErrorType } from '@/lib/gql/error-handler';
 import { createLogger } from '@/lib/logger';
-import type { SchemaContext } from '@/lib/runtime/config-core';
 import { appStore } from '@/store/app-store';
 
 const logger = createLogger({ scope: 'query-client' });
-
-// ============================================================================
-// Query Key Context Detection
-// ============================================================================
-
-/**
- * Check if a query key element is a DashboardCacheScopeKey.
- * Dashboard queries have keys like: ['dashboard', { databaseId, endpoint }, ...]
- */
-function isDashboardCacheScopeKey(value: unknown): boolean {
-	if (!value || typeof value !== 'object') return false;
-	const candidate = value as Record<string, unknown>;
-	return 'databaseId' in candidate && 'endpoint' in candidate;
-}
-
-/**
- * Check if a query key element indicates schema-builder context.
- * Schema-builder queries have keys like: ['resource', { context: 'schema-builder' }, ...]
- */
-function isSchemaBuilderContextKey(value: unknown): boolean {
-	if (!value || typeof value !== 'object') return false;
-	const candidate = value as Record<string, unknown>;
-	return candidate.context === 'schema-builder';
-}
-
-/**
- * Detect the schema context from a React Query key.
- * 
- * @param queryKey - The query key array
- * @returns The detected context, or null if unknown
- */
-function detectContextFromQueryKey(queryKey: readonly unknown[]): SchemaContext | null {
-	if (!Array.isArray(queryKey) || queryKey.length === 0) return null;
-
-	// Dashboard queries start with 'dashboard' and have a scope object
-	if (queryKey[0] === 'dashboard') {
-		// Verify it's actually a dashboard query by checking for scope
-		if (queryKey.length > 1 && isDashboardCacheScopeKey(queryKey[1])) {
-			return 'dashboard';
-		}
-		// Still likely dashboard even without proper scope
-		return 'dashboard';
-	}
-
-	// Schema-builder queries have { context: 'schema-builder' } in them
-	for (const element of queryKey) {
-		if (isSchemaBuilderContextKey(element)) {
-			return 'schema-builder';
-		}
-	}
-
-	// Auth queries (login, logout, etc.) are schema-builder context
-	if (queryKey[0] === 'auth') {
-		return 'schema-builder';
-	}
-
-	// Default to null (unknown context)
-	return null;
-}
-
-/**
- * Extract the dashboard scope (databaseId) from a query key if present.
- */
-function extractDashboardScope(queryKey: readonly unknown[]): string | null {
-	if (!Array.isArray(queryKey) || queryKey.length < 2) return null;
-	if (queryKey[0] !== 'dashboard') return null;
-
-	const scopeCandidate = queryKey[1];
-	if (isDashboardCacheScopeKey(scopeCandidate)) {
-		const scope = scopeCandidate as { databaseId: string | null };
-		return scope.databaseId;
-	}
-	return null;
-}
 
 // ============================================================================
 // Global Auth Error Handler
 // ============================================================================
 
 /**
- * Tracks auth error handling state per context to prevent
+ * Tracks auth error handling state to prevent
  * multiple concurrent handlers from triggering logout multiple times.
  */
-const authErrorHandlingState: Record<SchemaContext, { isHandling: boolean; lastHandledAt: number }> = {
-	'schema-builder': { isHandling: false, lastHandledAt: 0 },
-	'dashboard': { isHandling: false, lastHandledAt: 0 },
-};
+let authErrorHandling = { isHandling: false, lastHandledAt: 0 };
 
 /**
- * Minimum time between auth error handling attempts per context (ms).
+ * Minimum time between auth error handling attempts (ms).
  */
 const AUTH_ERROR_COOLDOWN = 2000;
 
@@ -106,7 +28,6 @@ function isAuthError(error: unknown): boolean {
 	if (error instanceof DataError) {
 		return error.type === DataErrorType.UNAUTHORIZED;
 	}
-	// Fallback: check error message for auth-related keywords
 	if (error instanceof Error) {
 		const msg = error.message.toLowerCase();
 		return msg.includes('unauthenticated') || msg.includes('unauthorized');
@@ -115,63 +36,35 @@ function isAuthError(error: unknown): boolean {
 }
 
 /**
- * Handle authentication errors globally with context awareness.
- * 
- * This is called from the QueryCache and MutationCache error handlers.
- * It detects which context (schema-builder or dashboard) the error came from
- * and only invalidates auth for that specific context.
- * 
- * - Schema-builder (Tier 1) auth errors: Clear schema-builder auth only
- * - Dashboard (Tier 2) auth errors: Clear dashboard auth for the specific database scope only
- * 
- * Uses per-context flags and cooldowns to prevent multiple concurrent handlers
+ * Handle authentication errors globally.
+ * Clears auth state and cancels all queries on auth errors.
+ * Uses a flag and cooldown to prevent multiple concurrent handlers
  * from triggering logout multiple times when many queries fail at once.
  */
 function handleGlobalAuthError(error: unknown, queryKey?: readonly unknown[]): void {
 	if (!isAuthError(error)) return;
 
-	// Detect context from query key
-	const context = queryKey ? detectContextFromQueryKey(queryKey) : null;
 	const now = Date.now();
 
-	// If we can't determine context, log and skip (don't blindly clear everything)
-	if (!context) {
-		if (process.env.NODE_ENV === 'development') {
-			logger.warn('Auth error with unrecognized query key — this query won\'t trigger logout. Add context to the key.', { queryKey });
-		} else {
-			logger.debug('Auth error detected but could not determine context from query key', { queryKey });
-		}
+	// Skip if we're already handling or within cooldown period
+	if (authErrorHandling.isHandling || (now - authErrorHandling.lastHandledAt) < AUTH_ERROR_COOLDOWN) {
+		logger.debug('Auth error handling skipped (already handling or in cooldown)');
 		return;
 	}
 
-	const handlingState = authErrorHandlingState[context];
+	authErrorHandling.isHandling = true;
+	authErrorHandling.lastHandledAt = now;
 
-	// Skip if we're already handling or within cooldown period for this context
-	if (handlingState.isHandling || (now - handlingState.lastHandledAt) < AUTH_ERROR_COOLDOWN) {
-		logger.debug('Auth error handling skipped for context (already handling or in cooldown)', { context });
-		return;
-	}
-
-	handlingState.isHandling = true;
-	handlingState.lastHandledAt = now;
-
-	logger.info('Context-aware auth error detected', { context, queryKey });
+	logger.info('Auth error detected', { queryKey });
 
 	appStore.setUnauthenticated();
+	queryClient.cancelQueries();
 
-	// Cancel queries for the affected context
-	queryClient.cancelQueries({
-		predicate: (query) => {
-			const qCtx = detectContextFromQueryKey(query.queryKey);
-			return qCtx === context || qCtx === null;
-		},
-	});
-
-	logger.info('Auth cleared due to auth error', { context });
+	logger.info('Auth cleared due to auth error');
 
 	// Reset the flag after cooldown
 	setTimeout(() => {
-		handlingState.isHandling = false;
+		authErrorHandling.isHandling = false;
 	}, AUTH_ERROR_COOLDOWN);
 }
 

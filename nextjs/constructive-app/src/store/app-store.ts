@@ -148,7 +148,6 @@ function createAppStore() {
 	// ── Env actions ──────────────────────────────────────────────────
 
 	function resetAuthForContext(ctx: SchemaContext, reason: string) {
-		if (ctx === 'dashboard') return;
 		authLogger.info(`Resetting auth for ${ctx} due to ${reason}`);
 		TokenManager.clearToken(ctx);
 		try { queryClient.clear(); } catch {}

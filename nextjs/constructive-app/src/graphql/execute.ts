@@ -57,14 +57,10 @@ function documentToString(document: ExecutableDocument): string {
 }
 
 /**
- * Get authentication headers for the given schema context.
- * For dashboard context, uses the current dashboard scope (databaseId) to get the correct token.
- * 
- * @param ctx - Schema context (dashboard or schema-builder)
- * @param scope - Optional scope for dashboard tokens (e.g., databaseId). If not provided, uses current dashboard scope.
+ * Get authentication headers.
  */
-export function getAuthHeaders(ctx: SchemaContext = getSchemaContext(), scope?: string): Record<string, string> {
-	const { token } = TokenManager.getToken(ctx, scope);
+export function getAuthHeaders(ctx: SchemaContext = getSchemaContext()): Record<string, string> {
+	const { token } = TokenManager.getToken(ctx);
 
 	if (token) {
 		const isExpired = TokenManager.isTokenExpired(token);
@@ -93,7 +89,7 @@ interface GraphQLResponse {
 /**
  * Parse GraphQL response and extract error if present
  */
-function parseGraphQLResponse(response: GraphQLResponse, ctx: SchemaContext, scope?: string): DataError | null {
+function parseGraphQLResponse(response: GraphQLResponse): DataError | null {
 	if (!response.errors?.length) return null;
 
 	const error = response.errors[0];
@@ -102,7 +98,7 @@ function parseGraphQLResponse(response: GraphQLResponse, ctx: SchemaContext, sco
 
 	// Handle auth errors
 	if (code === 'UNAUTHENTICATED' || message.toLowerCase().includes('authentication')) {
-		TokenManager.clearToken(ctx, scope);
+		TokenManager.clearToken();
 		return createError.unauthorized('Authentication required. Please log in again.');
 	}
 
@@ -117,16 +113,12 @@ function parseGraphQLResponse(response: GraphQLResponse, ctx: SchemaContext, sco
 /**
  * Handle HTTP error status codes
  */
-async function handleHttpError(
-	response: Response,
-	ctx: SchemaContext,
-	scope?: string
-): Promise<DataError> {
+async function handleHttpError(response: Response): Promise<DataError> {
 	const { status, statusText } = response;
 
 	// 401 Unauthorized
 	if (status === 401) {
-		TokenManager.clearToken(ctx, scope);
+		TokenManager.clearToken();
 		return createError.unauthorized('Authentication required. Please log in again.');
 	}
 
@@ -162,10 +154,8 @@ async function handleHttpError(
 // ============================================================================
 
 export type ExecuteInContextOptions = {
-	/** Force a specific GraphQL endpoint (useful to keep queryFn aligned with a scoped queryKey). */
+	/** Force a specific GraphQL endpoint. */
 	endpoint?: string | null;
-	/** Force a specific dashboard auth scope (e.g. database scope id). */
-	authScope?: string | undefined;
 };
 
 /**
@@ -220,14 +210,14 @@ export async function executeInContext<TDocument extends ExecutableDocument>(
 
 	// Handle HTTP errors
 	if (!response.ok) {
-		throw await handleHttpError(response, ctx);
+		throw await handleHttpError(response);
 	}
 
 	// Parse response
 	const result: GraphQLResponse = await response.json();
 
 	// Check for GraphQL errors
-	const graphqlError = parseGraphQLResponse(result, ctx);
+	const graphqlError = parseGraphQLResponse(result);
 	if (graphqlError) {
 		throw graphqlError;
 	}
@@ -238,21 +228,6 @@ export async function executeInContext<TDocument extends ExecutableDocument>(
 // ============================================================================
 // Convenience Exports
 // ============================================================================
-
-export function executeCrm<TDocument extends ExecutableDocument>(
-	document: TDocument,
-	variables?: VariablesOfDocument<TDocument>,
-): Promise<ResultOfDocument<TDocument>> {
-	return executeInContext('dashboard', document, variables);
-}
-
-export function executeCrmInScope<TDocument extends ExecutableDocument>(
-	options: ExecuteInContextOptions,
-	document: TDocument,
-	variables?: VariablesOfDocument<TDocument>,
-): Promise<ResultOfDocument<TDocument>> {
-	return executeInContext('dashboard', document, variables, options);
-}
 
 export function executeSb<TDocument extends ExecutableDocument>(
 	document: TDocument,
@@ -265,7 +240,7 @@ export function execute<TDocument extends ExecutableDocument>(
 	document: TDocument,
 	variables?: VariablesOfDocument<TDocument>,
 ): Promise<ResultOfDocument<TDocument>> {
-	return executeInContext(getSchemaContext(), document, variables);
+	return executeInContext('schema-builder', document, variables);
 }
 
 // Re-export DataError for consumers

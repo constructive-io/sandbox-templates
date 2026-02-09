@@ -2,25 +2,20 @@
 
 import {
 	RiBuilding2Line,
-	RiDatabase2Line,
 	RiGroupLine,
 	RiLogoutBoxLine,
 	RiMailLine,
-	RiServerLine,
 	RiSettings3Line,
-	RiShieldCheckLine,
-	RiTableLine,
 	RiUserLine,
 } from '@remixicon/react';
 
 import type { NavGroup } from '@/components/app-shell/app-shell.types';
 
-export type NavigationContextType = 'app' | 'org' | 'db' | 'account';
+export type NavigationContextType = 'app' | 'org' | 'account';
 
 export interface SidebarConfigParams {
 	context: NavigationContextType;
 	orgId: string | null;
-	databaseId: string | null;
 	pathname: string;
 	onLogout: () => void;
 	isLogoutPending: boolean;
@@ -35,7 +30,7 @@ function isActive(pathname: string, href: string, exact = false): boolean {
 }
 
 export function getSidebarNavigation(params: SidebarConfigParams): NavGroup[] {
-	const { context, orgId, databaseId, pathname, onLogout, isLogoutPending, settingsRender, isAppAdmin } = params;
+	const { context, orgId, pathname, onLogout, isLogoutPending, settingsRender, isAppAdmin } = params;
 
 	const footerItems: NavGroup = {
 		id: 'footer',
@@ -134,47 +129,6 @@ export function getSidebarNavigation(params: SidebarConfigParams): NavGroup[] {
 						icon: RiSettings3Line,
 						href: `/orgs/${orgId}/settings`,
 						isActive: isActive(pathname, `/orgs/${orgId}/settings`),
-					},
-				],
-			},
-			footerItems,
-		];
-	}
-
-	if (context === 'db' && orgId && databaseId) {
-		const dbBasePath = `/orgs/${orgId}/databases/${databaseId}`;
-		return [
-			{
-				id: 'main',
-				position: 'top',
-				items: [
-					{
-						id: 'data',
-						label: 'Data',
-						icon: RiDatabase2Line,
-						href: `${dbBasePath}/data`,
-						isActive: isActive(pathname, `${dbBasePath}/data`),
-					},
-					{
-						id: 'schemas',
-						label: 'Schemas',
-						icon: RiTableLine,
-						href: `${dbBasePath}/schemas`,
-						isActive: isActive(pathname, `${dbBasePath}/schemas`),
-					},
-					{
-						id: 'services',
-						label: 'Services',
-						icon: RiServerLine,
-						href: `${dbBasePath}/services`,
-						isActive: isActive(pathname, `${dbBasePath}/services`),
-					},
-					{
-						id: 'security',
-						label: 'Security',
-						icon: RiShieldCheckLine,
-						href: `${dbBasePath}/security`,
-						isActive: isActive(pathname, `${dbBasePath}/security`),
 					},
 				],
 			},

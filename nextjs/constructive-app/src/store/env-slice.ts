@@ -18,7 +18,6 @@ const STORAGE_KEY = (ctx: SchemaContext) => `constructive-endpoint:${ctx}`;
 function readStoredOverride(ctx: SchemaContext): string | null {
 	try {
 		if (typeof window === 'undefined') return null;
-		if (ctx === 'dashboard') return null;
 		return localStorage.getItem(STORAGE_KEY(ctx));
 	} catch {
 		return null;
@@ -47,7 +46,7 @@ export function getEffectiveEndpoint(state: EnvState, ctx: SchemaContext): strin
 
 export function persistEndpointOverride(ctx: SchemaContext, value: string | null): void {
 	try {
-		if (typeof window !== 'undefined' && ctx !== 'dashboard') {
+		if (typeof window !== 'undefined') {
 			if (value === null) localStorage.removeItem(STORAGE_KEY(ctx));
 			else localStorage.setItem(STORAGE_KEY(ctx), value);
 		}

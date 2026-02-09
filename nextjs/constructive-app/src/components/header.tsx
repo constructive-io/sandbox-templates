@@ -20,12 +20,6 @@ export function Header() {
 						>
 							Organizations
 						</Link>
-						<Link
-							className='hover:text-foreground text-foreground/80 font-medium transition-colors'
-							href={ROUTE_PATHS.HELP_CENTER}
-						>
-							Help
-						</Link>
 					</nav>
 				</div>
 			</div>

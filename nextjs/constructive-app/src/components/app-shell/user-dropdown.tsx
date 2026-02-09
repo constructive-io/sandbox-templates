@@ -42,7 +42,6 @@ export function UserDropdown() {
 	const avatarFallback = getAvatarFallback(currentUser?.displayName || inferredUsername || authUser?.email);
 
 	const handleLogout = () => {
-		// Schema-builder logout cascades to clear all dashboard tokens
 		logoutMutation.mutate();
 	};
 

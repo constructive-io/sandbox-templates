@@ -1,40 +1,11 @@
 import type { ApiToken } from '@/store/auth-slice';
-import { getSchemaContext, type SchemaContext } from '@/app-config';
+import type { SchemaContext } from '@/app-config';
 import { createLogger } from '@/lib/logger';
 
 const logger = createLogger({ scope: 'token-manager' });
 
-/**
- * Scope identifier for dashboard tokens (e.g., databaseId).
- * Schema-builder tokens are never scoped.
- */
-export type TokenScope = string | null;
-
-/**
- * Token storage keys
- * - Schema-builder: `constructive-auth-token:schema-builder`
- * - Dashboard (scoped): `constructive-auth-token:dashboard:{databaseId}`
- * - Dashboard (legacy/unscoped): `constructive-auth-token:dashboard`
- */
-const TOKEN_STORAGE_KEY = (ctx: SchemaContext, scope?: TokenScope) => {
-	if (ctx === 'dashboard' && scope) {
-		return `constructive-auth-token:dashboard:${scope}`;
-	}
-	return `constructive-auth-token:${ctx}`;
-};
-
-const REMEMBER_ME_KEY = (ctx: SchemaContext, scope?: TokenScope) => {
-	if (ctx === 'dashboard' && scope) {
-		return `constructive-remember-me:dashboard:${scope}`;
-	}
-	return `constructive-remember-me:${ctx}`;
-};
-
-/**
- * Key prefix for scoped dashboard tokens (used for enumeration/cleanup)
- */
-const DASHBOARD_TOKEN_PREFIX = "constructive-auth-token:";
-const DASHBOARD_REMEMBER_PREFIX = "constructive-remember-me:";
+const TOKEN_STORAGE_KEY = 'constructive-auth-token:schema-builder';
+const REMEMBER_ME_KEY = 'constructive-remember-me:schema-builder';
 
 /**
  * Token manager for handling token persistence
@@ -42,19 +13,7 @@ const DASHBOARD_REMEMBER_PREFIX = "constructive-remember-me:";
  */
 export class TokenManager {
 	// In-memory cache to minimize storage reads
-	// For schema-builder: cache['schema-builder'] = { token, rememberMe }
-	// For dashboard: cache['dashboard:{databaseId}'] = { token, rememberMe }
-	private static cache: Record<string, { token: ApiToken | null; rememberMe: boolean }> = {};
-
-	/**
-	 * Generate a cache key for the given context and scope
-	 */
-	private static cacheKey(ctx: SchemaContext, scope?: TokenScope): string {
-		if (ctx === 'dashboard' && scope) {
-			return `dashboard:${scope}`;
-		}
-		return ctx;
-	}
+	private static cached: { token: ApiToken | null; rememberMe: boolean } | null = null;
 
 	// Sync between tabs via storage events
 	static initStorageSync(): void {
@@ -63,102 +22,66 @@ export class TokenManager {
 		(window as any).__constructive_token_sync__ = true;
 		window.addEventListener('storage', (e) => {
 			if (!e.key) return;
-			// Match current constructive keys and scoped keys
-			// Unscoped: constructive-auth-token:schema-builder, constructive-auth-token:dashboard
-			// Scoped: constructive-auth-token:dashboard:{databaseId}
-			const unscopedMatch = e.key.match(/^constructive-(auth-token|remember-me):(schema-builder|dashboard)$/);
-			const scopedMatch = e.key.match(/^constructive-(auth-token|remember-me):dashboard:(.+)$/);
-			
-			if (unscopedMatch) {
-				const ctx = unscopedMatch[2] as SchemaContext;
-				delete TokenManager.cache[ctx];
-			} else if (scopedMatch) {
-				const scope = scopedMatch[2];
-				delete TokenManager.cache[`dashboard:${scope}`];
+			if (e.key === TOKEN_STORAGE_KEY || e.key === REMEMBER_ME_KEY) {
+				TokenManager.cached = null;
 			}
 		});
-	}
-	/**
-	 * Helpers to obtain current context when not explicitly provided
-	 */
-	private static currentCtx(): SchemaContext {
-		return getSchemaContext();
 	}
 
 	/**
 	 * Store token with appropriate persistence based on remember me preference
-	 * 
-	 * @param token - The API token to store
-	 * @param rememberMe - Whether to persist in localStorage (true) or sessionStorage (false)
-	 * @param ctx - Schema context (dashboard or schema-builder)
-	 * @param scope - Optional scope for dashboard tokens (e.g., databaseId). Ignored for schema-builder.
 	 */
 	static setToken(
 		token: ApiToken,
 		rememberMe: boolean = false,
-		ctx: SchemaContext = TokenManager.currentCtx(),
-		scope?: TokenScope,
+		_ctx?: SchemaContext,
 	): void {
 		try {
-			// Schema-builder never uses scope
-			const effectiveScope = ctx === 'schema-builder' ? null : scope;
 			const tokenData = JSON.stringify(token);
 			const storage = rememberMe ? localStorage : sessionStorage;
-			const storageKey = TOKEN_STORAGE_KEY(ctx, effectiveScope);
 
-			storage.setItem(storageKey, tokenData);
+			storage.setItem(TOKEN_STORAGE_KEY, tokenData);
 
 			// Store remember me preference in localStorage for consistency
-			localStorage.setItem(REMEMBER_ME_KEY(ctx, effectiveScope), JSON.stringify(rememberMe));
+			localStorage.setItem(REMEMBER_ME_KEY, JSON.stringify(rememberMe));
 
 			// Update in-memory cache
-			const cacheKey = TokenManager.cacheKey(ctx, effectiveScope);
-			TokenManager.cache[cacheKey] = { token, rememberMe };
+			TokenManager.cached = { token, rememberMe };
 		} catch (e) {
-			logger.warn('Failed to persist token', { ctx, error: e });
+			logger.warn('Failed to persist token', { error: e });
 		}
 	}
 
 	/**
-	 * Retrieve token from storage
-	 * Checks both localStorage and sessionStorage
-	 * 
-	 * @param ctx - Schema context (dashboard or schema-builder)
-	 * @param scope - Optional scope for dashboard tokens (e.g., databaseId). Ignored for schema-builder.
+	 * Retrieve token from storage.
+	 * Checks both localStorage and sessionStorage.
 	 */
 	static getToken(
-		ctx: SchemaContext = TokenManager.currentCtx(),
-		scope?: TokenScope,
+		_ctx?: SchemaContext,
+		_scope?: string | null,
 	): { token: ApiToken | null; rememberMe: boolean } {
 		try {
-			// Schema-builder never uses scope
-			const effectiveScope = ctx === 'schema-builder' ? null : scope;
-			const cacheKey = TokenManager.cacheKey(ctx, effectiveScope);
-			const storageKey = TOKEN_STORAGE_KEY(ctx, effectiveScope);
-
 			// Fast path: return cached values if present
-			const cached = TokenManager.cache[cacheKey];
-			if (cached) {
-				return cached;
+			if (TokenManager.cached) {
+				return TokenManager.cached;
 			}
 
 			// Check remember me preference first
-			const rememberMeKey = REMEMBER_ME_KEY(ctx, effectiveScope);
-			const rememberMeStr = localStorage.getItem(rememberMeKey);
+			const rememberMeStr = localStorage.getItem(REMEMBER_ME_KEY);
 			const rememberMe = rememberMeStr ? JSON.parse(rememberMeStr) : false;
 
 			// Try to get token from appropriate storage
 			const storage = rememberMe ? localStorage : sessionStorage;
-			const tokenStr = storage.getItem(storageKey);
+			const tokenStr = storage.getItem(TOKEN_STORAGE_KEY);
 
 			if (!tokenStr) {
 				// If not found in expected storage, try the other one
 				const alternativeStorage = rememberMe ? sessionStorage : localStorage;
-				const alternativeTokenStr = alternativeStorage.getItem(storageKey);
+				const alternativeTokenStr = alternativeStorage.getItem(TOKEN_STORAGE_KEY);
 
 				if (alternativeTokenStr) {
 					const token = JSON.parse(alternativeTokenStr) as ApiToken;
-					TokenManager.cache[cacheKey] = { token, rememberMe };
+					TokenManager.cached = { token, rememberMe };
 					return { token, rememberMe };
 				}
 
@@ -167,114 +90,37 @@ export class TokenManager {
 
 			const token = JSON.parse(tokenStr) as ApiToken;
 			const result = { token, rememberMe } as const;
-			TokenManager.cache[cacheKey] = { token, rememberMe };
+			TokenManager.cached = { token, rememberMe };
 			return result;
 		} catch (e) {
-			logger.warn('Failed to read token from storage', { ctx, error: e });
+			logger.warn('Failed to read token from storage', { error: e });
 			return { token: null, rememberMe: false };
 		}
 	}
 
 	/**
 	 * Remove token from all storage locations
-	 * 
-	 * @param ctx - Schema context (dashboard or schema-builder)
-	 * @param scope - Optional scope for dashboard tokens (e.g., databaseId). Ignored for schema-builder.
 	 */
-	static clearToken(ctx: SchemaContext = TokenManager.currentCtx(), scope?: TokenScope): void {
+	static clearToken(_ctx?: SchemaContext, _scope?: string | null): void {
 		try {
-			// Schema-builder never uses scope
-			const effectiveScope = ctx === 'schema-builder' ? null : scope;
-			const cacheKey = TokenManager.cacheKey(ctx, effectiveScope);
-
-			localStorage.removeItem(TOKEN_STORAGE_KEY(ctx, effectiveScope));
-			sessionStorage.removeItem(TOKEN_STORAGE_KEY(ctx, effectiveScope));
-			localStorage.removeItem(REMEMBER_ME_KEY(ctx, effectiveScope));
-			delete TokenManager.cache[cacheKey];
+			localStorage.removeItem(TOKEN_STORAGE_KEY);
+			sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+			localStorage.removeItem(REMEMBER_ME_KEY);
+			TokenManager.cached = null;
 		} catch (e) {
-			logger.warn('Failed to clear token from storage', { ctx, error: e });
+			logger.warn('Failed to clear token from storage', { error: e });
 		}
-	}
-
-	/**
-	 * Clear ALL scoped dashboard tokens.
-	 * Use this when logging out of schema-builder (Tier 1) to cascade logout.
-	 */
-	static clearAllDashboardTokens(): void {
-		try {
-			// Find and remove all scoped dashboard tokens from localStorage
-			const keysToRemove: string[] = [];
-			for (let i = 0; i < localStorage.length; i++) {
-				const key = localStorage.key(i);
-				if (key && (key.startsWith(DASHBOARD_TOKEN_PREFIX) || key.startsWith(DASHBOARD_REMEMBER_PREFIX))) {
-					keysToRemove.push(key);
-				}
-			}
-			keysToRemove.forEach((key) => localStorage.removeItem(key));
-
-			// Find and remove from sessionStorage
-			const sessionKeysToRemove: string[] = [];
-			for (let i = 0; i < sessionStorage.length; i++) {
-				const key = sessionStorage.key(i);
-				if (key && key.startsWith(DASHBOARD_TOKEN_PREFIX)) {
-					sessionKeysToRemove.push(key);
-				}
-			}
-			sessionKeysToRemove.forEach((key) => sessionStorage.removeItem(key));
- 
-			// Clear all dashboard entries from cache
-			Object.keys(TokenManager.cache).forEach((key) => {
-				if (key === 'dashboard' || key.startsWith('dashboard:')) {
-					delete TokenManager.cache[key];
-				}
-			});
-		} catch (e) {
-			logger.warn('Failed to clear dashboard tokens', { error: e });
-		}
-	}
-
-	/**
-	 * Get all stored dashboard scopes (databaseIds) that have tokens.
-	 * Useful for displaying which databases the user is authenticated to.
-	 */
-	static getDashboardScopes(): string[] {
-		const scopes: string[] = [];
-		try {
-			for (let i = 0; i < localStorage.length; i++) {
-				const key = localStorage.key(i);
-				if (key && key.startsWith(DASHBOARD_TOKEN_PREFIX)) {
-					const scope = key.slice(DASHBOARD_TOKEN_PREFIX.length);
-					if (scope) scopes.push(scope);
-				}
-			}
-			for (let i = 0; i < sessionStorage.length; i++) {
-				const key = sessionStorage.key(i);
-				if (key && key.startsWith(DASHBOARD_TOKEN_PREFIX)) {
-					const scope = key.slice(DASHBOARD_TOKEN_PREFIX.length);
-					if (scope && !scopes.includes(scope)) scopes.push(scope);
-				}
-			}
-		} catch (e) {
-			logger.warn('Failed to enumerate dashboard scopes', { error: e });
-		}
-		return scopes;
 	}
 
 	/**
 	 * Check if token exists in storage
-	 * 
-	 * @param ctx - Schema context (dashboard or schema-builder)
-	 * @param scope - Optional scope for dashboard tokens (e.g., databaseId). Ignored for schema-builder.
 	 */
-	static hasToken(ctx: SchemaContext = TokenManager.currentCtx(), scope?: TokenScope): boolean {
+	static hasToken(_ctx?: SchemaContext): boolean {
 		try {
-			// Schema-builder never uses scope
-			const effectiveScope = ctx === 'schema-builder' ? null : scope;
-			const hasInLocal = localStorage.getItem(TOKEN_STORAGE_KEY(ctx, effectiveScope)) !== null;
-			const hasInSession = sessionStorage.getItem(TOKEN_STORAGE_KEY(ctx, effectiveScope)) !== null;
+			const hasInLocal = localStorage.getItem(TOKEN_STORAGE_KEY) !== null;
+			const hasInSession = sessionStorage.getItem(TOKEN_STORAGE_KEY) !== null;
 			return hasInLocal || hasInSession;
 		} catch {
-			// Assume no token on storage error
 			return false;
 		}
 	}

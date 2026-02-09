@@ -7,13 +7,8 @@ export function initEnvOverridesSync() {
 	(window as any).__constructive_env_sync__ = true;
 
 	window.addEventListener('storage', (e: StorageEvent) => {
-		const key = e.key || '';
-		const match = key.match(/^constructive-endpoint:(schema-builder|dashboard)$/);
-		if (!match) return;
-		const ctx = match[1] as 'schema-builder' | 'dashboard';
-		if (ctx === 'dashboard') return;
-
+		if (e.key !== 'constructive-endpoint:schema-builder') return;
 		const value = e.newValue && e.newValue.trim().length ? e.newValue.trim() : null;
-		appStore.setEndpointOverrideFromSync(ctx, value);
+		appStore.setEndpointOverrideFromSync('schema-builder', value);
 	});
 }

@@ -9,7 +9,6 @@ import { createLogger } from '@/lib/logger';
 import { useAppStore } from '@/store/app-store';
 import type { AppState } from '@/store/app-store';
 
-export { detectSchemaContextFromPath } from '@/lib/runtime/config-core';
 export type { SchemaContext } from '@/lib/runtime/config-core';
 
 export const setSchemaContext = coreSetCtx;
@@ -24,13 +23,6 @@ const logger = createLogger({ scope: 'app-config' });
  * 1. UI override (from store/localStorage)
  * 2. Dynamic default (getDefaultEndpoint - reads from runtime config or env)
  * 3. Static fallback (appEndpoints - evaluated at module load)
- *
- * For schema-builder: Returns the configured endpoint.
- * For dashboard: Returns the endpoint override (from database API selection)
- *                or null if no endpoint is configured.
- *
- * Note: Dashboard endpoint must be set via database API selection or Direct Connect.
- * The dashboard context has no default endpoint.
  */
 export function getEndpoint(ctx: SchemaContext = getSchemaContext()): string | null {
 	let endpoint: string | null = null;
@@ -76,7 +68,6 @@ export function getEndpoint(ctx: SchemaContext = getSchemaContext()): string | n
 
 export const homePathByContext: Record<SchemaContext, string> = {
 	'schema-builder': '/',
-	dashboard: '/',
 } as const;
 
 export function getHomePath(ctx: SchemaContext = getSchemaContext()): string {

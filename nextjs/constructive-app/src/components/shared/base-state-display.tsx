@@ -1,9 +1,7 @@
 'use client';
 
-import { memo, type ReactNode } from 'react';
-import Link from 'next/link';
-import type { Route } from 'next';
-import { RiAlertLine, RiDatabase2Line, RiRefreshLine, RiShieldLine } from '@remixicon/react';
+import { type ReactNode } from 'react';
+import { RiAlertLine, RiRefreshLine, RiShieldLine } from '@remixicon/react';
 
 import { cn } from '@/lib/utils';
 import { AuthErrorBanner, isAuthError } from '@/lib/gql/auth-error-handler';
@@ -29,7 +27,7 @@ export function BaseSkeleton({ className, ...props }: React.ComponentProps<'div'
 // Types
 // ============================================================================
 
-export type BaseStateType = 'loading' | 'error' | 'no-database' | 'empty';
+export type BaseStateType = 'loading' | 'error' | 'empty';
 
 export interface BaseStateConfig {
 	type: BaseStateType;
@@ -68,7 +66,7 @@ export function ErrorBanner({ config, title = 'Failed to load data', pageHeader,
 			{pageHeader}
 
 			{showAuthBanner && errorObj ? (
-				<AuthErrorBanner error={errorObj} context='schema-builder' />
+				<AuthErrorBanner error={errorObj} />
 			) : (
 				<div
 					className={cn(
@@ -128,10 +126,10 @@ interface InfoBannerProps {
 }
 
 /**
- * Info banner for no-database, empty states
+ * Info banner for empty states
  */
 export function InfoBanner({
-	icon: Icon = RiDatabase2Line,
+	icon: Icon = RiShieldLine,
 	title,
 	description,
 	action,
@@ -217,37 +215,3 @@ export function DefaultPageHeader({ title, description }: DefaultPageHeaderProps
 	);
 }
 
-// ============================================================================
-// No Database State
-// ============================================================================
-
-interface NoDatabaseProps {
-	pageHeader?: ReactNode;
-	skeleton?: ReactNode;
-	/** Link destination (default: /) */
-	linkHref?: string;
-	/** Link text (default: Go to Organizations) */
-	linkText?: string;
-}
-
-export function NoDatabaseBanner({
-	pageHeader,
-	skeleton,
-	linkHref = '/',
-	linkText = 'Go to Organizations',
-}: NoDatabaseProps) {
-	return (
-		<InfoBanner
-			icon={RiDatabase2Line}
-			title='No database selected'
-			description='Select a database from the topbar to view this content'
-			pageHeader={pageHeader}
-			skeleton={skeleton}
-			action={
-				<Button variant='outline' size='sm' asChild className='h-8 px-3 text-xs shrink-0'>
-					<Link href={linkHref as Route}>{linkText}</Link>
-				</Button>
-			}
-		/>
-	);
-}

@@ -59,10 +59,6 @@ interface AuthErrorBannerProps {
 	error: Error | DataError;
 	config?: AuthErrorConfig;
 	className?: string;
-	/** Schema context for targeted auth clearing (defaults to 'schema-builder') */
-	context?: 'schema-builder' | 'dashboard';
-	/** Dashboard scope (databaseId) for scoped dashboard auth clearing */
-	dashboardScope?: string | null;
 }
 
 /**
@@ -74,16 +70,11 @@ interface AuthErrorBannerProps {
  * 3. Invalidates React Query caches for that context
  * 4. Redirects to root route
  *
- * Context-aware: Only clears auth for the context that had the error.
- * - schema-builder errors: Clear schema-builder auth only
- * - dashboard errors: Clear dashboard auth for the specific scope only
  */
 export function AuthErrorBanner({
 	error,
 	config = {},
 	className,
-	context = 'schema-builder',
-	dashboardScope,
 }: AuthErrorBannerProps) {
 	const {
 		countdownSeconds = 5,

@@ -34,9 +34,7 @@ export interface AuthenticatedShellProps {
  * - Auth check happens in parallel, not blocking shell structure
  * - Page components handle their own loading states once shell is visible
  *
- * Two-Tier Auth Architecture:
- * - Tier 1 (schema-builder): App-level auth - controls shell visibility
- * - Tier 2 (dashboard): Per-database auth - controlled by AuthGate in dashboard layout
+ * Auth: Schema-builder (app-level) auth controls shell visibility.
  */
 export function AuthenticatedShell({ children }: AuthenticatedShellProps) {
 	const pathname = usePathname();

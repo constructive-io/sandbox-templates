@@ -2,9 +2,9 @@ import { createLogger } from '@/lib/logger';
 
 import { getRuntimeConfig } from './get-runtime-config';
 
-export type SchemaContext = 'schema-builder' | 'dashboard';
+export type SchemaContext = 'schema-builder';
 
-export const schemaContexts: readonly SchemaContext[] = ['schema-builder', 'dashboard'];
+export const schemaContexts: readonly SchemaContext[] = ['schema-builder'];
 
 const logger = createLogger({ scope: 'config-core' });
 
@@ -41,21 +41,11 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
 
 /**
  * Get the default endpoint for a given context dynamically.
- *
- * For schema-builder: Returns the configured schema builder endpoint.
- * For dashboard: Returns null.
+ * Returns the configured schema builder endpoint.
  */
-export function getDefaultEndpoint(ctx: SchemaContext): string | null {
-	let endpoint: string | null = null;
-
-	if (ctx === 'schema-builder') {
-		endpoint = getSchemaBuilderEndpoint();
-	}
-	logger.debug('getDefaultEndpoint called', {
-		context: ctx,
-		endpoint,
-	});
-
+export function getDefaultEndpoint(_ctx?: SchemaContext): string | null {
+	const endpoint = getSchemaBuilderEndpoint();
+	logger.debug('getDefaultEndpoint called', { endpoint });
 	return endpoint;
 }
 
@@ -64,29 +54,12 @@ export function getDefaultEndpoint(ctx: SchemaContext): string | null {
  */
 export const appEndpoints: Record<SchemaContext, string | null> = {
 	'schema-builder': schemaBuilderGraphqlEndpoint,
-	dashboard: null,
 } as const;
 
-// Routing helpers (no store imports)
-let forcedContext: SchemaContext | null = null;
-
-export function setSchemaContext(ctx: SchemaContext | null) {
-	forcedContext = ctx;
-}
-
-export function detectSchemaContextFromPath(pathname?: string): SchemaContext {
-	const p = pathname || (typeof window !== 'undefined' ? window.location.pathname : undefined) || '';
-
-	// Dashboard context: /orgs/[orgId]/databases/[databaseId]/data
-	if (p.match(/^\/orgs\/[^/]+\/databases\/[^/]+\/data/)) {
-		return 'dashboard';
-	}
-
-	// Everything else is schema-builder context
-	return 'schema-builder';
+export function setSchemaContext(_ctx: SchemaContext | null) {
+	// No-op: only one context exists
 }
 
 export function getSchemaContext(): SchemaContext {
-	if (forcedContext) return forcedContext;
-	return detectSchemaContextFromPath();
+	return 'schema-builder';
 }

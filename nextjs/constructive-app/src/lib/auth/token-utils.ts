@@ -10,7 +10,7 @@ export type AuthResultRecord = SignInRecord | SignUpRecord;
 
 /**
  * Convert sign-in/sign-up result to ApiToken.
- * Works with both SDK types (SignInRecord, SignUpRecord) and dashboard responses.
+ * Works with SDK types (SignInRecord, SignUpRecord).
  *
  * Returns null if required fields are missing.
  */

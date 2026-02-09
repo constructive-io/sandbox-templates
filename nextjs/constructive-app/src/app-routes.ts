@@ -374,8 +374,6 @@ export function getRouteContext(pathname: string): SchemaContext {
 	if (config && 'context' in config && config.context) {
 		return config.context;
 	}
-	// Fallback: infer from pathname
-	if (pathname.includes('/data')) return 'dashboard';
 	return 'schema-builder';
 }
 
