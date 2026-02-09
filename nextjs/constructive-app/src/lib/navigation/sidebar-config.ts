@@ -99,13 +99,6 @@ function getRootNavigation(options: SidebarConfigOptions): NavGroup[] {
 		position: 'top',
 		items: [
 			{
-				id: 'account-profile',
-				label: 'Profile',
-				icon: RiAccountCircleLine,
-				href: APP_ROUTES.ACCOUNT_PROFILE.path,
-				isActive: isRouteActive?.('ACCOUNT_PROFILE'),
-			},
-			{
 				id: 'account-settings',
 				label: 'Account',
 				icon: RiUserSettingsLine,

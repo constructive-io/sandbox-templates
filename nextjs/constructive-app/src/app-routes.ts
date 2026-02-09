@@ -104,27 +104,10 @@ export const APP_ROUTES = {
 	// ==========================================================================
 	// ACCOUNT ROUTES - User account management
 	// ==========================================================================
-	ACCOUNT_PROFILE: {
-		path: '/account/profile' as Route,
-		searchParams: {},
-		access: 'protected' as RouteAccessType,
-		context: 'schema-builder' as SchemaContext,
-	},
-
 	ACCOUNT_SETTINGS: {
 		path: '/account/settings' as Route,
 		searchParams: {
 			tab: parseAsString.withDefault('general'),
-		},
-		access: 'protected' as RouteAccessType,
-		context: 'schema-builder' as SchemaContext,
-	},
-
-	HELP_CENTER: {
-		path: '/help' as Route,
-		searchParams: {
-			category: parseAsString,
-			article: parseAsString,
 		},
 		access: 'protected' as RouteAccessType,
 		context: 'schema-builder' as SchemaContext,
@@ -451,10 +434,7 @@ export const ROUTE_PATHS = {
 	// Organizations routes
 	ORGANIZATIONS: APP_ROUTES.ORGANIZATIONS.path,
 	// Account routes
-	ACCOUNT_PROFILE: APP_ROUTES.ACCOUNT_PROFILE.path,
 	ACCOUNT_SETTINGS: APP_ROUTES.ACCOUNT_SETTINGS.path,
-	// Help routes
-	HELP_CENTER: APP_ROUTES.HELP_CENTER.path,
 	// App-level routes (admin only)
 	APP_USERS: APP_ROUTES.APP_USERS.path,
 	APP_INVITES: APP_ROUTES.APP_INVITES.path,

@@ -5,8 +5,6 @@ import { print } from 'graphql';
 import { TokenManager } from '@/lib/auth/token-manager';
 import { createError, DataError } from '@/lib/gql/error-handler';
 import { createLogger } from '@/lib/logger';
-import { getDirectConnectEndpoint, shouldBypassAuth } from '@/lib/runtime/direct-connect';
-import { useAppStore } from '@/store/app-store';
 import { getEndpoint, getSchemaContext, type SchemaContext } from '@/app-config';
 
 import { TypedDocumentString } from './typed-document';
@@ -66,11 +64,6 @@ function documentToString(document: ExecutableDocument): string {
  * @param scope - Optional scope for dashboard tokens (e.g., databaseId). If not provided, uses current dashboard scope.
  */
 export function getAuthHeaders(ctx: SchemaContext = getSchemaContext(), scope?: string): Record<string, string> {
-	const state = useAppStore.getState();
-	if (shouldBypassAuth(ctx, state.env.directConnect)) {
-		return {};
-	}
-
 	const { token } = TokenManager.getToken(ctx, scope);
 
 	if (token) {
@@ -100,7 +93,7 @@ interface GraphQLResponse {
 /**
  * Parse GraphQL response and extract error if present
  */
-function parseGraphQLResponse(response: GraphQLResponse, isAuthBypassed: boolean, ctx: SchemaContext, scope?: string): DataError | null {
+function parseGraphQLResponse(response: GraphQLResponse, ctx: SchemaContext, scope?: string): DataError | null {
 	if (!response.errors?.length) return null;
 
 	const error = response.errors[0];
@@ -109,11 +102,6 @@ function parseGraphQLResponse(response: GraphQLResponse, isAuthBypassed: boolean
 
 	// Handle auth errors
 	if (code === 'UNAUTHENTICATED' || message.toLowerCase().includes('authentication')) {
-		if (isAuthBypassed) {
-			return createError.unauthorized(
-				'Endpoint requires authentication. Disable "Skip Auth" in Direct Connect or use a different endpoint.'
-			);
-		}
 		TokenManager.clearToken(ctx, scope);
 		return createError.unauthorized('Authentication required. Please log in again.');
 	}
@@ -131,7 +119,6 @@ function parseGraphQLResponse(response: GraphQLResponse, isAuthBypassed: boolean
  */
 async function handleHttpError(
 	response: Response,
-	isAuthBypassed: boolean,
 	ctx: SchemaContext,
 	scope?: string
 ): Promise<DataError> {
@@ -139,11 +126,6 @@ async function handleHttpError(
 
 	// 401 Unauthorized
 	if (status === 401) {
-		if (isAuthBypassed) {
-			return createError.unauthorized(
-				'Endpoint requires authentication. Disable "Skip Auth" in Direct Connect or use a different endpoint.'
-			);
-		}
 		TokenManager.clearToken(ctx, scope);
 		return createError.unauthorized('Authentication required. Please log in again.');
 	}
@@ -197,38 +179,27 @@ export async function executeInContext<TDocument extends ExecutableDocument>(
 	variables?: VariablesOfDocument<TDocument>,
 	options?: ExecuteInContextOptions,
 ): Promise<ResultOfDocument<TDocument>> {
-	const state = useAppStore.getState();
-	const isAuthBypassed = shouldBypassAuth(ctx, state.env.directConnect);
-
-	const dashboardScope = ctx === 'dashboard' ? options?.authScope : undefined;
-
 	const endpointOverride = options?.endpoint?.trim() ? options.endpoint.trim() : null;
 
 	// Resolve endpoint
-	const directConnectEndpoint = getDirectConnectEndpoint(ctx, state.env.directConnect);
 	const standardEndpoint = getEndpoint(ctx);
-	const url = endpointOverride || directConnectEndpoint || standardEndpoint;
+	const url = endpointOverride || standardEndpoint;
 
 	logger.debug('executeInContext', {
 		context: ctx,
 		endpoint: url,
 		endpointOverride: endpointOverride || null,
-		isAuthBypassed,
-		dashboardScope,
 	});
 
 	if (!url) {
 		throw createError.badRequest(
-			`No GraphQL endpoint configured for ${ctx} context. ` +
-				(ctx === 'dashboard'
-					? 'Please select a database API or enable Direct Connect.'
-					: 'Please configure the schema builder endpoint.')
+			`No GraphQL endpoint configured for ${ctx} context. Please configure the schema builder endpoint.`
 		);
 	}
 
 	// Make request
 	let response: Response;
-	const authHeaders = getAuthHeaders(ctx, dashboardScope);
+	const authHeaders = getAuthHeaders(ctx);
 	try {
 		response = await fetch(url, {
 			method: 'POST',
@@ -249,14 +220,14 @@ export async function executeInContext<TDocument extends ExecutableDocument>(
 
 	// Handle HTTP errors
 	if (!response.ok) {
-		throw await handleHttpError(response, isAuthBypassed, ctx, dashboardScope);
+		throw await handleHttpError(response, ctx);
 	}
 
 	// Parse response
 	const result: GraphQLResponse = await response.json();
 
 	// Check for GraphQL errors
-	const graphqlError = parseGraphQLResponse(result, isAuthBypassed, ctx, dashboardScope);
+	const graphqlError = parseGraphQLResponse(result, ctx);
 	if (graphqlError) {
 		throw graphqlError;
 	}

@@ -5,7 +5,7 @@
 The `nextjs/constructive-app` boilerplate is a **lightweight, minimal starter template** for building applications with the Constructive stack. It provides essential UI and basic functionality for:
 
 - **Authentication**: Sign up, sign in, sign out
-- **User Management**: User profile, settings
+- **User Management**: User settings
 - **Organization Management**: Org settings, org-user management
 
 **Critical Principle**: Keep the boilerplate **simple, minimal, and lightweight**. Remove all database-specific, complex state management, and advanced features that are not essential for a basic starter.
@@ -136,7 +136,7 @@ test/ (if database-specific)
 
 1. **Minimal State**: Only auth, env, and preferences in Zustand
 2. **Basic Routing**: Simple Next.js app router structure
-3. **Essential Pages**: Auth, user profile, org settings, org-user management
+3. **Essential Pages**: Auth, user account settings, org settings, org-user management
 4. **Clean UI**: Just use the ui code from dashboard
 5. **Type Safety**: Full TypeScript, but don't over-complicate
 
@@ -155,47 +155,6 @@ test/ (if database-specific)
 - TypeScript for all code
 - Descriptive variable names
 - Prettier formatting (single quotes, 120 char width)
-
-## File Structure
-
-```
-constructive-app/
-├── src/
-│   ├── app/                    # Next.js app router
-│   │   ├── (auth)/            # Auth pages (sign-in, sign-up)
-│   │   ├── (dashboard)/       # Protected pages
-│   │   │   ├── profile/       # User profile
-│   │   │   ├── settings/      # User settings
-│   │   │   └── org/           # Org management
-│   │   │       ├── settings/  # Org settings
-│   │   │       └── users/     # Org-user management
-│   │   └── layout.tsx
-│   ├── components/            # Shared components
-│   │   ├── auth/             # Auth-related components
-│   │   ├── layout/           # Layout components
-│   │   └── ui/               # UI components (from @constructive-io/ui)
-│   ├── graphql/              # GraphQL SDK (auto-generated)
-│   │   └── schema-builder-sdk/  # DO NOT MODIFY
-│   ├── hooks/                # Custom hooks
-│   ├── lib/                  # Utilities
-│   │   ├── auth/            # Auth utilities
-│   │   ├── gql/             # GraphQL utilities (minimal)
-│   │   └── runtime/         # Runtime config
-│   ├── store/               # Zustand store (minimal)
-│   │   ├── app-store.ts
-│   │   ├── auth-slice.ts
-│   │   ├── env-slice.ts
-│   │   └── preferences-slice.ts
-│   ├── app-config.ts        # App configuration
-│   └── app-routes.ts        # Route definitions
-├── public/                   # Static assets
-├── .env.local               # Environment variables
-├── graphql-codegen.config.ts # Codegen config
-├── next.config.ts
-├── tailwind.config.ts
-├── tsconfig.json
-└── package.json
-```
 
 ## Updating from Dashboard
 
@@ -289,7 +248,6 @@ When updating boilerplate from dashboard:
 - [ ] Identify auth/user/org-related updates
 - [ ] Copy relevant files to boilerplate
 - [ ] Remove any database-specific code
-- [ ] Verify Zustand slices are minimal (3 only)
 - [ ] Check dependencies - remove heavy ones
 - [ ] Test auth flows (sign up, sign in, sign out)
 - [ ] Test user management features
@@ -302,7 +260,6 @@ When updating boilerplate from dashboard:
 
 1. **Don't copy database features** - Easy to accidentally include data grid code
 2. **Watch dependencies** - Dashboard has many heavy deps that bloat boilerplate
-3. **Zustand slices** - Only keep auth, env, preferences
 4. **GraphQL endpoints** - Boilerplate uses Schema Builder only, not CRM
 5. **Storybook** - Not needed in boilerplate
 6. **Test fixtures** - Remove database-specific test data

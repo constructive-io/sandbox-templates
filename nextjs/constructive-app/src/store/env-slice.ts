@@ -1,17 +1,16 @@
 /**
- * Env slice — endpoint overrides and Direct Connect configuration.
+ * Env slice — endpoint overrides.
  *
  * No external dependencies on state-management libraries.
  * State is held by the vanilla AppStore defined in app-store.ts.
  */
-import type { DirectConnectConfig, SchemaContext } from '@/lib/runtime/config-core';
-import { DEFAULT_DIRECT_CONNECT, getDefaultEndpoint, schemaContexts } from '@/lib/runtime/config-core';
+import type { SchemaContext } from '@/lib/runtime/config-core';
+import { getDefaultEndpoint, schemaContexts } from '@/lib/runtime/config-core';
 
 // ── State ──────────────────────────────────────────────────────────────
 
 export interface EnvState {
 	endpointOverrides: Record<SchemaContext, string | null>;
-	directConnect: Record<SchemaContext, DirectConnectConfig>;
 }
 
 const STORAGE_KEY = (ctx: SchemaContext) => `constructive-endpoint:${ctx}`;
@@ -29,12 +28,6 @@ function readStoredOverride(ctx: SchemaContext): string | null {
 const createEmptyOverrides = (): Record<SchemaContext, null> =>
 	Object.fromEntries(schemaContexts.map((ctx) => [ctx, null])) as Record<SchemaContext, null>;
 
-const createInitialDirectConnect = (): Record<SchemaContext, DirectConnectConfig> =>
-	Object.fromEntries(schemaContexts.map((ctx) => [ctx, { ...DEFAULT_DIRECT_CONNECT }])) as Record<
-		SchemaContext,
-		DirectConnectConfig
-	>;
-
 export function createInitialEnvState(): EnvState {
 	const bootstrapOverrides = Object.fromEntries(
 		schemaContexts.map((ctx) => [ctx, readStoredOverride(ctx)]),
@@ -42,7 +35,6 @@ export function createInitialEnvState(): EnvState {
 
 	return {
 		endpointOverrides: { ...createEmptyOverrides(), ...bootstrapOverrides },
-		directConnect: createInitialDirectConnect(),
 	};
 }
 
@@ -80,6 +72,5 @@ export function deserializeEnv(raw: unknown): EnvState {
 	);
 	return {
 		endpointOverrides,
-		directConnect: createInitialDirectConnect(),
 	};
 }

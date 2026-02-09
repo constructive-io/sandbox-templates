@@ -6,8 +6,6 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 
 import { useCurrentUserAppMembership } from '@/lib/gql/hooks/schema-builder/app';
-import { shouldBypassAuth } from '@/lib/runtime/direct-connect';
-import { useAppStore } from '@/store/app-store';
 import { AccessDenied } from '@/components/access-denied/access-denied';
 import { getHomePath } from '@/app-config';
 import {
@@ -51,7 +49,6 @@ function AuthLoadingFallback() {
  * Permission types:
  * - 'app-admin': Requires app_memberships.is_admin = true
  *
- * Supports Direct Connect: when enabled for a context, bypasses auth checks
  */
 export function RouteGuard({ children }: { children: React.ReactNode }) {
 	const { isAuthenticated, isLoading } = useAuthContext();
@@ -73,10 +70,6 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
 		return raw;
 	}, [searchParams]);
 
-	// Get Direct Connect state - subscribe to changes
-	const directConnect = useAppStore((state) => state.env.directConnect);
-	const isAuthBypassed = shouldBypassAuth(ctx, directConnect);
-
 	// Get app membership for permission checks (only when authenticated and permission required)
 	const { isAppAdmin, isLoading: isAppMembershipLoading } = useCurrentUserAppMembership({
 		enabled: isAuthenticated && requiredPermission === 'app-admin',
@@ -86,11 +79,6 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
 		// Handle redirect routes immediately
 		if (accessType === 'redirect' && redirectTarget) {
 			router.replace(redirectTarget);
-			return;
-		}
-
-		// Skip all redirect logic if auth should be bypassed (Direct Connect with skipAuth)
-		if (isAuthBypassed) {
 			return;
 		}
 
@@ -119,16 +107,11 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
 			return;
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [isAuthenticated, isLoading, accessType, pathname, isAuthBypassed, redirectTarget, redirectParam]);
+	}, [isAuthenticated, isLoading, accessType, pathname, redirectTarget, redirectParam]);
 
 	// Handle redirect routes - show loading while redirecting
 	if (accessType === 'redirect') {
 		return <AuthLoadingFallback />;
-	}
-
-	// If auth should be bypassed (Direct Connect with skipAuth), render immediately
-	if (isAuthBypassed) {
-		return <>{children}</>;
 	}
 
 	// For protected routes, defer loading UI to the shell

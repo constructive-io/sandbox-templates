@@ -7,9 +7,8 @@ import { useSyncExternalStore, useCallback, useRef } from 'react';
 import { TokenManager } from '@/lib/auth/token-manager';
 import { createLogger } from '@/lib/logger';
 import { queryClient } from '@/lib/query-client';
-import type { DirectConnectConfig, SchemaContext } from '@/lib/runtime/config-core';
-import { DEFAULT_DIRECT_CONNECT, schemaContexts } from '@/lib/runtime/config-core';
-import { isDirectConnectSupported } from '@/lib/runtime/direct-connect';
+import type { SchemaContext } from '@/lib/runtime/config-core';
+import { schemaContexts } from '@/lib/runtime/config-core';
 
 import {
 	type AuthState,
@@ -86,7 +85,6 @@ function persistState(state: AppState): void {
 type Listener = () => void;
 
 const authLogger = createLogger({ scope: 'auth', includeTimestamp: false });
-const directConnectLogger = createLogger({ scope: 'direct-connect', includeTimestamp: false });
 
 function createAppStore() {
 	const persisted = loadPersistedState();
@@ -202,47 +200,6 @@ function createAppStore() {
 		return getEffectiveEndpointHelper(state.env, ctx);
 	}
 
-	// ── Direct Connect actions ───────────────────────────────────────
-
-	function setDirectConnect(ctx: SchemaContext, config: DirectConnectConfig) {
-		if (!isDirectConnectSupported(ctx)) {
-			directConnectLogger.warn(`Direct Connect not supported for '${ctx}'`);
-			return;
-		}
-		const current = state.env.directConnect[ctx];
-		if (current.enabled === config.enabled && current.endpoint === config.endpoint && current.skipAuth === config.skipAuth) return;
-		setState({
-			env: {
-				...state.env,
-				directConnect: {
-					...state.env.directConnect,
-					[ctx]: {
-						enabled: config.enabled,
-						endpoint: config.enabled && config.endpoint?.trim() ? config.endpoint.trim() : null,
-						skipAuth: config.skipAuth,
-					},
-				},
-			},
-		});
-		try { queryClient.clear(); } catch {}
-		const ep = config.enabled && config.endpoint ? ` → ${config.endpoint}` : '';
-		const ai = config.enabled ? (config.skipAuth ? ' (no auth)' : ' (with auth)') : '';
-		directConnectLogger.info(`${ctx}: ${config.enabled ? 'enabled' : 'disabled'}${ep}${ai}`);
-	}
-
-	function clearDirectConnect(ctx: SchemaContext) {
-		const current = state.env.directConnect[ctx];
-		if (!current.enabled && current.endpoint === null) return;
-		setState({
-			env: {
-				...state.env,
-				directConnect: { ...state.env.directConnect, [ctx]: { ...DEFAULT_DIRECT_CONNECT } },
-			},
-		});
-		try { queryClient.clear(); } catch {}
-		directConnectLogger.info(`${ctx}: cleared`);
-	}
-
 	// ── Preferences actions ──────────────────────────────────────────
 
 	function setSidebarSectionExpanded(section: 'app' | 'system', expanded: boolean) {
@@ -291,9 +248,6 @@ function createAppStore() {
 		clearEndpointOverride,
 		resetEndpointOverrides,
 		getEffectiveEndpoint,
-		// Direct Connect
-		setDirectConnect,
-		clearDirectConnect,
 		// Preferences
 		setSidebarSectionExpanded,
 		toggleSidebarSection,
@@ -379,31 +333,6 @@ export const useEnvActions = () => ({
 	setEndpointOverride: appStore.setEndpointOverride,
 	clearEndpointOverride: appStore.clearEndpointOverride,
 	resetEndpointOverrides: appStore.resetEndpointOverrides,
-});
-
-export const useDirectConnect = () =>
-	useSelector((s) => {
-		const config = s.env.directConnect['schema-builder'];
-		return {
-			config,
-			isEnabled: config?.enabled ?? false,
-			endpoint: config?.endpoint ?? null,
-			skipAuth: config?.skipAuth ?? true,
-		};
-	});
-
-export const useDirectConnectActions = () => ({
-	setDirectConnect: appStore.setDirectConnect,
-	clearDirectConnect: appStore.clearDirectConnect,
-	isDirectConnectEnabled: (ctx: SchemaContext) => appStore.getState().env.directConnect[ctx]?.enabled ?? false,
-	getDirectConnectEndpoint: (ctx: SchemaContext) => {
-		const dc = appStore.getState().env.directConnect[ctx];
-		return dc?.enabled ? dc.endpoint : null;
-	},
-	shouldBypassAuth: (ctx: SchemaContext) => {
-		const dc = appStore.getState().env.directConnect[ctx];
-		return dc?.enabled && dc?.skipAuth === true;
-	},
 });
 
 export const useSidebarSections = () =>

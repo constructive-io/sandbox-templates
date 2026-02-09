@@ -8,29 +8,6 @@ export const schemaContexts: readonly SchemaContext[] = ['schema-builder', 'dash
 
 const logger = createLogger({ scope: 'config-core' });
 
-/**
- * Direct Connect configuration for a specific context.
- * When enabled, allows connecting to a custom GraphQL endpoint with optional auth bypass.
- *
- * This is used for connecting to external/custom GraphQL endpoints.
- * State is session-only and resets on page refresh for safety.
- */
-export interface DirectConnectConfig {
-	/** Whether Direct Connect is active for this context */
-	readonly enabled: boolean;
-	/** Custom endpoint URL when enabled. Required when enabled. */
-	readonly endpoint: string | null;
-	/** Whether to skip authentication (bypass auth headers). Default: true */
-	readonly skipAuth: boolean;
-}
-
-/** Default Direct Connect state - disabled with no custom endpoint, auth skipped by default */
-export const DEFAULT_DIRECT_CONNECT: DirectConnectConfig = {
-	enabled: false,
-	endpoint: null,
-	skipAuth: true,
-} as const;
-
 // Hardcoded fallback default for schema-builder (used when no env vars are set)
 const DEFAULT_SCHEMA_BUILDER_ENDPOINT = 'http://api.localhost:3000/graphql';
 
@@ -66,8 +43,7 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
  * Get the default endpoint for a given context dynamically.
  *
  * For schema-builder: Returns the configured schema builder endpoint.
- * For dashboard: Returns null - dashboard endpoint must come from database API selection
- *                or Direct Connect configuration.
+ * For dashboard: Returns null.
  */
 export function getDefaultEndpoint(ctx: SchemaContext): string | null {
 	let endpoint: string | null = null;
@@ -75,8 +51,6 @@ export function getDefaultEndpoint(ctx: SchemaContext): string | null {
 	if (ctx === 'schema-builder') {
 		endpoint = getSchemaBuilderEndpoint();
 	}
-	// Dashboard has no default endpoint - it must be selected via database API or Direct Connect
-
 	logger.debug('getDefaultEndpoint called', {
 		context: ctx,
 		endpoint,
@@ -87,7 +61,6 @@ export function getDefaultEndpoint(ctx: SchemaContext): string | null {
 
 /**
  * Default endpoints map.
- * Note: Dashboard endpoint is null because it's determined dynamically by database API selection.
  */
 export const appEndpoints: Record<SchemaContext, string | null> = {
 	'schema-builder': schemaBuilderGraphqlEndpoint,

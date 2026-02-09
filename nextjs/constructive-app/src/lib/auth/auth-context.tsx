@@ -1,17 +1,13 @@
 'use client';
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef } from 'react';
-import { usePathname } from 'next/navigation';
 
 import { useExtendToken } from '@/lib/gql/hooks/auth';
 import { useLogin } from '@/lib/gql/hooks/auth';
 import { useLogout } from '@/lib/gql/hooks/auth';
-import type { DirectConnectConfig, SchemaContext } from '@/lib/runtime/config-core';
-import { shouldBypassAuth } from '@/lib/runtime/direct-connect';
 import { initEnvOverridesSync } from '@/lib/runtime/env-sync';
-import { useAppStore, useAuth, useAuthActions, appStore } from '@/store/app-store';
+import { useAuth, useAuthActions } from '@/store/app-store';
 import type { UserProfile } from '@/store/auth-slice';
-import { detectSchemaContextFromPath } from '@/app-config';
 
 import type { LoginFormData } from './schemas';
 import { TokenManager } from './token-manager';
@@ -51,36 +47,12 @@ export function useAuthContext(): AuthContextType {
 }
 
 /**
- * Initialize auth state for a specific context.
+ * Initialize auth state.
  * Checks token storage and updates the auth slice accordingly.
- * 
- * @param targetCtx - Schema context (dashboard or schema-builder)
- * @param authActions - Auth actions from store
- * @param directConnect - Direct connect configuration
- * @param userEmail - Email from previous auth state
- * @param scope - Optional scope for dashboard tokens (e.g., databaseId)
  */
 function initializeAuth(
 	authActions: ReturnType<typeof useAuthActions>,
-	directConnect: Record<SchemaContext, DirectConnectConfig>,
 ) {
-	const isAuthBypassed = shouldBypassAuth('schema-builder', directConnect);
-
-	// Direct Connect with skipAuth: mark as authenticated with synthetic token
-	if (isAuthBypassed) {
-		authActions.setAuthenticated(
-			{ id: 'direct-connect', email: 'direct-connect@localhost' },
-			{
-				id: 'direct-connect',
-				userId: 'direct-connect',
-				accessToken: '',
-				accessTokenExpiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-			},
-			false,
-		);
-		return;
-	}
-
 	const { token, rememberMe } = TokenManager.getToken('schema-builder');
 
 	if (!token) {
@@ -107,23 +79,12 @@ function initializeAuth(
 /**
  * Authentication provider component
  *
- * Supports Direct Connect: when enabled for a context with skipAuth, marks as authenticated without real tokens
- *
- * IMPORTANT: This provider initializes auth for BOTH contexts on mount:
- * - schema-builder (Tier 1 / app-level auth) - always initialized
- * - dashboard (Tier 2 / per-database auth) - scoped by databaseId, initialized based on current route and scope
- *
- * This ensures the AppShell can check Tier 1 auth regardless of which route the user starts on.
+ * IMPORTANT: This provider initializes auth on mount for schema-builder (app-level auth).
+ * This ensures the AppShell can check auth regardless of which route the user starts on.
  */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-	const pathname = usePathname();
-	const ctx = detectSchemaContextFromPath(pathname || '/');
 	const auth = useAuth();
 	const authActions = useAuthActions();
-
-	// Get Direct Connect state - subscribe to changes
-	const directConnect = useAppStore((state) => state.env.directConnect);
-	const isAuthBypassed = shouldBypassAuth(ctx, directConnect);
 
 	// Use the new custom hooks
 	const loginMutation = useLogin();
@@ -135,8 +96,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 	// Check authentication status
 	const checkAuthStatus = useCallback(() => {
-		initializeAuth(authActions, directConnect);
-	}, [authActions, directConnect]);
+		initializeAuth(authActions);
+	}, [authActions]);
 
 	// Initialize auth state on mount
 	useEffect(() => {
@@ -146,16 +107,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		TokenManager.initStorageSync();
 		initEnvOverridesSync();
 
-		initializeAuth(authActions, directConnect);
-	}, [authActions, directConnect]);
+		initializeAuth(authActions);
+	}, [authActions]);
 
 	// Set up token expiration monitoring and automatic refresh
 	useEffect(() => {
-		// Skip token monitoring when auth is bypassed - no real tokens to monitor
-		if (isAuthBypassed) {
-			return;
-		}
-
 		if (!auth.isAuthenticated || !auth.token) {
 			return;
 		}
@@ -201,63 +157,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 			if (refreshTimeoutId) clearTimeout(refreshTimeoutId);
 			if (logoutTimeoutId) clearTimeout(logoutTimeoutId);
 		};
-	}, [auth.isAuthenticated, auth.token, extendTokenMutation, logoutMutation, isAuthBypassed]);
+	}, [auth.isAuthenticated, auth.token, extendTokenMutation, logoutMutation]);
 
 	// Stable action callbacks to prevent context re-renders
 	const login = useCallback(
 		async (credentials: LoginFormData) => {
-			// When auth bypassed, simulate success without network
-			if (isAuthBypassed) {
-				authActions.setAuthenticated(
-					{ id: 'direct-connect', email: credentials.email || 'direct-connect@localhost' },
-					{
-						id: 'direct-connect',
-						userId: 'direct-connect',
-						accessToken: '',
-						accessTokenExpiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-					},
-					Boolean(credentials.rememberMe),
-				);
-				return;
-			}
 			// Note: We intentionally do NOT call setLoading() here.
 			// The form manages its own isSubmitting state. Setting auth loading
 			// would cause AuthGate to unmount the form (switching to spinner),
 			// which loses the form's local error state when login fails.
 			await loginMutation.mutateAsync(credentials);
 		},
-		[isAuthBypassed, authActions, loginMutation],
+		[loginMutation],
 	);
 
 	const logout = useCallback(async () => {
-		// When auth bypassed, logout is a no-op (there's no real session)
-		if (isAuthBypassed) {
-			return;
-		}
 		await logoutMutation.mutateAsync(undefined);
-	}, [isAuthBypassed, logoutMutation]);
+	}, [logoutMutation]);
 
 	const extendToken = useCallback(
 		async (intervalInput?: { hours?: number; minutes?: number; days?: number }) => {
-			// When auth bypassed, token extension is a no-op
-			if (isAuthBypassed) return;
 			await extendTokenMutation.mutateAsync(intervalInput);
 		},
-		[isAuthBypassed, extendTokenMutation],
+		[extendTokenMutation],
 	);
 
 	// Memoized context value - prevents unnecessary re-renders of consumers
 	const contextValue = useMemo<AuthContextType>(
 		() => ({
-			// State - when auth bypassed, always authenticated with no loading
-			isAuthenticated: isAuthBypassed ? true : auth.isAuthenticated,
+			isAuthenticated: auth.isAuthenticated,
 			// Note: loginMutation.isPending is intentionally excluded from isLoading.
 			// Including it would cause AuthGate to show a spinner (unmounting the form),
 			// which loses the form's local error state when login fails with invalid credentials.
 			// The form manages its own isSubmitting state for the button loading indicator.
-			isLoading: isAuthBypassed
-				? false
-				: auth.isLoading || logoutMutation.isPending || extendTokenMutation.isPending,
+			isLoading: auth.isLoading || logoutMutation.isPending || extendTokenMutation.isPending,
 			user: auth.user,
 
 			// Actions
@@ -269,7 +202,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 			checkAuthStatus,
 		}),
 		[
-			isAuthBypassed,
 			auth.isAuthenticated,
 			auth.isLoading,
 			auth.user,

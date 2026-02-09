@@ -1,5 +1,5 @@
 /**
- * Account routes layout (/account/profile, /account/settings)
+ * Account routes layout (/account/settings)
  *
  * These routes are at the root/app level for managing user's personal settings.
  * URL is the source of truth - no entity IDs in URL means root-level navigation.
