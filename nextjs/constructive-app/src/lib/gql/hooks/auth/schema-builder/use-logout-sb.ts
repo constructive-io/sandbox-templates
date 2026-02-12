@@ -16,7 +16,13 @@ export function useLogoutSb() {
 	const queryClient = useQueryClient();
 	const authActions = useAuthActions();
 	const router = useRouter();
-	const signOutMutation = useSignOutMutation();
+	const signOutMutation = useSignOutMutation({
+		selection: {
+			fields: {
+				clientMutationId: true,
+			},
+		},
+	});
 
 	return useMutation({
 		mutationKey: authKeys.signOut.queryKey,

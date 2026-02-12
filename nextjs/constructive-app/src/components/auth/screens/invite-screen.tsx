@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Check, X } from 'lucide-react';
 
 import { Button } from '@constructive-io/ui/button';
-import { ConstructiveIcon } from '@/components/icons/constructive-icon';
+import { BrandLogo } from '@/components/brand-logo';
 
 import { AuthScreenHeader, type AuthBrandingProps } from '../auth-screen-header';
 import { AuthScreenLayout } from '../auth-screen-layout';
@@ -58,7 +58,7 @@ export function InviteScreen({
 			{state.status === 'loading' ? (
 				<>
 					<div className='mb-6 flex justify-center'>
-						<ConstructiveIcon className='text-primary h-16 w-16' />
+						<BrandLogo variant='icon' className='h-16 w-auto' />
 					</div>
 					<AuthScreenHeader title='Loading...' logo={logo} appName={appName} showLogo={false} />
 					<div className='text-muted-foreground text-center text-sm'>Please wait…</div>
@@ -88,7 +88,7 @@ export function InviteScreen({
 			{state.status === 'needs-auth' ? (
 				<>
 					<div className='mb-6 flex justify-center'>
-						<ConstructiveIcon className='text-primary h-16 w-16' />
+						<BrandLogo variant='icon' className='h-16 w-auto' />
 					</div>
 					<AuthScreenHeader
 						title='Authentication required'
@@ -128,7 +128,7 @@ export function InviteScreen({
 			{state.status === 'ready' || state.status === 'submitting' ? (
 				<>
 					<div className='mb-6 flex justify-center'>
-						<ConstructiveIcon className='text-primary h-16 w-16' />
+						<BrandLogo variant='icon' className='h-16 w-auto' />
 					</div>
 					<AuthScreenHeader
 						title='Accept invitation?'

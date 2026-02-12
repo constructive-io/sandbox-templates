@@ -75,14 +75,27 @@ export function useCurrentUserAppMembership(
 	// Determine the actor ID to use
 	const actorId = userId || user?.id || token?.userId;
 
-	const { data, isLoading, error, refetch } = useAppMembershipByActorIdQuery(
-		{ actorId: actorId! },
-		{
-			enabled: enabled && !!actorId,
-			staleTime: 5 * 60 * 1000, // 5 minutes
-			refetchOnMount: 'always',
+	const { data, isLoading, error, refetch } = useAppMembershipByActorIdQuery({
+		variables: { actorId: actorId! },
+		selection: {
+			fields: {
+				id: true,
+				actorId: true,
+				isAdmin: true,
+				isOwner: true,
+				isActive: true,
+				isApproved: true,
+				isBanned: true,
+				isDisabled: true,
+				isVerified: true,
+				permissions: true,
+				granted: true,
+			},
 		},
-	);
+		enabled: enabled && !!actorId,
+		staleTime: 5 * 60 * 1000, // 5 minutes
+		refetchOnMount: 'always',
+	});
 
 	const membership = data?.appMembershipByActorId;
 	const appMembership: AppMembership | null = membership?.id

@@ -8,7 +8,6 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAppStore } from '@/store/app-store';
 import type { SchemaContext } from '@/app-config';
 import {
-	type AppMembershipsQueryVariables,
 	fetchAppMembershipsQuery,
 	useUpdateAppMembershipMutation,
 	fetchUsersQuery,
@@ -140,10 +139,25 @@ export function useAppUsers(options: UseAppUsersOptions = {}): UseAppUsersResult
 		queryFn: async (): Promise<QueryResult> => {
 			// Step 1: Fetch app memberships
 			const membershipsResult = await fetchAppMembershipsQuery({
-				first,
-				offset,
-				filter: graphqlFilter,
-				orderBy: orderBy as AppMembershipsQueryVariables['orderBy'],
+				selection: {
+					fields: {
+						id: true,
+						actorId: true,
+						isAdmin: true,
+						isOwner: true,
+						isActive: true,
+						isApproved: true,
+						isBanned: true,
+						isDisabled: true,
+						isVerified: true,
+						permissions: true,
+						granted: true,
+					},
+					first,
+					offset,
+					where: graphqlFilter,
+					orderBy: orderBy as string[],
+				},
 			});
 
 			const memberships = membershipsResult.appMemberships?.nodes ?? [];
@@ -162,7 +176,15 @@ export function useAppUsers(options: UseAppUsersOptions = {}): UseAppUsersResult
 			// Step 2: Fetch actors (users) for all memberships
 			const actorIds = [...new Set(memberships.map((m) => m.actorId).filter((id): id is string => !!id))];
 			const usersResult = await fetchUsersQuery({
-				filter: { id: { in: actorIds } },
+				selection: {
+					fields: {
+						id: true,
+						displayName: true,
+						username: true,
+						profilePicture: true,
+					},
+					where: { id: { in: actorIds } },
+				},
 			});
 
 			// Build a map of actorId -> user for fast lookup
@@ -246,12 +268,18 @@ export interface UpdateAppUserData {
 export function useUpdateAppUser(context: SchemaContext = 'schema-builder') {
 	void context; // Context handled by SDK execute-adapter
 	const queryClient = useQueryClient();
-	const updateMutation = useUpdateAppMembershipMutation();
+	const updateMutation = useUpdateAppMembershipMutation({
+		selection: {
+			fields: {
+				id: true,
+			},
+		},
+	});
 
 	return {
 		updateUser: async (data: UpdateAppUserData) => {
 			const result = await updateMutation.mutateAsync({
-				input: { id: data.id, patch: data.patch },
+				id: data.id, patch: data.patch,
 			});
 			// Invalidate app users cache
 			queryClient.invalidateQueries({ queryKey: appUsersQueryKeys.all });

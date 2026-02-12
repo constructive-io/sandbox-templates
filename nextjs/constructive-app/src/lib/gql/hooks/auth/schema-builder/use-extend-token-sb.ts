@@ -16,7 +16,13 @@ import { authKeys } from '../../query-keys';
 export function useExtendTokenSb() {
 	const queryClient = useQueryClient();
 	const authActions = useAuthActions();
-	const extendTokenMutation = useExtendTokenExpiresMutation();
+	const extendTokenMutation = useExtendTokenExpiresMutation({
+		selection: {
+			fields: {
+				results: true,
+			},
+		},
+	});
 
 	return useMutation({
 		mutationKey: authKeys.extendToken.queryKey,

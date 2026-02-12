@@ -6,7 +6,13 @@ import { useSubmitInviteCodeMutation } from '@sdk/api';
  * Schema-builder submit invite code hook using SDK-generated mutation
  */
 export function useSubmitInviteCodeSb() {
-	const submitInviteMutation = useSubmitInviteCodeMutation();
+	const submitInviteMutation = useSubmitInviteCodeMutation({
+		selection: {
+			fields: {
+				boolean: true,
+			},
+		},
+	});
 
 	return useMutation({
 		mutationKey: ['invite', 'submit-invite-code'],

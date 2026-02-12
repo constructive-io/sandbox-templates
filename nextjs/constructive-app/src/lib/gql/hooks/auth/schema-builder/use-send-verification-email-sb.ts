@@ -9,7 +9,13 @@ import { authKeys } from '../../query-keys';
  */
 export function useSendVerificationEmailSb() {
 	const queryClient = useQueryClient();
-	const sendVerificationMutation = useSendVerificationEmailMutation();
+	const sendVerificationMutation = useSendVerificationEmailMutation({
+		selection: {
+			fields: {
+				boolean: true,
+			},
+		},
+	});
 
 	return useMutation({
 		mutationKey: authKeys.sendVerificationEmail.queryKey,

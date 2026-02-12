@@ -119,10 +119,22 @@ export function useOrgMembers(options: UseOrgMembersOptions): UseOrgMembersResul
 		queryFn: async () => {
 			// Step 1: Fetch org memberships
 			const membershipsResult = await fetchOrgMembershipsQuery({
-				filter: { entityId: { equalTo: orgId } },
-				first,
-				offset,
-				orderBy: ['IS_OWNER_DESC', 'IS_ADMIN_DESC'],
+				selection: {
+					fields: {
+						id: true,
+						actorId: true,
+						isOwner: true,
+						isAdmin: true,
+						isActive: true,
+						isApproved: true,
+						isBanned: true,
+						isDisabled: true,
+					},
+					where: { entityId: { equalTo: orgId } },
+					first,
+					offset,
+					orderBy: ['IS_OWNER_DESC', 'IS_ADMIN_DESC'],
+				},
 			});
 
 			const memberships = membershipsResult.orgMemberships?.nodes ?? [];
@@ -139,7 +151,15 @@ export function useOrgMembers(options: UseOrgMembersOptions): UseOrgMembersResul
 			// Step 2: Fetch actors (users) for all memberships
 			const actorIds = [...new Set(memberships.map((m) => m.actorId).filter((id): id is string => !!id))];
 			const usersResult = await fetchUsersQuery({
-				filter: { id: { in: actorIds } },
+				selection: {
+					fields: {
+						id: true,
+						displayName: true,
+						username: true,
+						profilePicture: true,
+					},
+					where: { id: { in: actorIds } },
+				},
 			});
 
 			// Build a map of actorId -> user for fast lookup

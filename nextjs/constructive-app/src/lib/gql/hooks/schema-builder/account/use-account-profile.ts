@@ -59,14 +59,20 @@ export function useAccountProfile(options: UseAccountProfileOptions): UseAccount
 
 	const isAuthenticated = useAppStore((state) => state.auth.isAuthenticated);
 
-	const { data, isLoading, error, refetch } = useUserQuery(
-		{ id: userId },
-		{
-			enabled: enabled && isAuthenticated && !!userId,
-			staleTime: 30 * 1000,
-			refetchOnMount: 'always',
+	const { data, isLoading, error, refetch } = useUserQuery({
+		id: userId,
+		selection: {
+			fields: {
+				id: true,
+				displayName: true,
+				username: true,
+				profilePicture: true,
+			},
 		},
-	);
+		enabled: enabled && isAuthenticated && !!userId,
+		staleTime: 30 * 1000,
+		refetchOnMount: 'always',
+	});
 
 	const user = data?.user;
 	const profile: AccountProfile | null = user?.id
@@ -97,12 +103,21 @@ export interface UpdateUserInput {
 
 export function useUpdateUser(_defaultContext: SchemaContext = 'schema-builder') {
 	const queryClient = useQueryClient();
-	const updateMutation = useUpdateUserMutation();
+	const updateMutation = useUpdateUserMutation({
+		selection: {
+			fields: {
+				id: true,
+				displayName: true,
+				username: true,
+				profilePicture: true,
+			},
+		},
+	});
 
 	return {
 		updateUser: async (input: UpdateUserInput) => {
 			const result = await updateMutation.mutateAsync({
-				input: { id: input.userId, patch: input.patch },
+				id: input.userId, patch: input.patch as Record<string, unknown>,
 			});
 			// Invalidate cache
 			queryClient.invalidateQueries({

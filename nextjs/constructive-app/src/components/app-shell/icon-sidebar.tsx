@@ -6,6 +6,7 @@ import type { Route } from "next";
 import { motion } from "motion/react";
 import { ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { branding } from '@/config/branding';
 import type { NavGroup, NavItem } from "./app-shell.types";
 import { SIDEBAR_COLLAPSED_WIDTH, SIDEBAR_EXPANDED_WIDTH } from "./app-shell.types";
 
@@ -110,6 +111,22 @@ export function IconSidebar({ navigation, className, isPinned = false, onToggleP
 							<SidebarItem key={item.id} item={item} isExpanded={isPinned} />
 						))}
 					</nav>
+				)}
+
+				{/* Powered by tagline */}
+				{branding.tagline && (
+					<div className='mt-2 flex justify-center border-t border-sidebar-border px-2 pt-2'>
+						<motion.span
+							className='text-muted-foreground/50 truncate text-[9px] leading-tight whitespace-nowrap'
+							initial={false}
+							animate={{
+								opacity: isPinned ? 1 : 0.7,
+							}}
+							transition={{ duration: 0.15 }}
+						>
+							{isPinned ? branding.tagline : 'C'}
+						</motion.span>
+					</div>
 				)}
 			</motion.aside>
 

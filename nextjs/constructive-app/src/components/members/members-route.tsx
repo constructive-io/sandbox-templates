@@ -194,8 +194,20 @@ export function MembersRoute({ orgId, orgName = 'Organization', organization }: 
 	const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
 	const { members, totalCount, isLoading, error } = useOrgMembers({ orgId, first: ITEMS_PER_PAGE, offset });
-	const { mutateAsync: updateMember, isPending: isUpdating } = useUpdateOrgMembershipMutation();
-	const { mutateAsync: removeMember, isPending: isRemoving } = useDeleteOrgMembershipMutation();
+	const { mutateAsync: updateMember, isPending: isUpdating } = useUpdateOrgMembershipMutation({
+		selection: {
+			fields: {
+				id: true,
+			},
+		},
+	});
+	const { mutateAsync: removeMember, isPending: isRemoving } = useDeleteOrgMembershipMutation({
+		selection: {
+			fields: {
+				id: true,
+			},
+		},
+	});
 
 	const totalPages = Math.max(1, Math.ceil(totalCount / ITEMS_PER_PAGE));
 
@@ -212,7 +224,7 @@ export function MembersRoute({ orgId, orgName = 'Organization', organization }: 
 	const onToggleAdmin = async (member: OrgMember) => {
 		try {
 			await updateMember({
-				input: { id: member.membershipId, patch: { isAdmin: !member.flags.isAdmin } },
+				id: member.membershipId, patch: { isAdmin: !member.flags.isAdmin },
 			});
 			toast.success({
 				message: member.flags.isAdmin ? 'Removed admin role' : 'Granted admin role',
@@ -225,7 +237,7 @@ export function MembersRoute({ orgId, orgName = 'Organization', organization }: 
 
 	const onRemove = async (member: OrgMember) => {
 		try {
-			await removeMember({ input: { id: member.membershipId } });
+			await removeMember({ id: member.membershipId });
 			toast.success({
 				message: 'Removed member',
 				description: member.displayName || member.username || 'Member',

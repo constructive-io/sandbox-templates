@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
-import { ConstructiveIcon } from '@/components/icons/constructive-icon';
+import { BrandLogo } from '@/components/brand-logo';
 import { Button } from '@constructive-io/ui/button';
 
 export interface AccessDeniedProps {
@@ -28,9 +28,9 @@ export function AccessDenied({ fullPage = false }: AccessDeniedProps) {
 		<div className={containerClass}>
 			{/* Background watermark */}
 			<div className='pointer-events-none absolute inset-0 flex items-center justify-center'>
-				<ConstructiveIcon
-					className='text-primary animate-in fade-in-0 zoom-in-50 h-[400px] w-auto fill-mode-backwards opacity-[0.03] duration-1000 sm:h-[600px]'
-					style={{ animationDelay: '200ms' }}
+				<BrandLogo
+					variant='watermark'
+					className='animate-in fade-in-0 zoom-in-50 h-[400px] w-auto fill-mode-backwards opacity-[0.03] duration-1000 sm:h-[600px]'
 				/>
 			</div>
 

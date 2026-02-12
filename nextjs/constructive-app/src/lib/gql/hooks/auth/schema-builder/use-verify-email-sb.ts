@@ -14,7 +14,13 @@ interface VerifyEmailInput {
  */
 export function useVerifyEmailSb() {
 	const queryClient = useQueryClient();
-	const verifyEmailMutation = useVerifyEmailMutation();
+	const verifyEmailMutation = useVerifyEmailMutation({
+		selection: {
+			fields: {
+				boolean: true,
+			},
+		},
+	});
 
 	return useMutation({
 		mutationKey: authKeys.verifyEmail.queryKey,

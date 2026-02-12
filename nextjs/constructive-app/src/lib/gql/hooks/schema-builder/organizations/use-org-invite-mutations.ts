@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { appStore } from '@/store/app-store';
 
 import type { SchemaContext } from '@/app-config';
 import {
@@ -19,25 +20,31 @@ export interface SendOrgInviteInput {
 export function useSendOrgInvite(defaultContext: SchemaContext = 'schema-builder') {
 	void defaultContext;
 	const queryClient = useQueryClient();
-	const createMutation = useCreateOrgInviteMutation();
+	const createMutation = useCreateOrgInviteMutation({
+		selection: {
+			fields: {
+				id: true,
+			},
+		},
+	});
 
 	return {
 		sendInvite: async (input: SendOrgInviteInput) => {
 			const ctx = input.context ?? defaultContext;
+			const senderId = appStore.getState().auth.user?.id || appStore.getState().auth.token?.userId;
+			if (!senderId) throw new Error('No authenticated user found');
 			const result = await createMutation.mutateAsync({
-				input: {
-					orgInvite: {
-						entityId: input.orgId,
-						email: input.email,
-						expiresAt: input.expiresAt,
-						// TODO: fix permission denied for table org_invites
-						// data: {
-						// 	email: input.email,
-						// 	role: 'member',
-						// 	message: null,
-						// },
-					},
-				},
+				entityId: input.orgId,
+				senderId,
+				receiverId: senderId,
+				email: input.email,
+				expiresAt: input.expiresAt,
+				// TODO: fix permission denied for table org_invites
+				// data: {
+				// 	email: input.email,
+				// 	role: 'member',
+				// 	message: null,
+				// },
 			});
 			queryClient.invalidateQueries({ queryKey: orgInvitesQueryKeys.active(ctx, input.orgId) });
 			queryClient.invalidateQueries({ queryKey: orgInvitesQueryKeys.claimed(ctx, input.orgId) });
@@ -58,12 +65,18 @@ export interface CancelOrgInviteInput {
 export function useCancelOrgInvite(defaultContext: SchemaContext = 'schema-builder') {
 	void defaultContext;
 	const queryClient = useQueryClient();
-	const deleteMutation = useDeleteOrgInviteMutation();
+	const deleteMutation = useDeleteOrgInviteMutation({
+		selection: {
+			fields: {
+				id: true,
+			},
+		},
+	});
 
 	return {
 		cancelInvite: async (input: CancelOrgInviteInput) => {
 			const ctx = input.context ?? defaultContext;
-			await deleteMutation.mutateAsync({ input: { id: input.inviteId } });
+			await deleteMutation.mutateAsync({ id: input.inviteId });
 			queryClient.invalidateQueries({ queryKey: orgInvitesQueryKeys.active(ctx, input.orgId) });
 			return input.inviteId;
 		},
@@ -83,17 +96,21 @@ export interface ExtendOrgInviteInput {
 export function useExtendOrgInvite(defaultContext: SchemaContext = 'schema-builder') {
 	void defaultContext;
 	const queryClient = useQueryClient();
-	const updateMutation = useUpdateOrgInviteMutation();
+	const updateMutation = useUpdateOrgInviteMutation({
+		selection: {
+			fields: {
+				id: true,
+			},
+		},
+	});
 
 	return {
 		extendInvite: async (input: ExtendOrgInviteInput) => {
 			const ctx = input.context ?? defaultContext;
 			const result = await updateMutation.mutateAsync({
-				input: {
-					id: input.inviteId,
-					patch: {
-						expiresAt: input.expiresAt,
-					},
+				id: input.inviteId,
+				patch: {
+					expiresAt: input.expiresAt,
 				},
 			});
 			queryClient.invalidateQueries({ queryKey: orgInvitesQueryKeys.active(ctx, input.orgId) });

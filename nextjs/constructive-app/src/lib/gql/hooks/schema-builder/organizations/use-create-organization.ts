@@ -95,7 +95,15 @@ export function useCreateOrganization(options: UseCreateOrganizationOptions = {}
 	const { context = 'schema-builder', onSuccess, onError } = options;
 	void context; // Context is handled by SDK execute-adapter
 	const queryClient = useQueryClient();
-	const createUserMutation = useCreateUserMutation();
+	const createUserMutation = useCreateUserMutation({
+		selection: {
+			fields: {
+				id: true,
+				displayName: true,
+				username: true,
+			},
+		},
+	});
 
 	const createOrganization = async (input: CreateOrganizationInput): Promise<CreateOrganizationResult> => {
 		// Step 1: Create User as Organization
@@ -105,9 +113,9 @@ export function useCreateOrganization(options: UseCreateOrganizationOptions = {}
 			type: ROLE_TYPE.ORGANIZATION,
 		};
 		if (input.username) userInput.username = input.username;
-		const userResult = await createUserMutation.mutateAsync({
-			input: { user: userInput },
-		});
+		const userResult = await createUserMutation.mutateAsync(
+			userInput as Parameters<typeof createUserMutation.mutateAsync>[0],
+		);
 
 		const newOrg = userResult.createUser?.user;
 		if (!newOrg?.id) {
@@ -118,8 +126,13 @@ export function useCreateOrganization(options: UseCreateOrganizationOptions = {}
 		let membershipId = '';
 		try {
 			const membershipsResult = await fetchOrgMembershipsQuery({
-				condition: { entityId: newOrg.id, isOwner: true },
-				first: 1,
+				selection: {
+					fields: {
+						id: true,
+					},
+					where: { entityId: { equalTo: newOrg.id }, isOwner: { equalTo: true } },
+					first: 1,
+				},
 			});
 			membershipId = membershipsResult?.orgMemberships?.nodes?.[0]?.id ?? '';
 		} catch {

@@ -15,7 +15,13 @@ interface ResetPasswordInput {
  */
 export function useResetPasswordSb() {
 	const queryClient = useQueryClient();
-	const resetPasswordMutation = useResetPasswordMutation();
+	const resetPasswordMutation = useResetPasswordMutation({
+		selection: {
+			fields: {
+				boolean: true,
+			},
+		},
+	});
 
 	return useMutation({
 		mutationKey: authKeys.resetPassword.queryKey,

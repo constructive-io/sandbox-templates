@@ -165,7 +165,18 @@ export function useOrganization(options: UseOrganizationOptions): UseOrganizatio
 			}
 
 			// Step 1: Fetch the organization (user entity) by ID
-			const userResult = await fetchUserQuery({ id: orgId });
+			const userResult = await fetchUserQuery({
+				id: orgId,
+				selection: {
+					fields: {
+						id: true,
+						displayName: true,
+						username: true,
+						profilePicture: true,
+						type: true,
+					},
+				},
+			});
 			const userData = userResult.user;
 
 			if (!userData) {
@@ -174,16 +185,33 @@ export function useOrganization(options: UseOrganizationOptions): UseOrganizatio
 
 			// Step 2: Fetch current user's membership in this org
 			const currentMembershipResult = await fetchOrgMembershipsQuery({
-				condition: { entityId: orgId, actorId },
-				first: 1,
+				selection: {
+					fields: {
+						id: true,
+						isOwner: true,
+						isAdmin: true,
+						isActive: true,
+					},
+					where: { entityId: { equalTo: orgId }, actorId: { equalTo: actorId } },
+					first: 1,
+				},
 			});
 			const currentUserMembership = currentMembershipResult.orgMemberships?.nodes?.[0] ?? null;
 
 			// Step 3: Fetch member preview (owners/admins first)
 			const membersResult = await fetchOrgMembershipsQuery({
-				filter: { entityId: { equalTo: orgId } },
-				first: 5,
-				orderBy: ['IS_OWNER_DESC', 'IS_ADMIN_DESC'],
+				selection: {
+					fields: {
+						id: true,
+						actorId: true,
+						isOwner: true,
+						isAdmin: true,
+						isActive: true,
+					},
+					where: { entityId: { equalTo: orgId } },
+					first: 5,
+					orderBy: ['IS_OWNER_DESC', 'IS_ADMIN_DESC'],
+				},
 			});
 			const memberships = membersResult.orgMemberships?.nodes ?? [];
 			const memberCount = membersResult.orgMemberships?.totalCount ?? 0;
@@ -194,7 +222,15 @@ export function useOrganization(options: UseOrganizationOptions): UseOrganizatio
 
 			if (actorIds.length > 0) {
 				const usersResult = await fetchUsersQuery({
-					filter: { id: { in: actorIds } },
+					selection: {
+						fields: {
+							id: true,
+							displayName: true,
+							username: true,
+							profilePicture: true,
+						},
+						where: { id: { in: actorIds } },
+					},
 				});
 				for (const user of usersResult.users?.nodes ?? []) {
 					if (user.id) {

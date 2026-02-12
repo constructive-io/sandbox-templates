@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import { cn } from '@/lib/utils';
-import { ConstructiveIcon } from '@/components/icons/constructive-icon';
+import { BrandLogo } from '@/components/brand-logo';
 
 /** Props for customizing auth branding across screens */
 export interface AuthBrandingProps {
@@ -27,7 +27,7 @@ export function AuthScreenHeader({
 	showLogo = true,
 	className,
 }: AuthScreenHeaderProps) {
-	const logoElement = logo ?? <ConstructiveIcon className='text-primary h-9 w-9' />;
+	const logoElement = logo ?? <BrandLogo variant='icon' className='h-9 w-auto' />;
 
 	return (
 		<div className={cn('space-y-4 text-center', className)}>

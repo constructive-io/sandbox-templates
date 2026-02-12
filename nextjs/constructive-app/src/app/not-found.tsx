@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
-import { ConstructiveIcon } from '@/components/icons/constructive-icon';
+import { BrandLogo } from '@/components/brand-logo';
 import { Button } from '@constructive-io/ui/button';
 
 export default function NotFound() {
@@ -9,9 +9,9 @@ export default function NotFound() {
 		<div className='bg-background relative flex min-h-dvh items-center justify-center overflow-hidden px-6'>
 			{/* Background watermark */}
 			<div className='pointer-events-none absolute inset-0 flex items-center justify-center'>
-				<ConstructiveIcon
-					className='text-primary animate-in fade-in-0 zoom-in-50 h-[600px] w-auto fill-mode-backwards opacity-[0.03] duration-1000'
-					style={{ animationDelay: '200ms' }}
+				<BrandLogo
+					variant='watermark'
+					className='animate-in fade-in-0 zoom-in-50 h-[600px] w-auto fill-mode-backwards opacity-[0.03] duration-1000'
 				/>
 			</div>
 

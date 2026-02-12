@@ -38,14 +38,19 @@ export function useMembershipPermissionDefault(options: UseMembershipPermissionD
 
 	const isAuthenticated = useAppStore((state) => state.auth.isAuthenticated);
 
-	const { data, isLoading, error, refetch } = useOrgPermissionDefaultsQuery(
-		{ condition: { entityId } },
-		{
-			enabled: enabled && isAuthenticated && !!entityId,
-			staleTime: 30 * 1000,
-			refetchOnMount: 'always',
+	const { data, isLoading, error, refetch } = useOrgPermissionDefaultsQuery({
+		selection: {
+			fields: {
+				id: true,
+				entityId: true,
+				permissions: true,
+			},
+			where: { entityId: { equalTo: entityId } },
 		},
-	);
+		enabled: enabled && isAuthenticated && !!entityId,
+		staleTime: 30 * 1000,
+		refetchOnMount: 'always',
+	});
 
 	const firstNode = data?.orgPermissionDefaults?.nodes?.[0];
 	const membershipPermissionDefault: MembershipPermissionDefault | null = firstNode?.id
@@ -72,17 +77,21 @@ export interface CreateMembershipPermissionDefaultInput {
 
 export function useCreateMembershipPermissionDefault(_defaultContext: SchemaContext = 'schema-builder') {
 	const queryClient = useQueryClient();
-	const createMutation = useCreateOrgPermissionDefaultMutation();
+	const createMutation = useCreateOrgPermissionDefaultMutation({
+		selection: {
+			fields: {
+				id: true,
+				entityId: true,
+				permissions: true,
+			},
+		},
+	});
 
 	return {
 		createMembershipPermissionDefault: async (input: CreateMembershipPermissionDefaultInput) => {
 			const result = await createMutation.mutateAsync({
-				input: {
-					orgPermissionDefault: {
-						entityId: input.entityId,
-						permissions: input.permissions,
-					},
-				},
+				entityId: input.entityId,
+				permissions: input.permissions,
 			});
 			// Invalidate cache
 			queryClient.invalidateQueries({
@@ -104,15 +113,21 @@ export interface UpdateMembershipPermissionDefaultInput {
 
 export function useUpdateMembershipPermissionDefault(_defaultContext: SchemaContext = 'schema-builder') {
 	const queryClient = useQueryClient();
-	const updateMutation = useUpdateOrgPermissionDefaultMutation();
+	const updateMutation = useUpdateOrgPermissionDefaultMutation({
+		selection: {
+			fields: {
+				id: true,
+				entityId: true,
+				permissions: true,
+			},
+		},
+	});
 
 	return {
 		updateMembershipPermissionDefault: async (input: UpdateMembershipPermissionDefaultInput) => {
 			const result = await updateMutation.mutateAsync({
-				input: {
-					id: input.id,
-					patch: input.patch,
-				},
+				id: input.id,
+				patch: input.patch,
 			});
 			// Invalidate related caches
 			const entityId = input.patch.entityId ?? result.updateOrgPermissionDefault?.orgPermissionDefault?.entityId;

@@ -38,14 +38,19 @@ export function useOrgMembershipDefault(options: UseOrgMembershipDefaultOptions)
 
 	const isAuthenticated = useAppStore((state) => state.auth.isAuthenticated);
 
-	const { data, isLoading, error, refetch } = useOrgMembershipDefaultByEntityIdQuery(
-		{ entityId: orgId },
-		{
-			enabled: enabled && isAuthenticated && !!orgId,
-			staleTime: 30 * 1000,
-			refetchOnMount: 'always',
+	const { data, isLoading, error, refetch } = useOrgMembershipDefaultByEntityIdQuery({
+		variables: { entityId: orgId },
+		selection: {
+			fields: {
+				id: true,
+				entityId: true,
+				isApproved: true,
+			},
 		},
-	);
+		enabled: enabled && isAuthenticated && !!orgId,
+		staleTime: 30 * 1000,
+		refetchOnMount: 'always',
+	});
 
 	const node = data?.orgMembershipDefaultByEntityId;
 	const membershipDefault: OrgMembershipDefault | null = node?.id
@@ -72,7 +77,18 @@ export interface UpdateOrgMembershipDefaultInput {
 
 export function useUpdateOrgMembershipDefault(_defaultContext: SchemaContext = 'schema-builder') {
 	const queryClient = useQueryClient();
-	const updateMutation = useUpdateOrgMembershipDefaultByEntityIdMutation();
+	const updateMutation = useUpdateOrgMembershipDefaultByEntityIdMutation({
+		selection: {
+			fields: {
+				orgMembershipDefault: {
+					select: {
+						id: true,
+						isApproved: true,
+					},
+				},
+			},
+		},
+	});
 
 	return {
 		updateMembershipDefault: async (input: UpdateOrgMembershipDefaultInput) => {
@@ -102,17 +118,20 @@ export interface CreateOrgMembershipDefaultInput {
 
 export function useCreateOrgMembershipDefault(_defaultContext: SchemaContext = 'schema-builder') {
 	const queryClient = useQueryClient();
-	const createMutation = useCreateOrgMembershipDefaultMutation();
+	const createMutation = useCreateOrgMembershipDefaultMutation({
+		selection: {
+			fields: {
+				id: true,
+				isApproved: true,
+			},
+		},
+	});
 
 	return {
 		createMembershipDefault: async (input: CreateOrgMembershipDefaultInput) => {
 			const result = await createMutation.mutateAsync({
-				input: {
-					orgMembershipDefault: {
-						entityId: input.orgId,
-						isApproved: input.isApproved,
-					},
-				},
+				entityId: input.orgId,
+				isApproved: input.isApproved,
 			});
 			// Invalidate cache
 			queryClient.invalidateQueries({

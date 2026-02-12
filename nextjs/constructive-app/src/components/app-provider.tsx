@@ -13,8 +13,22 @@ import { queryClient } from '@/lib/query-client';
 // Endpoint uses a getter so changes to Direct Connect / UI overrides are picked up
 // on every request without needing to re-call configure().
 configure({
-	get endpoint() { return getEndpoint('schema-builder')!; },
-	getHeaders: () => getAuthHeaders('schema-builder'),
+	adapter: {
+		async execute<T>(document: string, variables?: Record<string, unknown>) {
+			const endpoint = getEndpoint('schema-builder')!;
+			const headers = getAuthHeaders('schema-builder');
+			const res = await fetch(endpoint, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...headers },
+				body: JSON.stringify({ query: document, variables: variables ?? {} }),
+			});
+			const json = await res.json();
+			if (json.errors?.length) {
+				return { ok: false as const, data: null, errors: json.errors };
+			}
+			return { ok: true as const, data: json.data as T, errors: undefined };
+		},
+	},
 });
 
 export function AppProvider({ children }: { children: React.ReactNode }) {

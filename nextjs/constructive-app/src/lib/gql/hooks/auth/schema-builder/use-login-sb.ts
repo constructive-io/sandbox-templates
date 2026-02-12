@@ -17,7 +17,20 @@ import { authKeys } from '../../query-keys';
 export function useLoginSb() {
 	const queryClient = useQueryClient();
 	const authActions = useAuthActions();
-	const signInMutation = useSignInMutation();
+	const signInMutation = useSignInMutation({
+		selection: {
+			fields: {
+				result: {
+					select: {
+						id: true,
+						userId: true,
+						accessToken: true,
+						accessTokenExpiresAt: true,
+					},
+				},
+			},
+		},
+	});
 
 	return useMutation({
 		mutationKey: authKeys.signIn.queryKey,

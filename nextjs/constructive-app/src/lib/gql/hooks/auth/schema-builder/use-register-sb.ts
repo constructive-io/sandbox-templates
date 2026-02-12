@@ -24,8 +24,28 @@ export function useRegisterSb() {
 	const queryClient = useQueryClient();
 	const authActions = useAuthActions();
 	const router = useRouter();
-	const signUpMutation = useSignUpMutation();
-	const sendVerificationMutation = useSendVerificationEmailMutation();
+	const signUpMutation = useSignUpMutation({
+		selection: {
+			fields: {
+				result: {
+					select: {
+						id: true,
+						userId: true,
+						accessToken: true,
+						accessTokenExpiresAt: true,
+						isVerified: true,
+					},
+				},
+			},
+		},
+	});
+	const sendVerificationMutation = useSendVerificationEmailMutation({
+		selection: {
+			fields: {
+				boolean: true,
+			},
+		},
+	});
 
 	return useMutation({
 		mutationKey: authKeys.signUp.queryKey,
@@ -63,7 +83,14 @@ export function useRegisterSb() {
 
 			// Query actual isVerified status from database - signUpResult.isVerified is stale
 			// because the trigger hasn't updated the table yet at signup time
-			const membershipResult = await fetchAppMembershipByActorIdQuery({ actorId: userId });
+			const membershipResult = await fetchAppMembershipByActorIdQuery({
+				variables: { actorId: userId },
+				selection: {
+					fields: {
+						isVerified: true,
+					},
+				},
+			});
 			const isVerified = membershipResult?.appMembershipByActorId?.isVerified ?? false;
 
 			if (isVerified) {

@@ -1,3 +1,4 @@
+import { branding } from '@/config/branding';
 import { cn } from '@/lib/utils';
 
 export interface LegalLink {
@@ -5,11 +6,7 @@ export interface LegalLink {
 	href: string;
 }
 
-const DEFAULT_LEGAL_LINKS: LegalLink[] = [
-	{ label: 'Disclaimer', href: 'https://constructive.io/legal/disclaimer' },
-	{ label: 'Privacy Policy', href: 'https://constructive.io/legal/privacy-policy' },
-	{ label: 'Acceptable Use', href: 'https://constructive.io/legal/acceptable-use-policy' },
-];
+const DEFAULT_LEGAL_LINKS: LegalLink[] = branding.legalLinks;
 
 export interface AuthLegalFooterProps {
 	companyName?: string;
@@ -18,7 +15,7 @@ export interface AuthLegalFooterProps {
 }
 
 export function AuthLegalFooter({
-	companyName = 'Constructive, Inc.',
+	companyName = branding.companyName,
 	links = DEFAULT_LEGAL_LINKS,
 	className,
 }: AuthLegalFooterProps) {

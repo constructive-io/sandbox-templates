@@ -8,9 +8,15 @@ importers:
 
   .:
     dependencies:
+      '@0no-co/graphql.web':
+        specifier: ^1.2.0
+        version: 1.2.0(graphql@15.10.1)
       '@base-ui/react':
         specifier: ^1.0.0
         version: 1.1.0(@types/react@19.2.13)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@constructive-io/graphql-types':
+        specifier: ^2.14.0
+        version: 2.15.0(graphql@15.10.1)
       '@constructive-io/ui':
         specifier: 0.1.1
         version: 0.1.1(@base-ui/react@1.1.0(@types/react@19.2.13)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@internationalized/date@3.11.0)(@remixicon/react@4.9.0(react@19.2.4))(@use-gesture/react@10.3.1(react@19.2.4))(ace-builds@1.43.6)(cmdk@1.1.1(@types/react-dom@19.2.3(@types/react@19.2.13))(@types/react@19.2.13)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(lucide-react@0.525.0(react@19.2.4))(match-sorter@8.2.0)(motion@12.33.0(@emotion/is-prop-valid@1.4.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-ace@14.0.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-aria-components@1.15.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react-hook-form@7.71.1(react@19.2.4))(react-resizable-panels@3.0.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)(sonner@2.0.7(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(vaul@1.1.2(@types/react-dom@19.2.3(@types/react@19.2.13))(@types/react@19.2.13)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))
@@ -29,9 +35,12 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      gql-ast:
+        specifier: ^2.6.0
+        version: 2.7.0
       graphql:
-        specifier: 15.8.0
-        version: 15.8.0
+        specifier: ^15.10.1
+        version: 15.10.1
       lucide-react:
         specifier: ^0.525.0
         version: 0.525.0(react@19.2.4)
@@ -65,16 +74,16 @@ importers:
     devDependencies:
       '@0no-co/graphqlsp':
         specifier: ^1.15.2
-        version: 1.15.2(graphql@15.8.0)(typescript@5.9.3)
+        version: 1.15.2(graphql@15.10.1)(typescript@5.9.3)
       '@constructive-io/graphql-codegen':
-        specifier: 3.2.1
-        version: 3.2.1(@tanstack/react-query@5.90.20(react@19.2.4))(graphile-build-pg@4.14.1(graphql@15.8.0)(pg@8.18.0))(postgraphile-core@4.14.1(graphql@15.8.0)(pg@8.18.0))(react@19.2.4)
+        specifier: 3.3.0
+        version: 3.3.0(@tanstack/react-query@5.90.20(react@19.2.4))(graphile-build-pg@4.14.1(graphql@15.10.1)(pg@8.18.0))(postgraphile-core@4.14.1(graphql@15.10.1)(pg@8.18.0))(react@19.2.4)
       '@eslint/eslintrc':
         specifier: ^3.3.3
         version: 3.3.3
       '@graphql-typed-document-node/core':
         specifier: ^3.2.0
-        version: 3.2.0(graphql@15.8.0)
+        version: 3.2.0(graphql@15.10.1)
       '@ianvs/prettier-plugin-sort-imports':
         specifier: ^4.7.0
         version: 4.7.1(@prettier/plugin-oxc@0.1.3)(content-tag@4.1.0)(prettier-plugin-ember-template-tag@2.1.3(prettier@3.8.1))(prettier@3.8.1)
@@ -385,8 +394,8 @@ packages:
   '@constructive-io/content-type-stream@2.6.0':
     resolution: {integrity: sha512-ZGj0ncFK+v19k+pCtUI6pHjOlGogRXzwXO82blWrMoCKFImPmRb7Rr7T1felH+2ERXB/pjr5yicF/2uAEQeqtw==}
 
-  '@constructive-io/graphql-codegen@3.2.1':
-    resolution: {integrity: sha512-U0SRTa587s4dRbFq6ysowT9lxX/CzUMvaGIq6Y0AygFiCfJ5ojgpZDljsfWYBBDVubcyOvgmdO0TvJlPw5phFw==}
+  '@constructive-io/graphql-codegen@3.3.0':
+    resolution: {integrity: sha512-/MchXEzT2kv3rf/HInEjLmgWSDuRHjI7j1rThZGTx/vUaib0HYxcCnzQIpCg+/d9cW3k9U4UWiaExZJlaOho7w==}
     hasBin: true
     peerDependencies:
       '@tanstack/react-query': ^5.0.0
@@ -3343,10 +3352,6 @@ packages:
     resolution: {integrity: sha512-BL/Xd/T9baO6NFzoMpiMD7YUZ62R6viR5tp/MULVEnbYJXZA//kRNW7J0j1w/wXArgL0sCxhDfK5dczSKn3+cg==}
     engines: {node: '>= 10.x'}
 
-  graphql@15.8.0:
-    resolution: {integrity: sha512-5gghUc24tP9HRznNpV2+FIoq3xKkj5dTQqf4v0CpdPbFVwFkWoxOM+o+2OC9ZSvjEMTjfmG9QT+gcvggTwW1zw==}
-    engines: {node: '>= 10.x'}
-
   has-bigints@1.1.0:
     resolution: {integrity: sha512-R3pbpkcIqv2Pm3dUwgjclDRVmWpTJW2DcMzcIhEXEx1oh/CEMObMm3KLmRJOdvhM7o4uQBnwr8pzRK2sJWIqfg==}
     engines: {node: '>= 0.4'}
@@ -4812,14 +4817,10 @@ snapshots:
     optionalDependencies:
       graphql: 15.10.1
 
-  '@0no-co/graphql.web@1.2.0(graphql@15.8.0)':
-    optionalDependencies:
-      graphql: 15.8.0
-
-  '@0no-co/graphqlsp@1.15.2(graphql@15.8.0)(typescript@5.9.3)':
+  '@0no-co/graphqlsp@1.15.2(graphql@15.10.1)(typescript@5.9.3)':
     dependencies:
-      '@gql.tada/internal': 1.0.8(graphql@15.8.0)(typescript@5.9.3)
-      graphql: 15.8.0
+      '@gql.tada/internal': 1.0.8(graphql@15.10.1)(typescript@5.9.3)
+      graphql: 15.10.1
       typescript: 5.9.3
 
   '@alloc/quick-lru@5.2.0': {}
@@ -5408,12 +5409,12 @@ snapshots:
       mime-bytes: 0.6.0
       uuid-hash: 2.5.0
 
-  '@constructive-io/graphql-codegen@3.2.1(@tanstack/react-query@5.90.20(react@19.2.4))(graphile-build-pg@4.14.1(graphql@15.8.0)(pg@8.18.0))(postgraphile-core@4.14.1(graphql@15.8.0)(pg@8.18.0))(react@19.2.4)':
+  '@constructive-io/graphql-codegen@3.3.0(@tanstack/react-query@5.90.20(react@19.2.4))(graphile-build-pg@4.14.1(graphql@15.10.1)(pg@8.18.0))(postgraphile-core@4.14.1(graphql@15.10.1)(pg@8.18.0))(react@19.2.4)':
     dependencies:
       '@0no-co/graphql.web': 1.2.0(graphql@15.10.1)
       '@babel/generator': 7.29.1
       '@babel/types': 7.29.0
-      '@constructive-io/graphql-server': 3.1.0(graphile-build-pg@4.14.1(graphql@15.8.0)(pg@8.18.0))(postgraphile-core@4.14.1(graphql@15.8.0)(pg@8.18.0))
+      '@constructive-io/graphql-server': 3.1.0(graphile-build-pg@4.14.1(graphql@15.10.1)(pg@8.18.0))(postgraphile-core@4.14.1(graphql@15.10.1)(pg@8.18.0))
       '@constructive-io/graphql-types': 2.15.0(graphql@15.10.1)
       '@inquirerer/utils': 3.2.2
       '@pgpmjs/core': 5.2.0
@@ -5455,7 +5456,7 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@constructive-io/graphql-server@3.1.0(graphile-build-pg@4.14.1(graphql@15.8.0)(pg@8.18.0))(postgraphile-core@4.14.1(graphql@15.8.0)(pg@8.18.0))':
+  '@constructive-io/graphql-server@3.1.0(graphile-build-pg@4.14.1(graphql@15.10.1)(pg@8.18.0))(postgraphile-core@4.14.1(graphql@15.10.1)(pg@8.18.0))':
     dependencies:
       '@constructive-io/graphql-env': 2.10.0(graphql@15.10.1)
       '@constructive-io/graphql-types': 2.15.0(graphql@15.10.1)
@@ -5475,12 +5476,12 @@ snapshots:
       graphile-meta-schema: 1.1.0(pg@8.18.0)
       graphile-plugin-connection-filter: 3.1.0(pg@8.18.0)(postgraphile@4.14.1)
       graphile-plugin-connection-filter-postgis: 2.1.0(graphql@15.10.1)(pg@8.18.0)(postgraphile@4.14.1)
-      graphile-plugin-fulltext-filter: 3.1.0(graphql@15.10.1)(pg@8.18.0)(postgraphile-core@4.14.1(graphql@15.8.0)(pg@8.18.0))(postgraphile@4.14.1)
+      graphile-plugin-fulltext-filter: 3.1.0(graphql@15.10.1)(pg@8.18.0)(postgraphile-core@4.14.1(graphql@15.10.1)(pg@8.18.0))(postgraphile@4.14.1)
       graphile-query: 2.6.0
       graphile-search-plugin: 1.1.0(graphql@15.10.1)
-      graphile-settings: 3.1.0(postgraphile-core@4.14.1(graphql@15.8.0)(pg@8.18.0))
+      graphile-settings: 3.1.0(postgraphile-core@4.14.1(graphql@15.10.1)(pg@8.18.0))
       graphile-simple-inflector: 1.1.0(graphql@15.10.1)
-      graphile-utils: 4.14.1(graphile-build-pg@4.14.1(graphql@15.8.0)(pg@8.18.0))(graphile-build@4.14.1(graphql@15.8.0))
+      graphile-utils: 4.14.1(graphile-build-pg@4.14.1(graphql@15.10.1)(pg@8.18.0))(graphile-build@4.14.1(graphql@15.10.1))
       graphql: 15.10.1
       graphql-tag: 2.12.6(graphql@15.10.1)
       graphql-upload: 13.0.0(graphql@15.10.1)
@@ -5757,10 +5758,10 @@ snapshots:
       tslib: 2.8.1
     optional: true
 
-  '@gql.tada/internal@1.0.8(graphql@15.8.0)(typescript@5.9.3)':
+  '@gql.tada/internal@1.0.8(graphql@15.10.1)(typescript@5.9.3)':
     dependencies:
-      '@0no-co/graphql.web': 1.2.0(graphql@15.8.0)
-      graphql: 15.8.0
+      '@0no-co/graphql.web': 1.2.0(graphql@15.10.1)
+      graphql: 15.10.1
       typescript: 5.9.3
 
   '@graphile-contrib/pg-many-to-many@1.0.2': {}
@@ -5769,9 +5770,9 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
-  '@graphql-typed-document-node/core@3.2.0(graphql@15.8.0)':
+  '@graphql-typed-document-node/core@3.2.0(graphql@15.10.1)':
     dependencies:
-      graphql: 15.8.0
+      graphql: 15.10.1
 
   '@humanfs/core@0.19.1': {}
 
@@ -9115,21 +9116,6 @@ snapshots:
       - graphql
       - supports-color
 
-  graphile-build-pg@4.14.1(graphql@15.8.0)(pg@8.18.0):
-    dependencies:
-      '@graphile/lru': 4.11.0
-      chalk: 2.4.2
-      debug: 4.4.3
-      graphile-build: 4.14.1(graphql@15.8.0)
-      jsonwebtoken: 9.0.3
-      lodash: 4.17.23
-      lru-cache: 4.1.5
-      pg: 8.18.0
-      pg-sql2: 4.14.1(pg@8.18.0)
-    transitivePeerDependencies:
-      - graphql
-      - supports-color
-
   graphile-build@4.14.1(graphql@15.10.1):
     dependencies:
       '@graphile/lru': 4.11.0
@@ -9137,21 +9123,6 @@ snapshots:
       debug: 4.4.3
       graphql: 15.10.1
       graphql-parse-resolve-info: 4.14.1(graphql@15.10.1)
-      iterall: 1.3.0
-      lodash: 4.17.23
-      lru-cache: 5.1.1
-      pluralize: 7.0.0
-      semver: 7.7.4
-    transitivePeerDependencies:
-      - supports-color
-
-  graphile-build@4.14.1(graphql@15.8.0):
-    dependencies:
-      '@graphile/lru': 4.11.0
-      chalk: 2.4.2
-      debug: 4.4.3
-      graphql: 15.8.0
-      graphql-parse-resolve-info: 4.14.1(graphql@15.8.0)
       iterall: 1.3.0
       lodash: 4.17.23
       lru-cache: 5.1.1
@@ -9180,7 +9151,7 @@ snapshots:
       envalid: 8.1.1
       graphile-build: 4.14.1(graphql@15.10.1)
       graphile-build-pg: 4.14.1(graphql@15.10.1)(pg@8.18.0)
-      graphile-utils: 4.14.1(graphile-build-pg@4.14.1(graphql@15.8.0)(pg@8.18.0))(graphile-build@4.14.1(graphql@15.8.0))
+      graphile-utils: 4.14.1(graphile-build-pg@4.14.1(graphql@15.10.1)(pg@8.18.0))(graphile-build@4.14.1(graphql@15.10.1))
       graphql: 15.10.1
       graphql-tag: 2.12.6(graphql@15.10.1)
       pg: 8.18.0
@@ -9192,7 +9163,7 @@ snapshots:
     dependencies:
       graphile-build: 4.14.1(graphql@15.10.1)
       graphile-build-pg: 4.14.1(graphql@15.10.1)(pg@8.18.0)
-      graphile-utils: 4.14.1(graphile-build-pg@4.14.1(graphql@15.8.0)(pg@8.18.0))(graphile-build@4.14.1(graphql@15.8.0))
+      graphile-utils: 4.14.1(graphile-build-pg@4.14.1(graphql@15.10.1)(pg@8.18.0))(graphile-build@4.14.1(graphql@15.10.1))
       graphql: 15.10.1
     transitivePeerDependencies:
       - pg
@@ -9230,13 +9201,13 @@ snapshots:
       - pg
       - supports-color
 
-  graphile-plugin-fulltext-filter@3.1.0(graphql@15.10.1)(pg@8.18.0)(postgraphile-core@4.14.1(graphql@15.8.0)(pg@8.18.0))(postgraphile@4.14.1):
+  graphile-plugin-fulltext-filter@3.1.0(graphql@15.10.1)(pg@8.18.0)(postgraphile-core@4.14.1(graphql@15.10.1)(pg@8.18.0))(postgraphile@4.14.1):
     dependencies:
       graphile-build: 4.14.1(graphql@15.10.1)
       graphile-build-pg: 4.14.1(graphql@15.10.1)(pg@8.18.0)
       graphile-plugin-connection-filter: 3.1.0(pg@8.18.0)(postgraphile@4.14.1)
       pg-tsquery: 8.4.2
-      postgraphile-core: 4.14.1(graphql@15.8.0)(pg@8.18.0)
+      postgraphile-core: 4.14.1(graphql@15.10.1)(pg@8.18.0)
     transitivePeerDependencies:
       - graphql
       - pg
@@ -9248,7 +9219,7 @@ snapshots:
       find-and-require-package-json: 0.9.1
       graphile-build: 4.14.1(graphql@15.10.1)
       graphile-build-pg: 4.14.1(graphql@15.10.1)(pg@8.18.0)
-      graphile-utils: 4.14.1(graphile-build-pg@4.14.1(graphql@15.8.0)(pg@8.18.0))(graphile-build@4.14.1(graphql@15.8.0))
+      graphile-utils: 4.14.1(graphile-build-pg@4.14.1(graphql@15.10.1)(pg@8.18.0))(graphile-build@4.14.1(graphql@15.10.1))
       graphql: 15.10.1
       pg: 8.18.0
     transitivePeerDependencies:
@@ -9274,7 +9245,7 @@ snapshots:
       - graphql
       - supports-color
 
-  graphile-settings@3.1.0(postgraphile-core@4.14.1(graphql@15.8.0)(pg@8.18.0)):
+  graphile-settings@3.1.0(postgraphile-core@4.14.1(graphql@15.10.1)(pg@8.18.0)):
     dependencies:
       '@constructive-io/graphql-env': 2.10.0(graphql@15.10.1)
       '@constructive-io/graphql-types': 2.15.0(graphql@15.10.1)
@@ -9288,7 +9259,7 @@ snapshots:
       graphile-pg-type-mappings: 1.1.0(graphql@15.10.1)
       graphile-plugin-connection-filter: 3.1.0(pg@8.18.0)(postgraphile@4.14.1)
       graphile-plugin-connection-filter-postgis: 2.1.0(graphql@15.10.1)(pg@8.18.0)(postgraphile@4.14.1)
-      graphile-plugin-fulltext-filter: 3.1.0(graphql@15.10.1)(pg@8.18.0)(postgraphile-core@4.14.1(graphql@15.8.0)(pg@8.18.0))(postgraphile@4.14.1)
+      graphile-plugin-fulltext-filter: 3.1.0(graphql@15.10.1)(pg@8.18.0)(postgraphile-core@4.14.1(graphql@15.10.1)(pg@8.18.0))(postgraphile@4.14.1)
       graphile-postgis: 1.1.0
       graphile-query: 2.6.0
       graphile-search-plugin: 1.1.0(graphql@15.10.1)
@@ -9328,12 +9299,12 @@ snapshots:
       - aws-crt
       - supports-color
 
-  graphile-utils@4.14.1(graphile-build-pg@4.14.1(graphql@15.8.0)(pg@8.18.0))(graphile-build@4.14.1(graphql@15.8.0)):
+  graphile-utils@4.14.1(graphile-build-pg@4.14.1(graphql@15.10.1)(pg@8.18.0))(graphile-build@4.14.1(graphql@15.10.1)):
     dependencies:
       debug: 4.4.3
       graphile-build: 4.14.1(graphql@15.10.1)
-      graphile-build-pg: 4.14.1(graphql@15.8.0)(pg@8.18.0)
-      graphql: 15.8.0
+      graphile-build-pg: 4.14.1(graphql@15.10.1)(pg@8.18.0)
+      graphql: 15.10.1
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
@@ -9342,14 +9313,6 @@ snapshots:
     dependencies:
       debug: 4.4.3
       graphql: 15.10.1
-      tslib: 2.8.1
-    transitivePeerDependencies:
-      - supports-color
-
-  graphql-parse-resolve-info@4.14.1(graphql@15.8.0):
-    dependencies:
-      debug: 4.4.3
-      graphql: 15.8.0
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
@@ -9367,13 +9330,11 @@ snapshots:
       http-errors: 1.8.1
       object-path: 0.11.8
 
-  graphql-ws@5.16.2(graphql@15.8.0):
+  graphql-ws@5.16.2(graphql@15.10.1):
     dependencies:
-      graphql: 15.8.0
+      graphql: 15.10.1
 
   graphql@15.10.1: {}
-
-  graphql@15.8.0: {}
 
   has-bigints@1.1.0: {}
 
@@ -10157,11 +10118,11 @@ snapshots:
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
-  postgraphile-core@4.14.1(graphql@15.8.0)(pg@8.18.0):
+  postgraphile-core@4.14.1(graphql@15.10.1)(pg@8.18.0):
     dependencies:
-      graphile-build: 4.14.1(graphql@15.8.0)
-      graphile-build-pg: 4.14.1(graphql@15.8.0)(pg@8.18.0)
-      graphql: 15.8.0
+      graphile-build: 4.14.1(graphql@15.10.1)
+      graphile-build-pg: 4.14.1(graphql@15.10.1)(pg@8.18.0)
+      graphql: 15.10.1
       pg: 8.18.0
       tslib: 2.8.1
     transitivePeerDependencies:
@@ -10179,11 +10140,11 @@ snapshots:
       commander: 2.20.3
       debug: 4.4.3
       finalhandler: 1.3.2
-      graphile-build: 4.14.1(graphql@15.8.0)
-      graphile-build-pg: 4.14.1(graphql@15.8.0)(pg@8.18.0)
-      graphile-utils: 4.14.1(graphile-build-pg@4.14.1(graphql@15.8.0)(pg@8.18.0))(graphile-build@4.14.1(graphql@15.8.0))
-      graphql: 15.8.0
-      graphql-ws: 5.16.2(graphql@15.8.0)
+      graphile-build: 4.14.1(graphql@15.10.1)
+      graphile-build-pg: 4.14.1(graphql@15.10.1)(pg@8.18.0)
+      graphile-utils: 4.14.1(graphile-build-pg@4.14.1(graphql@15.10.1)(pg@8.18.0))(graphile-build@4.14.1(graphql@15.10.1))
+      graphql: 15.10.1
+      graphql-ws: 5.16.2(graphql@15.10.1)
       http-errors: 1.8.1
       iterall: 1.3.0
       json5: 2.2.3
@@ -10192,8 +10153,8 @@ snapshots:
       pg: 8.18.0
       pg-connection-string: 2.11.0
       pg-sql2: 4.14.1(pg@8.18.0)
-      postgraphile-core: 4.14.1(graphql@15.8.0)(pg@8.18.0)
-      subscriptions-transport-ws: 0.9.19(graphql@15.8.0)
+      postgraphile-core: 4.14.1(graphql@15.10.1)(pg@8.18.0)
+      subscriptions-transport-ws: 0.9.19(graphql@15.10.1)
       tslib: 2.8.1
       ws: 7.5.10
     transitivePeerDependencies:
@@ -10759,11 +10720,11 @@ snapshots:
       client-only: 0.0.1
       react: 19.2.4
 
-  subscriptions-transport-ws@0.9.19(graphql@15.8.0):
+  subscriptions-transport-ws@0.9.19(graphql@15.10.1):
     dependencies:
       backo2: 1.0.2
       eventemitter3: 3.1.2
-      graphql: 15.8.0
+      graphql: 15.10.1
       iterall: 1.3.0
       symbol-observable: 1.2.0
       ws: 7.5.10

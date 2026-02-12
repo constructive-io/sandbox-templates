@@ -4,7 +4,7 @@
  */
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { useAppStore } from '@/store/app-store';
+import { appStore, useAppStore } from '@/store/app-store';
 import type { SchemaContext } from '@/app-config';
 import {
 	fetchClaimedInvitesQuery,
@@ -74,9 +74,23 @@ export function useAppInvites(options: UseAppInvitesOptions = {}) {
 		queryFn: async (): Promise<AppInvitesQueryResult> => {
 			// Step 1: Fetch app invites
 			const invitesResult = await fetchInvitesQuery({
-				first,
-				offset,
-				orderBy: ['CREATED_AT_DESC'],
+				selection: {
+					fields: {
+						id: true,
+						email: true,
+						data: true,
+						createdAt: true,
+						expiresAt: true,
+						inviteValid: true,
+						inviteToken: true,
+						inviteCount: true,
+						inviteLimit: true,
+						senderId: true,
+					},
+					first,
+					offset,
+					orderBy: ['CREATED_AT_DESC'],
+				},
 			});
 
 			const rawInvites = invitesResult.invites?.nodes ?? [];
@@ -96,7 +110,14 @@ export function useAppInvites(options: UseAppInvitesOptions = {}) {
 
 			if (senderIds.length > 0) {
 				const usersResult = await fetchUsersQuery({
-					filter: { id: { in: senderIds } },
+					selection: {
+						fields: {
+							id: true,
+							displayName: true,
+							username: true,
+						},
+						where: { id: { in: senderIds } },
+					},
 				});
 				for (const user of usersResult.users?.nodes ?? []) {
 					if (user.id) {
@@ -154,9 +175,18 @@ export function useAppClaimedInvites(options: UseAppInvitesOptions = {}) {
 		queryFn: async (): Promise<AppClaimedInvitesQueryResult> => {
 			// Step 1: Fetch app claimed invites
 			const claimedResult = await fetchClaimedInvitesQuery({
-				first,
-				offset,
-				orderBy: ['CREATED_AT_DESC'],
+				selection: {
+					fields: {
+						id: true,
+						data: true,
+						senderId: true,
+						receiverId: true,
+						createdAt: true,
+					},
+					first,
+					offset,
+					orderBy: ['CREATED_AT_DESC'],
+				},
 			});
 
 			const rawClaimed = claimedResult.claimedInvites?.nodes ?? [];
@@ -181,7 +211,14 @@ export function useAppClaimedInvites(options: UseAppInvitesOptions = {}) {
 
 			if (userIds.length > 0) {
 				const usersResult = await fetchUsersQuery({
-					filter: { id: { in: userIds } },
+					selection: {
+						fields: {
+							id: true,
+							displayName: true,
+							username: true,
+						},
+						where: { id: { in: userIds } },
+					},
 				});
 				for (const user of usersResult.users?.nodes ?? []) {
 					if (user.id) {
@@ -228,24 +265,29 @@ export interface SendAppInviteInput {
 export function useSendAppInvite(defaultContext: SchemaContext = 'schema-builder') {
 	void defaultContext; // Context handled by SDK execute-adapter
 	const queryClient = useQueryClient();
-	const createMutation = useCreateInviteMutation();
+	const createMutation = useCreateInviteMutation({
+		selection: {
+			fields: {
+				id: true,
+			},
+		},
+	});
 
 	return {
 		sendInvite: async (input: SendAppInviteInput) => {
 			const ctx = input.context ?? defaultContext;
+			const senderId = appStore.getState().auth.user?.id || appStore.getState().auth.token?.userId;
+			if (!senderId) throw new Error('No authenticated user found');
 			const result = await createMutation.mutateAsync({
-				input: {
-					invite: {
-						email: input.email,
-						expiresAt: input.expiresAt,
-						// TODO: fix permission denied for table invites
-						// data: {
-						// 	email: input.email,
-						// 	role: input.role,
-						// 	message: input.message || null,
-						// },
-					},
-				},
+				senderId,
+				email: input.email,
+				expiresAt: input.expiresAt,
+				// TODO: fix permission denied for table invites
+				// data: {
+				// 	email: input.email,
+				// 	role: input.role,
+				// 	message: input.message || null,
+				// },
 			});
 			queryClient.invalidateQueries({ queryKey: appInvitesQueryKeys.byContext(ctx) });
 			return result.createInvite?.invite ?? null;
@@ -264,14 +306,18 @@ export interface CancelAppInviteInput {
 export function useCancelAppInvite(defaultContext: SchemaContext = 'schema-builder') {
 	void defaultContext; // Context handled by SDK execute-adapter
 	const queryClient = useQueryClient();
-	const deleteMutation = useDeleteInviteMutation();
+	const deleteMutation = useDeleteInviteMutation({
+		selection: {
+			fields: {
+				id: true,
+			},
+		},
+	});
 
 	return {
 		cancelInvite: async (input: CancelAppInviteInput) => {
 			const ctx = input.context ?? defaultContext;
-			await deleteMutation.mutateAsync({
-				input: { id: input.inviteId },
-			});
+			await deleteMutation.mutateAsync({ id: input.inviteId });
 			queryClient.invalidateQueries({ queryKey: appInvitesQueryKeys.byContext(ctx) });
 			return input.inviteId;
 		},
@@ -290,17 +336,21 @@ export interface ExtendAppInviteInput {
 export function useExtendAppInvite(defaultContext: SchemaContext = 'schema-builder') {
 	void defaultContext; // Context handled by SDK execute-adapter
 	const queryClient = useQueryClient();
-	const updateMutation = useUpdateInviteMutation();
+	const updateMutation = useUpdateInviteMutation({
+		selection: {
+			fields: {
+				id: true,
+			},
+		},
+	});
 
 	return {
 		extendInvite: async (input: ExtendAppInviteInput) => {
 			const ctx = input.context ?? defaultContext;
 			const result = await updateMutation.mutateAsync({
-				input: {
-					id: input.inviteId,
-					patch: {
-						expiresAt: input.expiresAt,
-					},
+				id: input.inviteId,
+				patch: {
+					expiresAt: input.expiresAt,
 				},
 			});
 			queryClient.invalidateQueries({ queryKey: appInvitesQueryKeys.byContext(ctx) });
