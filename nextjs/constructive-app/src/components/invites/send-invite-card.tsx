@@ -1,13 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { Alert, AlertDescription } from '@constructive-io/ui/alert';
-import { Button } from '@constructive-io/ui/button';
-import { Field } from '@constructive-io/ui/field';
-import { InputGroup, InputGroupInput, InputGroupTextarea } from '@constructive-io/ui/input-group';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@constructive-io/ui/select';
-import type { CardComponent } from '@constructive-io/ui/stack';
-import { toast } from '@constructive-io/ui/toast';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Field } from '@/components/ui/field';
+import { InputGroup, InputGroupInput, InputGroupTextarea } from '@/components/ui/input-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import type { CardComponent } from '@/components/ui/stack';
+import { toast } from '@/components/ui/toast';
 import { Info } from 'lucide-react';
 
 import type { OrgInviteRole } from '@/lib/gql/hooks/schema-builder';

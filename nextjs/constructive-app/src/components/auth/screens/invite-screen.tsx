@@ -5,7 +5,7 @@ import type { Route } from 'next';
 import Link from 'next/link';
 import { Check, X } from 'lucide-react';
 
-import { Button } from '@constructive-io/ui/button';
+import { Button } from '@/components/ui/button';
 import { BrandLogo } from '@/components/brand-logo';
 
 import { AuthScreenHeader, type AuthBrandingProps } from '../auth-screen-header';

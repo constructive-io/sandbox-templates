@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import type { Route } from 'next';
 import Link from 'next/link';
-import { Button } from '@constructive-io/ui/button';
+import { Button } from '@/components/ui/button';
 import { useForm } from '@tanstack/react-form';
 import { CheckCircleIcon } from 'lucide-react';
 

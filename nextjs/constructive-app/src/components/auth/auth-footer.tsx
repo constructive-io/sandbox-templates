@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { CardFooter } from '@constructive-io/ui/card';
+import { CardFooter } from '@/components/ui/card';
 
 interface AuthFooterProps {
 	children: React.ReactNode;

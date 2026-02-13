@@ -2,7 +2,7 @@ import { ComponentProps } from 'react';
 import { LoaderIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
-import { Button } from '@constructive-io/ui/button';
+import { Button } from '@/components/ui/button';
 
 interface AuthLoadingButtonProps extends ComponentProps<typeof Button> {
 	isLoading: boolean;

@@ -11,10 +11,10 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 	AlertDialogTrigger,
-} from '@constructive-io/ui/alert-dialog';
-import { Button } from '@constructive-io/ui/button';
-import { useCardStack } from '@constructive-io/ui/stack';
-import { showErrorToast } from '@constructive-io/ui/toast';
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { useCardStack } from '@/components/ui/stack';
+import { showErrorToast } from '@/components/ui/toast';
 import { ChevronRight, Loader2, Settings } from 'lucide-react';
 
 import { useDeleteUser } from '@/lib/gql/hooks/schema-builder/account/use-delete-user';

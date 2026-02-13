@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { CardDescription, CardTitle } from '@constructive-io/ui/card';
+import { CardDescription, CardTitle } from '@/components/ui/card';
 import { BrandLogo } from '@/components/brand-logo';
 import { branding } from '@/config/branding';
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { PortalRoot } from '@constructive-io/ui/portal';
+import { PortalRoot } from '@/components/ui/portal';
 
 export function AppPortalRoot() {
 	return (

@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { Card, CardContent, CardHeader } from '@constructive-io/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
 import { AuthFooter } from './auth-footer';
 import { AuthHeader } from './auth-header';

@@ -8,7 +8,7 @@ import { CheckCircleIcon, MailIcon } from 'lucide-react';
 
 import { z } from 'zod';
 
-import { Button } from '@constructive-io/ui/button';
+import { Button } from '@/components/ui/button';
 import { BrandLogo } from '@/components/brand-logo';
 
 import { AuthErrorAlert } from './auth-error-alert';

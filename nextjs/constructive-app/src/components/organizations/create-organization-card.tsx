@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@constructive-io/ui/button';
-import { Field } from '@constructive-io/ui/field';
-import { InputGroup, InputGroupInput } from '@constructive-io/ui/input-group';
-import type { CardComponent } from '@constructive-io/ui/stack';
-import { showErrorToast, showSuccessToast } from '@constructive-io/ui/toast';
+import { Button } from '@/components/ui/button';
+import { Field } from '@/components/ui/field';
+import { InputGroup, InputGroupInput } from '@/components/ui/input-group';
+import type { CardComponent } from '@/components/ui/stack';
+import { showErrorToast, showSuccessToast } from '@/components/ui/toast';
 import { BuildingIcon, Loader2Icon } from 'lucide-react';
 
 import { useCreateOrganization } from '@/lib/gql/hooks/schema-builder';

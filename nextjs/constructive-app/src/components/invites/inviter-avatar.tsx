@@ -1,6 +1,6 @@
 'use client';
 
-import { Avatar, AvatarFallback } from '@constructive-io/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 function getInitials(input: string | null | undefined): string {
 	if (!input) return '--';

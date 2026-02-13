@@ -12,8 +12,8 @@ import {
 	BreadcrumbList,
 	BreadcrumbPage,
 	BreadcrumbSeparator,
-} from '@constructive-io/ui/breadcrumb';
-import { Button } from '@constructive-io/ui/button';
+} from '@/components/ui/breadcrumb';
+import { Button } from '@/components/ui/button';
 
 type Theme = 'light' | 'dark' | 'system';
 type AccentColor = 'blue' | 'purple' | 'green' | 'orange' | 'pink';

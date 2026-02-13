@@ -5,7 +5,7 @@ import { NuqsAdapter } from 'nuqs/adapters/next/app';
 
 import { getEndpoint } from '@/app-config';
 import { getAuthHeaders } from '@/graphql/execute';
-import { configure } from '@sdk/api';
+import { configure, type QueryResult } from '@sdk/api';
 import { AuthProvider } from '@/lib/auth/auth-context';
 import { queryClient } from '@/lib/query-client';
 
@@ -14,7 +14,7 @@ import { queryClient } from '@/lib/query-client';
 // on every request without needing to re-call configure().
 configure({
 	adapter: {
-		async execute<T>(document: string, variables?: Record<string, unknown>) {
+		async execute<T>(document: string, variables?: Record<string, unknown>): Promise<QueryResult<T>> {
 			const endpoint = getEndpoint('schema-builder')!;
 			const headers = getAuthHeaders('schema-builder');
 			const res = await fetch(endpoint, {

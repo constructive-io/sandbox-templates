@@ -11,8 +11,8 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@constructive-io/ui/dropdown-menu";
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@constructive-io/ui/input-group";
+} from "@/components/ui/dropdown-menu";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { RiExpandUpDownLine, RiAddLine, RiCheckLine, RiArrowRightLine, RiSearchLine } from "@remixicon/react";
 import type { EntityLevel, Entity } from "./app-shell.types";
 

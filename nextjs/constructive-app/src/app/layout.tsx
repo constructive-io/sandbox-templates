@@ -7,8 +7,8 @@ import './globals.css';
 
 import { RouteGuard } from '@/lib/auth/route-guards';
 import { SchemaContextClient } from '@/lib/schema-context';
-import { Toaster } from '@constructive-io/ui/sonner';
-import { CardStackProvider } from '@constructive-io/ui/stack';
+import { Toaster } from '@/components/ui/sonner';
+import { CardStackProvider } from '@/components/ui/stack';
 import { AppPortalRoot } from '@/components/portal-root';
 import { AppProvider } from '@/components/app-provider';
 import { ThemeProvider } from '@/components/theme-provider';

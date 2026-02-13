@@ -9,8 +9,8 @@ import { useForm } from '@tanstack/react-form';
 import { parseGraphQLError } from '@/lib/auth/auth-errors';
 import type { RegisterFormData } from '@/lib/auth/schemas';
 import { registerSchema } from '@/lib/auth/schemas';
-import { Button } from '@constructive-io/ui/button';
-import { Checkbox } from '@constructive-io/ui/checkbox';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { buildQueryString, INVITE_QUERY_PARAMS } from '@/app/invite/page';
 
 import { AuthErrorAlert } from './auth-error-alert';

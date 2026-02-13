@@ -3,10 +3,10 @@
 import { useEffect, useState } from 'react';
 import type { Route } from 'next';
 import { useRouter } from 'next/navigation';
-import { Button } from '@constructive-io/ui/button';
-import { InputGroup, InputGroupAddon, InputGroupInput } from '@constructive-io/ui/input-group';
-import { useCardStack } from '@constructive-io/ui/stack';
-import { Table, TableBody, TableHead, TableHeader, TableRow } from '@constructive-io/ui/table';
+import { Button } from '@/components/ui/button';
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
+import { useCardStack } from '@/components/ui/stack';
+import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Building2, LayoutGrid, List, Plus, Search } from 'lucide-react';
 
 import { useAuthContext } from '@/lib/auth/auth-context';

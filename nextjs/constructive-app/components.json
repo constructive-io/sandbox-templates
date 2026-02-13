@@ -17,5 +17,8 @@
     "ui": "@/components/ui",
     "lib": "@/lib",
     "hooks": "@/hooks"
+  },
+  "registries": {
+    "@constructive": "https://constructive-io.github.io/dashboard/r/{name}.json"
   }
 }

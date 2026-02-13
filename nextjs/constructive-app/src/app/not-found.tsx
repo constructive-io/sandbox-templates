@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
 import { BrandLogo } from '@/components/brand-logo';
-import { Button } from '@constructive-io/ui/button';
+import { Button } from '@/components/ui/button';
 
 export default function NotFound() {
 	return (

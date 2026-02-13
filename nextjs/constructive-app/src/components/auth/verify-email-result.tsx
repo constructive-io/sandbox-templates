@@ -3,7 +3,7 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { AlertCircleIcon, CheckCircleIcon, LoaderIcon, XCircleIcon } from 'lucide-react';
 
-import { Button } from '@constructive-io/ui/button';
+import { Button } from '@/components/ui/button';
 import { BrandLogo } from '@/components/brand-logo';
 
 import { AuthErrorAlert } from './auth-error-alert';

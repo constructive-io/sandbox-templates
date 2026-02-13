@@ -156,7 +156,7 @@ export function useAppUsers(options: UseAppUsersOptions = {}): UseAppUsersResult
 					first,
 					offset,
 					where: graphqlFilter,
-					orderBy: orderBy as string[],
+					orderBy: orderBy as AppMembershipsOrderByType[],
 				},
 			});
 

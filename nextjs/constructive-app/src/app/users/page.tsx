@@ -5,18 +5,18 @@ import { AlertCircle, Ban, Crown, Filter, MoreHorizontal, Search, Shield, UserCh
 
 import { useAppUsers, useUpdateAppUser, type AppUser } from '@/lib/gql/hooks/schema-builder/app';
 import { cn } from '@/lib/utils';
-import { Badge } from '@constructive-io/ui/badge';
-import { Button } from '@constructive-io/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
-} from '@constructive-io/ui/dropdown-menu';
-import { InputGroup, InputGroupAddon, InputGroupInput } from '@constructive-io/ui/input-group';
-import { Skeleton } from '@constructive-io/ui/skeleton';
-import { showErrorToast, showSuccessToast } from '@constructive-io/ui/toast';
+} from '@/components/ui/dropdown-menu';
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
+import { Skeleton } from '@/components/ui/skeleton';
+import { showErrorToast, showSuccessToast } from '@/components/ui/toast';
 import { getRoleFromFlags, RoleBadge } from '@/components/members/role-badge';
 import { PageHeaderWithIcon } from '@/components/shared/page-header-with-icon';
 

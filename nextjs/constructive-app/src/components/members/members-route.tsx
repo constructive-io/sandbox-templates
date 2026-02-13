@@ -6,15 +6,15 @@ import { AlertCircle, AtSign, CheckCircle2, Clock, MoreVertical, Slash, Users, X
 import { useRouter } from 'next/navigation';
 
 import { PageHeaderWithIcon } from '@/components/shared/page-header-with-icon';
-import { Avatar, AvatarFallback } from '@constructive-io/ui/avatar';
-import { Button } from '@constructive-io/ui/button';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
-} from '@constructive-io/ui/dropdown-menu';
+} from '@/components/ui/dropdown-menu';
 import {
 	Pagination,
 	PaginationContent,
@@ -22,9 +22,9 @@ import {
 	PaginationLink,
 	PaginationNext,
 	PaginationPrevious,
-} from '@constructive-io/ui/pagination';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@constructive-io/ui/table';
-import { toast } from '@constructive-io/ui/toast';
+} from '@/components/ui/pagination';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { toast } from '@/components/ui/toast';
 import {
 	useOrgMembers,
 	type OrgMember,
