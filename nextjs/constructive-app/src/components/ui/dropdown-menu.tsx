@@ -136,11 +136,12 @@ function DropdownMenuItem({
 				{...props}
 				render={(itemProps) => {
 					const childProps = children.props as Record<string, unknown>;
-					const itemOnClick = itemProps.onClick as React.MouseEventHandler<HTMLDivElement> | undefined;
+					const itemOnClick = itemProps.onClick;
 					return React.cloneElement(children as React.ReactElement<Record<string, unknown>>, {
 						...itemProps,
 						className: cn(itemClassName, childProps.className as string | undefined),
-						onClick: (e: React.MouseEvent<HTMLDivElement>) => {
+						// eslint-disable-next-line @typescript-eslint/no-explicit-any
+						onClick: (e: any) => {
 							onClick?.(e);
 							itemOnClick?.(e);
 						},
@@ -157,12 +158,13 @@ function DropdownMenuItem({
 			data-variant={variant}
 			{...props}
 			render={(itemProps) => {
-				const itemOnClick = itemProps.onClick as React.MouseEventHandler<HTMLDivElement> | undefined;
+				const itemOnClick = itemProps.onClick;
 				return (
 					<div
 						{...itemProps}
 						className={cn(itemClassName, itemProps.className)}
-						onClick={(e) => {
+						// eslint-disable-next-line @typescript-eslint/no-explicit-any
+						onClick={(e: any) => {
 							onClick?.(e);
 							itemOnClick?.(e);
 						}}
