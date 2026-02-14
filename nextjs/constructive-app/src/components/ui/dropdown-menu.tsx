@@ -136,11 +136,11 @@ function DropdownMenuItem({
 				{...props}
 				render={(itemProps) => {
 					const childProps = children.props as Record<string, unknown>;
-					const itemOnClick = itemProps.onClick as React.MouseEventHandler<HTMLElement> | undefined;
+					const itemOnClick = itemProps.onClick as React.MouseEventHandler<HTMLDivElement> | undefined;
 					return React.cloneElement(children as React.ReactElement<Record<string, unknown>>, {
 						...itemProps,
 						className: cn(itemClassName, childProps.className as string | undefined),
-						onClick: (e: React.MouseEvent<HTMLElement>) => {
+						onClick: (e: React.MouseEvent<HTMLDivElement>) => {
 							onClick?.(e);
 							itemOnClick?.(e);
 						},
