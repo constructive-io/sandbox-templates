@@ -222,7 +222,7 @@ export function useAppUsers(options: UseAppUsersOptions = {}): UseAppUsersResult
 		},
 		enabled: enabled && isAuthenticated,
 		staleTime: 2 * 60 * 1000, // 2 minutes
-		refetchOnMount: 'always',
+		refetchOnMount: true,
 	});
 
 	const users = data?.appMemberships?.nodes || [];
@@ -268,18 +268,12 @@ export interface UpdateAppUserData {
 export function useUpdateAppUser(context: SchemaContext = 'schema-builder') {
 	void context; // Context handled by SDK execute-adapter
 	const queryClient = useQueryClient();
-	const updateMutation = useUpdateAppMembershipMutation({
-		selection: {
-			fields: {
-				id: true,
-			},
-		},
-	});
+	const updateMutation = useUpdateAppMembershipMutation({ selection: { fields: { id: true } } });
 
 	return {
 		updateUser: async (data: UpdateAppUserData) => {
 			const result = await updateMutation.mutateAsync({
-				id: data.id, patch: data.patch,
+				id: data.id, appMembershipPatch: data.patch,
 			});
 			// Invalidate app users cache
 			queryClient.invalidateQueries({ queryKey: appUsersQueryKeys.all });

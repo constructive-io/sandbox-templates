@@ -95,16 +95,7 @@ export interface UseUpdateOrganizationResult {
 export function useUpdateOrganization(options: UseUpdateOrganizationOptions = {}): UseUpdateOrganizationResult {
 	const { context = 'schema-builder', onSuccess, onError } = options;
 	const queryClient = useQueryClient();
-	const updateUserMutation = useUpdateUserMutation({
-		selection: {
-			fields: {
-				id: true,
-				displayName: true,
-				username: true,
-				profilePicture: true,
-			},
-		},
-	});
+	const updateUserMutation = useUpdateUserMutation({ selection: { fields: { id: true, displayName: true, username: true, profilePicture: true } } });
 
 	const mutation = useMutation({
 		mutationFn: async (input: UpdateOrganizationInput): Promise<UpdateOrganizationResult> => {
@@ -122,7 +113,7 @@ export function useUpdateOrganization(options: UseUpdateOrganizationOptions = {}
 				if (user.username !== undefined) patch.username = user.username;
 
 				if (Object.keys(patch).length > 0) {
-					const userResult = await updateUserMutation.mutateAsync({ id: orgId, patch });
+					const userResult = await updateUserMutation.mutateAsync({ id: orgId, userPatch: patch });
 					const resultUser = userResult.updateUser?.user;
 					if (resultUser) {
 						updatedUserId = resultUser.id ?? null;

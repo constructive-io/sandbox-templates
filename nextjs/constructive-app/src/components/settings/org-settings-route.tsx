@@ -235,7 +235,7 @@ export function OrgSettingsRoute({ orgId, orgName = 'Organization', organization
 			const isApproved = !requireAdminApproval;
 
 			if (membershipDefault) {
-				await updateMembershipDefault({ orgId, patch: { isApproved } });
+				await updateMembershipDefault({ id: membershipDefault.id, orgId, patch: { isApproved } });
 				showSuccessToast({ message: 'Member settings updated' });
 				return;
 			}

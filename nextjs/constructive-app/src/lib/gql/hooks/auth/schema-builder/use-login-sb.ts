@@ -26,6 +26,8 @@ export function useLoginSb() {
 						userId: true,
 						accessToken: true,
 						accessTokenExpiresAt: true,
+						isVerified: true,
+						totpEnabled: true,
 					},
 				},
 			},

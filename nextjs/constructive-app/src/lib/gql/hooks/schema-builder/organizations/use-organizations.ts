@@ -157,6 +157,7 @@ export function useOrganizations(options: UseOrganizationsOptions = {}): UseOrga
 						isAdmin: true,
 						isActive: true,
 						isApproved: true,
+						actorId: true,
 						entityId: true,
 					},
 					where: { actorId: { equalTo: actorId }, isActive: { equalTo: true } },
@@ -210,9 +211,7 @@ export function useOrganizations(options: UseOrganizationsOptions = {}): UseOrga
 			if (entityIds.length > 0) {
 				const countsResult = await fetchOrgMembershipsQuery({
 					selection: {
-						fields: {
-							entityId: true,
-						},
+						fields: { id: true, entityId: true },
 						where: { entityId: { in: entityIds } },
 					},
 				});
@@ -244,7 +243,7 @@ export function useOrganizations(options: UseOrganizationsOptions = {}): UseOrga
 		},
 		enabled: enabled && isAuthReady,
 		staleTime: 2 * 60 * 1000, // 2 minutes
-		refetchOnMount: 'always',
+		refetchOnMount: true,
 	});
 
 	// Transform and filter memberships to organizations (including self-org)

@@ -9,7 +9,7 @@ import { useAuthActions } from '@/store/app-store';
 import type { UserProfile } from '@/store/auth-slice';
 import { ROUTE_PATHS } from '@/app-routes';
 import {
-	fetchAppMembershipByActorIdQuery,
+	fetchAppMembershipsQuery,
 	useSendVerificationEmailMutation,
 	useSignUpMutation,
 } from '@sdk/api';
@@ -34,18 +34,13 @@ export function useRegisterSb() {
 						accessToken: true,
 						accessTokenExpiresAt: true,
 						isVerified: true,
+						totpEnabled: true,
 					},
 				},
 			},
 		},
 	});
-	const sendVerificationMutation = useSendVerificationEmailMutation({
-		selection: {
-			fields: {
-				boolean: true,
-			},
-		},
-	});
+	const sendVerificationMutation = useSendVerificationEmailMutation({ selection: { fields: { result: true } } });
 
 	return useMutation({
 		mutationKey: authKeys.signUp.queryKey,
@@ -83,15 +78,15 @@ export function useRegisterSb() {
 
 			// Query actual isVerified status from database - signUpResult.isVerified is stale
 			// because the trigger hasn't updated the table yet at signup time
-			const membershipResult = await fetchAppMembershipByActorIdQuery({
-				variables: { actorId: userId },
-				selection: {
-					fields: {
-						isVerified: true,
-					},
-				},
-			});
-			const isVerified = membershipResult?.appMembershipByActorId?.isVerified ?? false;
+			let isVerified = false;
+			try {
+				const membershipResult = await fetchAppMembershipsQuery({
+					selection: { fields: { isVerified: true }, where: { actorId: { equalTo: userId } }, first: 1 },
+				});
+				isVerified = membershipResult?.appMemberships?.nodes?.[0]?.isVerified ?? false;
+			} catch {
+				// Best-effort: default to unverified (user will be sent to email verification)
+			}
 
 			if (isVerified) {
 				const user: UserProfile = {

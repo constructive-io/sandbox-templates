@@ -71,7 +71,7 @@ export function useAccountProfile(options: UseAccountProfileOptions): UseAccount
 		},
 		enabled: enabled && isAuthenticated && !!userId,
 		staleTime: 30 * 1000,
-		refetchOnMount: 'always',
+		refetchOnMount: true,
 	});
 
 	const user = data?.user;
@@ -103,21 +103,12 @@ export interface UpdateUserInput {
 
 export function useUpdateUser(_defaultContext: SchemaContext = 'schema-builder') {
 	const queryClient = useQueryClient();
-	const updateMutation = useUpdateUserMutation({
-		selection: {
-			fields: {
-				id: true,
-				displayName: true,
-				username: true,
-				profilePicture: true,
-			},
-		},
-	});
+	const updateMutation = useUpdateUserMutation({ selection: { fields: { id: true } } });
 
 	return {
 		updateUser: async (input: UpdateUserInput) => {
 			const result = await updateMutation.mutateAsync({
-				id: input.userId, patch: input.patch as Record<string, unknown>,
+				id: input.userId, userPatch: input.patch,
 			});
 			// Invalidate cache
 			queryClient.invalidateQueries({

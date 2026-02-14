@@ -51,7 +51,7 @@ export function useCurrentUser(options: UseCurrentUserOptions = {}): UseCurrentU
 		},
 		enabled: enabled && !!token,
 		staleTime: 5 * 60 * 1000,
-		refetchOnMount: 'always',
+		refetchOnMount: true,
 	});
 
 	const userNode = data?.currentUser;

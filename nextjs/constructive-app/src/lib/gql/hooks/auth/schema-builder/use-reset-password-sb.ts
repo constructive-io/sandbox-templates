@@ -15,13 +15,7 @@ interface ResetPasswordInput {
  */
 export function useResetPasswordSb() {
 	const queryClient = useQueryClient();
-	const resetPasswordMutation = useResetPasswordMutation({
-		selection: {
-			fields: {
-				boolean: true,
-			},
-		},
-	});
+	const resetPasswordMutation = useResetPasswordMutation({ selection: { fields: { result: true } } });
 
 	return useMutation({
 		mutationKey: authKeys.resetPassword.queryKey,
@@ -34,7 +28,7 @@ export function useResetPasswordSb() {
 				},
 			});
 
-			if (!result.resetPassword?.boolean) {
+			if (!result.resetPassword?.result) {
 				throw new Error('Failed to reset password. The link may have expired.');
 			}
 

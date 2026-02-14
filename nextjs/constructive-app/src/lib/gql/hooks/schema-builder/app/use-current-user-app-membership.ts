@@ -5,8 +5,8 @@
  */
 import type { SchemaContext } from '@/app-config';
 import {
-	useAppMembershipByActorIdQuery,
-	appMembershipByActorIdQueryKey,
+	useAppMembershipsQuery,
+	appMembershipsQueryKey,
 } from '@sdk/api';
 import { useAppStore } from '@/store/app-store';
 
@@ -75,8 +75,7 @@ export function useCurrentUserAppMembership(
 	// Determine the actor ID to use
 	const actorId = userId || user?.id || token?.userId;
 
-	const { data, isLoading, error, refetch } = useAppMembershipByActorIdQuery({
-		variables: { actorId: actorId! },
+	const { data, isLoading, error, refetch } = useAppMembershipsQuery({
 		selection: {
 			fields: {
 				id: true,
@@ -91,13 +90,15 @@ export function useCurrentUserAppMembership(
 				permissions: true,
 				granted: true,
 			},
+			where: { actorId: { equalTo: actorId! } },
+			first: 1,
 		},
 		enabled: enabled && !!actorId,
 		staleTime: 5 * 60 * 1000, // 5 minutes
-		refetchOnMount: 'always',
+		refetchOnMount: true,
 	});
 
-	const membership = data?.appMembershipByActorId;
+	const membership = data?.appMemberships?.nodes?.[0];
 	const appMembership: AppMembership | null = membership?.id
 		? {
 				id: membership.id,
@@ -134,4 +135,4 @@ export const appMembershipQueryKeys = {
 };
 
 // Re-export SDK query key for consumers to migrate
-export { appMembershipByActorIdQueryKey };
+export { appMembershipsQueryKey };

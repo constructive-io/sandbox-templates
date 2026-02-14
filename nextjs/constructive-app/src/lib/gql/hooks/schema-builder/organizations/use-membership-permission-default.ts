@@ -49,7 +49,7 @@ export function useMembershipPermissionDefault(options: UseMembershipPermissionD
 		},
 		enabled: enabled && isAuthenticated && !!entityId,
 		staleTime: 30 * 1000,
-		refetchOnMount: 'always',
+		refetchOnMount: true,
 	});
 
 	const firstNode = data?.orgPermissionDefaults?.nodes?.[0];
@@ -77,15 +77,7 @@ export interface CreateMembershipPermissionDefaultInput {
 
 export function useCreateMembershipPermissionDefault(_defaultContext: SchemaContext = 'schema-builder') {
 	const queryClient = useQueryClient();
-	const createMutation = useCreateOrgPermissionDefaultMutation({
-		selection: {
-			fields: {
-				id: true,
-				entityId: true,
-				permissions: true,
-			},
-		},
-	});
+	const createMutation = useCreateOrgPermissionDefaultMutation({ selection: { fields: { id: true } } });
 
 	return {
 		createMembershipPermissionDefault: async (input: CreateMembershipPermissionDefaultInput) => {
@@ -95,7 +87,7 @@ export function useCreateMembershipPermissionDefault(_defaultContext: SchemaCont
 			});
 			// Invalidate cache
 			queryClient.invalidateQueries({
-				queryKey: orgPermissionDefaultsQueryKey({ condition: { entityId: input.entityId } }),
+				queryKey: orgPermissionDefaultsQueryKey({ where: { entityId: { equalTo: input.entityId } } }),
 			});
 			return result.createOrgPermissionDefault?.orgPermissionDefault ?? null;
 		},
@@ -113,27 +105,19 @@ export interface UpdateMembershipPermissionDefaultInput {
 
 export function useUpdateMembershipPermissionDefault(_defaultContext: SchemaContext = 'schema-builder') {
 	const queryClient = useQueryClient();
-	const updateMutation = useUpdateOrgPermissionDefaultMutation({
-		selection: {
-			fields: {
-				id: true,
-				entityId: true,
-				permissions: true,
-			},
-		},
-	});
+	const updateMutation = useUpdateOrgPermissionDefaultMutation({ selection: { fields: { id: true, entityId: true } } });
 
 	return {
 		updateMembershipPermissionDefault: async (input: UpdateMembershipPermissionDefaultInput) => {
 			const result = await updateMutation.mutateAsync({
 				id: input.id,
-				patch: input.patch,
+				orgPermissionDefaultPatch: input.patch,
 			});
 			// Invalidate related caches
 			const entityId = input.patch.entityId ?? result.updateOrgPermissionDefault?.orgPermissionDefault?.entityId;
 			if (entityId) {
 				queryClient.invalidateQueries({
-					queryKey: orgPermissionDefaultsQueryKey({ condition: { entityId } }),
+					queryKey: orgPermissionDefaultsQueryKey({ where: { entityId: { equalTo: entityId } } }),
 				});
 			}
 			return result.updateOrgPermissionDefault?.orgPermissionDefault ?? null;

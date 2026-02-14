@@ -4,7 +4,7 @@
  */
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { appStore, useAppStore } from '@/store/app-store';
+import { useAppStore } from '@/store/app-store';
 import type { SchemaContext } from '@/app-config';
 import {
 	fetchClaimedInvitesQuery,
@@ -133,7 +133,7 @@ export function useAppInvites(options: UseAppInvitesOptions = {}) {
 			// Step 3: Build invite nodes with sender info
 			const invites: InviteNode[] = rawInvites.map((i) => ({
 				id: i.id ?? '',
-				email: i.email ?? null,
+				email: (i.email as string | null) ?? null,
 				data: i.data,
 				createdAt: i.createdAt ?? '',
 				expiresAt: i.expiresAt ?? '',
@@ -148,7 +148,7 @@ export function useAppInvites(options: UseAppInvitesOptions = {}) {
 		},
 		enabled: enabled && isAuthenticated,
 		staleTime: 30 * 1000,
-		refetchOnMount: 'always',
+		refetchOnMount: true,
 	});
 
 	const invites = (data?.invites ?? []).map((node) => transformActiveInvite(node));
@@ -244,7 +244,7 @@ export function useAppClaimedInvites(options: UseAppInvitesOptions = {}) {
 		},
 		enabled: enabled && isAuthenticated,
 		staleTime: 30 * 1000,
-		refetchOnMount: 'always',
+		refetchOnMount: true,
 	});
 
 	const claimedInvites = (data?.claimedInvites ?? []).map((node) => transformClaimedInvite(node));
@@ -265,18 +265,12 @@ export interface SendAppInviteInput {
 export function useSendAppInvite(defaultContext: SchemaContext = 'schema-builder') {
 	void defaultContext; // Context handled by SDK execute-adapter
 	const queryClient = useQueryClient();
-	const createMutation = useCreateInviteMutation({
-		selection: {
-			fields: {
-				id: true,
-			},
-		},
-	});
+	const createMutation = useCreateInviteMutation({ selection: { fields: { id: true } } });
 
 	return {
 		sendInvite: async (input: SendAppInviteInput) => {
 			const ctx = input.context ?? defaultContext;
-			const senderId = appStore.getState().auth.user?.id || appStore.getState().auth.token?.userId;
+			const senderId = useAppStore.getState().auth.user?.id || useAppStore.getState().auth.token?.userId;
 			if (!senderId) throw new Error('No authenticated user found');
 			const result = await createMutation.mutateAsync({
 				senderId,
@@ -306,13 +300,7 @@ export interface CancelAppInviteInput {
 export function useCancelAppInvite(defaultContext: SchemaContext = 'schema-builder') {
 	void defaultContext; // Context handled by SDK execute-adapter
 	const queryClient = useQueryClient();
-	const deleteMutation = useDeleteInviteMutation({
-		selection: {
-			fields: {
-				id: true,
-			},
-		},
-	});
+	const deleteMutation = useDeleteInviteMutation({ selection: { fields: { id: true } } });
 
 	return {
 		cancelInvite: async (input: CancelAppInviteInput) => {
@@ -336,20 +324,14 @@ export interface ExtendAppInviteInput {
 export function useExtendAppInvite(defaultContext: SchemaContext = 'schema-builder') {
 	void defaultContext; // Context handled by SDK execute-adapter
 	const queryClient = useQueryClient();
-	const updateMutation = useUpdateInviteMutation({
-		selection: {
-			fields: {
-				id: true,
-			},
-		},
-	});
+	const updateMutation = useUpdateInviteMutation({ selection: { fields: { id: true } } });
 
 	return {
 		extendInvite: async (input: ExtendAppInviteInput) => {
 			const ctx = input.context ?? defaultContext;
 			const result = await updateMutation.mutateAsync({
 				id: input.inviteId,
-				patch: {
+				invitePatch: {
 					expiresAt: input.expiresAt,
 				},
 			});

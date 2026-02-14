@@ -132,7 +132,7 @@ export function useOrgInvites(options: UseOrgInvitesOptions) {
 			// Step 3: Build invite nodes with sender info
 			const invites: InviteNode[] = rawInvites.map((i) => ({
 				id: i.id ?? '',
-				email: i.email ?? null,
+				email: (i.email as string | null) ?? null,
 				data: i.data,
 				createdAt: i.createdAt ?? '',
 				expiresAt: i.expiresAt ?? '',
@@ -147,7 +147,7 @@ export function useOrgInvites(options: UseOrgInvitesOptions) {
 		},
 		enabled: enabled && isAuthenticated && !!orgId,
 		staleTime: 30 * 1000,
-		refetchOnMount: 'always',
+		refetchOnMount: true,
 	});
 
 	const invites = (data?.invites ?? []).map((node) => transformActiveInvite(node));
@@ -244,7 +244,7 @@ export function useOrgClaimedInvites(options: UseOrgInvitesOptions) {
 		},
 		enabled: enabled && isAuthenticated && !!orgId,
 		staleTime: 30 * 1000,
-		refetchOnMount: 'always',
+		refetchOnMount: true,
 	});
 
 	const claimedInvites = (data?.claimedInvites ?? []).map((node) => transformClaimedInvite(node));

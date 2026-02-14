@@ -20,11 +20,7 @@ export const EditPasswordCard: CardComponent<EditPasswordCardProps> = ({ onSucce
 	const [confirmPassword, setConfirmPassword] = useState('');
 
 	const { mutateAsync: setPassword, isPending: isSettingPassword, error } = useSetPasswordMutation({
-		selection: {
-			fields: {
-				boolean: true,
-			},
-		},
+		selection: { fields: { result: true } },
 	});
 
 	const canSave =

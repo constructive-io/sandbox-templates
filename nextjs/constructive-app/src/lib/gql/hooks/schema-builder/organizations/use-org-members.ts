@@ -195,7 +195,7 @@ export function useOrgMembers(options: UseOrgMembersOptions): UseOrgMembersResul
 		},
 		enabled: enabled && isAuthenticated && !!orgId,
 		staleTime: 30 * 1000,
-		refetchOnMount: 'always',
+		refetchOnMount: true,
 	});
 
 	return {

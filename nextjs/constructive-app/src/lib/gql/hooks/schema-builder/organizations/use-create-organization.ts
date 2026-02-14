@@ -95,15 +95,7 @@ export function useCreateOrganization(options: UseCreateOrganizationOptions = {}
 	const { context = 'schema-builder', onSuccess, onError } = options;
 	void context; // Context is handled by SDK execute-adapter
 	const queryClient = useQueryClient();
-	const createUserMutation = useCreateUserMutation({
-		selection: {
-			fields: {
-				id: true,
-				displayName: true,
-				username: true,
-			},
-		},
-	});
+	const createUserMutation = useCreateUserMutation({ selection: { fields: { id: true, displayName: true, username: true } } });
 
 	const createOrganization = async (input: CreateOrganizationInput): Promise<CreateOrganizationResult> => {
 		// Step 1: Create User as Organization
@@ -127,9 +119,7 @@ export function useCreateOrganization(options: UseCreateOrganizationOptions = {}
 		try {
 			const membershipsResult = await fetchOrgMembershipsQuery({
 				selection: {
-					fields: {
-						id: true,
-					},
+					fields: { id: true },
 					where: { entityId: { equalTo: newOrg.id }, isOwner: { equalTo: true } },
 					first: 1,
 				},

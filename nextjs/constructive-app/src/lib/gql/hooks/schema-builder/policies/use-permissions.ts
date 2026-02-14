@@ -85,8 +85,8 @@ export function usePermissions(options: UsePermissionsOptions = {}) {
 		},
 		enabled: isEnabled,
 		staleTime: 5 * 60 * 1000,
-		refetchOnMount: isEnabled ? 'always' : false,
-		refetchOnWindowFocus: 'always',
-		refetchOnReconnect: 'always',
+		refetchOnMount: isEnabled,
+		refetchOnWindowFocus: false,
+		refetchOnReconnect: false,
 	});
 }

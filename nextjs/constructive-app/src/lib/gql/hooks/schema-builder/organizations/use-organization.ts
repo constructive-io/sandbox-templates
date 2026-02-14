@@ -191,6 +191,8 @@ export function useOrganization(options: UseOrganizationOptions): UseOrganizatio
 						isOwner: true,
 						isAdmin: true,
 						isActive: true,
+						actorId: true,
+						entityId: true,
 					},
 					where: { entityId: { equalTo: orgId }, actorId: { equalTo: actorId } },
 					first: 1,
@@ -203,10 +205,11 @@ export function useOrganization(options: UseOrganizationOptions): UseOrganizatio
 				selection: {
 					fields: {
 						id: true,
-						actorId: true,
 						isOwner: true,
 						isAdmin: true,
 						isActive: true,
+						actorId: true,
+						entityId: true,
 					},
 					where: { entityId: { equalTo: orgId } },
 					first: 5,
@@ -276,7 +279,7 @@ export function useOrganization(options: UseOrganizationOptions): UseOrganizatio
 		},
 		enabled: enabled && !!actorId && !!orgId,
 		staleTime: 2 * 60 * 1000,
-		refetchOnMount: 'always',
+		refetchOnMount: true,
 	});
 
 	// Process organization data

@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { appStore } from '@/store/app-store';
+import { useAppStore } from '@/store/app-store';
 
 import type { SchemaContext } from '@/app-config';
 import {
@@ -20,18 +20,12 @@ export interface SendOrgInviteInput {
 export function useSendOrgInvite(defaultContext: SchemaContext = 'schema-builder') {
 	void defaultContext;
 	const queryClient = useQueryClient();
-	const createMutation = useCreateOrgInviteMutation({
-		selection: {
-			fields: {
-				id: true,
-			},
-		},
-	});
+	const createMutation = useCreateOrgInviteMutation({ selection: { fields: { id: true } } });
 
 	return {
 		sendInvite: async (input: SendOrgInviteInput) => {
 			const ctx = input.context ?? defaultContext;
-			const senderId = appStore.getState().auth.user?.id || appStore.getState().auth.token?.userId;
+			const senderId = useAppStore.getState().auth.user?.id || useAppStore.getState().auth.token?.userId;
 			if (!senderId) throw new Error('No authenticated user found');
 			const result = await createMutation.mutateAsync({
 				entityId: input.orgId,
@@ -65,13 +59,7 @@ export interface CancelOrgInviteInput {
 export function useCancelOrgInvite(defaultContext: SchemaContext = 'schema-builder') {
 	void defaultContext;
 	const queryClient = useQueryClient();
-	const deleteMutation = useDeleteOrgInviteMutation({
-		selection: {
-			fields: {
-				id: true,
-			},
-		},
-	});
+	const deleteMutation = useDeleteOrgInviteMutation({ selection: { fields: { id: true } } });
 
 	return {
 		cancelInvite: async (input: CancelOrgInviteInput) => {
@@ -96,20 +84,14 @@ export interface ExtendOrgInviteInput {
 export function useExtendOrgInvite(defaultContext: SchemaContext = 'schema-builder') {
 	void defaultContext;
 	const queryClient = useQueryClient();
-	const updateMutation = useUpdateOrgInviteMutation({
-		selection: {
-			fields: {
-				id: true,
-			},
-		},
-	});
+	const updateMutation = useUpdateOrgInviteMutation({ selection: { fields: { id: true } } });
 
 	return {
 		extendInvite: async (input: ExtendOrgInviteInput) => {
 			const ctx = input.context ?? defaultContext;
 			const result = await updateMutation.mutateAsync({
 				id: input.inviteId,
-				patch: {
+				orgInvitePatch: {
 					expiresAt: input.expiresAt,
 				},
 			});

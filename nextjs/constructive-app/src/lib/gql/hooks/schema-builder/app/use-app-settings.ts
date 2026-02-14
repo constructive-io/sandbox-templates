@@ -61,7 +61,7 @@ export function useAppSettings(options: UseAppSettingsOptions = {}): UseAppSetti
 		},
 		enabled: enabled && isAuthenticated,
 		staleTime: 5 * 60 * 1000, // 5 minutes
-		refetchOnMount: 'always',
+		refetchOnMount: true,
 	});
 
 	const node = data?.appMembershipDefaults?.nodes?.[0];
@@ -109,31 +109,15 @@ export interface UseUpdateAppSettingsResult {
 export function useUpdateAppSettings(_context: SchemaContext = 'schema-builder'): UseUpdateAppSettingsResult {
 	const queryClient = useQueryClient();
 	const { settings } = useAppSettings({ context: _context });
-	const updateMutation = useUpdateAppMembershipDefaultMutation({
-		selection: {
-			fields: {
-				id: true,
-				isApproved: true,
-				isVerified: true,
-			},
-		},
-	});
-	const createMutation = useCreateAppMembershipDefaultMutation({
-		selection: {
-			fields: {
-				id: true,
-				isApproved: true,
-				isVerified: true,
-			},
-		},
-	});
+	const updateMutation = useUpdateAppMembershipDefaultMutation({ selection: { fields: { id: true, isApproved: true, isVerified: true } } });
+	const createMutation = useCreateAppMembershipDefaultMutation({ selection: { fields: { id: true, isApproved: true, isVerified: true } } });
 
 	const updateSettings = async (data: UpdateAppSettingsData) => {
 		let result: AppMembershipDefaultSettings | null = null;
 
 		if (settings?.id) {
 			const updateResult = await updateMutation.mutateAsync({
-				id: settings.id, patch: data,
+				id: settings.id, appMembershipDefaultPatch: data,
 			});
 			const node = updateResult.updateAppMembershipDefault?.appMembershipDefault;
 			result = node?.id
