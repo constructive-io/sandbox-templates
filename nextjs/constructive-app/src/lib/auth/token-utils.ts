@@ -1,12 +1,17 @@
 import type { ApiToken } from '@/store/auth-slice';
-import type { SignInRecord, SignUpRecord } from '@sdk/api';
 
 /**
  * Sign-in/sign-up result record type.
- * Uses SDK's SignInRecord as the canonical definition.
- * SignUpRecord has the same shape.
+ * Matches the shape of SDK's SignInRecord / SignUpRecord which share the same fields.
  */
-export type AuthResultRecord = SignInRecord | SignUpRecord;
+export interface AuthResultRecord {
+	id?: string | null;
+	userId?: string | null;
+	accessToken?: string | null;
+	accessTokenExpiresAt?: string | null;
+	isVerified?: boolean | null;
+	totpEnabled?: boolean | null;
+}
 
 /**
  * Convert sign-in/sign-up result to ApiToken.

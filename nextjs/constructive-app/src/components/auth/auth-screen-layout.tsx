@@ -3,7 +3,7 @@
 import * as React from 'react';
 
 import { cn } from '@/lib/utils';
-import { Card, CardContent } from '@constructive-io/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 
 import type { AuthBrandingProps } from './auth-screen-header';
 import { AuthLegalFooter, type AuthLegalFooterProps } from './auth-legal-footer';

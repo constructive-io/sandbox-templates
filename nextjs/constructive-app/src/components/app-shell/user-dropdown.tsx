@@ -1,6 +1,6 @@
 import { useRouter } from 'next/navigation';
-import { Avatar, AvatarFallback } from '@constructive-io/ui/avatar';
-import { Button } from '@constructive-io/ui/button';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -9,7 +9,7 @@ import {
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
-} from '@constructive-io/ui/dropdown-menu';
+} from '@/components/ui/dropdown-menu';
 import { RiLogoutBoxLine, RiSettingsLine } from '@remixicon/react';
 
 import { useLogout } from '@/lib/gql/hooks/auth';

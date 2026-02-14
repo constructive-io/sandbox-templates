@@ -56,6 +56,33 @@ function mergeProps(
 }
 
 /**
+ * Merges props from a parent component with a child element's props,
+ * including proper ref composition. Use this in render prop patterns
+ * where the parent needs to merge its props with the child's.
+ *
+ * @param parentProps - Props from the parent component (e.g., triggerProps from Base UI)
+ * @param childElement - The child React element whose props will be merged
+ * @returns Merged props object ready to pass to React.cloneElement
+ */
+function mergePropsWithRef<T = HTMLElement>(
+	parentProps: Record<string, unknown>,
+	childElement: React.ReactElement,
+): Record<string, unknown> {
+	const childProps = childElement.props as Record<string, unknown>;
+	const parentRef = parentProps.ref as React.Ref<T> | undefined;
+	const childRef = childProps.ref as React.Ref<T> | undefined;
+
+	const mergedProps = mergeProps(parentProps, childProps);
+
+	// Compose refs if either exists
+	if (parentRef || childRef) {
+		mergedProps.ref = composeRefs(parentRef, childRef);
+	}
+
+	return mergedProps;
+}
+
+/**
  * Check if a value is a valid slottable child (single React element).
  */
 function isSlottable(child: React.ReactNode): child is React.ReactElement {
@@ -132,4 +159,4 @@ function Slottable({ children }: { children: React.ReactNode }) {
 	return <>{children}</>;
 }
 
-export { Slot, Slottable };
+export { Slot, Slottable, composeRefs, mergeProps, mergePropsWithRef };

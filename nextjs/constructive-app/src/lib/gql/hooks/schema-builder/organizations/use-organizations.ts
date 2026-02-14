@@ -150,9 +150,20 @@ export function useOrganizations(options: UseOrganizationsOptions = {}): UseOrga
 
 			// Step 1: Fetch memberships for current user
 			const membershipsResult = await fetchOrgMembershipsQuery({
-				condition: { actorId, isActive: true },
-				first,
-				offset,
+				selection: {
+					fields: {
+						id: true,
+						isOwner: true,
+						isAdmin: true,
+						isActive: true,
+						isApproved: true,
+						actorId: true,
+						entityId: true,
+					},
+					where: { actorId: { equalTo: actorId }, isActive: { equalTo: true } },
+					first,
+					offset,
+				},
 			});
 
 			const rawMemberships = membershipsResult.orgMemberships?.nodes ?? [];
@@ -169,7 +180,16 @@ export function useOrganizations(options: UseOrganizationsOptions = {}): UseOrga
 			// Step 2: Get unique entity IDs and fetch user data
 			const entityIds = [...new Set(rawMemberships.map((m) => m.entityId).filter((id): id is string => !!id))];
 			const usersResult = await fetchUsersQuery({
-				filter: { id: { in: entityIds } },
+				selection: {
+					fields: {
+						id: true,
+						displayName: true,
+						username: true,
+						profilePicture: true,
+						type: true,
+					},
+					where: { id: { in: entityIds } },
+				},
 			});
 
 			// Build entity map
@@ -190,7 +210,10 @@ export function useOrganizations(options: UseOrganizationsOptions = {}): UseOrga
 			const memberCountMap = new Map<string, number>();
 			if (entityIds.length > 0) {
 				const countsResult = await fetchOrgMembershipsQuery({
-					filter: { entityId: { in: entityIds } },
+					selection: {
+						fields: { id: true, entityId: true },
+						where: { entityId: { in: entityIds } },
+					},
 				});
 				// Count memberships per entity
 				for (const m of countsResult.orgMemberships?.nodes ?? []) {
@@ -220,7 +243,7 @@ export function useOrganizations(options: UseOrganizationsOptions = {}): UseOrga
 		},
 		enabled: enabled && isAuthReady,
 		staleTime: 2 * 60 * 1000, // 2 minutes
-		refetchOnMount: 'always',
+		refetchOnMount: true,
 	});
 
 	// Transform and filter memberships to organizations (including self-org)

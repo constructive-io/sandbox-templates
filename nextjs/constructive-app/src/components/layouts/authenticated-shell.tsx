@@ -1,9 +1,10 @@
 'use client';
 
 import * as React from 'react';
+import type { Route } from 'next';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useCardStack } from '@constructive-io/ui/stack';
+import { useCardStack } from '@/components/ui/stack';
 
 import { useLogout } from '@/lib/gql/hooks/auth';
 import { useOrganizations } from '@/lib/gql/hooks/schema-builder';
@@ -14,8 +15,8 @@ import { useSchemaBuilderAuth, useSidebarPinned, useSidebarPinnedActions } from 
 import { AppShell } from '@/components/app-shell/app-shell';
 import type { EntityLevel, TopBarConfig } from '@/components/app-shell/app-shell.types';
 import { UserDropdown } from '@/components/app-shell/user-dropdown';
-import { ConstructiveIcon } from '@/components/icons/constructive-icon';
-import { ConstructiveLogo } from '@/components/icons/constructive-logo';
+import { BrandLogo } from '@/components/brand-logo';
+import { branding } from '@/config/branding';
 import { CreateOrganizationCard } from '@/components/organizations/create-organization-card';
 import { ShellContentFallback, ShellFrameSkeleton } from '@/components/skeletons';
 import { ThemeSwitcher } from '@/components/theme-switcher';
@@ -151,16 +152,16 @@ function AuthenticatedShellInner({ children, hideSidebar }: AuthenticatedShellPr
 	const topBarConfig: TopBarConfig = {
 		sidebarLogo: (
 			<Link
-				href='/'
+				href={branding.homePath as Route}
 				className={cn(
 					'flex items-center transition-opacity hover:opacity-80',
 					sidebarPinned ? 'w-full justify-start pl-4' : 'justify-center',
 				)}
 			>
 				{sidebarPinned ? (
-					<ConstructiveLogo className='w-[120px]' />
+					<BrandLogo variant='wordmark' showTagline className='w-[120px]' />
 				) : (
-					<ConstructiveIcon className='text-primary h-6 w-6' />
+					<BrandLogo variant='icon' className='h-6 w-auto' />
 				)}
 			</Link>
 		),

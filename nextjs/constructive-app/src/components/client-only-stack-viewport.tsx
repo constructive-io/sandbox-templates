@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { CardStackViewport } from '@constructive-io/ui/stack';
+import { CardStackViewport } from '@/components/ui/stack';
 
 /**
  * Client-only wrapper for CardStackViewport to prevent hydration mismatch.

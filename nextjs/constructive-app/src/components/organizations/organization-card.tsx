@@ -6,15 +6,15 @@ import type { Route } from 'next';
 import { MoreHorizontalIcon, ExternalLinkIcon, Trash2Icon, CrownIcon, ShieldIcon, UserIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
-import { Badge } from '@constructive-io/ui/badge';
-import { Button } from '@constructive-io/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
-} from '@constructive-io/ui/dropdown-menu';
+} from '@/components/ui/dropdown-menu';
 import type { OrgRole } from '@/lib/gql/hooks/schema-builder';
 
 /**

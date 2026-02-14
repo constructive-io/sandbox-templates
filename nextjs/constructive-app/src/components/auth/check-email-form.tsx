@@ -8,8 +8,8 @@ import { CheckCircleIcon, MailIcon } from 'lucide-react';
 
 import { z } from 'zod';
 
-import { Button } from '@constructive-io/ui/button';
-import { ConstructiveIcon } from '@/components/icons/constructive-icon';
+import { Button } from '@/components/ui/button';
+import { BrandLogo } from '@/components/brand-logo';
 
 import { AuthErrorAlert } from './auth-error-alert';
 import { AuthLoadingButton } from './auth-loading-button';
@@ -49,7 +49,7 @@ export function CheckEmailForm({
 			: "We've sent a password reset link. Open your inbox to continue.";
 
 	const canSend = type === 'verification' && typeof onSendVerificationEmail === 'function';
-	const logoElement = logo ?? <ConstructiveIcon className='text-primary h-9 w-9' />;
+	const logoElement = logo ?? <BrandLogo variant='icon' className='h-9 w-auto' />;
 
 	const form = useForm({
 		defaultValues: {

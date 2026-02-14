@@ -72,10 +72,24 @@ export function useOrgInvites(options: UseOrgInvitesOptions) {
 		queryFn: async (): Promise<OrgInvitesQueryResult> => {
 			// Step 1: Fetch org invites
 			const invitesResult = await fetchOrgInvitesQuery({
-				filter: { entityId: { equalTo: orgId } },
-				first,
-				offset,
-				orderBy: ['CREATED_AT_DESC'],
+				selection: {
+					fields: {
+						id: true,
+						email: true,
+						data: true,
+						createdAt: true,
+						expiresAt: true,
+						inviteValid: true,
+						inviteToken: true,
+						inviteCount: true,
+						inviteLimit: true,
+						senderId: true,
+					},
+					where: { entityId: { equalTo: orgId } },
+					first,
+					offset,
+					orderBy: ['CREATED_AT_DESC'],
+				},
 			});
 
 			const rawInvites = invitesResult.orgInvites?.nodes ?? [];
@@ -95,7 +109,14 @@ export function useOrgInvites(options: UseOrgInvitesOptions) {
 
 			if (senderIds.length > 0) {
 				const usersResult = await fetchUsersQuery({
-					filter: { id: { in: senderIds } },
+					selection: {
+						fields: {
+							id: true,
+							displayName: true,
+							username: true,
+						},
+						where: { id: { in: senderIds } },
+					},
 				});
 				for (const user of usersResult.users?.nodes ?? []) {
 					if (user.id) {
@@ -111,7 +132,7 @@ export function useOrgInvites(options: UseOrgInvitesOptions) {
 			// Step 3: Build invite nodes with sender info
 			const invites: InviteNode[] = rawInvites.map((i) => ({
 				id: i.id ?? '',
-				email: i.email ?? null,
+				email: (i.email as string | null) ?? null,
 				data: i.data,
 				createdAt: i.createdAt ?? '',
 				expiresAt: i.expiresAt ?? '',
@@ -126,7 +147,7 @@ export function useOrgInvites(options: UseOrgInvitesOptions) {
 		},
 		enabled: enabled && isAuthenticated && !!orgId,
 		staleTime: 30 * 1000,
-		refetchOnMount: 'always',
+		refetchOnMount: true,
 	});
 
 	const invites = (data?.invites ?? []).map((node) => transformActiveInvite(node));
@@ -153,10 +174,19 @@ export function useOrgClaimedInvites(options: UseOrgInvitesOptions) {
 		queryFn: async (): Promise<OrgClaimedInvitesQueryResult> => {
 			// Step 1: Fetch org claimed invites
 			const claimedResult = await fetchOrgClaimedInvitesQuery({
-				filter: { entityId: { equalTo: orgId } },
-				first,
-				offset,
-				orderBy: ['CREATED_AT_DESC'],
+				selection: {
+					fields: {
+						id: true,
+						data: true,
+						senderId: true,
+						receiverId: true,
+						createdAt: true,
+					},
+					where: { entityId: { equalTo: orgId } },
+					first,
+					offset,
+					orderBy: ['CREATED_AT_DESC'],
+				},
 			});
 
 			const rawClaimed = claimedResult.orgClaimedInvites?.nodes ?? [];
@@ -181,7 +211,14 @@ export function useOrgClaimedInvites(options: UseOrgInvitesOptions) {
 
 			if (userIds.length > 0) {
 				const usersResult = await fetchUsersQuery({
-					filter: { id: { in: userIds } },
+					selection: {
+						fields: {
+							id: true,
+							displayName: true,
+							username: true,
+						},
+						where: { id: { in: userIds } },
+					},
 				});
 				for (const user of usersResult.users?.nodes ?? []) {
 					if (user.id) {
@@ -207,7 +244,7 @@ export function useOrgClaimedInvites(options: UseOrgInvitesOptions) {
 		},
 		enabled: enabled && isAuthenticated && !!orgId,
 		staleTime: 30 * 1000,
-		refetchOnMount: 'always',
+		refetchOnMount: true,
 	});
 
 	const claimedInvites = (data?.claimedInvites ?? []).map((node) => transformClaimedInvite(node));

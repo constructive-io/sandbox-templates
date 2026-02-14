@@ -6,7 +6,7 @@ import { RiAlertLine, RiRefreshLine, RiShieldLine } from '@remixicon/react';
 import { cn } from '@/lib/utils';
 import { AuthErrorBanner, isAuthError } from '@/lib/gql/auth-error-handler';
 import type { DataError } from '@/lib/gql/error-handler';
-import { Button } from '@constructive-io/ui/button';
+import { Button } from '@/components/ui/button';
 
 // ============================================================================
 // Shared Skeleton Component

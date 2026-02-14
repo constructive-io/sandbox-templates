@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@constructive-io/ui/button';
-import { useCardStack } from '@constructive-io/ui/stack';
-import { toast } from '@constructive-io/ui/toast';
+import { Button } from '@/components/ui/button';
+import { useCardStack } from '@/components/ui/stack';
+import { toast } from '@/components/ui/toast';
 import { Mail, Send } from 'lucide-react';
 
 import {

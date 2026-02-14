@@ -1,36 +1,98 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Constructive App Boilerplate
 
-## Getting Started
+A **frontend-only** Next.js boilerplate with authentication, organization management, invites, members, and a GraphQL SDK powered by Constructive.
 
-First, run the development server:
+> **⚠️ Important:** This is a frontend application only. It requires a running Constructive backend infrastructure to function properly.
+
+## Tech Stack
+
+- **Next.js 16** (App Router, Turbopack)
+- **React 19**
+- **Tailwind CSS 4** + shadcn/ui (Base UI)
+- **TanStack React Query** for data fetching
+- **GraphQL** with codegen SDK
+
+## Backend Requirements
+
+This boilerplate connects to a Constructive backend. For full functionality (including password reset emails, job processing, etc.), you need:
+
+| Service | Port | Purpose |
+|---------|------|---------|
+| **PostgreSQL** | 5432 | Database with Constructive schema |
+| **GraphQL Server (Public)** | 3000 | API endpoint for app operations |
+| **GraphQL Server (Private)** | 3002 | Admin operations |
+| **Job Service** | 8080 | Background job processing |
+| **Email Function** | 8082 | Email sending via SMTP |
+| **Mailpit SMTP** | 1025 | Email server (development) |
+| **Mailpit UI** | 8025 | View sent emails |
+
+### Running with Constructive Hub
+
+The easiest way to run the full stack:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+# Terminal 1: Start backend infrastructure
+cd /path/to/constructive-hub
+pnpm start
+
+# Terminal 2: Start this frontend
+cd /path/to/constructive-app
+pnpm install
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3001](http://localhost:3001).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Script | Description |
+|--------|-------------|
+| `pnpm dev` | Start dev server (Turbopack, port 3001) |
+| `pnpm build` | Production build |
+| `pnpm lint` | ESLint |
+| `pnpm lint:types` | TypeScript type check |
+| `pnpm format` | Prettier format |
+| `pnpm codegen` | Regenerate GraphQL SDK |
 
-## Learn More
+## Configuration
 
-To learn more about Next.js, take a look at the following resources:
+### Environment Variables
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Create a `.env.local` file:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+# GraphQL endpoint (must point to a running Constructive backend)
+NEXT_PUBLIC_SCHEMA_BUILDER_GRAPHQL_ENDPOINT=http://api.localhost:3000/graphql
+```
 
-## Deploy on Vercel
+### Customization
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **`src/config/branding.ts`** — App name, logos, and legal links
+- **`graphql-codegen.config.ts`** — GraphQL codegen configuration
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## UI Components (shadcn Registry)
+
+UI components live in `src/components/ui/` as local source files, following the [shadcn/ui](https://ui.shadcn.com) pattern. Components are installed from the Constructive registry and can be fully customized.
+
+```bash
+# Add a component from the registry
+npx shadcn@latest add @constructive/<component>
+```
+
+Registry URL is configured in `components.json`. Components use **Base UI** primitives, **Tailwind CSS 4**, and **cva** for variants.
+
+| Directory | Contents |
+|-----------|----------|
+| `src/components/ui/` | UI components (button, dialog, input, etc.) |
+| `src/lib/utils.ts` | `cn()` utility for class merging |
+| `src/hooks/` | Shared hooks (use-mobile, use-portal, etc.) |
+
+## Features
+
+- **Authentication** — Login, register, logout, password reset
+- **Organizations** — Create and manage organizations
+- **Invites** — Send and accept organization invites
+- **Members** — Manage organization members and roles
+- **Account Management** — Profile, email verification, account deletion
+
+> **Note:** Password reset emails require the full backend stack (job service + email function) to be running.

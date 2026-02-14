@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@constructive-io/ui/button';
-import { Field } from '@constructive-io/ui/field';
-import { InputGroup, InputGroupInput } from '@constructive-io/ui/input-group';
-import type { CardComponent } from '@constructive-io/ui/stack';
-import { showErrorToast, showSuccessToast } from '@constructive-io/ui/toast';
+import { Button } from '@/components/ui/button';
+import { Field } from '@/components/ui/field';
+import { InputGroup, InputGroupInput } from '@/components/ui/input-group';
+import type { CardComponent } from '@/components/ui/stack';
+import { showErrorToast, showSuccessToast } from '@/components/ui/toast';
 import { Loader2 } from 'lucide-react';
 
 import { useSetPasswordMutation } from '@sdk/api';
@@ -19,7 +19,9 @@ export const EditPasswordCard: CardComponent<EditPasswordCardProps> = ({ onSucce
 	const [newPassword, setNewPassword] = useState('');
 	const [confirmPassword, setConfirmPassword] = useState('');
 
-	const { mutateAsync: setPassword, isPending: isSettingPassword, error } = useSetPasswordMutation();
+	const { mutateAsync: setPassword, isPending: isSettingPassword, error } = useSetPasswordMutation({
+		selection: { fields: { result: true } },
+	});
 
 	const canSave =
 		currentPassword.length > 0 && newPassword.length >= 8 && newPassword === confirmPassword && !isSettingPassword;

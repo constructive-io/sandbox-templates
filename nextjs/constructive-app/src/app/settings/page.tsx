@@ -1,11 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Button } from '@constructive-io/ui/button';
-import { Label } from '@constructive-io/ui/label';
-import { Skeleton } from '@constructive-io/ui/skeleton';
-import { Switch } from '@constructive-io/ui/switch';
-import { showErrorToast, showSuccessToast } from '@constructive-io/ui/toast';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
+import { showErrorToast, showSuccessToast } from '@/components/ui/toast';
 import { AlertCircle, ArrowRight, Check, Loader2, Settings2, Shield, UserCheck, UserPlus } from 'lucide-react';
 
 import { useAppSettings, useUpdateAppSettings } from '@/lib/gql/hooks/schema-builder/app';

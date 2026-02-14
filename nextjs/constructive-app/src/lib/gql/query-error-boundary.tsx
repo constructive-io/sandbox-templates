@@ -5,7 +5,7 @@ import { QueryErrorResetBoundary } from '@tanstack/react-query';
 import { RiAlertLine, RiRefreshLine, RiWifiOffLine } from '@remixicon/react';
 
 import { cn } from '@/lib/utils';
-import { Button } from '@constructive-io/ui/button';
+import { Button } from '@/components/ui/button';
 
 import { DataError, DataErrorType, parseError } from './error-handler';
 

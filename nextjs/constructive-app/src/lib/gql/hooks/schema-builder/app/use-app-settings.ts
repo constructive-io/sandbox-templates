@@ -50,14 +50,19 @@ export function useAppSettings(options: UseAppSettingsOptions = {}): UseAppSetti
 
 	const isAuthenticated = useAppStore((state) => state.auth.isAuthenticated);
 
-	const { data, isLoading, error, refetch } = useAppMembershipDefaultsQuery(
-		{ first: 1 },
-		{
-			enabled: enabled && isAuthenticated,
-			staleTime: 5 * 60 * 1000, // 5 minutes
-			refetchOnMount: 'always',
+	const { data, isLoading, error, refetch } = useAppMembershipDefaultsQuery({
+		selection: {
+			fields: {
+				id: true,
+				isApproved: true,
+				isVerified: true,
+			},
+			first: 1,
 		},
-	);
+		enabled: enabled && isAuthenticated,
+		staleTime: 5 * 60 * 1000, // 5 minutes
+		refetchOnMount: true,
+	});
 
 	const node = data?.appMembershipDefaults?.nodes?.[0];
 	const settings: AppMembershipDefaultSettings | null = node?.id
@@ -104,15 +109,15 @@ export interface UseUpdateAppSettingsResult {
 export function useUpdateAppSettings(_context: SchemaContext = 'schema-builder'): UseUpdateAppSettingsResult {
 	const queryClient = useQueryClient();
 	const { settings } = useAppSettings({ context: _context });
-	const updateMutation = useUpdateAppMembershipDefaultMutation();
-	const createMutation = useCreateAppMembershipDefaultMutation();
+	const updateMutation = useUpdateAppMembershipDefaultMutation({ selection: { fields: { id: true, isApproved: true, isVerified: true } } });
+	const createMutation = useCreateAppMembershipDefaultMutation({ selection: { fields: { id: true, isApproved: true, isVerified: true } } });
 
 	const updateSettings = async (data: UpdateAppSettingsData) => {
 		let result: AppMembershipDefaultSettings | null = null;
 
 		if (settings?.id) {
 			const updateResult = await updateMutation.mutateAsync({
-				input: { id: settings.id, patch: data },
+				id: settings.id, appMembershipDefaultPatch: data,
 			});
 			const node = updateResult.updateAppMembershipDefault?.appMembershipDefault;
 			result = node?.id
@@ -120,12 +125,8 @@ export function useUpdateAppSettings(_context: SchemaContext = 'schema-builder')
 				: null;
 		} else {
 			const createResult = await createMutation.mutateAsync({
-				input: {
-					appMembershipDefault: {
-						isApproved: data.isApproved ?? false,
-						isVerified: data.isVerified ?? true,
-					},
-				},
+				isApproved: data.isApproved ?? false,
+				isVerified: data.isVerified ?? true,
 			});
 			const node = createResult.createAppMembershipDefault?.appMembershipDefault;
 			result = node?.id

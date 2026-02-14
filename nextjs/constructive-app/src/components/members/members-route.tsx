@@ -6,15 +6,15 @@ import { AlertCircle, AtSign, CheckCircle2, Clock, MoreVertical, Slash, Users, X
 import { useRouter } from 'next/navigation';
 
 import { PageHeaderWithIcon } from '@/components/shared/page-header-with-icon';
-import { Avatar, AvatarFallback } from '@constructive-io/ui/avatar';
-import { Button } from '@constructive-io/ui/button';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
-} from '@constructive-io/ui/dropdown-menu';
+} from '@/components/ui/dropdown-menu';
 import {
 	Pagination,
 	PaginationContent,
@@ -22,9 +22,9 @@ import {
 	PaginationLink,
 	PaginationNext,
 	PaginationPrevious,
-} from '@constructive-io/ui/pagination';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@constructive-io/ui/table';
-import { toast } from '@constructive-io/ui/toast';
+} from '@/components/ui/pagination';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { toast } from '@/components/ui/toast';
 import {
 	useOrgMembers,
 	type OrgMember,
@@ -194,8 +194,12 @@ export function MembersRoute({ orgId, orgName = 'Organization', organization }: 
 	const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
 	const { members, totalCount, isLoading, error } = useOrgMembers({ orgId, first: ITEMS_PER_PAGE, offset });
-	const { mutateAsync: updateMember, isPending: isUpdating } = useUpdateOrgMembershipMutation();
-	const { mutateAsync: removeMember, isPending: isRemoving } = useDeleteOrgMembershipMutation();
+	const { mutateAsync: updateMember, isPending: isUpdating } = useUpdateOrgMembershipMutation({
+		selection: { fields: { id: true } },
+	});
+	const { mutateAsync: removeMember, isPending: isRemoving } = useDeleteOrgMembershipMutation({
+		selection: { fields: { id: true } },
+	});
 
 	const totalPages = Math.max(1, Math.ceil(totalCount / ITEMS_PER_PAGE));
 
@@ -212,7 +216,7 @@ export function MembersRoute({ orgId, orgName = 'Organization', organization }: 
 	const onToggleAdmin = async (member: OrgMember) => {
 		try {
 			await updateMember({
-				input: { id: member.membershipId, patch: { isAdmin: !member.flags.isAdmin } },
+				id: member.membershipId, orgMembershipPatch: { isAdmin: !member.flags.isAdmin },
 			});
 			toast.success({
 				message: member.flags.isAdmin ? 'Removed admin role' : 'Granted admin role',
@@ -225,7 +229,7 @@ export function MembersRoute({ orgId, orgName = 'Organization', organization }: 
 
 	const onRemove = async (member: OrgMember) => {
 		try {
-			await removeMember({ input: { id: member.membershipId } });
+			await removeMember({ id: member.membershipId });
 			toast.success({
 				message: 'Removed member',
 				description: member.displayName || member.username || 'Member',

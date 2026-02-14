@@ -19,21 +19,6 @@
 		},
 		"plugins": [
 			{
-				"name": "gql.tada/ts-plugin",
-				"schemas": [
-					{
-						"name": "schema-builder",
-						"schema": "./src/graphql/schema-builder/schema.graphql",
-						"tadaOutputLocation": "./src/graphql/schema-builder/sb.env.d.ts"
-					},
-					{
-						"name": "dashboard",
-						"schema": "./src/graphql/dashboard/schema.graphql",
-						"tadaOutputLocation": "./src/graphql/dashboard/crm.env.d.ts"
-					}
-				]
-			},
-			{
 				"name": "next"
 			}
 		]
@@ -41,7 +26,6 @@
 	"include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", ".next/dev/types/**/*.ts"],
 	"exclude": [
 		"node_modules",
-		"src/components/dashboard/data-grid/glide-grid-examples",
 		"src/**/*.test.ts",
 		"src/**/*.test.tsx",
 		"src/**/__tests__/**/*"

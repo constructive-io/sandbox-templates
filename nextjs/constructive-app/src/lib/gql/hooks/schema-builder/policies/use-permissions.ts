@@ -36,8 +36,30 @@ export function usePermissions(options: UsePermissionsOptions = {}) {
 		queryFn: async () => {
 			// Fetch both permission types in parallel using SDK fetch functions
 			const [appResult, orgResult] = await Promise.all([
-				fetchAppPermissionsQuery({ orderBy: ['NAME_ASC'] }),
-				fetchOrgPermissionsQuery({ orderBy: ['NAME_ASC'] }),
+				fetchAppPermissionsQuery({
+					selection: {
+						fields: {
+							id: true,
+							name: true,
+							bitnum: true,
+							bitstr: true,
+							description: true,
+						},
+						orderBy: ['NAME_ASC'],
+					},
+				}),
+				fetchOrgPermissionsQuery({
+					selection: {
+						fields: {
+							id: true,
+							name: true,
+							bitnum: true,
+							bitstr: true,
+							description: true,
+						},
+						orderBy: ['NAME_ASC'],
+					},
+				}),
 			]);
 
 			const appPermissions: AppPermission[] = (appResult.appPermissions?.nodes ?? []).map((node) => ({
@@ -63,8 +85,8 @@ export function usePermissions(options: UsePermissionsOptions = {}) {
 		},
 		enabled: isEnabled,
 		staleTime: 5 * 60 * 1000,
-		refetchOnMount: isEnabled ? 'always' : false,
-		refetchOnWindowFocus: 'always',
-		refetchOnReconnect: 'always',
+		refetchOnMount: isEnabled,
+		refetchOnWindowFocus: false,
+		refetchOnReconnect: false,
 	});
 }

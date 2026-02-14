@@ -3,8 +3,8 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import { AlertCircleIcon, CheckCircleIcon, LoaderIcon, XCircleIcon } from 'lucide-react';
 
-import { Button } from '@constructive-io/ui/button';
-import { ConstructiveIcon } from '@/components/icons/constructive-icon';
+import { Button } from '@/components/ui/button';
+import { BrandLogo } from '@/components/brand-logo';
 
 import { AuthErrorAlert } from './auth-error-alert';
 import type { AuthBrandingProps } from './auth-screen-header';
@@ -59,7 +59,7 @@ export function VerifyEmailResult({
 }: VerifyEmailResultProps) {
 	const content = STATUS_CONTENT[status];
 	const Icon = content.icon;
-	const logoElement = logo ?? <ConstructiveIcon className='text-primary h-9 w-9' />;
+	const logoElement = logo ?? <BrandLogo variant='icon' className='h-9 w-auto' />;
 
 	return (
 		<div className='space-y-5 text-center'>

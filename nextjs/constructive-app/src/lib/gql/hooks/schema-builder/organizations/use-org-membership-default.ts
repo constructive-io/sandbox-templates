@@ -6,10 +6,10 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import type { SchemaContext } from '@/app-config';
 import {
-	orgMembershipDefaultByEntityIdQueryKey,
+	orgMembershipDefaultsQueryKey,
 	useCreateOrgMembershipDefaultMutation,
-	useOrgMembershipDefaultByEntityIdQuery,
-	useUpdateOrgMembershipDefaultByEntityIdMutation,
+	useOrgMembershipDefaultsQuery,
+	useUpdateOrgMembershipDefaultMutation,
 } from '@sdk/api';
 import { useAppStore } from '@/store/app-store';
 
@@ -19,7 +19,7 @@ export interface OrgMembershipDefault {
 	isApproved: boolean;
 }
 
-/** @deprecated Use orgMembershipDefaultByEntityIdQueryKey from SDK instead */
+/** @deprecated Use orgMembershipDefaultsQueryKey from SDK instead */
 export const orgMembershipDefaultQueryKeys = {
 	all: ['org-membership-default'] as const,
 	byContext: (context: SchemaContext) => [...orgMembershipDefaultQueryKeys.all, { context }] as const,
@@ -38,16 +38,22 @@ export function useOrgMembershipDefault(options: UseOrgMembershipDefaultOptions)
 
 	const isAuthenticated = useAppStore((state) => state.auth.isAuthenticated);
 
-	const { data, isLoading, error, refetch } = useOrgMembershipDefaultByEntityIdQuery(
-		{ entityId: orgId },
-		{
-			enabled: enabled && isAuthenticated && !!orgId,
-			staleTime: 30 * 1000,
-			refetchOnMount: 'always',
+	const { data, isLoading, error, refetch } = useOrgMembershipDefaultsQuery({
+		selection: {
+			fields: {
+				id: true,
+				entityId: true,
+				isApproved: true,
+			},
+			where: { entityId: { equalTo: orgId } },
+			first: 1,
 		},
-	);
+		enabled: enabled && isAuthenticated && !!orgId,
+		staleTime: 30 * 1000,
+		refetchOnMount: true,
+	});
 
-	const node = data?.orgMembershipDefaultByEntityId;
+	const node = data?.orgMembershipDefaults?.nodes?.[0];
 	const membershipDefault: OrgMembershipDefault | null = node?.id
 		? {
 				id: node.id,
@@ -72,21 +78,21 @@ export interface UpdateOrgMembershipDefaultInput {
 
 export function useUpdateOrgMembershipDefault(_defaultContext: SchemaContext = 'schema-builder') {
 	const queryClient = useQueryClient();
-	const updateMutation = useUpdateOrgMembershipDefaultByEntityIdMutation();
+	const updateMutation = useUpdateOrgMembershipDefaultMutation({
+		selection: { fields: { id: true } },
+	});
 
 	return {
-		updateMembershipDefault: async (input: UpdateOrgMembershipDefaultInput) => {
+		updateMembershipDefault: async (input: UpdateOrgMembershipDefaultInput & { id: string }) => {
 			const result = await updateMutation.mutateAsync({
-				input: {
-					entityId: input.orgId,
-					patch: input.patch,
-				},
+				id: input.id,
+				orgMembershipDefaultPatch: input.patch,
 			});
 			// Invalidate cache
 			queryClient.invalidateQueries({
-				queryKey: orgMembershipDefaultByEntityIdQueryKey({ entityId: input.orgId }),
+				queryKey: orgMembershipDefaultsQueryKey({ where: { entityId: { equalTo: input.orgId } } }),
 			});
-			return result.updateOrgMembershipDefaultByEntityId?.orgMembershipDefault ?? null;
+			return result.updateOrgMembershipDefault?.orgMembershipDefault ?? null;
 		},
 		isUpdating: updateMutation.isPending,
 		error: updateMutation.error,
@@ -102,21 +108,17 @@ export interface CreateOrgMembershipDefaultInput {
 
 export function useCreateOrgMembershipDefault(_defaultContext: SchemaContext = 'schema-builder') {
 	const queryClient = useQueryClient();
-	const createMutation = useCreateOrgMembershipDefaultMutation();
+	const createMutation = useCreateOrgMembershipDefaultMutation({ selection: { fields: { id: true } } });
 
 	return {
 		createMembershipDefault: async (input: CreateOrgMembershipDefaultInput) => {
 			const result = await createMutation.mutateAsync({
-				input: {
-					orgMembershipDefault: {
-						entityId: input.orgId,
-						isApproved: input.isApproved,
-					},
-				},
+				entityId: input.orgId,
+				isApproved: input.isApproved,
 			});
 			// Invalidate cache
 			queryClient.invalidateQueries({
-				queryKey: orgMembershipDefaultByEntityIdQueryKey({ entityId: input.orgId }),
+				queryKey: orgMembershipDefaultsQueryKey({ where: { entityId: { equalTo: input.orgId } } }),
 			});
 			return result.createOrgMembershipDefault?.orgMembershipDefault ?? null;
 		},
@@ -127,4 +129,4 @@ export function useCreateOrgMembershipDefault(_defaultContext: SchemaContext = '
 }
 
 // Re-export SDK query key for consumers to migrate
-export { orgMembershipDefaultByEntityIdQueryKey };
+export { orgMembershipDefaultsQueryKey };

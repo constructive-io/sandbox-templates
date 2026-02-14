@@ -24,13 +24,13 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle,
-} from '@constructive-io/ui/alert-dialog';
-import { Button } from '@constructive-io/ui/button';
-import { Input } from '@constructive-io/ui/input';
-import { Label } from '@constructive-io/ui/label';
-import { Skeleton } from '@constructive-io/ui/skeleton';
-import { Switch } from '@constructive-io/ui/switch';
-import { showErrorToast, showSuccessToast } from '@constructive-io/ui/toast';
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
+import { showErrorToast, showSuccessToast } from '@/components/ui/toast';
 import { PageHeaderWithIcon } from '@/components/shared/page-header-with-icon';
 
 const parseBitmask = (bitmask: string): Set<number> => {
@@ -235,7 +235,7 @@ export function OrgSettingsRoute({ orgId, orgName = 'Organization', organization
 			const isApproved = !requireAdminApproval;
 
 			if (membershipDefault) {
-				await updateMembershipDefault({ orgId, patch: { isApproved } });
+				await updateMembershipDefault({ id: membershipDefault.id, orgId, patch: { isApproved } });
 				showSuccessToast({ message: 'Member settings updated' });
 				return;
 			}

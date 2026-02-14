@@ -9,7 +9,7 @@ import { authKeys } from '../../query-keys';
  */
 export function useSendVerificationEmailSb() {
 	const queryClient = useQueryClient();
-	const sendVerificationMutation = useSendVerificationEmailMutation();
+	const sendVerificationMutation = useSendVerificationEmailMutation({ selection: { fields: { result: true } } });
 
 	return useMutation({
 		mutationKey: authKeys.sendVerificationEmail.queryKey,
@@ -18,7 +18,7 @@ export function useSendVerificationEmailSb() {
 				input: { email: input.email },
 			});
 
-			if (!result.sendVerificationEmail?.boolean) {
+			if (!result.sendVerificationEmail?.result) {
 				throw new Error('Failed to send verification email. Please try again.');
 			}
 

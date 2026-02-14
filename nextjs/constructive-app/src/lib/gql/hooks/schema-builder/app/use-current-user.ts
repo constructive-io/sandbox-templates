@@ -41,9 +41,17 @@ export function useCurrentUser(options: UseCurrentUserOptions = {}): UseCurrentU
 
 	// Use the SDK's currentUser query which relies on backend auth context
 	const { data, isLoading, error, refetch } = useCurrentUserQuerySdk({
+		selection: {
+			fields: {
+				id: true,
+				displayName: true,
+				username: true,
+				profilePicture: true,
+			},
+		},
 		enabled: enabled && !!token,
 		staleTime: 5 * 60 * 1000,
-		refetchOnMount: 'always',
+		refetchOnMount: true,
 	});
 
 	const userNode = data?.currentUser;

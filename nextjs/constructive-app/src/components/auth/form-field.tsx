@@ -1,6 +1,6 @@
 import type { RefObject } from 'react';
-import { Input } from '@constructive-io/ui/input';
-import { FormControl, type FormControlLayout } from '@constructive-io/ui/form-control';
+import { Input } from '@/components/ui/input';
+import { FormControl, type FormControlLayout } from '@/components/ui/form-control';
 
 interface FormFieldProps {
   field: any;

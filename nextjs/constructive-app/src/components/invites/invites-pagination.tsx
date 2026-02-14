@@ -7,7 +7,7 @@ import {
 	PaginationLink,
 	PaginationNext,
 	PaginationPrevious,
-} from '@constructive-io/ui/pagination';
+} from '@/components/ui/pagination';
 
 interface InvitesPaginationProps {
 	currentPage: number;

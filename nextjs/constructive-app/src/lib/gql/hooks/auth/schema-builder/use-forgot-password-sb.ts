@@ -12,7 +12,7 @@ interface ForgotPasswordInput {
  * Schema-builder forgot password hook using SDK-generated mutation
  */
 export function useForgotPasswordSb() {
-	const forgotPasswordMutation = useForgotPasswordMutation();
+	const forgotPasswordMutation = useForgotPasswordMutation({ selection: { fields: { clientMutationId: true } } });
 
 	return useMutation({
 		mutationKey: authKeys.forgotPassword.queryKey,

@@ -37,26 +37,22 @@ export interface UseAccountEmailResult {
 export function useAccountEmail(options: UseAccountEmailOptions): UseAccountEmailResult {
 	const { userId, enabled = true } = options;
 
-	const { data, isLoading, error, refetch } = useEmailsQuery(
-		{
+	const { data, isLoading, error, refetch } = useEmailsQuery({
+		selection: {
+			fields: { id: true, email: true, isPrimary: true, isVerified: true, ownerId: true },
+			where: { ownerId: { equalTo: userId } },
 			first: 50,
-			filter: {
-				ownerId: { equalTo: userId },
-			},
-			orderBy: ['IS_PRIMARY_DESC', 'CREATED_AT_DESC'],
 		},
-		{
-			enabled: enabled && !!userId,
-			staleTime: 30 * 1000,
-			refetchOnMount: 'always',
-		},
-	);
+		enabled: enabled && !!userId,
+		staleTime: 30 * 1000,
+		refetchOnMount: true,
+	});
 
 	const email = useMemo(() => {
 		const nodes = data?.emails?.nodes ?? [];
 		if (nodes.length === 0) return null;
 		const primary = nodes.find((node) => node.isPrimary);
-		return (primary ?? nodes[0])?.email ?? null;
+		return ((primary ?? nodes[0])?.email as string | null) ?? null;
 	}, [data]);
 
 	return { email, isLoading, error: error ?? null, refetch };
@@ -74,9 +70,9 @@ export interface UpdateEmailInput {
 
 export function useUpdateEmail(_defaultContext: SchemaContext = 'schema-builder') {
 	const queryClient = useQueryClient();
-	const createEmailMutation = useCreateEmailMutation();
-	const updateEmailMutation = useUpdateEmailMutation();
-	const deleteEmailMutation = useDeleteEmailMutation();
+	const createEmailMutation = useCreateEmailMutation({ selection: { fields: { id: true } } });
+	const updateEmailMutation = useUpdateEmailMutation({ selection: { fields: { id: true } } });
+	const deleteEmailMutation = useDeleteEmailMutation({ selection: { fields: { id: true } } });
 
 	const updateEmail = async (input: UpdateEmailInput) => {
 		const emailChanged = input.newEmail !== input.currentEmail;
@@ -84,20 +80,14 @@ export function useUpdateEmail(_defaultContext: SchemaContext = 'schema-builder'
 		if (emailChanged) {
 			// Create new email first
 			await createEmailMutation.mutateAsync({
-				input: {
-					email: {
-						email: input.newEmail,
-						isPrimary: input.isPrimary ?? true,
-						isVerified: input.isVerified ?? false,
-						ownerId: input.userId,
-					},
-				},
+				email: input.newEmail,
+				isPrimary: input.isPrimary ?? true,
+				isVerified: input.isVerified ?? false,
+				ownerId: input.userId,
 			});
 
 			// Then delete old email
-			await deleteEmailMutation.mutateAsync({
-				input: { id: input.currentEmailId },
-			});
+			await deleteEmailMutation.mutateAsync({ id: input.currentEmailId });
 		} else {
 			// Just update existing email properties
 			const patch: { isPrimary?: boolean; isVerified?: boolean } = {};
@@ -106,7 +96,7 @@ export function useUpdateEmail(_defaultContext: SchemaContext = 'schema-builder'
 
 			if (Object.keys(patch).length > 0) {
 				await updateEmailMutation.mutateAsync({
-					input: { id: input.currentEmailId, patch },
+					id: input.currentEmailId, emailPatch: patch,
 				});
 			}
 		}
@@ -139,7 +129,7 @@ export interface VerifyEmailInput {
 
 export function useVerifyEmail(_defaultContext: SchemaContext = 'schema-builder') {
 	const queryClient = useQueryClient();
-	const verifyMutation = useSDKVerifyEmailMutation();
+	const verifyMutation = useSDKVerifyEmailMutation({ selection: { fields: { result: true } } });
 
 	return {
 		verifyEmail: async (input: VerifyEmailInput) => {
@@ -148,7 +138,7 @@ export function useVerifyEmail(_defaultContext: SchemaContext = 'schema-builder'
 			});
 			// Invalidate profile cache
 			queryClient.invalidateQueries({ queryKey: accountProfileQueryKeys.all });
-			return result.verifyEmail?.boolean ?? false;
+			return result.verifyEmail?.result ?? false;
 		},
 		isVerifying: verifyMutation.isPending,
 		error: verifyMutation.error,

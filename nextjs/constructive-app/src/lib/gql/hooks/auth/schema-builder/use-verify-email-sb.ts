@@ -14,7 +14,7 @@ interface VerifyEmailInput {
  */
 export function useVerifyEmailSb() {
 	const queryClient = useQueryClient();
-	const verifyEmailMutation = useVerifyEmailMutation();
+	const verifyEmailMutation = useVerifyEmailMutation({ selection: { fields: { result: true } } });
 
 	return useMutation({
 		mutationKey: authKeys.verifyEmail.queryKey,
@@ -23,7 +23,7 @@ export function useVerifyEmailSb() {
 				input: { emailId: input.emailId, token: input.token },
 			});
 
-			if (!result.verifyEmail?.boolean) {
+			if (!result.verifyEmail?.result) {
 				throw new Error('Failed to verify email. The link may have expired or is invalid.');
 			}
 

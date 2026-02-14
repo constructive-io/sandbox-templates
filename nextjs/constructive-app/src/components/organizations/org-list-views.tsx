@@ -16,16 +16,16 @@ import {
 
 import type { OrgRole } from '@/lib/gql/hooks/schema-builder';
 import { cn } from '@/lib/utils';
-import { Button } from '@constructive-io/ui/button';
+import { Button } from '@/components/ui/button';
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
-} from '@constructive-io/ui/dropdown-menu';
-import { Skeleton } from '@constructive-io/ui/skeleton';
-import { TableCell, TableRow } from '@constructive-io/ui/table';
+} from '@/components/ui/dropdown-menu';
+import { Skeleton } from '@/components/ui/skeleton';
+import { TableCell, TableRow } from '@/components/ui/table';
 
 type DisplayRole = OrgRole | 'personal';
 

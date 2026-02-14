@@ -82,14 +82,12 @@ export function useDeleteOrganization(
 ): UseDeleteOrganizationResult {
 	const { context = 'schema-builder', onSuccess, onError } = options;
 	const queryClient = useQueryClient();
-	const deleteUserMutation = useDeleteUserMutation();
+	const deleteUserMutation = useDeleteUserMutation({ selection: { fields: { id: true } } });
 
 	const deleteOrganization = async (input: DeleteOrganizationInput): Promise<DeleteOrganizationResult> => {
 		const { orgId } = input;
 
-		await deleteUserMutation.mutateAsync({
-			input: { id: orgId },
-		});
+		await deleteUserMutation.mutateAsync({ id: orgId });
 
 		// Invalidate all organization caches
 		queryClient.invalidateQueries({ queryKey: organizationsQueryKeys.all });

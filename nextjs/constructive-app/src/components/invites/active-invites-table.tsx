@@ -1,9 +1,9 @@
 'use client';
 
-import { Badge } from '@constructive-io/ui/badge';
-import { Button } from '@constructive-io/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@constructive-io/ui/table';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@constructive-io/ui/tooltip';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { CalendarPlus, CheckCircle2, Clock, Send, X, XCircle } from 'lucide-react';
 
 import type { OrgInvite, OrgInviteStatus } from '@/lib/gql/hooks/schema-builder';

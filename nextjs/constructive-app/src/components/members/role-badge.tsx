@@ -1,7 +1,7 @@
 import { Crown, Shield, User } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
-import { Badge } from '@constructive-io/ui/badge';
+import { Badge } from '@/components/ui/badge';
 
 export type Role = 'owner' | 'admin' | 'member';
 export type RoleBadgeSize = 'sm' | 'md' | 'lg';

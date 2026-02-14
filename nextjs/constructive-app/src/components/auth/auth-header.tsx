@@ -1,6 +1,7 @@
 import { cn } from '@/lib/utils';
-import { CardDescription, CardTitle } from '@constructive-io/ui/card';
-import { ConstructiveIcon } from '@/components/icons/constructive-icon';
+import { CardDescription, CardTitle } from '@/components/ui/card';
+import { BrandLogo } from '@/components/brand-logo';
+import { branding } from '@/config/branding';
 
 interface AuthHeaderProps {
 	title: string;
@@ -15,9 +16,9 @@ export function AuthHeader({ title, description, showLogo = true, className }: A
 			{showLogo && (
 				<div className='flex items-center space-x-2'>
 					<div className='flex h-8 w-8 items-center justify-center rounded-md'>
-						<ConstructiveIcon className='text-primary' />
+						<BrandLogo variant='icon' className='h-6 w-auto' />
 					</div>
-					<span className='text-lg font-semibold'>Constructive</span>
+					<span className='text-lg font-semibold'>{branding.name}</span>
 				</div>
 			)}
 			<div className='text-center'>

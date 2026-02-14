@@ -11,11 +11,11 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle,
-} from '@constructive-io/ui/alert-dialog';
-import { Button } from '@constructive-io/ui/button';
-import { Input } from '@constructive-io/ui/input';
-import { showErrorToast } from '@constructive-io/ui/toast';
-import { showSuccessToast } from '@constructive-io/ui/toast';
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { showErrorToast } from '@/components/ui/toast';
+import { showSuccessToast } from '@/components/ui/toast';
 
 interface DeleteOrganizationDialogProps {
 	open: boolean;

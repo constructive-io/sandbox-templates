@@ -3,7 +3,7 @@
 import { Check } from 'lucide-react';
 
 import type { OrgClaimedInvite } from '@/lib/gql/hooks/schema-builder';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@constructive-io/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { RoleBadge } from '@/components/members/role-badge';
 
 import { InviterAvatar } from './inviter-avatar';

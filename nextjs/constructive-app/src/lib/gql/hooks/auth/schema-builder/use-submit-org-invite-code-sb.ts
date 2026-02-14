@@ -6,7 +6,7 @@ import { useSubmitOrgInviteCodeMutation } from '@sdk/api';
  * Schema-builder submit org invite code hook using SDK-generated mutation
  */
 export function useSubmitOrgInviteCodeSb() {
-	const submitOrgInviteMutation = useSubmitOrgInviteCodeMutation();
+	const submitOrgInviteMutation = useSubmitOrgInviteCodeMutation({ selection: { fields: { result: true } } });
 
 	return useMutation({
 		mutationKey: ['invite', 'submit-org-invite-code'],
@@ -14,7 +14,7 @@ export function useSubmitOrgInviteCodeSb() {
 			const result = await submitOrgInviteMutation.mutateAsync({
 				input: { token },
 			});
-			if (!result.submitOrgInviteCode?.boolean) {
+			if (!result.submitOrgInviteCode?.result) {
 				throw new Error('Invite could not be accepted.');
 			}
 			return { success: true };

@@ -27,6 +27,7 @@ export function useDeleteUser() {
 	const ctx = 'schema-builder';
 
 	const mutation = useDeleteUserMutation({
+		selection: { fields: { id: true } },
 		onSuccess: () => {
 			TokenManager.clearToken(ctx);
 			authActions.setUnauthenticated();
@@ -37,7 +38,7 @@ export function useDeleteUser() {
 	});
 
 	return {
-		deleteUser: (input: DeleteUserInput) => mutation.mutateAsync({ input: { id: input.userId } }),
+		deleteUser: (input: DeleteUserInput) => mutation.mutateAsync({ id: input.userId }),
 		isDeleting: mutation.isPending,
 		error: mutation.error,
 		reset: mutation.reset,
