@@ -1,6 +1,3 @@
-<svg width="102" height="82" viewBox="0 0 102 82" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M50.9082 0.935547L24.9082 42.4355H77.4082L50.9082 0.935547Z" fill="currentColor"/>
-<path d="M80.9082 48.9355H21.1695L0.908203 80.9355H100.908L80.9082 48.9355Z" fill="currentColor"/>
-<path d="M50.9082 0.935547L24.9082 42.4355H77.4082L50.9082 0.935547Z" stroke="currentColor"/>
-<path d="M80.9082 48.9355H21.1695L0.908203 80.9355H100.908L80.9082 48.9355Z" stroke="currentColor"/>
+<svg viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg">
+<path d="M301.365 600L416.13 489.262h138.926L301.365 0 46.667 489.262h138.926L301.365 600zm93.624-166.107l-94.631 90.604-93.624-90.604h-70.47l164.094-316.108 165.1 316.108h-70.47z" fill="currentColor" fill-rule="nonzero"/>
 </svg>
