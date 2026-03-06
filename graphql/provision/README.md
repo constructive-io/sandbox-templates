@@ -1,6 +1,6 @@
 # @constructive-templates/provision
 
-Pre-built provisioning template for Constructive apps. Handles the entire Phase 2.2 + 2.3 workflow: database creation, workarounds, secured table provisioning, and relation creation.
+Pre-built provisioning template for Constructive apps. Handles the entire Phase 2.2 workflow: database creation, workarounds, secured table provisioning, and relation creation.
 
 ## Usage
 

@@ -45,3 +45,24 @@ export interface ProvisionConfig {
 export function defineProvisionConfig(config: ProvisionConfig): ProvisionConfig {
   return config;
 }
+
+/**
+ * Placeholder default export.
+ * Agents replace this with a filled-in config from build/app-brief.yaml.
+ * provision.ts imports this as the default export — removing it causes a runtime error.
+ */
+export default defineProvisionConfig({
+  platformAuth: 'http://auth.localhost:3000/graphql',
+  platformApi: 'http://api.localhost:3000/graphql',
+  database: {
+    name: 'REPLACE_ME',
+    modules: ['all'],
+    bootstrapUser: true,
+  },
+  auth: {
+    email: 'admin@example.com',
+    password: 'REPLACE_ME',
+  },
+  tables: [],
+  relations: [],
+});
