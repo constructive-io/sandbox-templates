@@ -14,16 +14,14 @@
   "devDependencies": {
     "@types/node": "^20.19.29",
     "@types/pg": "^8.11.0",
-    "@types/uuid": "^10.0.0",
     "copyfiles": "^2",
     "rimraf": "^5",
     "ts-node": "^10.9.2",
     "typescript": "^5"
   },
   "dependencies": {
-    "@constructive-io/sdk": "^7.0.0",
-    "@constructive-io/node": "^7.0.0",
-    "pg": "^8.13.0",
-    "uuid": "^11.1.0"
+    "@constructive-io/sdk": "^0.3.2",
+    "@constructive-io/node": "^0.1.6",
+    "pg": "^8.13.0"
   }
 }

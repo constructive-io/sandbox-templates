@@ -188,7 +188,7 @@ async function main(): Promise<void> {
   try {
     await authDb.mutation.signUp(
       { input: { email: config.auth.email, password: config.auth.password } },
-      { select: { ok: true, errors: true } },
+      { select: { result: { select: { accessToken: true } } } },
     ).execute();
     console.log('  Sign-up succeeded.');
   } catch (err: unknown) {
@@ -219,10 +219,9 @@ async function main(): Promise<void> {
   // -----------------------------------------------------------------------
   console.log('Step 2: Creating database...');
 
-  const apiDb = platform.createClient({
-    adapter: new NodeHttpAdapter(config.platformApi),
-  });
-  apiDb.setHeaders({ Authorization: `Bearer ${accessToken}` });
+  const apiAdapter = new NodeHttpAdapter(config.platformApi);
+  apiAdapter.setHeaders({ Authorization: `Bearer ${accessToken}` });
+  const apiDb = platform.createClient({ adapter: apiAdapter });
 
   const dbResult = await apiDb.databaseProvisionModule.create({
     data: {
