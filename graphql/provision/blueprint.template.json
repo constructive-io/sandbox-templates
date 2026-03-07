@@ -1,0 +1,79 @@
+{
+  "name": "REPLACE_WITH_DB_NAME",
+  "description": "REPLACE_WITH_APP_DESCRIPTION",
+  "schema": {
+    "tables": [
+      {
+        "name": "projects",
+        "fields": [
+          { "name": "id", "type": "uuid", "isRequired": true, "isPrimaryKey": true, "defaultValue": "uuid_generate_v4()" },
+          { "name": "created_at", "type": "timestamp", "defaultValue": "now()" },
+          { "name": "updated_at", "type": "timestamp", "defaultValue": "now()" }
+        ],
+        "policies": [
+          {
+            "policyType": "AuthzEntityMembership",
+            "policyData": { "entity_field": "entity_id", "membership_type": 2 },
+            "operations": ["create", "read", "update", "delete"]
+          }
+        ]
+      },
+      {
+        "name": "tasks",
+        "fields": [
+          { "name": "id", "type": "uuid", "isRequired": true, "isPrimaryKey": true, "defaultValue": "uuid_generate_v4()" },
+          { "name": "title", "type": "text", "isRequired": true },
+          { "name": "status", "type": "text", "defaultValue": "'pending'" },
+          { "name": "description", "type": "text" },
+          { "name": "created_at", "type": "timestamp", "defaultValue": "now()" },
+          { "name": "updated_at", "type": "timestamp", "defaultValue": "now()" }
+        ],
+        "relations": [
+          {
+            "kind": "belongs-to",
+            "fieldName": "project_id",
+            "targetTable": "projects",
+            "deleteAction": "c"
+          }
+        ],
+        "policies": [
+          {
+            "policyType": "AuthzEntityMembership",
+            "policyData": { "entity_field": "entity_id", "membership_type": 2 },
+            "operations": ["create", "read", "update", "delete"]
+          }
+        ]
+      },
+      {
+        "name": "tags",
+        "fields": [
+          { "name": "id", "type": "uuid", "isRequired": true, "isPrimaryKey": true, "defaultValue": "uuid_generate_v4()" },
+          { "name": "name", "type": "text", "isRequired": true }
+        ],
+        "relations": [
+          {
+            "kind": "many-to-many",
+            "targetTable": "projects",
+            "junctionTableName": "project_tags",
+            "useCompositeKey": true,
+            "deleteAction": "c",
+            "policies": [
+              {
+                "policyType": "AuthzEntityMembership",
+                "policyData": { "entity_field": "entity_id", "membership_type": 2 },
+                "operations": ["create", "read", "delete"]
+              }
+            ]
+          }
+        ],
+        "policies": [
+          {
+            "policyType": "AuthzEntityMembership",
+            "policyData": { "entity_field": "entity_id", "membership_type": 2 },
+            "operations": ["create", "read", "update", "delete"]
+          }
+        ]
+      }
+    ]
+  }
+}
