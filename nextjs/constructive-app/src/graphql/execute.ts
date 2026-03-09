@@ -243,5 +243,12 @@ export function execute<TDocument extends ExecutableDocument>(
 	return executeInContext('schema-builder', document, variables);
 }
 
+export function executeAuth<TDocument extends ExecutableDocument>(
+	document: TDocument,
+	variables?: VariablesOfDocument<TDocument>,
+): Promise<ResultOfDocument<TDocument>> {
+	return executeInContext('auth', document, variables);
+}
+
 // Re-export DataError for consumers
 export { DataError } from '@/lib/gql/error-handler';

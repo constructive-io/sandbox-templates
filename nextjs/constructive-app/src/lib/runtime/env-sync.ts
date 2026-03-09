@@ -1,4 +1,8 @@
 import { appStore } from '@/store/app-store';
+import type { SchemaContext } from '@/lib/runtime/config-core';
+
+const ENDPOINT_KEY_PREFIX = 'constructive-endpoint:';
+const SYNCED_CONTEXTS: SchemaContext[] = ['schema-builder', 'auth'];
 
 export function initEnvOverridesSync() {
 	if (typeof window === 'undefined') return;
@@ -7,8 +11,10 @@ export function initEnvOverridesSync() {
 	(window as any).__constructive_env_sync__ = true;
 
 	window.addEventListener('storage', (e: StorageEvent) => {
-		if (e.key !== 'constructive-endpoint:schema-builder') return;
+		if (!e.key?.startsWith(ENDPOINT_KEY_PREFIX)) return;
+		const ctx = e.key.slice(ENDPOINT_KEY_PREFIX.length) as SchemaContext;
+		if (!SYNCED_CONTEXTS.includes(ctx)) return;
 		const value = e.newValue && e.newValue.trim().length ? e.newValue.trim() : null;
-		appStore.setEndpointOverrideFromSync('schema-builder', value);
+		appStore.setEndpointOverrideFromSync(ctx, value);
 	});
 }

@@ -8,11 +8,11 @@ import { toApiToken } from '@/lib/auth/token-utils';
 import { useAuthActions } from '@/store/app-store';
 import type { UserProfile } from '@/store/auth-slice';
 import { ROUTE_PATHS } from '@/app-routes';
+import { fetchAppMembershipsQuery } from '@sdk/api';
 import {
-	fetchAppMembershipsQuery,
 	useSendVerificationEmailMutation,
 	useSignUpMutation,
-} from '@sdk/api';
+} from '@sdk/auth';
 
 import { authKeys } from '../../query-keys';
 

@@ -14,6 +14,7 @@
 export const RUNTIME_CONFIG_KEYS = [
 	// GraphQL Endpoints
 	'NEXT_PUBLIC_SCHEMA_BUILDER_GRAPHQL_ENDPOINT',
+	'NEXT_PUBLIC_AUTH_GRAPHQL_ENDPOINT',
 ] as const;
 
 /** Type representing any valid runtime config key */
@@ -38,6 +39,7 @@ export type RuntimeConfig = {
  */
 export const BUILD_TIME_ENV_VALUES: Record<RuntimeConfigKey, string | undefined> = {
 	NEXT_PUBLIC_SCHEMA_BUILDER_GRAPHQL_ENDPOINT: process.env.NEXT_PUBLIC_SCHEMA_BUILDER_GRAPHQL_ENDPOINT,
+	NEXT_PUBLIC_AUTH_GRAPHQL_ENDPOINT: process.env.NEXT_PUBLIC_AUTH_GRAPHQL_ENDPOINT,
 };
 
 /**
