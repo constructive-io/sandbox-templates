@@ -35,7 +35,7 @@ export interface BrandingConfig {
 }
 
 export const branding: BrandingConfig = {
-	name: 'Acme Inc.',
+	name: 'airpage',
 	tagline: 'powered by Constructive',
 
 	logo: '/logo.svg',
@@ -43,7 +43,7 @@ export const branding: BrandingConfig = {
 	logoDark: null,
 	wordmarkDark: null,
 
-	companyName: 'Acme, Inc',
+	companyName: 'Constructive',
 	legalLinks: [
 		{ label: 'Disclaimer', href: 'https://constructive.io/legal/disclaimer' },
 		{ label: 'Privacy Policy', href: 'https://constructive.io/legal/privacy-policy' },

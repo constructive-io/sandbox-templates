@@ -1,33 +1,27 @@
 {
-  "name": "@constructive-templates/graphql-codegen",
+  "name": "@constructive-templates/provision",
   "version": "0.0.1",
-  "author": "____fullName____ <____email____>",
   "private": true,
   "main": "index.js",
   "module": "esm/index.js",
   "types": "index.d.ts",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/____username____/____repoName____"
-  },
-  "license": "____license____",
-  "description": "____moduleDesc____",
   "scripts": {
     "copy": "copyfiles -f ../../LICENSE README.md package.json dist",
     "clean": "rimraf dist/**",
     "build": "pnpm run clean; tsc; tsc -p tsconfig.esm.json; pnpm run copy",
-    "codegen": "ts-node generate.ts"
+    "provision": "ts-node provision.ts"
   },
-  "keywords": [],
   "devDependencies": {
     "@types/node": "^20.19.29",
+    "@types/pg": "^8.11.0",
     "copyfiles": "^2",
     "rimraf": "^5",
     "ts-node": "^10.9.2",
-    "typescript": "^5",
-    "@constructive-io/graphql-codegen": "^4.7.0"
+    "typescript": "^5"
   },
   "dependencies": {
-    "@tanstack/react-query": "^5.90.17"
+    "@constructive-io/sdk": "^0.3.2",
+    "@constructive-io/node": "^0.1.6",
+    "pg": "^8.13.0"
   }
 }
