@@ -3,19 +3,20 @@
 import { QueryClientProvider } from '@tanstack/react-query';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 
-import { getEndpoint } from '@/app-config';
+import { getEndpoint, type SchemaContext } from '@/app-config';
 import { getAuthHeaders } from '@/graphql/execute';
-import { configure, type QueryResult } from '@sdk/api';
+import { configure as configureApi, type QueryResult } from '@sdk/api';
+import { configure as configureAuth } from '@sdk/auth';
 import { AuthProvider } from '@/lib/auth/auth-context';
 import { queryClient } from '@/lib/query-client';
 
-// Initialize the SDK client at module load time (before any queries can fire).
+// Shared adapter factory — creates a GraphQL adapter bound to a specific schema context.
 // Endpoint uses a getter so changes to Direct Connect / UI overrides are picked up
 // on every request without needing to re-call configure().
-configure({
-	adapter: {
+function createSdkAdapter(ctx: SchemaContext) {
+	return {
 		async execute<T>(document: string, variables?: Record<string, unknown>): Promise<QueryResult<T>> {
-			const endpoint = getEndpoint('schema-builder')!;
+			const endpoint = getEndpoint(ctx)!;
 			const headers = getAuthHeaders('schema-builder');
 			const res = await fetch(endpoint, {
 				method: 'POST',
@@ -28,8 +29,12 @@ configure({
 			}
 			return { ok: true as const, data: json.data as T, errors: undefined };
 		},
-	},
-});
+	};
+}
+
+// Initialize both SDK clients at module load time (before any queries can fire).
+configureApi({ adapter: createSdkAdapter('schema-builder') });
+configureAuth({ adapter: createSdkAdapter('auth') });
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
 	return (

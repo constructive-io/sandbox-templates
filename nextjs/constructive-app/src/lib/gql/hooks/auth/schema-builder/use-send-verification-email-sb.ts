@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { useSendVerificationEmailMutation } from '@sdk/api';
+import { useSendVerificationEmailMutation } from '@sdk/auth';
 
 import { authKeys } from '../../query-keys';
 

@@ -6,7 +6,7 @@
 import { TypedDocumentString } from './typed-document';
 
 // Core execution functions with proper type inference
-export { execute, executeSb, executeInContext, getAuthHeaders } from './execute';
+export { execute, executeSb, executeAuth, executeInContext, getAuthHeaders } from './execute';
 
 // Context utilities
 export { getSchemaContext, type SchemaContext } from '@/app-config';

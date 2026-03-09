@@ -68,6 +68,7 @@ export function getEndpoint(ctx: SchemaContext = getSchemaContext()): string | n
 
 export const homePathByContext: Record<SchemaContext, string> = {
 	'schema-builder': '/',
+	'auth': '/',
 } as const;
 
 export function getHomePath(ctx: SchemaContext = getSchemaContext()): string {

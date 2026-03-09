@@ -1,20 +1,28 @@
 import type { GraphQLSDKConfigTarget } from '@constructive-io/graphql-codegen';
 
 /**
- * Single-endpoint codegen config for the schema-builder SDK.
+ * Multi-endpoint codegen config for the schema-builder SDK.
  *
- * All schema-builder operations (databases, tables, fields, schemas, APIs, sites,
- * domains, modules, auth, memberships, permissions, invites, orgs) are served
- * from a single `api` endpoint.
+ * Each API target generates its own SDK folder under schema-builder-sdk/.
  *
- * Auth: JWT obtained via signIn works across all operations.
+ * - api:  Org CRUD, memberships, permissions, invites, app admin, user profiles, account
+ * - auth: Login, register, logout, token refresh, password reset, email verification
+ *
+ * Auth: JWT obtained via signIn on the auth endpoint works across all public API endpoints.
  */
 
 const config: Record<string, GraphQLSDKConfigTarget> = {
 	api: {
 		reactQuery: true,
-		endpoint: process.env.CODEGEN_API_ENDPOINT ?? 'http://api.localhost:3000/graphql',
+		endpoint: process.env.CODEGEN_API_ENDPOINT ?? 'http://[::1]:3000/graphql',
+		headers: { Host: 'api.localhost:3000' },
 		output: './src/graphql/schema-builder-sdk/api',
+	},
+	auth: {
+		reactQuery: true,
+		endpoint: process.env.CODEGEN_AUTH_ENDPOINT ?? 'http://[::1]:3000/graphql',
+		headers: { Host: 'auth.localhost:3000' },
+		output: './src/graphql/schema-builder-sdk/auth',
 	},
 };
 
