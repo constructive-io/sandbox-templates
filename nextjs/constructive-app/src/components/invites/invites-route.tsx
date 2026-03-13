@@ -14,7 +14,7 @@ import {
 	useSendOrgInvite,
 	type OrganizationWithRole,
 	type OrgInvite,
-} from '@/lib/gql/hooks/schema-builder';
+} from '@/lib/gql/hooks/admin';
 import { PageHeaderWithIcon } from '@/components/shared/page-header-with-icon';
 
 import { ActiveInvitesTable } from './active-invites-table';

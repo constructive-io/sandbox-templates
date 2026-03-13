@@ -15,7 +15,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import type { OrgRole } from '@/lib/gql/hooks/schema-builder';
+import type { OrgRole } from '@/lib/gql/hooks/admin';
 
 /**
  * Role configuration with distinct visual treatments

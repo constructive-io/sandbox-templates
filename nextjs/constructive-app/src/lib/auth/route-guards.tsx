@@ -5,7 +5,7 @@ import type { Route } from 'next';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 
-import { useCurrentUserAppMembership } from '@/lib/gql/hooks/schema-builder/app';
+import { useCurrentUserAppMembership } from '@/lib/gql/hooks/admin/app';
 import { AccessDenied } from '@/components/access-denied/access-denied';
 import { getHomePath } from '@/app-config';
 import {

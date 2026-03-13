@@ -1,5 +1,5 @@
 /**
- * Auth slice — schema-builder (app-level) authentication only.
+ * Auth slice — admin (app-level) authentication only.
  *
  * No external dependencies on state-management libraries.
  * State is held by the vanilla AppStore defined in app-store.ts.

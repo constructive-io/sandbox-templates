@@ -2,7 +2,7 @@
 
 import { Check } from 'lucide-react';
 
-import type { OrgClaimedInvite } from '@/lib/gql/hooks/schema-builder';
+import type { OrgClaimedInvite } from '@/lib/gql/hooks/admin';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { RoleBadge } from '@/components/members/role-badge';
 

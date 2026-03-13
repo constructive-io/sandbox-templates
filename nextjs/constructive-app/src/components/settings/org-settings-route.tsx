@@ -14,8 +14,8 @@ import {
 	useUpdateOrganization,
 	useUpdateOrgMembershipDefault,
 	type OrganizationWithRole,
-} from '@/lib/gql/hooks/schema-builder';
-import { usePermissions } from '@/lib/gql/hooks/schema-builder/policies/use-permissions';
+} from '@/lib/gql/hooks/admin';
+import { usePermissions } from '@/lib/gql/hooks/admin/policies/use-permissions';
 import {
 	AlertDialog,
 	AlertDialogCancel,
