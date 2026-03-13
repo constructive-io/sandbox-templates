@@ -12,10 +12,12 @@
  * 2. Update docker-entrypoint.sh to include the new key
  */
 export const RUNTIME_CONFIG_KEYS = [
-	// GraphQL Endpoints
-	'NEXT_PUBLIC_SCHEMA_BUILDER_GRAPHQL_ENDPOINT',
-	'NEXT_PUBLIC_AUTH_GRAPHQL_ENDPOINT',
-	'NEXT_PUBLIC_ADMIN_GRAPHQL_ENDPOINT',
+	// Database name (derives all endpoints)
+	'NEXT_PUBLIC_DB_NAME',
+	// GraphQL Endpoint Overrides (optional)
+	'NEXT_PUBLIC_ADMIN_ENDPOINT',
+	'NEXT_PUBLIC_AUTH_ENDPOINT',
+	'NEXT_PUBLIC_APP_ENDPOINT',
 ] as const;
 
 /** Type representing any valid runtime config key */
@@ -39,9 +41,10 @@ export type RuntimeConfig = {
  * For runtime configuration (Docker), use window.__RUNTIME_CONFIG__ instead.
  */
 export const BUILD_TIME_ENV_VALUES: Record<RuntimeConfigKey, string | undefined> = {
-	NEXT_PUBLIC_SCHEMA_BUILDER_GRAPHQL_ENDPOINT: process.env.NEXT_PUBLIC_SCHEMA_BUILDER_GRAPHQL_ENDPOINT,
-	NEXT_PUBLIC_AUTH_GRAPHQL_ENDPOINT: process.env.NEXT_PUBLIC_AUTH_GRAPHQL_ENDPOINT,
-	NEXT_PUBLIC_ADMIN_GRAPHQL_ENDPOINT: process.env.NEXT_PUBLIC_ADMIN_GRAPHQL_ENDPOINT,
+	NEXT_PUBLIC_DB_NAME: process.env.NEXT_PUBLIC_DB_NAME,
+	NEXT_PUBLIC_ADMIN_ENDPOINT: process.env.NEXT_PUBLIC_ADMIN_ENDPOINT,
+	NEXT_PUBLIC_AUTH_ENDPOINT: process.env.NEXT_PUBLIC_AUTH_ENDPOINT,
+	NEXT_PUBLIC_APP_ENDPOINT: process.env.NEXT_PUBLIC_APP_ENDPOINT,
 };
 
 /**
@@ -71,7 +74,10 @@ if (process.env.NODE_ENV === 'development') {
 		);
 	}
 	if (extraInBuildTime.length > 0) {
-		console.warn('[constructive][config] Extra keys in BUILD_TIME_ENV_VALUES not in RUNTIME_CONFIG_KEYS:', extraInBuildTime);
+		console.warn(
+			'[constructive][config] Extra keys in BUILD_TIME_ENV_VALUES not in RUNTIME_CONFIG_KEYS:',
+			extraInBuildTime,
+		);
 	}
 }
 

@@ -1,35 +1,50 @@
+import { loadEnvConfig } from '@next/env';
 import type { GraphQLSDKConfigTarget } from '@constructive-io/graphql-codegen';
 
+// Load .env.local for DB_NAME (using Next.js built-in)
+loadEnvConfig(process.cwd());
+
 /**
- * Multi-endpoint codegen config for the schema-builder SDK.
+ * Per-DB Template - GraphQL Codegen Configuration
  *
- * Each API target generates its own SDK folder under schema-builder-sdk/.
+ * Three SDK targets:
+ * - admin: Organizations, members, permissions, invites
+ * - auth:  Users, emails, authentication
+ * - app:   Your business data
  *
- * - api:   Public endpoint — user profiles, account, schema-builder CRUD, etc.
- * - auth:  Login, register, logout, token refresh, password reset, email verification
- * - admin: Org & app admin — memberships, permissions, invites, org CRUD, app settings
- *
- * Auth: JWT obtained via signIn on the auth endpoint works across all public API endpoints.
+ * Usage:
+ *   1. Set NEXT_PUBLIC_DB_NAME in .env.local
+ *   2. Run: pnpm codegen
  */
 
+const DB_NAME = process.env.NEXT_PUBLIC_DB_NAME;
+
+if (!DB_NAME) {
+	throw new Error(
+		'NEXT_PUBLIC_DB_NAME is required.\n' +
+			'Set it in .env.local:\n' +
+			'  NEXT_PUBLIC_DB_NAME=your-db-name',
+	);
+}
+
 const config: Record<string, GraphQLSDKConfigTarget> = {
-	api: {
+	admin: {
 		reactQuery: true,
-		endpoint: process.env.CODEGEN_API_ENDPOINT ?? 'http://api.localhost:3000/graphql',
-		headers: { Host: 'api.localhost:3000' },
-		output: './src/graphql/schema-builder-sdk/api',
+		endpoint: process.env.CODEGEN_ADMIN_ENDPOINT ?? 'http://[::1]:3000/graphql',
+		headers: { Host: `admin-${DB_NAME}.localhost:3000` },
+		output: './src/graphql/sdk/admin',
 	},
 	auth: {
 		reactQuery: true,
-		endpoint: process.env.CODEGEN_AUTH_ENDPOINT ?? 'http://auth.localhost:3000/graphql',
-		headers: { Host: 'auth.localhost:3000' },
-		output: './src/graphql/schema-builder-sdk/auth',
+		endpoint: process.env.CODEGEN_AUTH_ENDPOINT ?? 'http://[::1]:3000/graphql',
+		headers: { Host: `auth-${DB_NAME}.localhost:3000` },
+		output: './src/graphql/sdk/auth',
 	},
-	admin: {
+	app: {
 		reactQuery: true,
-		endpoint: process.env.CODEGEN_ADMIN_ENDPOINT ?? 'http://admin.localhost:3000/graphql',
-		headers: { Host: 'admin.localhost:3000' },
-		output: './src/graphql/schema-builder-sdk/admin',
+		endpoint: process.env.CODEGEN_APP_ENDPOINT ?? 'http://[::1]:3000/graphql',
+		headers: { Host: `app-public-${DB_NAME}.localhost:3000` },
+		output: './src/graphql/sdk/app',
 	},
 };
 

@@ -1,8 +1,12 @@
 import {
-	appEndpoints,
 	getDefaultEndpoint,
+	getEndpoints,
 	getSchemaContext as coreGetCtx,
 	setSchemaContext as coreSetCtx,
+	getDbName,
+	getAdminEndpoint,
+	getAuthEndpoint,
+	getAppEndpoint,
 	type SchemaContext,
 } from '@/lib/runtime/config-core';
 import { createLogger } from '@/lib/logger';
@@ -10,6 +14,7 @@ import { useAppStore } from '@/store/app-store';
 import type { AppState } from '@/store/app-store';
 
 export type { SchemaContext } from '@/lib/runtime/config-core';
+export { getDbName, getAdminEndpoint, getAuthEndpoint, getAppEndpoint };
 
 export const setSchemaContext = coreSetCtx;
 export const getSchemaContext = coreGetCtx;
@@ -22,9 +27,8 @@ const logger = createLogger({ scope: 'app-config' });
  * Priority chain:
  * 1. UI override (from store/localStorage)
  * 2. Dynamic default (getDefaultEndpoint - reads from runtime config or env)
- * 3. Static fallback (appEndpoints - evaluated at module load)
  */
-export function getEndpoint(ctx: SchemaContext = getSchemaContext()): string | null {
+export function getEndpoint(ctx: SchemaContext = getSchemaContext()): string {
 	let endpoint: string | null = null;
 	let source = 'none';
 
@@ -40,36 +44,23 @@ export function getEndpoint(ctx: SchemaContext = getSchemaContext()): string | n
 		logger.debug('getEndpoint: Error accessing store', { error: String(e) });
 	}
 
-	// 2. Use dynamic getter (reads from window.__RUNTIME_CONFIG__ or process.env)
+	// 2. Use dynamic getter
 	if (!endpoint) {
 		endpoint = getDefaultEndpoint(ctx);
-		if (endpoint) {
-			source = 'getDefaultEndpoint';
-		}
+		source = 'getDefaultEndpoint';
 	}
 
-	// 3. Fallback to static appEndpoints (for backwards compat)
-	if (!endpoint) {
-		endpoint = appEndpoints[ctx];
-		if (endpoint) {
-			source = 'appEndpoints-fallback';
-		}
-	}
-
-	logger.debug('getEndpoint called', {
-		context: ctx,
-		endpoint,
-		source,
-		appEndpointsValue: appEndpoints[ctx],
-	});
+	logger.debug('getEndpoint called', { context: ctx, endpoint, source });
 
 	return endpoint;
 }
 
+export { getDefaultEndpoint };
+
 export const homePathByContext: Record<SchemaContext, string> = {
-	'schema-builder': '/',
-	'auth': '/',
-	'admin': '/',
+	admin: '/',
+	auth: '/',
+	app: '/',
 } as const;
 
 export function getHomePath(ctx: SchemaContext = getSchemaContext()): string {
@@ -78,5 +69,7 @@ export function getHomePath(ctx: SchemaContext = getSchemaContext()): string {
 
 // Backward-compatible appConfig container
 export const appConfig = {
-	endpoints: appEndpoints,
+	get endpoints() {
+		return getEndpoints();
+	},
 } as const;

@@ -15,7 +15,9 @@
 		"incremental": true,
 		"paths": {
 			"@/*": ["./src/*"],
-			"@sdk/*": ["./src/graphql/schema-builder-sdk/*"]
+			"@sdk/admin": ["./src/graphql/sdk/admin"],
+			"@sdk/auth": ["./src/graphql/sdk/auth"],
+			"@sdk/app": ["./src/graphql/sdk/app"]
 		},
 		"plugins": [
 			{

@@ -2,7 +2,7 @@ import { appStore } from '@/store/app-store';
 import type { SchemaContext } from '@/lib/runtime/config-core';
 
 const ENDPOINT_KEY_PREFIX = 'constructive-endpoint:';
-const SYNCED_CONTEXTS: SchemaContext[] = ['schema-builder', 'auth'];
+const SYNCED_CONTEXTS: SchemaContext[] = ['admin', 'auth'];
 
 export function initEnvOverridesSync() {
 	if (typeof window === 'undefined') return;
