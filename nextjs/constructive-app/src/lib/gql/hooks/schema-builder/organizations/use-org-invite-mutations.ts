@@ -1,12 +1,11 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { useAppStore } from '@/store/app-store';
 
 import type { SchemaContext } from '@/app-config';
 import {
 	useCreateOrgInviteMutation,
 	useDeleteOrgInviteMutation,
 	useUpdateOrgInviteMutation,
-} from '@sdk/api';
+} from '@sdk/admin';
 
 import { orgInvitesQueryKeys } from './use-org-invites';
 
@@ -18,27 +17,16 @@ export interface SendOrgInviteInput {
 }
 
 export function useSendOrgInvite(defaultContext: SchemaContext = 'schema-builder') {
-	void defaultContext;
 	const queryClient = useQueryClient();
 	const createMutation = useCreateOrgInviteMutation({ selection: { fields: { id: true } } });
 
 	return {
 		sendInvite: async (input: SendOrgInviteInput) => {
 			const ctx = input.context ?? defaultContext;
-			const senderId = useAppStore.getState().auth.user?.id || useAppStore.getState().auth.token?.userId;
-			if (!senderId) throw new Error('No authenticated user found');
 			const result = await createMutation.mutateAsync({
 				entityId: input.orgId,
-				senderId,
-				receiverId: senderId,
 				email: input.email,
 				expiresAt: input.expiresAt,
-				// TODO: fix permission denied for table org_invites
-				// data: {
-				// 	email: input.email,
-				// 	role: 'member',
-				// 	message: null,
-				// },
 			});
 			queryClient.invalidateQueries({ queryKey: orgInvitesQueryKeys.active(ctx, input.orgId) });
 			queryClient.invalidateQueries({ queryKey: orgInvitesQueryKeys.claimed(ctx, input.orgId) });

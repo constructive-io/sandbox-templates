@@ -7,10 +7,10 @@
 import { useQuery } from '@tanstack/react-query';
 
 import type { SchemaContext } from '@/app-config';
+import { fetchOrgMembershipsQuery } from '@sdk/admin';
 import {
 	fetchUserQuery,
 	fetchUsersQuery,
-	fetchOrgMembershipsQuery,
 } from '@sdk/api';
 import { useAppStore } from '@/store/app-store';
 

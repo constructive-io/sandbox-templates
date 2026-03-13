@@ -2,15 +2,16 @@ import { createLogger } from '@/lib/logger';
 
 import { getRuntimeConfig } from './get-runtime-config';
 
-export type SchemaContext = 'schema-builder' | 'auth';
+export type SchemaContext = 'schema-builder' | 'auth' | 'admin';
 
-export const schemaContexts: readonly SchemaContext[] = ['schema-builder', 'auth'];
+export const schemaContexts: readonly SchemaContext[] = ['schema-builder', 'auth', 'admin'];
 
 const logger = createLogger({ scope: 'config-core' });
 
 // Hardcoded fallback defaults (used when no env vars are set)
 const DEFAULT_SCHEMA_BUILDER_ENDPOINT = 'http://api.localhost:3000/graphql';
 const DEFAULT_AUTH_ENDPOINT = 'http://auth.localhost:3000/graphql';
+const DEFAULT_ADMIN_ENDPOINT = 'http://admin.localhost:3000/graphql';
 
 /**
  * Get the schema builder endpoint dynamically.
@@ -62,6 +63,27 @@ export function getAuthEndpoint(): string {
 export const authGraphqlEndpoint = getAuthEndpoint();
 
 /**
+ * Get the admin endpoint dynamically.
+ * Priority: window.__RUNTIME_CONFIG__ (Docker) > process.env (build-time) > hardcoded default
+ */
+export function getAdminEndpoint(): string {
+	const runtimeValue = getRuntimeConfig('NEXT_PUBLIC_ADMIN_GRAPHQL_ENDPOINT');
+	const endpoint = runtimeValue || DEFAULT_ADMIN_ENDPOINT;
+
+	logger.debug('getAdminEndpoint called', {
+		runtimeValue,
+		fallbackDefault: DEFAULT_ADMIN_ENDPOINT,
+		resolved: endpoint,
+		usedFallback: !runtimeValue,
+	});
+
+	return endpoint;
+}
+
+// Legacy constant for backwards compatibility (evaluated at module load time)
+export const adminGraphqlEndpoint = getAdminEndpoint();
+
+/**
  * Get the default endpoint for a given context dynamically.
  */
 export function getDefaultEndpoint(ctx?: SchemaContext): string | null {
@@ -69,6 +91,9 @@ export function getDefaultEndpoint(ctx?: SchemaContext): string | null {
 	switch (ctx) {
 		case 'auth':
 			endpoint = getAuthEndpoint();
+			break;
+		case 'admin':
+			endpoint = getAdminEndpoint();
 			break;
 		case 'schema-builder':
 		default:
@@ -85,6 +110,7 @@ export function getDefaultEndpoint(ctx?: SchemaContext): string | null {
 export const appEndpoints: Record<SchemaContext, string | null> = {
 	'schema-builder': schemaBuilderGraphqlEndpoint,
 	'auth': authGraphqlEndpoint,
+	'admin': adminGraphqlEndpoint,
 } as const;
 
 export function setSchemaContext(_ctx: SchemaContext | null) {

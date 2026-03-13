@@ -109,7 +109,7 @@ export function InvitesRoute({ orgId, orgName = 'Organization', organization }: 
 										entityId: orgId,
 										enabled: canManageInvites,
 										isSending,
-										onSendInvite: async ({ entityId, email, role, expiresAt, message }) => {
+										onSendInvite: async ({ entityId, email, expiresAt }) => {
 											await sendInvite({ orgId: entityId!, email, expiresAt });
 											setActivePage(1);
 										},

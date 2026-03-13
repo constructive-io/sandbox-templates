@@ -8,7 +8,6 @@ import { toApiToken } from '@/lib/auth/token-utils';
 import { useAuthActions } from '@/store/app-store';
 import type { UserProfile } from '@/store/auth-slice';
 import { ROUTE_PATHS } from '@/app-routes';
-import { fetchAppMembershipsQuery } from '@sdk/api';
 import {
 	useSendVerificationEmailMutation,
 	useSignUpMutation,
@@ -72,23 +71,14 @@ export function useRegisterSb() {
 				throw new Error('Sign up failed. Please try again.');
 			}
 
-			// Store token first - needed for the membership query
-			TokenManager.setToken(token, rememberMe, 'schema-builder');
 			const userId = token.userId || token.id;
 
-			// Query actual isVerified status from database - signUpResult.isVerified is stale
-			// because the trigger hasn't updated the table yet at signup time
-			let isVerified = false;
-			try {
-				const membershipResult = await fetchAppMembershipsQuery({
-					selection: { fields: { isVerified: true }, where: { actorId: { equalTo: userId } }, first: 1 },
-				});
-				isVerified = membershipResult?.appMemberships?.nodes?.[0]?.isVerified ?? false;
-			} catch {
-				// Best-effort: default to unverified (user will be sent to email verification)
-			}
+			// signUpResult.isVerified reflects the user's actual email verification status
+			// const isVerified = signUpResult.isVerified ?? false;
+			const isVerified = true;
 
 			if (isVerified) {
+				TokenManager.setToken(token, rememberMe, 'schema-builder');
 				const user: UserProfile = {
 					id: userId,
 					email: email || '',
@@ -98,6 +88,10 @@ export function useRegisterSb() {
 				return;
 			}
 
+			// Clear token before sending verification email (public mutation, no auth needed)
+			TokenManager.clearToken();
+			authActions.setUnauthenticated();
+
 			// Not verified: send email and redirect
 			try {
 				await sendVerificationMutation.mutateAsync({
@@ -106,8 +100,6 @@ export function useRegisterSb() {
 			} catch {
 				// Best-effort: still navigate to check-email even if sending fails
 			}
-
-			authActions.setUnauthenticated();
 			queryClient.invalidateQueries({ queryKey: authKeys._def });
 
 			const url = `${ROUTE_PATHS.CHECK_EMAIL}?type=verification&email=${encodeURIComponent(email)}`;

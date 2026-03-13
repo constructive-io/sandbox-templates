@@ -10,8 +10,9 @@
 
 | API | Endpoint | Generators | Docs |
 |-----|----------|------------|------|
-| api | http://[::1]:3000/graphql | React Query, ORM | [./src/graphql/schema-builder-sdk/api/README.md](./src/graphql/schema-builder-sdk/api/README.md) |
-| auth | http://[::1]:3000/graphql | React Query, ORM | [./src/graphql/schema-builder-sdk/auth/README.md](./src/graphql/schema-builder-sdk/auth/README.md) |
+| api | http://api.localhost:3000/graphql | React Query, ORM | [./src/graphql/schema-builder-sdk/api/README.md](./src/graphql/schema-builder-sdk/api/README.md) |
+| auth | http://auth.localhost:3000/graphql | React Query, ORM | [./src/graphql/schema-builder-sdk/auth/README.md](./src/graphql/schema-builder-sdk/auth/README.md) |
+| admin | http://admin.localhost:3000/graphql | React Query, ORM | [./src/graphql/schema-builder-sdk/admin/README.md](./src/graphql/schema-builder-sdk/admin/README.md) |
 
 ---
 
