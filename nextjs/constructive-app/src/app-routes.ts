@@ -43,21 +43,13 @@ export interface RouteConfig {
 // =============================================================================
 
 export const APP_ROUTES = {
-	// Root route - entry point for authentication
+	// Root route - entry point
 	// When unauthenticated: shows login screen
-	// When authenticated: redirects to /getting-started
+	// When authenticated: shows build guide (edit this page!)
 	ROOT: {
 		path: '/' as Route,
 		searchParams: {},
 		access: 'public' as RouteAccessType,
-		context: 'admin' as SchemaContext,
-	},
-
-	// Getting Started - build guide for new projects
-	GETTING_STARTED: {
-		path: '/getting-started' as Route,
-		searchParams: {},
-		access: 'protected' as RouteAccessType,
 		context: 'admin' as SchemaContext,
 	},
 
@@ -433,7 +425,6 @@ export const navigationUtils = {
 // Export route constants for easy access
 export const ROUTE_PATHS = {
 	ROOT: APP_ROUTES.ROOT.path,
-	GETTING_STARTED: APP_ROUTES.GETTING_STARTED.path,
 	// Organization-scoped routes
 	ORG_MEMBERS: APP_ROUTES.ORG_MEMBERS.path,
 	ORG_INVITES: APP_ROUTES.ORG_INVITES.path,
