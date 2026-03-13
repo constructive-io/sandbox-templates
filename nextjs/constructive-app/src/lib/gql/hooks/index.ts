@@ -12,5 +12,5 @@ export {
 	useSubmitOrgInviteCode,
 } from './auth';
 
-// ==== Schema builder hooks
-export * from './schema-builder';
+// ==== Admin hooks (organizations, permissions, etc.)
+export * from './admin';

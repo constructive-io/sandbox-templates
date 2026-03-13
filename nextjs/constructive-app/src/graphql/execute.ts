@@ -229,18 +229,11 @@ export async function executeInContext<TDocument extends ExecutableDocument>(
 // Convenience Exports
 // ============================================================================
 
-export function executeSb<TDocument extends ExecutableDocument>(
+export function executeAdmin<TDocument extends ExecutableDocument>(
 	document: TDocument,
 	variables?: VariablesOfDocument<TDocument>,
 ): Promise<ResultOfDocument<TDocument>> {
-	return executeInContext('schema-builder', document, variables);
-}
-
-export function execute<TDocument extends ExecutableDocument>(
-	document: TDocument,
-	variables?: VariablesOfDocument<TDocument>,
-): Promise<ResultOfDocument<TDocument>> {
-	return executeInContext('schema-builder', document, variables);
+	return executeInContext('admin', document, variables);
 }
 
 export function executeAuth<TDocument extends ExecutableDocument>(
@@ -250,7 +243,15 @@ export function executeAuth<TDocument extends ExecutableDocument>(
 	return executeInContext('auth', document, variables);
 }
 
-export function executeAdmin<TDocument extends ExecutableDocument>(
+export function executeApp<TDocument extends ExecutableDocument>(
+	document: TDocument,
+	variables?: VariablesOfDocument<TDocument>,
+): Promise<ResultOfDocument<TDocument>> {
+	return executeInContext('app', document, variables);
+}
+
+// Default execute uses admin context
+export function execute<TDocument extends ExecutableDocument>(
 	document: TDocument,
 	variables?: VariablesOfDocument<TDocument>,
 ): Promise<ResultOfDocument<TDocument>> {

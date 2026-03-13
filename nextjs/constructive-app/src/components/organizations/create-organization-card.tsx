@@ -8,7 +8,7 @@ import type { CardComponent } from '@/components/ui/stack';
 import { showErrorToast, showSuccessToast } from '@/components/ui/toast';
 import { BuildingIcon, Loader2Icon } from 'lucide-react';
 
-import { useCreateOrganization } from '@/lib/gql/hooks/schema-builder';
+import { useCreateOrganization } from '@/lib/gql/hooks/admin';
 
 export type CreateOrganizationCardProps = {
 	onSuccess?: () => void;

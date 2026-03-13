@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Loader2Icon } from 'lucide-react';
 
-import { useDeleteOrganization, type OrganizationWithRole } from '@/lib/gql/hooks/schema-builder';
+import { useDeleteOrganization, type OrganizationWithRole } from '@/lib/gql/hooks/admin';
 import {
 	AlertDialog,
 	AlertDialogContent,

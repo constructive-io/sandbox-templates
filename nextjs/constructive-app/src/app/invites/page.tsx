@@ -13,7 +13,7 @@ import {
 	useExtendAppInvite,
 	useSendAppInvite,
 	type AppInvite,
-} from '@/lib/gql/hooks/schema-builder';
+} from '@/lib/gql/hooks/admin';
 import { ActiveInvitesTable } from '@/components/invites/active-invites-table';
 import { ClaimedInvitesTable } from '@/components/invites/claimed-invites-table';
 import { InvitesPagination } from '@/components/invites/invites-pagination';

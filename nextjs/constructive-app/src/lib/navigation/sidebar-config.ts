@@ -1,5 +1,6 @@
 import {
 	RiAccountCircleLine,
+	RiHome4Line,
 	RiMailLine,
 	RiOrganizationChart,
 	RiSettings3Line,
@@ -45,11 +46,18 @@ function getRootNavigation(options: SidebarConfigOptions): NavGroup[] {
 
 	const mainItems: NavItem[] = [
 		{
+			id: 'home',
+			label: 'Home',
+			icon: RiHome4Line,
+			href: '/',
+			isActive: isRouteActive?.('ROOT'),
+		},
+		{
 			id: 'organizations',
 			label: 'Organizations',
 			icon: RiOrganizationChart,
-			href: '/',
-			isActive: isRouteActive?.('ROOT') || isRouteActive?.('ORGANIZATIONS'),
+			href: '/organizations',
+			isActive: isRouteActive?.('ORGANIZATIONS'),
 		},
 	];
 

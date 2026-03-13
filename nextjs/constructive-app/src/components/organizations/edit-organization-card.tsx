@@ -8,7 +8,7 @@ import type { CardComponent } from '@/components/ui/stack';
 import { showErrorToast, showSuccessToast } from '@/components/ui/toast';
 import { Loader2Icon, SettingsIcon } from 'lucide-react';
 
-import { useUpdateOrganization, type OrganizationWithRole } from '@/lib/gql/hooks/schema-builder';
+import { useUpdateOrganization, type OrganizationWithRole } from '@/lib/gql/hooks/admin';
 
 export type EditOrganizationCardProps = {
 	organization: OrganizationWithRole;

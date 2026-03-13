@@ -8,7 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { showErrorToast, showSuccessToast } from '@/components/ui/toast';
 import { AlertCircle, ArrowRight, Check, Loader2, Settings2, Shield, UserCheck, UserPlus } from 'lucide-react';
 
-import { useAppSettings, useUpdateAppSettings } from '@/lib/gql/hooks/schema-builder/app';
+import { useAppSettings, useUpdateAppSettings } from '@/lib/gql/hooks/admin/app';
 import { cn } from '@/lib/utils';
 import { PageHeaderWithIcon } from '@/components/shared/page-header-with-icon';
 

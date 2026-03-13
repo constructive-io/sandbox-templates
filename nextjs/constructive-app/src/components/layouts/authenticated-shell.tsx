@@ -7,8 +7,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useCardStack } from '@/components/ui/stack';
 
 import { useLogout } from '@/lib/gql/hooks/auth';
-import { useOrganizations } from '@/lib/gql/hooks/schema-builder';
-import { useCurrentUserAppMembership } from '@/lib/gql/hooks/schema-builder/app';
+import { useOrganizations } from '@/lib/gql/hooks/admin';
+import { useCurrentUserAppMembership } from '@/lib/gql/hooks/admin/app';
 import { useEntityParams, useSidebarNavigation } from '@/lib/navigation';
 import { cn } from '@/lib/utils';
 import { useSchemaBuilderAuth, useSidebarPinned, useSidebarPinnedActions } from '@/store/app-store';
@@ -27,7 +27,7 @@ export interface AuthenticatedShellProps {
 }
 
 /**
- * Shell wrapper that conditionally renders the AppShell based on Tier 1 (schema-builder) auth state.
+ * Shell wrapper that conditionally renders the AppShell based on Tier 1 (admin) auth state.
  * Lives in root layout so sidebar state is preserved across route navigations.
  *
  * Loading Strategy:

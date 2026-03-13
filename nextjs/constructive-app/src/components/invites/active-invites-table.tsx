@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { CalendarPlus, CheckCircle2, Clock, Send, X, XCircle } from 'lucide-react';
 
-import type { OrgInvite, OrgInviteStatus } from '@/lib/gql/hooks/schema-builder';
+import type { OrgInvite, OrgInviteStatus } from '@/lib/gql/hooks/admin';
 import { RoleBadge } from '@/components/members/role-badge';
 
 import { InviterAvatar } from './inviter-avatar';

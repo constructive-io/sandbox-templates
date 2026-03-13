@@ -92,7 +92,7 @@ export function AuthErrorBanner({
 
 		// Clear auth state
 		appStore.setUnauthenticated();
-		TokenManager.clearToken('schema-builder');
+		TokenManager.clearToken('admin');
 
 		// Invalidate React Query caches
 		queryClient.clear();

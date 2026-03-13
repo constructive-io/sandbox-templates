@@ -17,7 +17,7 @@ import { useCardStack } from '@/components/ui/stack';
 import { showErrorToast } from '@/components/ui/toast';
 import { ChevronRight, Loader2, Settings } from 'lucide-react';
 
-import { useDeleteUser } from '@/lib/gql/hooks/schema-builder/account/use-delete-user';
+import { useDeleteUser } from '@/lib/gql/hooks/admin/account/use-delete-user';
 import { useAppStore } from '@/store/app-store';
 import { PageHeaderWithIcon } from '@/components/shared/page-header-with-icon';
 

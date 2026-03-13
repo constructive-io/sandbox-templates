@@ -13,8 +13,8 @@ import {
 import { RiLogoutBoxLine, RiSettingsLine } from '@remixicon/react';
 
 import { useLogout } from '@/lib/gql/hooks/auth';
-import { useAccountEmail } from '@/lib/gql/hooks/schema-builder/account/use-account-email';
-import { useCurrentUser } from '@/lib/gql/hooks/schema-builder/app';
+import { useAccountEmail } from '@/lib/gql/hooks/admin/account/use-account-email';
+import { useCurrentUser } from '@/lib/gql/hooks/admin/app';
 import { useSchemaBuilderAuth } from '@/store/app-store';
 
 function getAvatarFallback(text: string | null | undefined): string {

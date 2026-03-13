@@ -10,7 +10,7 @@ import type { CardComponent } from '@/components/ui/stack';
 import { toast } from '@/components/ui/toast';
 import { Info } from 'lucide-react';
 
-import type { OrgInviteRole } from '@/lib/gql/hooks/schema-builder';
+import type { OrgInviteRole } from '@/lib/gql/hooks/admin';
 
 import { EXPIRY_OPTIONS, ROLE_OPTIONS } from './invites.types';
 
