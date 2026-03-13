@@ -10,7 +10,7 @@ import {
 	useCreateOrgMembershipDefaultMutation,
 	useOrgMembershipDefaultsQuery,
 	useUpdateOrgMembershipDefaultMutation,
-} from '@sdk/api';
+} from '@sdk/admin';
 import { useAppStore } from '@/store/app-store';
 
 export interface OrgMembershipDefault {

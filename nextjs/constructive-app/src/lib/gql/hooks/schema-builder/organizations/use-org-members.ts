@@ -6,7 +6,8 @@ import { useQuery } from '@tanstack/react-query';
 
 import { useAppStore } from '@/store/app-store';
 import type { SchemaContext } from '@/app-config';
-import { fetchOrgMembershipsQuery, fetchUsersQuery } from '@sdk/api';
+import { fetchOrgMembershipsQuery } from '@sdk/admin';
+import { fetchUsersQuery } from '@sdk/api';
 
 import type { OrgRole } from './organization.types';
 import { deriveOrgRole } from './organization.types';

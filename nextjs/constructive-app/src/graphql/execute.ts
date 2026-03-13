@@ -250,5 +250,12 @@ export function executeAuth<TDocument extends ExecutableDocument>(
 	return executeInContext('auth', document, variables);
 }
 
+export function executeAdmin<TDocument extends ExecutableDocument>(
+	document: TDocument,
+	variables?: VariablesOfDocument<TDocument>,
+): Promise<ResultOfDocument<TDocument>> {
+	return executeInContext('admin', document, variables);
+}
+
 // Re-export DataError for consumers
 export { DataError } from '@/lib/gql/error-handler';

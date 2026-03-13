@@ -8,7 +8,8 @@
 import { useQuery } from '@tanstack/react-query';
 
 import type { SchemaContext } from '@/app-config';
-import { fetchOrgMembershipsQuery, fetchUsersQuery } from '@sdk/api';
+import { fetchOrgMembershipsQuery } from '@sdk/admin';
+import { fetchUsersQuery } from '@sdk/api';
 import { useAppStore } from '@/store/app-store';
 
 import {

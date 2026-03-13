@@ -10,8 +10,8 @@ import type { SchemaContext } from '@/app-config';
 import {
 	fetchAppMembershipsQuery,
 	useUpdateAppMembershipMutation,
-	fetchUsersQuery,
-} from '@sdk/api';
+} from '@sdk/admin';
+import { fetchUsersQuery } from '@sdk/api';
 
 interface ActorNode {
 	id: string;

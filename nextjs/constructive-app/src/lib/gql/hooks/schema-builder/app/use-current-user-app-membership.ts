@@ -7,7 +7,7 @@ import type { SchemaContext } from '@/app-config';
 import {
 	useAppMembershipsQuery,
 	appMembershipsQueryKey,
-} from '@sdk/api';
+} from '@sdk/admin';
 import { useAppStore } from '@/store/app-store';
 
 export interface AppMembership {
