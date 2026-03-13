@@ -9,7 +9,7 @@ import { useAuthContext } from '@/lib/auth/auth-context';
 import { DataError } from '@/lib/gql/error-handler';
 import { useSubmitInviteCode } from '@/lib/gql/hooks/auth';
 import { useSubmitOrgInviteCode } from '@/lib/gql/hooks/auth';
-import { useAccountProfile } from '@/lib/gql/hooks/schema-builder/account/use-account-profile';
+import { useAccountProfile } from '@/lib/gql/hooks/admin/account/use-account-profile';
 import { AuthScreenLayout } from '@/components/auth/auth-screen-layout';
 import { InviteScreen, type InviteScreenState } from '@/components/auth/screens/invite-screen';
 
