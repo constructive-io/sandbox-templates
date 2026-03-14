@@ -20,3 +20,9 @@ export const __SDK_PLACEHOLDER__ = true;
 
 // Re-export common types that might be imported
 export type { DocumentNode } from 'graphql';
+
+// Stubs for app-provider.tsx — codegen replaces these with real implementations
+export type QueryResult = { data?: unknown; error?: unknown };
+export function configure(_opts: { adapter: unknown }) {
+	// no-op until codegen runs
+}
