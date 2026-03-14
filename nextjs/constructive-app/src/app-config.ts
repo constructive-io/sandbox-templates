@@ -1,8 +1,6 @@
 import {
 	getDefaultEndpoint,
 	getEndpoints,
-	getSchemaContext as coreGetCtx,
-	setSchemaContext as coreSetCtx,
 	getDbName,
 	getAdminEndpoint,
 	getAuthEndpoint,
@@ -16,9 +14,6 @@ import type { AppState } from '@/store/app-store';
 export type { SchemaContext } from '@/lib/runtime/config-core';
 export { getDbName, getAdminEndpoint, getAuthEndpoint, getAppEndpoint };
 
-export const setSchemaContext = coreSetCtx;
-export const getSchemaContext = coreGetCtx;
-
 const logger = createLogger({ scope: 'app-config' });
 
 /**
@@ -28,7 +23,7 @@ const logger = createLogger({ scope: 'app-config' });
  * 1. UI override (from store/localStorage)
  * 2. Dynamic default (getDefaultEndpoint - reads from runtime config or env)
  */
-export function getEndpoint(ctx: SchemaContext = getSchemaContext()): string {
+export function getEndpoint(ctx: SchemaContext = 'admin'): string {
 	let endpoint: string | null = null;
 	let source = 'none';
 
@@ -57,14 +52,11 @@ export function getEndpoint(ctx: SchemaContext = getSchemaContext()): string {
 
 export { getDefaultEndpoint };
 
-export const homePathByContext: Record<SchemaContext, string> = {
-	admin: '/',
-	auth: '/',
-	app: '/',
-} as const;
+/** All contexts share the same home path in per-DB mode. */
+export const HOME_PATH = '/';
 
-export function getHomePath(ctx: SchemaContext = getSchemaContext()): string {
-	return homePathByContext[ctx];
+export function getHomePath(_ctx?: SchemaContext): string {
+	return HOME_PATH;
 }
 
 // Backward-compatible appConfig container
