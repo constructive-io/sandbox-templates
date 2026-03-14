@@ -33,6 +33,19 @@ export default function OrganizationsPage() {
 	const { availableOrgs: organizations, isLoading: isOrgsLoading } = useEntityParams();
 	const { refetch: refetchOrganizations } = useOrganizations();
 
+	const handleCreateClick = () => {
+		stack.push({
+			id: 'org-create',
+			title: 'Create Organization',
+			description: 'Create a new organization to collaborate with your team.',
+			Component: CreateOrganizationCard,
+			props: {
+				onSuccess: () => refetchOrganizations(),
+			},
+			width: 480,
+		});
+	};
+
 	const handleEditClick = (org: (typeof organizations)[0]) => {
 		const rawOrg = org._raw as OrganizationWithRole;
 		stack.push({
@@ -58,7 +71,7 @@ export default function OrganizationsPage() {
 	);
 
 	const handleRowClick = (orgId: string) => {
-		router.push(`/orgs/${orgId}/members` as string as Route);
+		router.push(`/orgs/${orgId}/members` as Route);
 	};
 
 	return (
@@ -71,18 +84,7 @@ export default function OrganizationsPage() {
 					actions={
 						<Button
 							className='gap-2'
-							onClick={() => {
-								stack.push({
-									id: 'org-create',
-									title: 'Create Organization',
-									description: 'Create a new organization to collaborate with your team.',
-									Component: CreateOrganizationCard,
-									props: {
-										onSuccess: () => refetchOrganizations(),
-									},
-									width: 480,
-								});
-							}}
+							onClick={handleCreateClick}
 							data-testid='orgs-create-button'
 						>
 							<Plus className='h-4 w-4' />
@@ -193,18 +195,7 @@ export default function OrganizationsPage() {
 							{!searchValue && (
 								<Button
 									className='mt-6 gap-2'
-									onClick={() => {
-										stack.push({
-											id: 'org-create',
-											title: 'Create Organization',
-											description: 'Create a new organization to collaborate with your team.',
-											Component: CreateOrganizationCard,
-											props: {
-												onSuccess: () => refetchOrganizations(),
-											},
-											width: 480,
-										});
-									}}
+									onClick={handleCreateClick}
 									data-testid='orgs-empty-create-button'
 								>
 									<Plus className='h-4 w-4' />
