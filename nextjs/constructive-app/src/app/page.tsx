@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { Rocket } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { getDbName } from '@/app-config';
@@ -9,16 +8,11 @@ import { LoginScreen } from '@/components/auth/screens/login-screen';
 
 /**
  * Home Page - Start Building Here
- * 
+ *
  * Replace this page with your business logic.
  */
 export default function HomePage() {
-	const [mounted, setMounted] = useState(false);
 	const { isAuthenticated, isLoading: isAuthLoading, login } = useAuthContext();
-
-	useEffect(() => {
-		setMounted(true);
-	}, []);
 
 	let dbName = 'your-db';
 	try {
@@ -28,7 +22,7 @@ export default function HomePage() {
 	}
 
 	// Loading state
-	if (!mounted || isAuthLoading) {
+	if (isAuthLoading) {
 		return (
 			<div className='bg-background flex h-dvh w-dvw items-center justify-center'>
 				<div className='border-primary/20 h-10 w-10 animate-spin rounded-full border-2 border-t-transparent' />
