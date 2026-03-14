@@ -14,7 +14,9 @@
 export const RUNTIME_CONFIG_KEYS = [
 	// Database name (derives all endpoints)
 	'NEXT_PUBLIC_DB_NAME',
-	// GraphQL Endpoint Overrides (optional)
+	// API port override (default: 3000)
+	'NEXT_PUBLIC_API_PORT',
+	// GraphQL Endpoint Overrides (optional - bypass DB_NAME derivation)
 	'NEXT_PUBLIC_ADMIN_ENDPOINT',
 	'NEXT_PUBLIC_AUTH_ENDPOINT',
 	'NEXT_PUBLIC_APP_ENDPOINT',
@@ -42,6 +44,7 @@ export type RuntimeConfig = {
  */
 export const BUILD_TIME_ENV_VALUES: Record<RuntimeConfigKey, string | undefined> = {
 	NEXT_PUBLIC_DB_NAME: process.env.NEXT_PUBLIC_DB_NAME,
+	NEXT_PUBLIC_API_PORT: process.env.NEXT_PUBLIC_API_PORT,
 	NEXT_PUBLIC_ADMIN_ENDPOINT: process.env.NEXT_PUBLIC_ADMIN_ENDPOINT,
 	NEXT_PUBLIC_AUTH_ENDPOINT: process.env.NEXT_PUBLIC_AUTH_ENDPOINT,
 	NEXT_PUBLIC_APP_ENDPOINT: process.env.NEXT_PUBLIC_APP_ENDPOINT,
