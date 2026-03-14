@@ -11,7 +11,7 @@ interface ResetPasswordInput {
 }
 
 /**
- * Schema-builder reset password hook using SDK-generated mutation
+ * Reset password hook using SDK-generated mutation
  */
 export function useResetPassword() {
 	const queryClient = useQueryClient();

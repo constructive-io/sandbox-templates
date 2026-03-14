@@ -5,7 +5,7 @@ import { useSendVerificationEmailMutation } from '@sdk/auth';
 import { authKeys } from '../query-keys';
 
 /**
- * Schema-builder send verification email hook using SDK-generated mutation
+ * Send verification email hook using SDK-generated mutation
  */
 export function useSendVerificationEmail() {
 	const queryClient = useQueryClient();

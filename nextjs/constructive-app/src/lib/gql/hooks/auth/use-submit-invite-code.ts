@@ -3,7 +3,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useSubmitInviteCodeMutation } from '@sdk/admin';
 
 /**
- * Schema-builder submit invite code hook using SDK-generated mutation
+ * Submit invite code hook using SDK-generated mutation
  */
 export function useSubmitInviteCode() {
 	const submitInviteMutation = useSubmitInviteCodeMutation({ selection: { fields: { result: true } } });

@@ -10,7 +10,7 @@ import { useSignOutMutation } from '@sdk/auth';
 import { authKeys } from '../query-keys';
 
 /**
- * Schema-builder logout hook using SDK-generated mutation
+ * Logout hook using SDK-generated mutation
  */
 export function useLogout() {
 	const queryClient = useQueryClient();

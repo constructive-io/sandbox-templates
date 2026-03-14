@@ -32,21 +32,31 @@ export function getDbName(): string {
 }
 
 // =============================================================================
+// Port
+// =============================================================================
+
+/**
+ * Get the API port (default: 3000).
+ */
+function getApiPort(): string {
+	return getRuntimeConfig('NEXT_PUBLIC_API_PORT') || '3000';
+}
+
+// =============================================================================
 // Endpoint Getters
 // =============================================================================
 
 /**
  * Get the admin endpoint.
  * Used for: organizations, members, permissions, invites
- *
- * Endpoint: http://admin-{db}.localhost:3000/graphql
  */
 export function getAdminEndpoint(): string {
 	const override = getRuntimeConfig('NEXT_PUBLIC_ADMIN_ENDPOINT');
 	if (override) return override;
 
 	const dbName = getDbName();
-	const endpoint = `http://admin-${dbName}.localhost:3000/graphql`;
+	const port = getApiPort();
+	const endpoint = `http://admin-${dbName}.localhost:${port}/graphql`;
 	logger.debug('getAdminEndpoint', { dbName, endpoint });
 	return endpoint;
 }
@@ -54,15 +64,14 @@ export function getAdminEndpoint(): string {
 /**
  * Get the auth endpoint.
  * Used for: users, emails, authentication (signIn, signUp, etc.)
- *
- * Endpoint: http://auth-{db}.localhost:3000/graphql
  */
 export function getAuthEndpoint(): string {
 	const override = getRuntimeConfig('NEXT_PUBLIC_AUTH_ENDPOINT');
 	if (override) return override;
 
 	const dbName = getDbName();
-	const endpoint = `http://auth-${dbName}.localhost:3000/graphql`;
+	const port = getApiPort();
+	const endpoint = `http://auth-${dbName}.localhost:${port}/graphql`;
 	logger.debug('getAuthEndpoint', { dbName, endpoint });
 	return endpoint;
 }
@@ -71,14 +80,16 @@ export function getAuthEndpoint(): string {
  * Get the app endpoint.
  * Used for: your business data (boards, cards, etc.)
  *
- * Endpoint: http://app-public-{db}.localhost:3000/graphql
+ * Note: "app-public" maps to the PostgreSQL schema "app_public" via
+ * PostGraphile's virtual-host routing (hyphens → underscores).
  */
 export function getAppEndpoint(): string {
 	const override = getRuntimeConfig('NEXT_PUBLIC_APP_ENDPOINT');
 	if (override) return override;
 
 	const dbName = getDbName();
-	const endpoint = `http://app-public-${dbName}.localhost:3000/graphql`;
+	const port = getApiPort();
+	const endpoint = `http://app-public-${dbName}.localhost:${port}/graphql`;
 	logger.debug('getAppEndpoint', { dbName, endpoint });
 	return endpoint;
 }
@@ -109,13 +120,3 @@ export function getEndpoints(): Record<SchemaContext, string> {
 	};
 }
 
-// Legacy compatibility
-export const getSchemaBuilderEndpoint = getAdminEndpoint;
-
-export function setSchemaContext(_ctx: SchemaContext | null) {
-	// No-op
-}
-
-export function getSchemaContext(): SchemaContext {
-	return 'admin';
-}

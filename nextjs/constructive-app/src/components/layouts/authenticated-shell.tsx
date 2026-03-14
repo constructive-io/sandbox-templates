@@ -11,7 +11,7 @@ import { useOrganizations } from '@/lib/gql/hooks/admin';
 import { useCurrentUserAppMembership } from '@/lib/gql/hooks/admin/app';
 import { useEntityParams, useSidebarNavigation } from '@/lib/navigation';
 import { cn } from '@/lib/utils';
-import { useSchemaBuilderAuth, useSidebarPinned, useSidebarPinnedActions } from '@/store/app-store';
+import { useAuth, useSidebarPinned, useSidebarPinnedActions } from '@/store/app-store';
 import { AppShell } from '@/components/app-shell/app-shell';
 import type { EntityLevel, TopBarConfig } from '@/components/app-shell/app-shell.types';
 import { UserDropdown } from '@/components/app-shell/user-dropdown';
@@ -35,25 +35,20 @@ export interface AuthenticatedShellProps {
  * - Auth check happens in parallel, not blocking shell structure
  * - Page components handle their own loading states once shell is visible
  *
- * Auth: Schema-builder (app-level) auth controls shell visibility.
+ * Auth: Admin-context auth controls shell visibility.
  */
 export function AuthenticatedShell({ children }: AuthenticatedShellProps) {
 	const pathname = usePathname();
-	const [hasMounted, setHasMounted] = React.useState(false);
-	const { isAuthenticated, isLoading } = useSchemaBuilderAuth();
+	const { isAuthenticated, isLoading } = useAuth();
 
 	const accessType = getRouteAccessType(pathname);
 	const isProtectedRoute = accessType === 'protected';
 	const isInviteRoute = pathname === '/invite';
 
-	// On SSR and before hydration, assume not authenticated
-	const isAuthenticatedReady = hasMounted ? isAuthenticated : false;
+	// During loading, assume not authenticated to avoid hydration mismatches
+	const isAuthenticatedReady = isLoading ? false : isAuthenticated;
 	// Show shell for protected routes (even during loading) or when authenticated
 	const shouldUseShell = isProtectedRoute || isAuthenticatedReady;
-
-	React.useEffect(() => {
-		setHasMounted(true);
-	}, []);
 
 	// Guest-only routes (login, register) or public routes when not authenticated
 	if (!shouldUseShell) {
@@ -62,7 +57,7 @@ export function AuthenticatedShell({ children }: AuthenticatedShellProps) {
 
 	// Protected routes during loading: show shell frame with content skeleton
 	// This provides immediate visual feedback and stable layout
-	if (!hasMounted || isLoading) {
+	if (isLoading) {
 		return (
 			<ShellFrameSkeleton>
 				<ShellContentFallback />

@@ -17,7 +17,7 @@ import { queryClient } from '@/lib/query-client';
 function createSdkAdapter(ctx: SchemaContext) {
 	return {
 		async execute<T>(document: string, variables?: Record<string, unknown>): Promise<QueryResult<T>> {
-			const endpoint = getEndpoint(ctx)!;
+			const endpoint = getEndpoint(ctx);
 			const headers = getAuthHeaders(ctx);
 			const res = await fetch(endpoint, {
 				method: 'POST',
