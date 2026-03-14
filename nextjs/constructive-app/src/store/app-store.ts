@@ -306,10 +306,11 @@ export const useAppStore: AppStoreCompat = Object.assign(
 
 // ── Exported hooks ─────────────────────────────────────────────────────
 
-export const useSchemaBuilderAuth = () =>
+export const useAuth = () =>
 	useSelector((s) => s.auth);
 
-export const useAuth = useSchemaBuilderAuth;
+/** @deprecated Use useAuth instead */
+export const useSchemaBuilderAuth = useAuth;
 
 export const useAuthActions = () => ({
 	setAuthenticated: appStore.setAuthenticated,
