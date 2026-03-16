@@ -33,19 +33,19 @@ if (!DB_NAME) {
 const config: Record<string, GraphQLSDKConfigTarget> = {
 	admin: {
 		reactQuery: true,
-		endpoint: process.env.CODEGEN_ADMIN_ENDPOINT ?? 'http://[::1]:3000/graphql',
+		endpoint: process.env.CODEGEN_ADMIN_ENDPOINT ?? `http://admin-${DB_NAME}.localhost:3000/graphql`,
 		headers: { Host: `admin-${DB_NAME}.localhost:3000` },
 		output: './src/graphql/sdk/admin',
 	},
 	auth: {
 		reactQuery: true,
-		endpoint: process.env.CODEGEN_AUTH_ENDPOINT ?? 'http://[::1]:3000/graphql',
+		endpoint: process.env.CODEGEN_AUTH_ENDPOINT ?? `http://auth-${DB_NAME}.localhost:3000/graphql`,
 		headers: { Host: `auth-${DB_NAME}.localhost:3000` },
 		output: './src/graphql/sdk/auth',
 	},
 	app: {
 		reactQuery: true,
-		endpoint: process.env.CODEGEN_APP_ENDPOINT ?? 'http://[::1]:3000/graphql',
+		endpoint: process.env.CODEGEN_APP_ENDPOINT ?? `http://app-public-${DB_NAME}.localhost:3000/graphql`,
 		headers: { Host: `app-public-${DB_NAME}.localhost:3000` },
 		output: './src/graphql/sdk/app',
 	},
