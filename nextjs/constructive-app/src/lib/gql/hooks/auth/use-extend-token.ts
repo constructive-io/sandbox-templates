@@ -7,7 +7,7 @@ import { useExtendTokenExpiresMutation } from '@sdk/auth';
 import { authKeys } from '../query-keys';
 
 /**
- * Schema-builder extend token hook using SDK-generated mutation
+ * Extend token hook using SDK-generated mutation
  *
  * Note: As of Jan 2025 schema change, extendTokenExpires returns results array
  * with expiresAt instead of apiToken. We only update the expiration time while

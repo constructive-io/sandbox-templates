@@ -5,7 +5,7 @@ import { print } from 'graphql';
 import { TokenManager } from '@/lib/auth/token-manager';
 import { createError, DataError } from '@/lib/gql/error-handler';
 import { createLogger } from '@/lib/logger';
-import { getEndpoint, getSchemaContext, type SchemaContext } from '@/app-config';
+import { getEndpoint, type SchemaContext } from '@/app-config';
 
 import { TypedDocumentString } from './typed-document';
 
@@ -59,7 +59,7 @@ function documentToString(document: ExecutableDocument): string {
 /**
  * Get authentication headers.
  */
-export function getAuthHeaders(ctx: SchemaContext = getSchemaContext()): Record<string, string> {
+export function getAuthHeaders(ctx: SchemaContext = 'admin'): Record<string, string> {
 	const { token } = TokenManager.getToken(ctx);
 
 	if (token) {
@@ -180,12 +180,6 @@ export async function executeInContext<TDocument extends ExecutableDocument>(
 		endpoint: url,
 		endpointOverride: endpointOverride || null,
 	});
-
-	if (!url) {
-		throw createError.badRequest(
-			`No GraphQL endpoint configured for ${ctx} context. Please configure the schema builder endpoint.`
-		);
-	}
 
 	// Make request
 	let response: Response;

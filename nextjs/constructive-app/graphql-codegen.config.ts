@@ -27,6 +27,9 @@ if (!DB_NAME) {
 	);
 }
 
+// Codegen connects via IPv6 loopback ([::1]) and uses the Host header to route
+// to the correct virtual host. This avoids DNS resolution issues with *.localhost
+// subdomains during codegen. Runtime requests use subdomain URLs directly.
 const config: Record<string, GraphQLSDKConfigTarget> = {
 	admin: {
 		reactQuery: true,

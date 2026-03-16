@@ -16,7 +16,7 @@ import {
 import { authKeys } from '../query-keys';
 
 /**
- * Schema-builder register hook using SDK-generated mutation
+ * Register hook using SDK-generated mutation
  * Handles registration and verification email flow
  */
 export function useRegister() {

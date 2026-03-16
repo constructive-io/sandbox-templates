@@ -10,7 +10,7 @@ interface VerifyEmailInput {
 }
 
 /**
- * Schema-builder verify email hook using SDK-generated mutation
+ * Verify email hook using SDK-generated mutation
  */
 export function useVerifyEmail() {
 	const queryClient = useQueryClient();

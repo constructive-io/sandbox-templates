@@ -11,7 +11,7 @@ import { useSignInMutation } from '@sdk/auth';
 import { authKeys } from '../query-keys';
 
 /**
- * Schema-builder login hook using SDK-generated mutation
+ * Login hook using SDK-generated mutation
  * Handles token management and auth state updates
  */
 export function useLogin() {

@@ -10,7 +10,7 @@
     "lint:types": "tsc --noEmit",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
-    "codegen": "rm -rf ./src/graphql/schema-builder-sdk && npx @constructive-io/graphql-codegen generate --config ./graphql-codegen.config.ts",
+    "codegen": "rm -rf ./src/graphql/sdk/admin ./src/graphql/sdk/auth ./src/graphql/sdk/app && npx @constructive-io/graphql-codegen generate --config ./graphql-codegen.config.ts",
     "codegen:w": "npx @constructive-io/graphql-codegen generate --config ./graphql-codegen.config.ts --watch"
   },
   "dependencies": {

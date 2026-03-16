@@ -11,8 +11,8 @@ import { TypedDocumentString } from './typed-document';
 // Core execution functions with proper type inference
 export { execute, executeAdmin, executeAuth, executeApp, executeInContext, getAuthHeaders } from './execute';
 
-// Context utilities
-export { getSchemaContext, type SchemaContext } from '@/app-config';
+// Context type
+export { type SchemaContext } from '@/app-config';
 
 /**
  * Creates a TypedDocumentString from a GraphQL query/mutation string.
