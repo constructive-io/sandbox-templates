@@ -1,15 +1,18 @@
 /**
  * GraphQL exports for the application.
  *
- * Schema-builder operations use the SDK directly from @sdk/api.
+ * Per-DB mode uses three SDK contexts:
+ * - @sdk/admin: Organizations, permissions, invites
+ * - @sdk/auth: Users, emails, authentication
+ * - @sdk/app: Your business data
  */
 import { TypedDocumentString } from './typed-document';
 
 // Core execution functions with proper type inference
-export { execute, executeSb, executeAuth, executeInContext, getAuthHeaders } from './execute';
+export { execute, executeAdmin, executeAuth, executeApp, executeInContext, getAuthHeaders } from './execute';
 
-// Context utilities
-export { getSchemaContext, type SchemaContext } from '@/app-config';
+// Context type
+export { type SchemaContext } from '@/app-config';
 
 /**
  * Creates a TypedDocumentString from a GraphQL query/mutation string.

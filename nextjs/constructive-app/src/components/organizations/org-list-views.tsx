@@ -14,7 +14,7 @@ import {
 	Users,
 } from 'lucide-react';
 
-import type { OrgRole } from '@/lib/gql/hooks/schema-builder';
+import type { OrgRole } from '@/lib/gql/hooks/admin';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {

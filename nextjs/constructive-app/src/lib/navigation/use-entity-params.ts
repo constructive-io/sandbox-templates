@@ -26,7 +26,7 @@ import {
 	useOrganizations,
 	type OrganizationWithRole,
 	type OrgRole,
-} from '@/lib/gql/hooks/schema-builder';
+} from '@/lib/gql/hooks/admin';
 
 /**
  * Organization type for entity params

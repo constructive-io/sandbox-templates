@@ -8,7 +8,7 @@ import type { CardComponent } from '@/components/ui/stack';
 import { showErrorToast, showSuccessToast } from '@/components/ui/toast';
 import { Loader2 } from 'lucide-react';
 
-import { useSetPasswordMutation } from '@sdk/api';
+import { useSetPasswordMutation } from '@sdk/auth';
 
 export type EditPasswordCardProps = {
 	onSuccess?: () => void;

@@ -30,11 +30,11 @@ import {
 	type OrgMember,
 	type OrgMemberStatus,
 	type OrganizationWithRole,
-} from '@/lib/gql/hooks/schema-builder';
+} from '@/lib/gql/hooks/admin';
 import {
 	useDeleteOrgMembershipMutation,
 	useUpdateOrgMembershipMutation,
-} from '@sdk/api';
+} from '@sdk/admin';
 import { useAppStore } from '@/store/app-store';
 
 import { RoleBadge } from './role-badge';

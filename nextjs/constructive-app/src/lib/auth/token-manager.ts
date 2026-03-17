@@ -4,8 +4,8 @@ import { createLogger } from '@/lib/logger';
 
 const logger = createLogger({ scope: 'token-manager' });
 
-const TOKEN_STORAGE_KEY = 'constructive-auth-token:schema-builder';
-const REMEMBER_ME_KEY = 'constructive-remember-me:schema-builder';
+const TOKEN_STORAGE_KEY = 'constructive-auth-token:admin';
+const REMEMBER_ME_KEY = 'constructive-remember-me:admin';
 
 /**
  * Token manager for handling token persistence

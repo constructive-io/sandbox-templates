@@ -5,9 +5,9 @@ import { NuqsAdapter } from 'nuqs/adapters/next/app';
 
 import { getEndpoint, type SchemaContext } from '@/app-config';
 import { getAuthHeaders } from '@/graphql/execute';
-import { configure as configureApi, type QueryResult } from '@sdk/api';
+import { configure as configureAdmin, type QueryResult } from '@sdk/admin';
 import { configure as configureAuth } from '@sdk/auth';
-import { configure as configureAdmin } from '@sdk/admin';
+import { configure as configureApp } from '@sdk/app';
 import { AuthProvider } from '@/lib/auth/auth-context';
 import { queryClient } from '@/lib/query-client';
 
@@ -17,7 +17,7 @@ import { queryClient } from '@/lib/query-client';
 function createSdkAdapter(ctx: SchemaContext) {
 	return {
 		async execute<T>(document: string, variables?: Record<string, unknown>): Promise<QueryResult<T>> {
-			const endpoint = getEndpoint(ctx)!;
+			const endpoint = getEndpoint(ctx);
 			const headers = getAuthHeaders(ctx);
 			const res = await fetch(endpoint, {
 				method: 'POST',
@@ -34,9 +34,9 @@ function createSdkAdapter(ctx: SchemaContext) {
 }
 
 // Initialize all SDK clients at module load time (before any queries can fire).
-configureApi({ adapter: createSdkAdapter('schema-builder') });
-configureAuth({ adapter: createSdkAdapter('auth') });
 configureAdmin({ adapter: createSdkAdapter('admin') });
+configureAuth({ adapter: createSdkAdapter('auth') });
+configureApp({ adapter: createSdkAdapter('app') });
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
 	return (

@@ -15,8 +15,13 @@ build/
 .next/
 out/
 
-# Generated code
-src/graphql/schema-builder-sdk/
+# Generated SDK code (placeholder index.ts files are force-tracked)
+src/graphql/sdk/admin/
+src/graphql/sdk/auth/
+src/graphql/sdk/app/
+
+# Environment (copy .env.example to .env.local)
+.env.local
 
 # IDE
 .vscode/

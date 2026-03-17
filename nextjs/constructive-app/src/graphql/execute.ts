@@ -5,7 +5,7 @@ import { print } from 'graphql';
 import { TokenManager } from '@/lib/auth/token-manager';
 import { createError, DataError } from '@/lib/gql/error-handler';
 import { createLogger } from '@/lib/logger';
-import { getEndpoint, getSchemaContext, type SchemaContext } from '@/app-config';
+import { getEndpoint, type SchemaContext } from '@/app-config';
 
 import { TypedDocumentString } from './typed-document';
 
@@ -59,7 +59,7 @@ function documentToString(document: ExecutableDocument): string {
 /**
  * Get authentication headers.
  */
-export function getAuthHeaders(ctx: SchemaContext = getSchemaContext()): Record<string, string> {
+export function getAuthHeaders(ctx: SchemaContext = 'admin'): Record<string, string> {
 	const { token } = TokenManager.getToken(ctx);
 
 	if (token) {
@@ -181,12 +181,6 @@ export async function executeInContext<TDocument extends ExecutableDocument>(
 		endpointOverride: endpointOverride || null,
 	});
 
-	if (!url) {
-		throw createError.badRequest(
-			`No GraphQL endpoint configured for ${ctx} context. Please configure the schema builder endpoint.`
-		);
-	}
-
 	// Make request
 	let response: Response;
 	const authHeaders = getAuthHeaders(ctx);
@@ -229,18 +223,11 @@ export async function executeInContext<TDocument extends ExecutableDocument>(
 // Convenience Exports
 // ============================================================================
 
-export function executeSb<TDocument extends ExecutableDocument>(
+export function executeAdmin<TDocument extends ExecutableDocument>(
 	document: TDocument,
 	variables?: VariablesOfDocument<TDocument>,
 ): Promise<ResultOfDocument<TDocument>> {
-	return executeInContext('schema-builder', document, variables);
-}
-
-export function execute<TDocument extends ExecutableDocument>(
-	document: TDocument,
-	variables?: VariablesOfDocument<TDocument>,
-): Promise<ResultOfDocument<TDocument>> {
-	return executeInContext('schema-builder', document, variables);
+	return executeInContext('admin', document, variables);
 }
 
 export function executeAuth<TDocument extends ExecutableDocument>(
@@ -250,7 +237,15 @@ export function executeAuth<TDocument extends ExecutableDocument>(
 	return executeInContext('auth', document, variables);
 }
 
-export function executeAdmin<TDocument extends ExecutableDocument>(
+export function executeApp<TDocument extends ExecutableDocument>(
+	document: TDocument,
+	variables?: VariablesOfDocument<TDocument>,
+): Promise<ResultOfDocument<TDocument>> {
+	return executeInContext('app', document, variables);
+}
+
+// Default execute uses admin context
+export function execute<TDocument extends ExecutableDocument>(
 	document: TDocument,
 	variables?: VariablesOfDocument<TDocument>,
 ): Promise<ResultOfDocument<TDocument>> {

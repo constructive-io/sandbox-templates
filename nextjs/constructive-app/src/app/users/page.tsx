@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { AlertCircle, Ban, Crown, Filter, MoreHorizontal, Search, Shield, UserCheck, Users, UserX } from 'lucide-react';
 
-import { useAppUsers, useUpdateAppUser, type AppUser } from '@/lib/gql/hooks/schema-builder/app';
+import { useAppUsers, useUpdateAppUser, type AppUser } from '@/lib/gql/hooks/admin/app';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';

@@ -13,9 +13,9 @@ import {
 import { RiLogoutBoxLine, RiSettingsLine } from '@remixicon/react';
 
 import { useLogout } from '@/lib/gql/hooks/auth';
-import { useAccountEmail } from '@/lib/gql/hooks/schema-builder/account/use-account-email';
-import { useCurrentUser } from '@/lib/gql/hooks/schema-builder/app';
-import { useSchemaBuilderAuth } from '@/store/app-store';
+import { useAccountEmail } from '@/lib/gql/hooks/admin/account/use-account-email';
+import { useCurrentUser } from '@/lib/gql/hooks/admin/app';
+import { useAuth } from '@/store/app-store';
 
 function getAvatarFallback(text: string | null | undefined): string {
 	const trimmed = (text ?? '').trim();
@@ -32,7 +32,7 @@ function toUserHandle(username: string | null | undefined): string | null {
 export function UserDropdown() {
 	const router = useRouter();
 	const logoutMutation = useLogout();
-	const { isAuthenticated, user: authUser } = useSchemaBuilderAuth();
+	const { isAuthenticated, user: authUser } = useAuth();
 	const { user: currentUser } = useCurrentUser({ enabled: isAuthenticated });
 
 	const inferredUsername = authUser?.email?.split('@')[0] || null;

@@ -3,7 +3,7 @@
  * These permissions control access to platform-wide administrative features
  */
 
-import type { AppMembership } from '@/lib/gql/hooks/schema-builder/app';
+import type { AppMembership } from '@/lib/gql/hooks/admin/app';
 
 /**
  * App-level permission constants

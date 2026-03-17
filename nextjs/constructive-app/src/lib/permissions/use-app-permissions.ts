@@ -5,7 +5,7 @@
 
 import { useMemo } from 'react';
 
-import { useCurrentUserAppMembership } from '@/lib/gql/hooks/schema-builder/app';
+import { useCurrentUserAppMembership } from '@/lib/gql/hooks/admin/app';
 import {
 	isAppAdmin,
 	isAppOwner,

@@ -2,121 +2,121 @@ import { createLogger } from '@/lib/logger';
 
 import { getRuntimeConfig } from './get-runtime-config';
 
-export type SchemaContext = 'schema-builder' | 'auth' | 'admin';
+/**
+ * Per-DB Template - Three API Contexts
+ *
+ * - admin: Organization, members, permissions, invites (admin-{db}.localhost)
+ * - auth:  Users, emails, authentication (auth-{db}.localhost)
+ * - app:   Business data - your tables (app-public-{db}.localhost)
+ */
+export type SchemaContext = 'admin' | 'auth' | 'app';
 
-export const schemaContexts: readonly SchemaContext[] = ['schema-builder', 'auth', 'admin'];
+export const schemaContexts: readonly SchemaContext[] = ['admin', 'auth', 'app'];
 
 const logger = createLogger({ scope: 'config-core' });
 
-// Hardcoded fallback defaults (used when no env vars are set)
-const DEFAULT_SCHEMA_BUILDER_ENDPOINT = 'http://api.localhost:3000/graphql';
-const DEFAULT_AUTH_ENDPOINT = 'http://auth.localhost:3000/graphql';
-const DEFAULT_ADMIN_ENDPOINT = 'http://admin.localhost:3000/graphql';
+// =============================================================================
+// Database Name (Required)
+// =============================================================================
 
 /**
- * Get the schema builder endpoint dynamically.
- * Priority: window.__RUNTIME_CONFIG__ (Docker) > process.env (build-time) > hardcoded default
+ * Get database name from environment.
+ * This is REQUIRED for per-DB mode.
  */
-export function getSchemaBuilderEndpoint(): string {
-	const runtimeValue = getRuntimeConfig('NEXT_PUBLIC_SCHEMA_BUILDER_GRAPHQL_ENDPOINT');
-	const endpoint = runtimeValue || DEFAULT_SCHEMA_BUILDER_ENDPOINT;
-
-	logger.debug('getSchemaBuilderEndpoint called', {
-		runtimeValue,
-		fallbackDefault: DEFAULT_SCHEMA_BUILDER_ENDPOINT,
-		resolved: endpoint,
-		usedFallback: !runtimeValue,
-	});
-
-	return endpoint;
+export function getDbName(): string {
+	const dbName = getRuntimeConfig('NEXT_PUBLIC_DB_NAME');
+	if (!dbName) {
+		throw new Error('NEXT_PUBLIC_DB_NAME is required. Set it in .env.local');
+	}
+	return dbName;
 }
 
-// Legacy constant for backwards compatibility (evaluated at module load time)
-// WARNING: This is evaluated once at module load. For dynamic resolution, use getSchemaBuilderEndpoint()
-// In development, restart the server after changing .env.local for this to update
-export const schemaBuilderGraphqlEndpoint = getSchemaBuilderEndpoint();
-
-// Log the initial endpoint resolution for debugging
-if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-	logger.debug('Module loaded', { schemaBuilderGraphqlEndpoint });
-}
+// =============================================================================
+// Port
+// =============================================================================
 
 /**
- * Get the auth endpoint dynamically.
- * Priority: window.__RUNTIME_CONFIG__ (Docker) > process.env (build-time) > hardcoded default
+ * Get the API port (default: 3000).
  */
-export function getAuthEndpoint(): string {
-	const runtimeValue = getRuntimeConfig('NEXT_PUBLIC_AUTH_GRAPHQL_ENDPOINT');
-	const endpoint = runtimeValue || DEFAULT_AUTH_ENDPOINT;
-
-	logger.debug('getAuthEndpoint called', {
-		runtimeValue,
-		fallbackDefault: DEFAULT_AUTH_ENDPOINT,
-		resolved: endpoint,
-		usedFallback: !runtimeValue,
-	});
-
-	return endpoint;
+function getApiPort(): string {
+	return getRuntimeConfig('NEXT_PUBLIC_API_PORT') || '3000';
 }
 
-// Legacy constant for backwards compatibility (evaluated at module load time)
-export const authGraphqlEndpoint = getAuthEndpoint();
+// =============================================================================
+// Endpoint Getters
+// =============================================================================
 
 /**
- * Get the admin endpoint dynamically.
- * Priority: window.__RUNTIME_CONFIG__ (Docker) > process.env (build-time) > hardcoded default
+ * Get the admin endpoint.
+ * Used for: organizations, members, permissions, invites
  */
 export function getAdminEndpoint(): string {
-	const runtimeValue = getRuntimeConfig('NEXT_PUBLIC_ADMIN_GRAPHQL_ENDPOINT');
-	const endpoint = runtimeValue || DEFAULT_ADMIN_ENDPOINT;
+	const override = getRuntimeConfig('NEXT_PUBLIC_ADMIN_ENDPOINT');
+	if (override) return override;
 
-	logger.debug('getAdminEndpoint called', {
-		runtimeValue,
-		fallbackDefault: DEFAULT_ADMIN_ENDPOINT,
-		resolved: endpoint,
-		usedFallback: !runtimeValue,
-	});
-
+	const dbName = getDbName();
+	const port = getApiPort();
+	const endpoint = `http://admin-${dbName}.localhost:${port}/graphql`;
+	logger.debug('getAdminEndpoint', { dbName, endpoint });
 	return endpoint;
 }
 
-// Legacy constant for backwards compatibility (evaluated at module load time)
-export const adminGraphqlEndpoint = getAdminEndpoint();
+/**
+ * Get the auth endpoint.
+ * Used for: users, emails, authentication (signIn, signUp, etc.)
+ */
+export function getAuthEndpoint(): string {
+	const override = getRuntimeConfig('NEXT_PUBLIC_AUTH_ENDPOINT');
+	if (override) return override;
+
+	const dbName = getDbName();
+	const port = getApiPort();
+	const endpoint = `http://auth-${dbName}.localhost:${port}/graphql`;
+	logger.debug('getAuthEndpoint', { dbName, endpoint });
+	return endpoint;
+}
 
 /**
- * Get the default endpoint for a given context dynamically.
+ * Get the app endpoint.
+ * Used for: your business data (boards, cards, etc.)
+ *
+ * Note: "app-public" maps to the PostgreSQL schema "app_public" via
+ * PostGraphile's virtual-host routing (hyphens → underscores).
  */
-export function getDefaultEndpoint(ctx?: SchemaContext): string | null {
-	let endpoint: string | null;
+export function getAppEndpoint(): string {
+	const override = getRuntimeConfig('NEXT_PUBLIC_APP_ENDPOINT');
+	if (override) return override;
+
+	const dbName = getDbName();
+	const port = getApiPort();
+	const endpoint = `http://app-public-${dbName}.localhost:${port}/graphql`;
+	logger.debug('getAppEndpoint', { dbName, endpoint });
+	return endpoint;
+}
+
+/**
+ * Get endpoint by context.
+ */
+export function getDefaultEndpoint(ctx?: SchemaContext): string {
 	switch (ctx) {
 		case 'auth':
-			endpoint = getAuthEndpoint();
-			break;
+			return getAuthEndpoint();
+		case 'app':
+			return getAppEndpoint();
 		case 'admin':
-			endpoint = getAdminEndpoint();
-			break;
-		case 'schema-builder':
 		default:
-			endpoint = getSchemaBuilderEndpoint();
-			break;
+			return getAdminEndpoint();
 	}
-	logger.debug('getDefaultEndpoint called', { ctx, endpoint });
-	return endpoint;
 }
 
 /**
- * Default endpoints map.
+ * Endpoints map.
  */
-export const appEndpoints: Record<SchemaContext, string | null> = {
-	'schema-builder': schemaBuilderGraphqlEndpoint,
-	'auth': authGraphqlEndpoint,
-	'admin': adminGraphqlEndpoint,
-} as const;
-
-export function setSchemaContext(_ctx: SchemaContext | null) {
-	// No-op: context is determined by usage, not global state
+export function getEndpoints(): Record<SchemaContext, string> {
+	return {
+		admin: getAdminEndpoint(),
+		auth: getAuthEndpoint(),
+		app: getAppEndpoint(),
+	};
 }
 
-export function getSchemaContext(): SchemaContext {
-	return 'schema-builder';
-}

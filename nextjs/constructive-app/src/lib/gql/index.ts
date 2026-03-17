@@ -3,7 +3,7 @@
  * Main entry point for GraphQL hooks and error handling
  */
 
-// Auth and schema-builder hooks
+// Auth and admin hooks
 export * from './hooks';
 
 // Error handling

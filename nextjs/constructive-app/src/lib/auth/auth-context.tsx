@@ -53,7 +53,7 @@ export function useAuthContext(): AuthContextType {
 function initializeAuth(
 	authActions: ReturnType<typeof useAuthActions>,
 ) {
-	const { token, rememberMe } = TokenManager.getToken('schema-builder');
+	const { token, rememberMe } = TokenManager.getToken('admin');
 
 	if (!token) {
 		authActions.setUnauthenticated();
@@ -62,7 +62,7 @@ function initializeAuth(
 	}
 
 	if (TokenManager.isTokenExpired(token)) {
-		TokenManager.clearToken('schema-builder');
+		TokenManager.clearToken('admin');
 		authActions.setUnauthenticated();
 		authActions.setLoading(false);
 		return;
@@ -79,7 +79,7 @@ function initializeAuth(
 /**
  * Authentication provider component
  *
- * IMPORTANT: This provider initializes auth on mount for schema-builder (app-level auth).
+ * IMPORTANT: This provider initializes auth on mount for admin (app-level auth).
  * This ensures the AppShell can check auth regardless of which route the user starts on.
  */
 export function AuthProvider({ children }: { children: React.ReactNode }) {

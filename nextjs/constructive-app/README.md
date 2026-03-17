@@ -1,18 +1,27 @@
-# GraphQL SDK
+# Constructive App Template
 
 <p align="center" width="100%">
   <img height="120" src="https://raw.githubusercontent.com/constructive-io/constructive/refs/heads/main/assets/outline-logo.svg" />
 </p>
 
-<!-- @constructive-io/graphql-codegen - DO NOT EDIT -->
+## Quick Start
+
+1. Copy `.env.example` to `.env.local` and set your database name:
+   ```
+   NEXT_PUBLIC_DB_NAME=your-db-name
+   ```
+2. Run `pnpm install && pnpm dev`
+3. Run `pnpm codegen` to generate the GraphQL SDK from your database
 
 ## APIs
 
-| API | Endpoint | Generators | Docs |
-|-----|----------|------------|------|
-| api | http://api.localhost:3000/graphql | React Query, ORM | [./src/graphql/schema-builder-sdk/api/README.md](./src/graphql/schema-builder-sdk/api/README.md) |
-| auth | http://auth.localhost:3000/graphql | React Query, ORM | [./src/graphql/schema-builder-sdk/auth/README.md](./src/graphql/schema-builder-sdk/auth/README.md) |
-| admin | http://admin.localhost:3000/graphql | React Query, ORM | [./src/graphql/schema-builder-sdk/admin/README.md](./src/graphql/schema-builder-sdk/admin/README.md) |
+All endpoints are derived from `NEXT_PUBLIC_DB_NAME`:
+
+| SDK | Endpoint | Purpose |
+|-----|----------|---------|
+| `@sdk/admin` | `http://admin-{db}.localhost:3000/graphql` | Organizations, members, permissions, invites |
+| `@sdk/auth` | `http://auth-{db}.localhost:3000/graphql` | Users, emails, authentication |
+| `@sdk/app` | `http://app-public-{db}.localhost:3000/graphql` | Your business data |
 
 ---
 
