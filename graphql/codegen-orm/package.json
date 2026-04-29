@@ -20,7 +20,7 @@
   },
   "keywords": [],
   "devDependencies": {
-    "@constructive-io/graphql-codegen": "^4.28.1",
+    "@constructive-io/graphql-codegen": "^4.32.1",
     "@types/node": "^20.19.29",
     "copyfiles": "^2",
     "esbuild": "^0.27.2",
@@ -30,8 +30,8 @@
   },
   "dependencies": {
     "@0no-co/graphql.web": "^1.1.2",
-    "@constructive-io/graphql-types": "^3.4.3",
-    "gql-ast": "^3.4.2",
+    "@constructive-io/graphql-types": "^3.5.1",
+    "gql-ast": "^3.5.0",
     "graphql": "^16.9.0"
   }
 }
