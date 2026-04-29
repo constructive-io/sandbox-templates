@@ -20,7 +20,7 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@constructive-io/sdk": "^0.12.17",
+    "@constructive-io/sdk": "^0.15.1",
     "@constructive-io/node": "^0.8.17",
     "pg": "^8.13.0"
   }
