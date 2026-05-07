@@ -28,6 +28,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@constructive-io/graphql-query": "^3.18.0",
     "@tanstack/react-query": "^5.90.17"
   }
 }
