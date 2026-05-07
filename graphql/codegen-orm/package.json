@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "@0no-co/graphql.web": "^1.1.2",
+    "@constructive-io/graphql-query": "^3.18.0",
     "@constructive-io/graphql-types": "^3.5.1",
     "gql-ast": "^3.5.0",
     "graphql": "^16.9.0"
