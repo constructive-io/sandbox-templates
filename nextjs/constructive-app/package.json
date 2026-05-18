@@ -16,6 +16,7 @@
   "dependencies": {
     "@0no-co/graphql.web": "^1.2.0",
     "@base-ui/react": "^1.2.0",
+    "@constructive-io/graphql-query": "^3.25.3",
     "@constructive-io/graphql-types": "^3.5.1",
     "@lukemorales/query-key-factory": "^1.3.4",
     "@remixicon/react": "^4.8.0",
@@ -38,7 +39,7 @@
     "zod": "^4.3.4"
   },
   "devDependencies": {
-    "@constructive-io/graphql-codegen": "^4.32.1",
+    "@constructive-io/graphql-codegen": "^4.42.3",
     "@eslint/eslintrc": "^3.3.3",
     "@graphql-typed-document-node/core": "^3.2.0",
     "@ianvs/prettier-plugin-sort-imports": "^4.7.0",

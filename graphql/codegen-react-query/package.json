@@ -20,7 +20,7 @@
   },
   "keywords": [],
   "devDependencies": {
-    "@constructive-io/graphql-codegen": "^4.32.1",
+    "@constructive-io/graphql-codegen": "^4.42.3",
     "@types/node": "^20.19.29",
     "copyfiles": "^2",
     "rimraf": "^5",
@@ -28,6 +28,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@constructive-io/graphql-query": "^3.25.3",
     "@tanstack/react-query": "^5.90.17"
   }
 }
