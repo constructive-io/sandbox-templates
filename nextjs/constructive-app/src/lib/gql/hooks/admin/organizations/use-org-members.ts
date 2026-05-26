@@ -150,7 +150,7 @@ export function useOrgMembers(options: UseOrgMembersOptions): UseOrgMembersResul
 			}
 
 			// Step 2: Fetch actors (users) for all memberships
-			const actorIds = [...new Set(memberships.map((m) => m.actorId).filter((id): id is string => !!id))];
+			const actorIds = [...new Set(memberships.map((m: any) => m.actorId).filter((id: any): id is string => !!id))];
 			const usersResult = await fetchUsersQuery({
 				selection: {
 					fields: {
@@ -177,7 +177,7 @@ export function useOrgMembers(options: UseOrgMembersOptions): UseOrgMembersResul
 			}
 
 			// Step 3: Transform memberships with actors
-			const members = memberships.map((m): OrgMember => {
+			const members = memberships.map((m: any): OrgMember => {
 				const membershipNode: MembershipNode = {
 					id: m.id ?? '',
 					actorId: m.actorId ?? '',

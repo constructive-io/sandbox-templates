@@ -217,7 +217,7 @@ export function useOrganization(options: UseOrganizationOptions): UseOrganizatio
 			const memberCount = membersResult.orgMemberships?.totalCount ?? 0;
 
 			// Step 4: Fetch actors for member preview
-			const actorIds = [...new Set(memberships.map((m) => m.actorId).filter((id): id is string => !!id))];
+			const actorIds = [...new Set(memberships.map((m: any) => m.actorId).filter((id: any): id is string => !!id))];
 			let actorMap = new Map<string, ActorNode>();
 
 			if (actorIds.length > 0) {
@@ -251,7 +251,7 @@ export function useOrganization(options: UseOrganizationOptions): UseOrganizatio
 				username: userData.username ?? null,
 				profilePicture: userData.profilePicture ?? null,
 				type: userData.type ?? 0,
-				membersPreview: memberships.map((m) => ({
+				membersPreview: memberships.map((m: any) => ({
 					id: m.id ?? '',
 					actorId: m.actorId ?? '',
 					isOwner: m.isOwner ?? false,

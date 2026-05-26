@@ -62,7 +62,7 @@ export function usePermissions(options: UsePermissionsOptions = {}) {
 				}),
 			]);
 
-			const appPermissions: AppPermission[] = (appResult.appPermissions?.nodes ?? []).map((node) => ({
+			const appPermissions: AppPermission[] = (appResult.appPermissions?.nodes ?? []).map((node: any) => ({
 				id: node.id ?? '',
 				name: node.name ?? '',
 				bitnum: node.bitnum ?? null,
@@ -70,7 +70,7 @@ export function usePermissions(options: UsePermissionsOptions = {}) {
 				description: node.description ?? null,
 			}));
 
-			const membershipPermissions: MembershipPermission[] = (orgResult.orgPermissions?.nodes ?? []).map((node) => ({
+			const membershipPermissions: MembershipPermission[] = (orgResult.orgPermissions?.nodes ?? []).map((node: any) => ({
 				id: node.id ?? '',
 				name: node.name ?? '',
 				bitnum: node.bitnum ?? null,

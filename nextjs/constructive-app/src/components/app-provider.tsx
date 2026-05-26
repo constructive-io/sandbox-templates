@@ -5,38 +5,30 @@ import { NuqsAdapter } from 'nuqs/adapters/next/app';
 
 import { getEndpoint, type SchemaContext } from '@/app-config';
 import { getAuthHeaders } from '@/graphql/execute';
-import { configure as configureAdmin, type QueryResult } from '@sdk/admin';
+import { configure as configureAdmin } from '@sdk/admin';
 import { configure as configureAuth } from '@sdk/auth';
 import { configure as configureApp } from '@sdk/app';
 import { AuthProvider } from '@/lib/auth/auth-context';
 import { queryClient } from '@/lib/query-client';
 
-// Shared adapter factory — creates a GraphQL adapter bound to a specific schema context.
-// Endpoint uses a getter so changes to Direct Connect / UI overrides are picked up
-// on every request without needing to re-call configure().
-function createSdkAdapter(ctx: SchemaContext) {
+// Shared SDK configuration factory — binds a schema context to its GraphQL endpoint.
+// The endpoint getter and headers getter ensure changes to Direct Connect / UI overrides
+// are picked up on every request without needing to re-call configure().
+function createSdkConfig(ctx: SchemaContext) {
 	return {
-		async execute<T>(document: string, variables?: Record<string, unknown>): Promise<QueryResult<T>> {
-			const endpoint = getEndpoint(ctx);
-			const headers = getAuthHeaders(ctx);
-			const res = await fetch(endpoint, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...headers },
-				body: JSON.stringify({ query: document, variables: variables ?? {} }),
-			});
-			const json = await res.json();
-			if (json.errors?.length) {
-				return { ok: false as const, data: null, errors: json.errors };
-			}
-			return { ok: true as const, data: json.data as T, errors: undefined };
+		get endpoint() {
+			return getEndpoint(ctx);
+		},
+		get headers() {
+			return getAuthHeaders(ctx);
 		},
 	};
 }
 
 // Initialize all SDK clients at module load time (before any queries can fire).
-configureAdmin({ adapter: createSdkAdapter('admin') });
-configureAuth({ adapter: createSdkAdapter('auth') });
-configureApp({ adapter: createSdkAdapter('app') });
+configureAdmin(createSdkConfig('admin'));
+configureAuth(createSdkConfig('auth'));
+configureApp(createSdkConfig('app'));
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
 	return (

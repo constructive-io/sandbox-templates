@@ -37,31 +37,65 @@ export function useLogin() {
 	return useMutation({
 		mutationKey: authKeys.signIn.queryKey,
 		mutationFn: async (credentials: LoginFormData) => {
-			const result = await signInMutation.mutateAsync({
-				input: {
+			try {
+				const result = await signInMutation.mutateAsync({
+					input: {
+						email: credentials.email,
+						password: credentials.password,
+						rememberMe: credentials.rememberMe,
+					},
+				});
+
+				const signInResult = result.signIn?.result;
+
+				if (!signInResult) {
+					throw createInvalidCredentialsError();
+				}
+
+				const token = toApiToken(signInResult);
+
+				if (!token) {
+					throw createInvalidCredentialsError();
+				}
+
+				return {
+					token,
 					email: credentials.email,
-					password: credentials.password,
-					rememberMe: credentials.rememberMe,
-				},
-			});
+					rememberMe: credentials.rememberMe || false,
+				};
+			} catch (err: any) {
+				// If the server returns UNAUTHENTICATED, it likely means a stale token
+				// was sent in the Authorization header. Clear it and retry once.
+				const isUnauthenticated =
+					err?.message?.includes('UNAUTHENTICATED') ||
+					err?.graphQLErrors?.some((e: any) => e?.extensions?.code === 'UNAUTHENTICATED');
 
-			const signInResult = result.signIn?.result;
+				if (isUnauthenticated) {
+					TokenManager.clearToken();
+					const result = await signInMutation.mutateAsync({
+						input: {
+							email: credentials.email,
+							password: credentials.password,
+							rememberMe: credentials.rememberMe,
+						},
+					});
+					const signInResult = result.signIn?.result;
+					if (!signInResult) {
+						throw createInvalidCredentialsError();
+					}
+					const token = toApiToken(signInResult);
+					if (!token) {
+						throw createInvalidCredentialsError();
+					}
+					return {
+						token,
+						email: credentials.email,
+						rememberMe: credentials.rememberMe || false,
+					};
+				}
 
-			if (!signInResult) {
-				throw createInvalidCredentialsError();
+				throw err;
 			}
-
-			const token = toApiToken(signInResult);
-
-			if (!token) {
-				throw createInvalidCredentialsError();
-			}
-
-			return {
-				token,
-				email: credentials.email,
-				rememberMe: credentials.rememberMe || false,
-			};
 		},
 		onSuccess: async ({ token, rememberMe, email }) => {
 			// Store token for admin context

@@ -21,6 +21,7 @@ src/graphql/sdk/auth/
 src/graphql/sdk/app/
 
 # Environment (copy .env.example to .env.local)
+.env
 .env.local
 
 # IDE
