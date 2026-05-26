@@ -51,7 +51,7 @@ export function useAccountEmail(options: UseAccountEmailOptions): UseAccountEmai
 	const email = useMemo(() => {
 		const nodes = data?.emails?.nodes ?? [];
 		if (nodes.length === 0) return null;
-		const primary = nodes.find((node) => node.isPrimary);
+		const primary = nodes.find((node: any) => node.isPrimary);
 		return ((primary ?? nodes[0])?.email as string | null) ?? null;
 	}, [data]);
 

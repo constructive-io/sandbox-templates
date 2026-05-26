@@ -179,7 +179,7 @@ export function useOrganizations(options: UseOrganizationsOptions = {}): UseOrga
 			}
 
 			// Step 2: Get unique entity IDs and fetch user data
-			const entityIds = [...new Set(rawMemberships.map((m) => m.entityId).filter((id): id is string => !!id))];
+			const entityIds = [...new Set(rawMemberships.map((m: any) => m.entityId).filter((id: any): id is string => !!id))];
 			const usersResult = await fetchUsersQuery({
 				selection: {
 					fields: {
@@ -225,7 +225,7 @@ export function useOrganizations(options: UseOrganizationsOptions = {}): UseOrga
 			}
 
 			// Step 4: Build membership nodes with entities
-			const memberships: MembershipNode[] = rawMemberships.map((m) => {
+			const memberships: MembershipNode[] = rawMemberships.map((m: any) => {
 				const entity = m.entityId ? entityMap.get(m.entityId) : null;
 				return {
 					id: m.id ?? '',
@@ -249,7 +249,7 @@ export function useOrganizations(options: UseOrganizationsOptions = {}): UseOrga
 
 	// Transform and filter memberships to organizations (including self-org)
 	const organizations: OrganizationWithRole[] = (data?.memberships ?? [])
-		.map((m) => transformMembershipToOrg(m, actorId!))
+		.map((m: any) => transformMembershipToOrg(m, actorId!))
 		.filter((org): org is OrganizationWithRole => org !== null);
 
 	// Note: totalCount from API includes all memberships (not just orgs)

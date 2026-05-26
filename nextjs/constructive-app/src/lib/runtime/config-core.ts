@@ -26,7 +26,7 @@ const logger = createLogger({ scope: 'config-core' });
 export function getDbName(): string {
 	const dbName = getRuntimeConfig('NEXT_PUBLIC_DB_NAME');
 	if (!dbName) {
-		throw new Error('NEXT_PUBLIC_DB_NAME is required. Set it in .env.local');
+		throw new Error('NEXT_PUBLIC_DB_NAME is required. Set it in .env');
 	}
 	return dbName;
 }

@@ -2,26 +2,34 @@
   "name": "@constructive-templates/provision",
   "version": "0.0.1",
   "private": true,
-  "main": "index.js",
-  "module": "esm/index.js",
-  "types": "index.d.ts",
+  "main": "dist/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
   "scripts": {
     "copy": "copyfiles -f ../../LICENSE README.md package.json dist",
     "clean": "rimraf dist/**",
     "build": "pnpm run clean; tsc; tsc -p tsconfig.esm.json; pnpm run copy",
-    "provision": "ts-node provision.ts"
+    "provision": "tsx provision.ts",
+    "deps": "pnpm up -r -i -L"
   },
   "devDependencies": {
-    "@types/node": "^20.19.29",
+    "@types/node": "^22.15.0",
     "@types/pg": "^8.11.0",
     "copyfiles": "^2",
     "rimraf": "^5",
-    "ts-node": "^10.9.2",
-    "typescript": "^5"
+    "tsx": "^4.22.3",
+    "typescript": "^5.8.0"
   },
   "dependencies": {
-    "@constructive-io/sdk": "^0.15.1",
-    "@constructive-io/node": "^0.8.17",
+    "@constructive-io/fetch": "^1.0.0",
+    "@constructive-io/sdk": "^0.23.1",
     "pg": "^8.13.0"
   }
 }

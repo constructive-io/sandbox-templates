@@ -2,10 +2,9 @@
  * Hook for creating a new organization
  * Tier 4 wrapper: Uses SDK hooks + cache invalidation
  *
- * Creating an organization is a two-step process:
- * 1. Create User with type=2 (Organization)
- *    - Database trigger `membership_mbr_create` automatically creates owner membership
- * 2. Create OrganizationSetting linked to the new User
+ * Creating an organization creates a User with type=2 (Organization)
+ * via the auth endpoint (which uses the app_admin role with INSERT on users).
+ * A database trigger automatically creates the owner membership.
  *
  * NOTE: The membership is created automatically by a database trigger when a User
  * with type=2 is inserted. The trigger uses jwt_public.current_user_id() as the owner.
@@ -96,11 +95,17 @@ export function useCreateOrganization(options: UseCreateOrganizationOptions = {}
 	const { context = 'admin', onSuccess, onError } = options;
 	void context; // Context is handled by SDK execute-adapter
 	const queryClient = useQueryClient();
-	const createUserMutation = useCreateUserMutation({ selection: { fields: { id: true, displayName: true, username: true } } });
+
+	// createUser on the auth endpoint has INSERT on the users table
+	// (the auth endpoint uses the app_admin role, not app_user)
+	const createUserMutation = useCreateUserMutation({
+		selection: { fields: { id: true, displayName: true, username: true } },
+	});
 
 	const createOrganization = async (input: CreateOrganizationInput): Promise<CreateOrganizationResult> => {
-		// Step 1: Create User as Organization
-		// The database trigger `membership_mbr_create` automatically creates owner membership
+		// Create a User with type=2 (Organization) via the auth endpoint.
+		// The auth endpoint uses the app_admin role which has INSERT on users.
+		// Database trigger `membership_mbr_create` automatically creates owner membership.
 		const userInput: Record<string, unknown> = {
 			displayName: input.displayName,
 			type: ROLE_TYPE.ORGANIZATION,

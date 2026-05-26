@@ -104,7 +104,7 @@ export function useOrgInvites(options: UseOrgInvitesOptions) {
 			}
 
 			// Step 2: Fetch senders (users) for all invites
-			const senderIds = [...new Set(rawInvites.map((i) => i.senderId).filter((id): id is string => !!id))];
+			const senderIds = [...new Set(rawInvites.map((i: any) => i.senderId).filter((id: any): id is string => !!id))];
 			let senderMap = new Map<string, UserNode>();
 
 			if (senderIds.length > 0) {
@@ -130,7 +130,7 @@ export function useOrgInvites(options: UseOrgInvitesOptions) {
 			}
 
 			// Step 3: Build invite nodes with sender info
-			const invites: InviteNode[] = rawInvites.map((i) => ({
+			const invites: InviteNode[] = rawInvites.map((i: any) => ({
 				id: i.id ?? '',
 				email: (i.email as string | null) ?? null,
 				data: i.data,
@@ -150,7 +150,7 @@ export function useOrgInvites(options: UseOrgInvitesOptions) {
 		refetchOnMount: true,
 	});
 
-	const invites = (data?.invites ?? []).map((node) => transformActiveInvite(node));
+	const invites = (data?.invites ?? []).map((node: any) => transformActiveInvite(node));
 	const totalCount = data?.totalCount ?? 0;
 	const pageInfo = data?.pageInfo ?? { hasNextPage: false, hasPreviousPage: false };
 
@@ -203,8 +203,8 @@ export function useOrgClaimedInvites(options: UseOrgInvitesOptions) {
 			// Step 2: Fetch senders and receivers (users) for all claimed invites
 			const userIds = [
 				...new Set([
-					...rawClaimed.map((c) => c.senderId).filter((id): id is string => !!id),
-					...rawClaimed.map((c) => c.receiverId).filter((id): id is string => !!id),
+					...rawClaimed.map((c: any) => c.senderId).filter((id: any): id is string => !!id),
+					...rawClaimed.map((c: any) => c.receiverId).filter((id: any): id is string => !!id),
 				]),
 			];
 			let userMap = new Map<string, UserNode>();
@@ -232,7 +232,7 @@ export function useOrgClaimedInvites(options: UseOrgInvitesOptions) {
 			}
 
 			// Step 3: Build claimed invite nodes with sender/receiver info
-			const claimedInvites: ClaimedInviteNode[] = rawClaimed.map((c) => ({
+			const claimedInvites: ClaimedInviteNode[] = rawClaimed.map((c: any) => ({
 				id: c.id ?? '',
 				createdAt: c.createdAt ?? '',
 				data: c.data,
@@ -247,7 +247,7 @@ export function useOrgClaimedInvites(options: UseOrgInvitesOptions) {
 		refetchOnMount: true,
 	});
 
-	const claimedInvites = (data?.claimedInvites ?? []).map((node) => transformClaimedInvite(node));
+	const claimedInvites = (data?.claimedInvites ?? []).map((node: any) => transformClaimedInvite(node));
 	const totalCount = data?.totalCount ?? 0;
 	const pageInfo = data?.pageInfo ?? { hasNextPage: false, hasPreviousPage: false };
 

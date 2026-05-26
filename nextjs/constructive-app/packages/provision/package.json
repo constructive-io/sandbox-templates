@@ -1,0 +1,23 @@
+{
+  "name": "@constructive-app/provision",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "create-db": "tsx src/create-db.ts",
+    "provision": "tsx src/provision.ts",
+    "seed": "tsx src/seed/index.ts",
+    "build": "echo 'No build required'"
+  },
+  "dependencies": {
+    "@constructive-io/fetch": "^1.1.1",
+    "@constructive-io/node": "^0.10.12",
+    "dotenv": "^16.5.0",
+    "pg": "^8.21.0"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.15.4",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}

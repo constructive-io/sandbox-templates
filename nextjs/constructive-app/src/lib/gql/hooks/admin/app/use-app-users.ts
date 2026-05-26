@@ -174,7 +174,7 @@ export function useAppUsers(options: UseAppUsersOptions = {}): UseAppUsersResult
 			}
 
 			// Step 2: Fetch actors (users) for all memberships
-			const actorIds = [...new Set(memberships.map((m) => m.actorId).filter((id): id is string => !!id))];
+			const actorIds = [...new Set(memberships.map((m: any) => m.actorId).filter((id: any): id is string => !!id))];
 			const usersResult = await fetchUsersQuery({
 				selection: {
 					fields: {
@@ -201,7 +201,7 @@ export function useAppUsers(options: UseAppUsersOptions = {}): UseAppUsersResult
 			}
 
 			// Step 3: Join memberships with actors
-			const nodes: AppUserNode[] = memberships.map((m) => ({
+			const nodes: AppUserNode[] = memberships.map((m: any) => ({
 				id: m.id ?? '',
 				actorId: m.actorId ?? '',
 				isAdmin: m.isAdmin ?? false,

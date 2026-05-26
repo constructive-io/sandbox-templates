@@ -21,7 +21,7 @@ import { useBoardsQuery } from '@sdk/app';
 
 ## Generation
 
-1. Set your database name in `.env.local`:
+1. Set your database name in `.env`:
    ```
    NEXT_PUBLIC_DB_NAME=your-db-name
    ```

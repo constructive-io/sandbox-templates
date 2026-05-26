@@ -7,6 +7,11 @@ const logger = createLogger({ scope: 'token-manager' });
 const TOKEN_STORAGE_KEY = 'constructive-auth-token:admin';
 const REMEMBER_ME_KEY = 'constructive-remember-me:admin';
 
+/** Safe localStorage accessor — returns undefined during SSR */
+const safeLocalStorage = typeof window !== 'undefined' ? localStorage : undefined;
+/** Safe sessionStorage accessor — returns undefined during SSR */
+const safeSessionStorage = typeof window !== 'undefined' ? sessionStorage : undefined;
+
 /**
  * Token manager for handling token persistence
  * Uses localStorage for persistent storage (remember me) or sessionStorage for session-only
@@ -38,12 +43,11 @@ export class TokenManager {
 	): void {
 		try {
 			const tokenData = JSON.stringify(token);
-			const storage = rememberMe ? localStorage : sessionStorage;
-
-			storage.setItem(TOKEN_STORAGE_KEY, tokenData);
-
+			const storage = rememberMe ? safeLocalStorage : safeSessionStorage;
+			storage?.setItem(TOKEN_STORAGE_KEY, tokenData);
+			
 			// Store remember me preference in localStorage for consistency
-			localStorage.setItem(REMEMBER_ME_KEY, JSON.stringify(rememberMe));
+			safeLocalStorage?.setItem(REMEMBER_ME_KEY, JSON.stringify(rememberMe));
 
 			// Update in-memory cache
 			TokenManager.cached = { token, rememberMe };
@@ -67,17 +71,17 @@ export class TokenManager {
 			}
 
 			// Check remember me preference first
-			const rememberMeStr = localStorage.getItem(REMEMBER_ME_KEY);
+			const rememberMeStr = safeLocalStorage?.getItem(REMEMBER_ME_KEY) ?? null;
 			const rememberMe = rememberMeStr ? JSON.parse(rememberMeStr) : false;
 
 			// Try to get token from appropriate storage
-			const storage = rememberMe ? localStorage : sessionStorage;
-			const tokenStr = storage.getItem(TOKEN_STORAGE_KEY);
+			const storage = rememberMe ? safeLocalStorage : safeSessionStorage;
+			const tokenStr = storage?.getItem(TOKEN_STORAGE_KEY) ?? null;
 
 			if (!tokenStr) {
 				// If not found in expected storage, try the other one
-				const alternativeStorage = rememberMe ? sessionStorage : localStorage;
-				const alternativeTokenStr = alternativeStorage.getItem(TOKEN_STORAGE_KEY);
+				const alternativeStorage = rememberMe ? safeSessionStorage : safeLocalStorage;
+				const alternativeTokenStr = alternativeStorage?.getItem(TOKEN_STORAGE_KEY) ?? null;
 
 				if (alternativeTokenStr) {
 					const token = JSON.parse(alternativeTokenStr) as ApiToken;
@@ -103,9 +107,9 @@ export class TokenManager {
 	 */
 	static clearToken(_ctx?: SchemaContext, _scope?: string | null): void {
 		try {
-			localStorage.removeItem(TOKEN_STORAGE_KEY);
-			sessionStorage.removeItem(TOKEN_STORAGE_KEY);
-			localStorage.removeItem(REMEMBER_ME_KEY);
+			safeLocalStorage?.removeItem(TOKEN_STORAGE_KEY);
+			safeSessionStorage?.removeItem(TOKEN_STORAGE_KEY);
+			safeLocalStorage?.removeItem(REMEMBER_ME_KEY);
 			TokenManager.cached = null;
 		} catch (e) {
 			logger.warn('Failed to clear token from storage', { error: e });
@@ -117,8 +121,8 @@ export class TokenManager {
 	 */
 	static hasToken(_ctx?: SchemaContext): boolean {
 		try {
-			const hasInLocal = localStorage.getItem(TOKEN_STORAGE_KEY) !== null;
-			const hasInSession = sessionStorage.getItem(TOKEN_STORAGE_KEY) !== null;
+			const hasInLocal = safeLocalStorage?.getItem(TOKEN_STORAGE_KEY) !== null;
+			const hasInSession = safeSessionStorage?.getItem(TOKEN_STORAGE_KEY) !== null;
 			return hasInLocal || hasInSession;
 		} catch {
 			return false;

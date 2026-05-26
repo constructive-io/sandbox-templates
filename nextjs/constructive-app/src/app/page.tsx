@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { Rocket } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { getDbName } from '@/app-config';
@@ -14,6 +15,13 @@ import { LoginScreen } from '@/components/auth/screens/login-screen';
 export default function HomePage() {
 	const { isAuthenticated, isLoading: isAuthLoading, login } = useAuthContext();
 
+	// Prevent hydration mismatch: auth state resolves on the client after
+	// useEffect runs, so the server always sees isLoading=true while the
+	// client may already have a resolved state. Render the same loading UI
+	// on both server and first client paint, then switch after mount.
+	const [mounted, setMounted] = React.useState(false);
+	React.useEffect(() => setMounted(true), []);
+
 	let dbName = 'your-db';
 	try {
 		dbName = getDbName();
@@ -21,8 +29,8 @@ export default function HomePage() {
 		// DB name not configured yet
 	}
 
-	// Loading state
-	if (isAuthLoading) {
+	// Show loading until client-side auth state is resolved
+	if (!mounted || isAuthLoading) {
 		return (
 			<div className='bg-background flex h-dvh w-dvw items-center justify-center'>
 				<div className='border-primary/20 h-10 w-10 animate-spin rounded-full border-2 border-t-transparent' />

@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env npx tsx
 /**
  * Constructive App Provisioning Script
  *
@@ -16,7 +16,7 @@
  *   pnpm provision
  */
 
-import { auth, public_ as platform, NodeHttpAdapter } from '@constructive-io/node';
+import { auth, public_ as platform } from '@constructive-io/sdk';
 import { Client as PgClient } from 'pg';
 import config from './provision.config';
 
@@ -54,15 +54,9 @@ async function createSecuredTableWithShim(
       data: {
         databaseId,
         tableName: tableDef.name,
-        nodeType: tableDef.nodeType,
-        useRls: true,
-        grantRoles: tableDef.grantRoles,
-        grantPrivileges: grantPrivileges,
-        policyType: tableDef.policyType,
-        policyPermissive: true,
-        policyData: policyData,
-      },
-      select: { id: true, tableId: true, outFields: true, tableName: true },
+        nodes: { [tableDef.nodeType]: { useRls: true, grants: { grantRoles: tableDef.grantRoles, grantPrivileges: grantPrivileges }, policies: { policyType: tableDef.policyType, permissive: true, data: policyData } } },
+      } as any,
+      select: { id: true, tableId: true, outFields: true, tableName: true } as any,
     }).execute();
 
     const provision = (res as any).createSecureTableProvision.secureTableProvision;
@@ -74,10 +68,9 @@ async function createSecuredTableWithShim(
         data: {
           databaseId,
           tableId,
-          nodeType: comp.nodeType,
-          nodeData: { include_id: false, ...(comp.nodeData ?? {}) },
-        },
-        select: { id: true },
+          nodes: { [comp.nodeType]: { include_id: false, ...(comp.nodeData ?? {}) } } as any,
+        } as any,
+        select: { id: true } as any,
       }).execute();
     }
 
@@ -95,10 +88,9 @@ async function createSecuredTableWithShim(
         data: {
           databaseId,
           tableName: tableDef.name,
-          nodeType: tableDef.nodeType,
-          useRls: true,
-        },
-        select: { id: true, tableId: true, outFields: true },
+          nodes: { [tableDef.nodeType]: { useRls: true } } as any,
+        } as any,
+        select: { id: true, tableId: true, outFields: true } as any,
       }).execute();
 
       const provision = (res as any).createSecureTableProvision.secureTableProvision;
@@ -115,15 +107,15 @@ async function createSecuredTableWithShim(
           try {
             grantData.granteeName = role;
             await apiClient.tableGrant.create({
-              data: grantData,
-              select: { id: true },
+              data: grantData as any,
+              select: { id: true } as any,
             }).execute();
           } catch {
             delete grantData.granteeName;
             grantData.roleName = role;
             await apiClient.tableGrant.create({
-              data: grantData,
-              select: { id: true },
+              data: grantData as any,
+              select: { id: true } as any,
             }).execute();
           }
         }
@@ -140,15 +132,15 @@ async function createSecuredTableWithShim(
       try {
         policyBase.granteeName = 'authenticated';
         await apiClient.policy.create({
-          data: policyBase,
-          select: { id: true },
+          data: policyBase as any,
+          select: { id: true } as any,
         }).execute();
       } catch {
         delete policyBase.granteeName;
         policyBase.roleName = 'authenticated';
         await apiClient.policy.create({
-          data: policyBase,
-          select: { id: true },
+          data: policyBase as any,
+          select: { id: true } as any,
         }).execute();
       }
 
@@ -158,10 +150,9 @@ async function createSecuredTableWithShim(
           data: {
             databaseId,
             tableId,
-            nodeType: comp.nodeType,
-            nodeData: { include_id: false, ...(comp.nodeData ?? {}) },
-          },
-          select: { id: true },
+            nodes: { [comp.nodeType]: { include_id: false, ...(comp.nodeData ?? {}) } } as any,
+          } as any,
+          select: { id: true } as any,
         }).execute();
       }
 
@@ -181,7 +172,7 @@ async function main(): Promise<void> {
   console.log('Step 1: Signing up and signing in on platform...');
 
   const authDb = auth.createClient({
-    adapter: new NodeHttpAdapter(config.platformAuth),
+    endpoint: config.platformAuth,
   });
 
   // Sign up (ignore "already exists" errors)
@@ -219,9 +210,10 @@ async function main(): Promise<void> {
   // -----------------------------------------------------------------------
   console.log('Step 2: Creating database...');
 
-  const apiAdapter = new NodeHttpAdapter(config.platformApi);
-  apiAdapter.setHeaders({ Authorization: `Bearer ${accessToken}` });
-  const apiDb = platform.createClient({ adapter: apiAdapter });
+  const apiDb = platform.createClient({
+    endpoint: config.platformApi,
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
 
   const dbResult = await apiDb.databaseProvisionModule.create({
     data: {
@@ -312,7 +304,7 @@ async function main(): Promise<void> {
   console.log('Step 4: Signing in to per-database auth...');
 
   const dbAuthDb = auth.createClient({
-    adapter: new NodeHttpAdapter(`http://auth-${databaseName}.localhost:3000/graphql`),
+    endpoint: `http://auth-${databaseName}.localhost:3000/graphql`,
   });
 
   const dbSignInResult = await dbAuthDb.mutation.signIn(
@@ -389,8 +381,8 @@ async function main(): Promise<void> {
       }
 
       await apiDb.relationProvision.create({
-        data: relData,
-        select: { id: true, outFieldId: true, fieldName: true },
+        data: relData as any,
+        select: { id: true, outFieldId: true, fieldName: true } as any,
       }).execute();
 
       const descriptor = `${rel.source} -> ${rel.target} (${rel.type})`;
