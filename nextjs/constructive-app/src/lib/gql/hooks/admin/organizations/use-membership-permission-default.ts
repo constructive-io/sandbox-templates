@@ -10,7 +10,7 @@ import {
 	useCreateOrgPermissionDefaultMutation,
 	useOrgPermissionDefaultsQuery,
 	useUpdateOrgPermissionDefaultMutation,
-} from '@sdk/admin';
+} from '@/lib/gql/admin-compat';
 import { useAppStore } from '@/store/app-store';
 
 export interface MembershipPermissionDefault {

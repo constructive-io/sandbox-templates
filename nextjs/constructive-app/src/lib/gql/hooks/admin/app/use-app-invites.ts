@@ -12,7 +12,7 @@ import {
 	useCreateAppInviteMutation,
 	useDeleteAppInviteMutation,
 	useUpdateAppInviteMutation,
-} from '@sdk/admin';
+} from '@/lib/gql/admin-compat';
 import { fetchUsersQuery } from '@sdk/auth';
 
 import {
@@ -105,7 +105,7 @@ export function useAppInvites(options: UseAppInvitesOptions = {}) {
 			}
 
 			// Step 2: Fetch senders (users) for all invites
-			const senderIds = [...new Set(rawInvites.map((i: any) => i.senderId).filter((id: any): id is string => !!id))];
+			const senderIds = [...new Set(rawInvites.map((i: any) => i.senderId).filter((id: any): id is string => !!id))] as string[];
 			let senderMap = new Map<string, UserNode>();
 
 			if (senderIds.length > 0) {

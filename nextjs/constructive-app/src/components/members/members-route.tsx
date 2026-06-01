@@ -34,7 +34,7 @@ import {
 import {
 	useDeleteOrgMembershipMutation,
 	useUpdateOrgMembershipMutation,
-} from '@sdk/admin';
+} from '@/lib/gql/admin-compat';
 import { useAppStore } from '@/store/app-store';
 
 import { RoleBadge } from './role-badge';

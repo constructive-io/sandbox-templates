@@ -8,7 +8,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import type { SchemaContext } from '@/app-config';
-import { fetchOrgMembershipsQuery } from '@sdk/admin';
+import { fetchOrgMembershipsQuery } from '@/lib/gql/admin-compat';
 import { fetchUsersQuery } from '@sdk/auth';
 import { useAppStore } from '@/store/app-store';
 
@@ -179,7 +179,7 @@ export function useOrganizations(options: UseOrganizationsOptions = {}): UseOrga
 			}
 
 			// Step 2: Get unique entity IDs and fetch user data
-			const entityIds = [...new Set(rawMemberships.map((m: any) => m.entityId).filter((id: any): id is string => !!id))];
+			const entityIds = [...new Set(rawMemberships.map((m: any) => m.entityId).filter((id: any): id is string => !!id))] as string[];
 			const usersResult = await fetchUsersQuery({
 				selection: {
 					fields: {

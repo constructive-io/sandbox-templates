@@ -7,7 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import {
 	fetchAppPermissionsQuery,
 	fetchOrgPermissionsQuery,
-} from '@sdk/admin';
+} from '@/lib/gql/admin-compat';
 
 export interface PermissionNode {
 	bitnum: number | null;

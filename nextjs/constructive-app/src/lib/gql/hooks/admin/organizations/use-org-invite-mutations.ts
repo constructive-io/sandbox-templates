@@ -5,7 +5,7 @@ import {
 	useCreateOrgInviteMutation,
 	useDeleteOrgInviteMutation,
 	useUpdateOrgInviteMutation,
-} from '@sdk/admin';
+} from '@/lib/gql/admin-compat';
 
 import { orgInvitesQueryKeys } from './use-org-invites';
 

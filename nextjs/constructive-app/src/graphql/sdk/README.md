@@ -8,7 +8,7 @@ This directory contains three SDK contexts, each connecting to a different Graph
 |---------|-----------------|----------|
 | `admin` | `admin-{db}.localhost:3000` | Organizations, members, permissions, invites |
 | `auth` | `auth-{db}.localhost:3000` | Users, emails, authentication |
-| `app` | `app-public-{db}.localhost:3000` | Your business data |
+| `app` | `api-{db}.localhost:3000` | Your business data |
 
 ## Usage
 

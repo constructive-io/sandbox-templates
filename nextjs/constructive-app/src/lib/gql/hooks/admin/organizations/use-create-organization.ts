@@ -13,7 +13,7 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import type { SchemaContext } from '@/app-config';
 import { useCreateUserMutation } from '@sdk/auth';
-import { fetchOrgMembershipsQuery } from '@sdk/admin';
+import { fetchOrgMembershipsQuery } from '@/lib/gql/admin-compat';
 
 import { ROLE_TYPE, type Organization } from './organization.types';
 import { organizationsQueryKeys } from './use-organizations';

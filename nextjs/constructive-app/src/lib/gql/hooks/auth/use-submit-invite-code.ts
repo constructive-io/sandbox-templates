@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 
-import { useSubmitAppInviteCodeMutation } from '@sdk/admin';
+import { useSubmitAppInviteCodeMutation } from '@/lib/gql/admin-compat';
 
 /**
  * Submit invite code hook using SDK-generated mutation

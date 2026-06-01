@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { useAppStore } from '@/store/app-store';
 import type { SchemaContext } from '@/app-config';
-import { fetchOrgMembershipsQuery } from '@sdk/admin';
+import { fetchOrgMembershipsQuery } from '@/lib/gql/admin-compat';
 import { fetchUsersQuery } from '@sdk/auth';
 
 import type { OrgRole } from './organization.types';
@@ -150,7 +150,7 @@ export function useOrgMembers(options: UseOrgMembersOptions): UseOrgMembersResul
 			}
 
 			// Step 2: Fetch actors (users) for all memberships
-			const actorIds = [...new Set(memberships.map((m: any) => m.actorId).filter((id: any): id is string => !!id))];
+			const actorIds = [...new Set(memberships.map((m: any) => m.actorId).filter((id: any): id is string => !!id))] as string[];
 			const usersResult = await fetchUsersQuery({
 				selection: {
 					fields: {

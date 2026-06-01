@@ -7,7 +7,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import type { SchemaContext } from '@/app-config';
-import { fetchOrgMembershipsQuery } from '@sdk/admin';
+import { fetchOrgMembershipsQuery } from '@/lib/gql/admin-compat';
 import { fetchUserQuery, fetchUsersQuery } from '@sdk/auth';
 import { useAppStore } from '@/store/app-store';
 
@@ -217,7 +217,7 @@ export function useOrganization(options: UseOrganizationOptions): UseOrganizatio
 			const memberCount = membersResult.orgMemberships?.totalCount ?? 0;
 
 			// Step 4: Fetch actors for member preview
-			const actorIds = [...new Set(memberships.map((m: any) => m.actorId).filter((id: any): id is string => !!id))];
+			const actorIds = [...new Set(memberships.map((m: any) => m.actorId).filter((id: any): id is string => !!id))] as string[];
 			let actorMap = new Map<string, ActorNode>();
 
 			if (actorIds.length > 0) {

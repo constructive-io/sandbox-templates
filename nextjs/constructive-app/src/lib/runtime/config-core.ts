@@ -7,7 +7,7 @@ import { getRuntimeConfig } from './get-runtime-config';
  *
  * - admin: Organization, members, permissions, invites (admin-{db}.localhost)
  * - auth:  Users, emails, authentication (auth-{db}.localhost)
- * - app:   Business data - your tables (app-public-{db}.localhost)
+ * - app:   Business data - your tables (api-{db}.localhost)
  */
 export type SchemaContext = 'admin' | 'auth' | 'app';
 
@@ -80,8 +80,14 @@ export function getAuthEndpoint(): string {
  * Get the app endpoint.
  * Used for: your business data (boards, cards, etc.)
  *
- * Note: "app-public" maps to the PostgreSQL schema "app_public" via
- * PostGraphile's virtual-host routing (hyphens → underscores).
+ * The app DATA API is served on the `api-{db}` virtual host (NOT
+ * `app-public-{db}`). The browser sends the Host header from this URL's
+ * hostname, and that Host header — not the URL — is what drives server-side
+ * routing. PostGraphile maps the `{db}` segment back to the physical database
+ * by converting hyphens to underscores.
+ *
+ * Override with NEXT_PUBLIC_APP_ENDPOINT to point at a different host
+ * (e.g. when the per-DB domain in services_public.domains differs).
  */
 export function getAppEndpoint(): string {
 	const override = getRuntimeConfig('NEXT_PUBLIC_APP_ENDPOINT');
@@ -89,7 +95,7 @@ export function getAppEndpoint(): string {
 
 	const dbName = getDbName();
 	const port = getApiPort();
-	const endpoint = `http://app-public-${dbName}.localhost:${port}/graphql`;
+	const endpoint = `http://api-${dbName}.localhost:${port}/graphql`;
 	logger.debug('getAppEndpoint', { dbName, endpoint });
 	return endpoint;
 }
