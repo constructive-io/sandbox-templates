@@ -26,12 +26,43 @@ export interface ProvisionRelation {
   };
 }
 
+/**
+ * A provision module. Scoped modules MUST use tuple form
+ * (['permissions_module', { scope: 'app' }]) — the live provision proc rejects
+ * the colon-string form ('permissions_module:app') with a PROVISION-001 hard-fail.
+ */
+export type ModuleScope = { scope: 'app' | 'org' };
+export type ProvisionModule = string | [string, ModuleScope];
+
+/**
+ * BASE tier default — the `auth:email` preset. Mirrors
+ * references/flows.json → email-password.backend.modules verbatim.
+ *
+ * NO org / memberships{org} / hierarchy / invites modules: a base scaffold
+ * ships no org/b2b code. B2B apps layer the org modules on top (see docs/B2B.md).
+ */
+export const AUTH_EMAIL_MODULES: ProvisionModule[] = [
+  'users_module',
+  'membership_types_module',
+  ['permissions_module', { scope: 'app' }],
+  ['limits_module', { scope: 'app' }],
+  ['levels_module', { scope: 'app' }],
+  ['memberships_module', { scope: 'app' }],
+  'sessions_module',
+  'user_state_module',
+  'user_credentials_module',
+  'config_secrets_module',
+  'emails_module',
+  'rls_module',
+  'user_auth_module'
+];
+
 export interface ProvisionConfig {
   platformAuth: string;
   platformApi: string;
   database: {
     name: string;
-    modules: string[];
+    modules: ProvisionModule[];
     bootstrapUser: boolean;
   };
   auth: {
@@ -94,7 +125,10 @@ export function defineProvisionConfig(config: ProvisionConfig): ProvisionConfig 
  *   platformApi: 'http://api.localhost:3000/graphql',
  *   database: {
  *     name: 'taskmanager',
- *     modules: ['all'],
+ *     // BASE tier: the auth:email preset. Import AUTH_EMAIL_MODULES (above)
+ *     // and spread it, adding only what your app needs. NEVER use ['all'] or
+ *     // colon-string scoped modules — the provision proc rejects both.
+ *     modules: AUTH_EMAIL_MODULES,
  *     bootstrapUser: true,
  *   },
  *   auth: {
@@ -156,7 +190,10 @@ export default defineProvisionConfig({
   platformApi: 'http://api.localhost:3000/graphql',
   database: {
     name: 'REPLACE_ME',
-    modules: ['all'],
+    // BASE tier default: the auth:email preset (see AUTH_EMAIL_MODULES above).
+    // Do NOT use ['all'] — the live provision proc rejects it. Layer org
+    // modules on top only for a b2b app (see docs/B2B.md).
+    modules: AUTH_EMAIL_MODULES,
     bootstrapUser: true,
   },
   auth: {

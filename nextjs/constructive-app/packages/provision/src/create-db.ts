@@ -10,41 +10,24 @@
 
 import { auth, public_ } from '@constructive-io/node';
 
-// Modules needed for basic auth + org + invites functionality.
-// Matches the module set that the Constructive platform expects for
-// a full tenant database with app/org-level memberships and invites.
-const APP_MODULES: string[] = [
-  // Core
-  'users_module',
-  'membership_types_module',
-  // App-level (membership_type = 1)
-  'permissions_module:app',
-  'limits_module:app',
-  'memberships_module:app',
-  'events_module:app',
-  'profiles_module:app',
-  // Org-level (membership_type = 2)
-  'permissions_module:org',
-  'limits_module:org',
-  'memberships_module:org',
-  'events_module:org',
-  'profiles_module:org',
-  'hierarchy_module:org',
-  // Auth infrastructure
-  'user_state_module',
-  'sessions_module',
-  'session_secrets_module',
-  'rate_limits_module',
-  'rls_module',
-  'config_secrets_user_module',
-  // Contact modules
-  'emails_module',
-  // Invites
-  'invites_module:app',
-  'invites_module:org',
-  // Auth methods
-  'user_auth_module',
-];
+import { asModules, AUTH_EMAIL_MODULES, type ProvisionModule } from './modules.js';
+
+// BASE tier default module set: the `auth:email` preset.
+//
+// This is the ~13-module set that backs the email-password / profile auth
+// flows (see references/flows.json → email-password.backend.modules). It is
+// deliberately scoped to a single-user (app-level) auth surface: NO org /
+// memberships{org} / hierarchy / invites modules. A base scaffold ships no
+// org/b2b code, so it does not need those modules provisioned.
+//
+// B2B OPT-IN: an app that adopts the registry org blocks
+// (org-create-card / org-members-list / org-roles-editor / org-settings-form)
+// extends this set with the org modules — see docs/B2B.md.
+//
+// Scoped modules MUST use tuple form (['permissions_module', { scope: 'app' }]).
+// The live provision proc REJECTS the colon-string form
+// ('permissions_module:app') with a PROVISION-001 hard-fail.
+const APP_MODULES: ProvisionModule[] = AUTH_EMAIL_MODULES;
 
 import * as fs from 'fs';
 import * as path from 'path';
@@ -143,7 +126,7 @@ async function main() {
             ownerId: userId,
             subdomain: databaseName,
             domain: 'localhost',
-            modules: APP_MODULES,
+            modules: asModules(APP_MODULES),
             bootstrapUser: true,
             options: {}
           },

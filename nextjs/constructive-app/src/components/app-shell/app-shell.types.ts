@@ -59,9 +59,10 @@ export interface TopBarConfig {
 	breadcrumbPrefix?: React.ReactNode;
 
 	/**
-	 * Entity hierarchy levels (e.g., organization)
+	 * Entity hierarchy levels (e.g., organization). Optional — the base
+	 * auth:email app has no entity hierarchy; b2b apps populate this.
 	 */
-	entityLevels: EntityLevel[];
+	entityLevels?: EntityLevel[];
 
 	/**
 	 * Status badge configuration

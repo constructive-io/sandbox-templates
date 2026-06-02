@@ -1,114 +1,26 @@
 /**
- * Admin hooks
- * Centralized exports for organization, permissions, and admin-related hooks
+ * Admin hooks (BASE tier)
+ *
+ * The base auth:email app exposes only account-scoped admin hooks (current
+ * user, app membership, account profile/email/delete). Organization,
+ * members, and invite management are a b2b opt-in delivered via the registry
+ * org blocks + the org modules — see docs/B2B.md — so none of those hooks
+ * exist in the base.
  */
 
-// App-level hooks (platform administration)
+// App-level hooks (current user + app membership)
 export {
 	useCurrentUserAppMembership,
-	useAppUsers,
-	useUpdateAppUser,
-	useAppInvites,
-	useAppClaimedInvites,
-	useSendAppInvite,
-	useCancelAppInvite,
-	useExtendAppInvite,
+	useCurrentUser,
 	appMembershipQueryKeys,
-	appUsersQueryKeys,
-	appInvitesQueryKeys,
+	currentUserQueryKeys,
 	type AppMembership,
-	type AppUser,
-	type AppInvite,
-	type AppInviteRole,
-	type AppInviteStatus,
-	type AppClaimedInvite,
+	type CurrentUser,
 	type UseCurrentUserAppMembershipOptions,
 	type UseCurrentUserAppMembershipResult,
-	type UseAppUsersOptions,
-	type UseAppUsersResult,
-	type UpdateAppUserData,
-	type UseAppInvitesOptions,
-	type SendAppInviteInput,
-	type CancelAppInviteInput,
-	type ExtendAppInviteInput,
+	type UseCurrentUserOptions,
+	type UseCurrentUserResult,
 } from './app';
-
-// Organization hooks
-export {
-	// Types
-	type Organization,
-	type OrganizationWithRole,
-	type OrganizationSettings,
-	type OrganizationDetail,
-	type OrganizationMember,
-	type OrgRole,
-	ROLE_TYPE,
-	ORG_ROLE_CONFIG,
-	deriveOrgRole,
-	// Hooks
-	useOrganizations,
-	useOrganization,
-	useCreateOrganization,
-	useUpdateOrganization,
-	useDeleteOrganization,
-	useOrgMembers,
-	useOrgInvites,
-	useOrgClaimedInvites,
-	useSendOrgInvite,
-	useCancelOrgInvite,
-	useExtendOrgInvite,
-	useOrgMembershipDefault,
-	useUpdateOrgMembershipDefault,
-	useCreateOrgMembershipDefault,
-	useMembershipPermissionDefault,
-	useCreateMembershipPermissionDefault,
-	useUpdateMembershipPermissionDefault,
-	// Query keys
-	organizationsQueryKeys,
-	orgInvitesQueryKeys,
-	orgMembershipDefaultQueryKeys,
-	membershipPermissionDefaultQueryKeys,
-	// Hook types
-	type UseOrganizationsOptions,
-	type UseOrganizationsResult,
-	type UseOrganizationOptions,
-	type UseOrganizationResult,
-	type CreateOrganizationInput,
-	type CreateOrganizationResult,
-	type UseCreateOrganizationOptions,
-	type UseCreateOrganizationResult,
-	type UpdateOrganizationInput,
-	type UpdateOrganizationResult,
-	type UseUpdateOrganizationOptions,
-	type UseUpdateOrganizationResult,
-	type DeleteOrganizationInput,
-	type DeleteOrganizationResult,
-	type OrgMember,
-	type OrgMemberStatus,
-	type UseOrgMembersOptions,
-	type UseOrgMembersResult,
-	type OrgInvite,
-	type OrgInviteRole,
-	type OrgInviteStatus,
-	type OrgClaimedInvite,
-	type UseOrgInvitesOptions,
-	type SendOrgInviteInput,
-	type CancelOrgInviteInput,
-	type ExtendOrgInviteInput,
-	type OrgMembershipDefault,
-	type UseOrgMembershipDefaultOptions,
-	type UpdateOrgMembershipDefaultInput,
-	type CreateOrgMembershipDefaultInput,
-	type MembershipPermissionDefault,
-	type UseMembershipPermissionDefaultOptions,
-	type CreateMembershipPermissionDefaultInput,
-	type UpdateMembershipPermissionDefaultInput,
-	type UseDeleteOrganizationOptions,
-	type UseDeleteOrganizationResult,
-} from './organizations';
 
 // Account hooks
 export * from './account';
-
-// Shared invite utilities
-export * from './invites-shared-utils';

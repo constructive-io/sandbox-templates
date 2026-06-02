@@ -11,7 +11,7 @@ import type { RegisterFormData } from '@/lib/auth/schemas';
 import { registerSchema } from '@/lib/auth/schemas';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { buildQueryString, INVITE_QUERY_PARAMS } from '@/app/invite/page';
+import { AUTH_QUERY_PARAMS, buildQueryString } from '@/lib/navigation/query-string';
 
 import { AuthErrorAlert } from './auth-error-alert';
 import { AuthLoadingButton } from './auth-loading-button';
@@ -28,7 +28,7 @@ export function RegisterFormView({ onRegister, onShowLogin }: RegisterFormViewPr
 	const searchParams = useSearchParams();
 	const passwordInputRef = useRef<HTMLInputElement>(null);
 
-	const emailFromQuery = searchParams?.get(INVITE_QUERY_PARAMS.EMAIL) || '';
+	const emailFromQuery = searchParams?.get(AUTH_QUERY_PARAMS.EMAIL) || '';
 
 	const form = useForm({
 		defaultValues: {

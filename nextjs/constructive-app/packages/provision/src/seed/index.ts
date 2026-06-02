@@ -1,7 +1,14 @@
 /**
- * seed/index.ts — Seed entry point for constructive-app
+ * seed/index.ts — Seed entry point for the constructive-app (BASE tier)
  *
- * Creates test users and organizations for development.
+ * Creates a couple of test users so you can sign in immediately after
+ * provisioning. The base auth:email app has no organizations, so this seed
+ * does NOT create orgs or org memberships.
+ *
+ * B2B OPT-IN: once you provision the org modules and add the registry org
+ * blocks (see docs/B2B.md), extend this seed to create organizations and
+ * org memberships (org users via the auth endpoint with the admin token, then
+ * org_memberships rows in the {prefix}_memberships_public schema).
  *
  * Usage:
  *   pnpm run seed
@@ -12,7 +19,7 @@
  */
 
 import { config } from '../config.js';
-import { createDbAuthClient, withRetry, executeAuthMutation } from '../helpers.js';
+import { createDbAuthClient, withRetry } from '../helpers.js';
 
 // ---------------------------------------------------------------------------
 // Seed fixtures
@@ -23,21 +30,11 @@ const SEED_USERS = [
     email: 'alice@example.com',
     password: 'password123!',
     displayName: 'Alice Chen',
-    role: 'founder' as const,
   },
   {
     email: 'bob@example.com',
     password: 'password123!',
     displayName: 'Bob Martinez',
-    role: 'member' as const,
-  },
-];
-
-const SEED_ORGS = [
-  {
-    name: 'Acme Corp',
-    username: 'acme_corp',
-    ownerIdIndex: 0, // Alice
   },
 ];
 
@@ -63,7 +60,7 @@ async function main() {
   }
 
   // -----------------------------------------------------------------------
-  // Step 1: Seed users
+  // Seed users
   // -----------------------------------------------------------------------
   console.log(`\n${'─'.repeat(50)}`);
   console.log('  Seeding users...');
@@ -71,7 +68,7 @@ async function main() {
   const userResults: SeedUserResult[] = [];
 
   for (const user of SEED_USERS) {
-    console.log(`    ${user.email} (${user.role})`);
+    console.log(`    ${user.email}`);
     const authClient = createDbAuthClient();
 
     let userId: string | undefined;
@@ -119,143 +116,6 @@ async function main() {
   }
 
   // -----------------------------------------------------------------------
-  // Step 2: Get admin token for org creation
-  // -----------------------------------------------------------------------
-  console.log(`\n${'─'.repeat(50)}`);
-  console.log('  Getting admin token...');
-
-  const adminAuthClient = createDbAuthClient();
-  const adminSignInData = await adminAuthClient.mutation.signIn(
-    { input: { email: config.adminEmail, password: config.adminPassword } },
-    { select: { result: { select: { accessToken: true, userId: true } } } }
-  ).unwrap();
-
-  const adminResult = (adminSignInData as Record<string, Record<string, Record<string, string>>>)
-    ?.signIn?.result;
-  const adminToken = adminResult?.accessToken;
-  const adminUserId = adminResult?.userId;
-
-  if (!adminToken) {
-    console.error('  Failed to get admin token');
-    process.exit(1);
-  }
-  console.log(`  Admin token acquired`);
-
-  // -----------------------------------------------------------------------
-  // Step 3: Seed orgs (org users via auth endpoint with admin token)
-  // -----------------------------------------------------------------------
-  console.log(`\n${'─'.repeat(50)}`);
-  console.log('  Seeding orgs...');
-
-  const orgEntityIds: { name: string; entityId: string }[] = [];
-
-  for (const org of SEED_ORGS) {
-    console.log(`    ${org.name} (${org.username})`);
-
-    try {
-      const createData = await withRetry(() =>
-        executeAuthMutation(
-          adminToken,
-          `mutation CreateUser($input: CreateUserInput!) {
-            createUser(input: $input) {
-              user {
-                id
-                username
-                displayName
-                type
-              }
-            }
-          }`,
-          {
-            input: {
-              user: {
-                username: org.username,
-                displayName: org.name,
-                type: 2 // organization
-              }
-            }
-          }
-        )
-      );
-
-      const raw = createData as any;
-      const entityId: string | undefined = raw?.createUser?.user?.id;
-
-      if (entityId) {
-        orgEntityIds.push({ name: org.name, entityId });
-        console.log(`    ✓ ${entityId}`);
-      }
-    } catch (err: any) {
-      if (err.message?.includes('already exists') || err.message?.includes('duplicate') || err.message?.includes('ACCOUNT_EXISTS')) {
-        console.log(`    ⚠ ${org.name} already exists — skipping`);
-      } else {
-        console.error(`    ✗ Failed to create org ${org.name}: ${err.message}`);
-      }
-    }
-  }
-
-  // -----------------------------------------------------------------------
-  // Step 4: Add org memberships via direct SQL
-  // -----------------------------------------------------------------------
-  const pgAvailable = !!process.env.PGHOST;
-  if (pgAvailable && orgEntityIds.length > 0) {
-    console.log(`\n${'─'.repeat(50)}`);
-    console.log('  Adding org memberships...');
-
-    const { Pool } = await import('pg');
-    const pool = new Pool({ database: config.pgInternalDatabase });
-
-    try {
-      const schemaRes = await pool.query(
-        `SELECT schema_name FROM information_schema.schemata
-         WHERE schema_name LIKE '%memberships_public' LIMIT 1`
-      );
-      const membershipsSchema = schemaRes.rows[0]?.schema_name;
-      if (!membershipsSchema) {
-        console.warn('    Memberships schema not found — skipping org memberships');
-      } else {
-        for (const org of orgEntityIds) {
-          // Add seed users to org
-          for (const user of userResults) {
-            const isOwner = SEED_ORGS.find(o => o.name === org.name)?.ownerIdIndex === SEED_USERS.indexOf(user.fixture);
-            try {
-              await pool.query(
-                `INSERT INTO "${membershipsSchema}".org_memberships
-                   (actor_id, entity_id, is_owner, is_admin, is_approved, is_active)
-                 VALUES ($1, $2, $3, $3, true, true)
-                 ON CONFLICT DO NOTHING`,
-                [user.userId, org.entityId, isOwner]
-              );
-              const role = isOwner ? 'org owner' : 'org member';
-              console.log(`    ✓ ${user.fixture.displayName} → ${role} of ${org.name}`);
-            } catch (err: any) {
-              console.warn(`    ⚠ Org membership failed: ${err.message}`);
-            }
-          }
-
-          // Add admin as org owner
-          if (adminUserId) {
-            try {
-              await pool.query(
-                `INSERT INTO "${membershipsSchema}".org_memberships
-                   (actor_id, entity_id, is_owner, is_admin, is_approved, is_active)
-                 VALUES ($1, $2, true, true, true, true)
-                 ON CONFLICT DO NOTHING`,
-                [adminUserId, org.entityId]
-              );
-              console.log(`    ✓ admin → org owner of ${org.name}`);
-            } catch (err: any) {
-              console.warn(`    ⚠ Admin org membership failed: ${err.message}`);
-            }
-          }
-        }
-      }
-    } finally {
-      await pool.end();
-    }
-  }
-
-  // -----------------------------------------------------------------------
   // Done
   // -----------------------------------------------------------------------
   console.log(`\n${'═'.repeat(50)}`);
@@ -263,8 +123,7 @@ async function main() {
   console.log(`${'═'.repeat(50)}\n`);
 
   console.log('  Summary:');
-  console.log(`    Users:  ${userResults.length}`);
-  console.log(`    Orgs:   ${orgEntityIds.length}\n`);
+  console.log(`    Users:  ${userResults.length}\n`);
 }
 
 main().catch((err) => {

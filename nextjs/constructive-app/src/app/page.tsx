@@ -72,10 +72,6 @@ export default function HomePage() {
 							</div>
 							<div className="border-t pt-4 space-y-2 font-mono text-xs">
 								<div className="flex gap-2">
-									<span className="text-blue-600 w-24">@sdk/admin</span>
-									<span className="text-muted-foreground">orgs, members, permissions</span>
-								</div>
-								<div className="flex gap-2">
 									<span className="text-green-600 w-24">@sdk/auth</span>
 									<span className="text-muted-foreground">users, authentication</span>
 								</div>

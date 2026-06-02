@@ -15,7 +15,6 @@ import {
 	getRouteRequiredPermission,
 	ROUTE_PATHS,
 } from '@/app-routes';
-import { buildQueryString, INVITE_QUERY_PARAMS } from '@/app/invite/page';
 
 import { useAuthContext } from './auth-context';
 import { TokenManager } from './token-manager';
@@ -95,13 +94,6 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
 
 		// Handle guest-only routes - only redirect if definitely authenticated
 		if (accessType === 'guest-only' && isAuthenticated) {
-			// Check for invite_token in query params - prioritize invite flow
-			const inviteToken = searchParams?.get(INVITE_QUERY_PARAMS.INVITE_TOKEN);
-			if (inviteToken) {
-				// Preserve all query params when redirecting to invite page
-				router.replace(`/invite${buildQueryString(searchParams)}` as Route);
-				return;
-			}
 			const target = redirectParam || getHomePath(ctx);
 			router.replace(target as Route);
 			return;
@@ -147,20 +139,6 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
 
 	// For guest-only routes, optimize loading state
 	if (accessType === 'guest-only') {
-		// Check for invite token - if present, show loading while checking auth or if authenticated
-		const inviteToken = searchParams?.get(INVITE_QUERY_PARAMS.INVITE_TOKEN);
-		if (inviteToken) {
-			// If still loading auth state, show loading to prevent flash
-			if (isLoading) {
-				return <AuthLoadingFallback />;
-			}
-			// If authenticated, show loading while redirecting
-			if (isAuthenticated) {
-				return <AuthLoadingFallback />;
-			}
-			// If not authenticated and not loading, allow register page to show
-		}
-
 		// If there's no token at all, render immediately without waiting for auth loading
 		if (isLoading && !TokenManager.hasToken(ctx)) {
 			return <>{children}</>;

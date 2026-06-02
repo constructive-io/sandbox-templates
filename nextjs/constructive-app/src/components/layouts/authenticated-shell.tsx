@@ -3,39 +3,33 @@
 import * as React from 'react';
 import type { Route } from 'next';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { useCardStack } from '@/components/ui/stack';
+import { usePathname } from 'next/navigation';
 
 import { useLogout } from '@/lib/gql/hooks/auth';
-import { useOrganizations } from '@/lib/gql/hooks/admin';
-import { useCurrentUserAppMembership } from '@/lib/gql/hooks/admin/app';
-import { useEntityParams, useSidebarNavigation } from '@/lib/navigation';
+import { useSidebarNavigation } from '@/lib/navigation';
 import { cn } from '@/lib/utils';
 import { useAuth, useSidebarPinned, useSidebarPinnedActions } from '@/store/app-store';
 import { AppShell } from '@/components/app-shell/app-shell';
-import type { EntityLevel, TopBarConfig } from '@/components/app-shell/app-shell.types';
+import type { TopBarConfig } from '@/components/app-shell/app-shell.types';
 import { UserDropdown } from '@/components/app-shell/user-dropdown';
 import { BrandLogo } from '@/components/brand-logo';
 import { branding } from '@/config/branding';
-import { CreateOrganizationCard } from '@/components/organizations/create-organization-card';
 import { ShellContentFallback, ShellFrameSkeleton } from '@/components/skeletons';
 import { ThemeSwitcher } from '@/components/theme-switcher';
-import { buildOrgRoute, getRouteAccessType } from '@/app-routes';
+import { getRouteAccessType } from '@/app-routes';
 
 export interface AuthenticatedShellProps {
 	children: React.ReactNode;
 }
 
 /**
- * Shell wrapper that conditionally renders the AppShell based on Tier 1 (admin) auth state.
+ * Shell wrapper that conditionally renders the AppShell based on auth state.
  * Lives in root layout so sidebar state is preserved across route navigations.
  *
  * Loading Strategy:
  * - Protected routes show shell frame immediately with content skeleton
  * - Auth check happens in parallel, not blocking shell structure
  * - Page components handle their own loading states once shell is visible
- *
- * Auth: Admin-context auth controls shell visibility.
  */
 export function AuthenticatedShell({ children }: AuthenticatedShellProps) {
 	const pathname = usePathname();
@@ -43,7 +37,6 @@ export function AuthenticatedShell({ children }: AuthenticatedShellProps) {
 
 	const accessType = getRouteAccessType(pathname);
 	const isProtectedRoute = accessType === 'protected';
-	const isInviteRoute = pathname === '/invite';
 
 	// During loading, assume not authenticated to avoid hydration mismatches
 	const isAuthenticatedReady = isLoading ? false : isAuthenticated;
@@ -71,78 +64,28 @@ export function AuthenticatedShell({ children }: AuthenticatedShellProps) {
 	}
 
 	// Authenticated: render full shell
-	return <AuthenticatedShellInner hideSidebar={isInviteRoute}>{children}</AuthenticatedShellInner>;
+	return <AuthenticatedShellInner>{children}</AuthenticatedShellInner>;
 }
 
 /**
  * Inner component that handles the authenticated shell with dynamic navigation.
  * Separated to ensure hooks are called only when authenticated.
  */
-function AuthenticatedShellInner({ children, hideSidebar }: AuthenticatedShellProps & { hideSidebar?: boolean }) {
-	const pathname = usePathname();
-	const router = useRouter();
-	const stack = useCardStack();
+function AuthenticatedShellInner({ children }: AuthenticatedShellProps) {
 	const logoutMutation = useLogout();
-	const { isAppAdmin } = useCurrentUserAppMembership();
-	const { refetch: refetchOrganizations } = useOrganizations();
 
 	// Sidebar pinned state from Zustand (persisted)
 	const sidebarPinned = useSidebarPinned();
 	const { toggleSidebarPinned } = useSidebarPinnedActions();
 
-	// Get entity state from URL params (source of truth)
-	const { orgId, availableOrgs } = useEntityParams();
-
 	const handleLogout = React.useCallback(() => {
 		logoutMutation.mutate();
 	}, [logoutMutation]);
 
-	// Get dynamic navigation based on URL params (source of truth)
+	// Base tier navigation: Home + Account (single app-root level).
 	const { navigation } = useSidebarNavigation({
-		isAppAdmin,
 		onLogout: handleLogout,
 	});
-
-	// Handle org selection - navigates to org members route (URL is source of truth)
-	const handleOrgChange = React.useCallback(
-		(newOrgId: string) => {
-			router.push(buildOrgRoute('ORG_MEMBERS', newOrgId));
-		},
-		[router],
-	);
-
-	// Build entity levels for breadcrumbs based on URL params
-	const entityLevels = React.useMemo((): EntityLevel[] => {
-		const levels: EntityLevel[] = [];
-
-		// Organization level - only show if orgId is in URL
-		if (orgId) {
-			levels.push({
-				id: 'organization',
-				label: 'Organization',
-				labelPlural: 'Organizations',
-				entities: availableOrgs,
-				activeEntityId: orgId,
-				onEntityChange: handleOrgChange,
-				onCreateNew: () => {
-					stack.push({
-						id: 'org-create',
-						title: 'Create Organization',
-						description: 'Create a new organization to collaborate with your team.',
-						Component: CreateOrganizationCard,
-						props: {
-							onSuccess: () => refetchOrganizations(),
-						},
-						width: 480,
-					});
-				},
-				createLabel: 'Create organization',
-				viewAllHref: '/',
-			});
-		}
-
-		return levels;
-	}, [orgId, availableOrgs, handleOrgChange, stack, refetchOrganizations]);
 
 	const topBarConfig: TopBarConfig = {
 		sidebarLogo: (
@@ -160,7 +103,6 @@ function AuthenticatedShellInner({ children, hideSidebar }: AuthenticatedShellPr
 				)}
 			</Link>
 		),
-		entityLevels,
 		actions: (
 			<>
 				<UserDropdown />
@@ -173,7 +115,6 @@ function AuthenticatedShellInner({ children, hideSidebar }: AuthenticatedShellPr
 		<AppShell
 			navigation={navigation}
 			topBar={topBarConfig}
-			hideSidebar={hideSidebar}
 			sidebarPinned={sidebarPinned}
 			onToggleSidebarPin={toggleSidebarPinned}
 		>

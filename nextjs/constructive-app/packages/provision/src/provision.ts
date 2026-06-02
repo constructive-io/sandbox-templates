@@ -4,7 +4,14 @@
  * Reads DATABASE_ID, ACCESS_TOKEN, DATABASE_NAME from .env (set by create-db)
  * and:
  *   1. Attaches entity schemas to the app API
- *   2. Sets app membership defaults (auto-approve new users)
+ *   2. Grants users self-update (control-plane: AuthzDirectOwner self_update)
+ *   3. Sets app membership defaults (auto-approve new users)
+ *
+ * App-table provisioning: the agent declares its own tables by calling
+ * `provisionAppTable()` (a baked-in, owner-scoped blueprint helper — see below)
+ * from this script after the schema-attach step. The helper already uses
+ * object-form grants and the AuthzDirectOwner default, so a base auth:email app
+ * doesn't have to re-derive the grant/policy shape on every build.
  *
  * Usage:  pnpm run provision
  */
@@ -16,7 +23,222 @@ import { Pool } from 'pg';
 import { config } from './config.js';
 import { withRetry, createMetaschemaClient, requireDatabaseId } from './helpers.js';
 
+type MetaschemaClient = ReturnType<typeof createMetaschemaClient>;
+
 const PG_DATABASE = config.pgInternalDatabase;
+
+// ---------------------------------------------------------------------------
+// PROVEN RECIPE (a): users-table self-update control-plane step
+//
+// The `users` table lives in the `users_public` schema, provisioned by the
+// `users_module`. Out of the box it has no policy that lets an authenticated
+// user UPDATE their own row, so account/profile edits (display name, etc.)
+// fail RLS. This adds an owner-scoped self-update policy keyed on the row's own
+// `id` — i.e. `auth.user_id() = users.id`.
+//
+// Expressed via createSecureTableProvision on the platform (metaschema)
+// endpoint using the blueprint-style `policies` array the SDK accepts.
+// ---------------------------------------------------------------------------
+async function grantUsersSelfUpdate(client: MetaschemaClient): Promise<void> {
+  console.log('\n  Granting users self-update (AuthzDirectOwner self_update)...');
+
+  // Resolve the users_public schema for this database.
+  const schemaResult = await withRetry(() =>
+    client.schema.findMany({
+      where: { databaseId: { equalTo: config.databaseId }, name: { equalTo: 'users_public' } },
+      select: { id: true, name: true, schemaName: true },
+    }).unwrap()
+  );
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const usersSchema = (schemaResult as any)?.schemas?.nodes?.[0];
+  if (!usersSchema) {
+    console.warn('   users_public schema not found — skipping self-update grant');
+    return;
+  }
+
+  // Resolve the users table inside that schema.
+  const tableResult = await withRetry(() =>
+    client.table.findMany({
+      where: {
+        databaseId: { equalTo: config.databaseId },
+        schemaId: { equalTo: usersSchema.id },
+        name: { equalTo: 'users' },
+      },
+      select: { id: true, name: true },
+    }).unwrap()
+  );
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const usersTable = (tableResult as any)?.tables?.nodes?.[0];
+  if (!usersTable) {
+    console.warn('   users table not found in users_public — skipping self-update grant');
+    return;
+  }
+
+  try {
+    await withRetry(() =>
+      client.secureTableProvision.create({
+        data: {
+          databaseId: config.databaseId!,
+          schemaId: usersSchema.id,
+          tableId: usersTable.id,
+          useRls: true,
+          // AuthzDirectOwner / self_update on UPDATE, owner field = the row's own id.
+          policies: [
+            {
+              $type: 'AuthzDirectOwner',
+              permissive: true,
+              privileges: ['update'],
+              policy_name: 'self_update',
+              data: { entity_field: 'id' },
+            },
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ] as any,
+        },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        select: { id: true } as any,
+      }).unwrap()
+    );
+    console.log('   users.self_update policy applied (entity_field: id)');
+  } catch (err: any) {
+    if (err.message?.includes('already exists') || err.message?.includes('duplicate')) {
+      console.log('   users.self_update policy already present');
+    } else {
+      console.warn(`   Could not apply users self-update policy: ${err.message}`);
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// PROVEN RECIPE (b): app-table blueprint helper (object-form grants +
+// AuthzDirectOwner owner-scoped default)
+//
+// Provisions a single app table via the server-side constructBlueprint
+// mutation. Defaults are the proven shape so the agent only supplies the
+// table name + fields:
+//   - object-form grants: [{ roles: ['authenticated'], privileges: [...] }]
+//   - AuthzDirectOwner owner-scoped policy (each user CRUDs their own rows).
+//
+// The agent calls this from main() for each app table, e.g.:
+//   await provisionAppTable(metaschemaClient, {
+//     tableName: 'todos',
+//     fields: [
+//       { name: 'title', type: 'text', is_required: true },
+//       { name: 'is_done', type: 'boolean', default: 'false' },
+//     ],
+//   });
+//
+// For org-scoped (b2b) tables, pass policyType: 'AuthzEntityMembership' with
+// data: { entity_field: 'entity_id', membership_type: 2 } and a
+// DataOwnershipInEntity / DataEntityMembership node — but that is a b2b
+// concern; a base auth:email app uses the AuthzDirectOwner default below.
+// ---------------------------------------------------------------------------
+export interface AppTableField {
+  name: string;
+  type: string;
+  default?: string;
+  is_required?: boolean;
+  index?: boolean;
+}
+
+export interface AppTableSpec {
+  tableName: string;
+  fields?: AppTableField[];
+  /** Defaults to owner-scoped: ['DataDirectOwner', 'DataTimestamps']. */
+  nodes?: unknown[];
+  /** Defaults to AuthzDirectOwner (owner CRUDs own rows). */
+  policyType?: string;
+  /** Defaults to { owner_field: 'owner_id' }. */
+  policyData?: Record<string, unknown>;
+  /** Defaults to full CRUD for 'authenticated'. */
+  grants?: { roles: string[]; privileges: [string, string][] }[];
+}
+
+export async function provisionAppTable(
+  client: MetaschemaClient,
+  spec: AppTableSpec
+): Promise<string> {
+  // 1. Resolve the database owner_id (required on the blueprint record).
+  const dbResult = await withRetry(() =>
+    client.database.findOne({ id: requireDatabaseId(), select: { ownerId: true } }).unwrap()
+  );
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const ownerId = (dbResult as any)?.database?.ownerId;
+  if (!ownerId) throw new Error('Could not resolve database owner_id');
+
+  // 2. Build the blueprint table with the proven owner-scoped defaults.
+  const nodes = spec.nodes ?? ['DataDirectOwner', 'DataTimestamps'];
+  // Object-form grants — the shape the platform validator expects.
+  const grants = spec.grants ?? [
+    {
+      roles: ['authenticated'],
+      privileges: [
+        ['select', '*'],
+        ['insert', '*'],
+        ['update', '*'],
+        ['delete', '*'],
+      ] as [string, string][],
+    },
+  ];
+  // AuthzDirectOwner owner-scoped default: every authenticated user CRUDs only
+  // their own rows (matched on owner_id).
+  const policies = [
+    {
+      $type: spec.policyType ?? 'AuthzDirectOwner',
+      permissive: true,
+      privileges: ['select', 'insert', 'update', 'delete'],
+      data: spec.policyData ?? { owner_field: 'owner_id' },
+    },
+  ];
+
+  const definition = {
+    tables: [
+      {
+        table_name: spec.tableName,
+        nodes,
+        fields: spec.fields ?? [],
+        grants,
+        policies,
+      },
+    ],
+    relations: [],
+    indexes: [],
+    full_text_searches: [],
+  };
+
+  // 3. Create the draft blueprint record.
+  const blueprintName = `app_${spec.tableName.toLowerCase().replace(/[^a-z0-9]+/g, '_')}_${Date.now()}`;
+  const bpResult = await withRetry(() =>
+    client.blueprint.create({
+      data: {
+        ownerId,
+        databaseId: requireDatabaseId(),
+        name: blueprintName,
+        displayName: spec.tableName,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        definition: definition as any,
+      },
+      select: { id: true },
+    }).unwrap()
+  );
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const blueprintId = (bpResult as any)?.createBlueprint?.blueprint?.id;
+  if (!blueprintId) throw new Error(`Failed to create blueprint record for ${spec.tableName}`);
+
+  // 4. Execute all phases server-side in one transaction.
+  const constructResult = await withRetry(() =>
+    client.mutation.constructBlueprint(
+      { input: { blueprintId } },
+      { select: { result: true } }
+    ).unwrap()
+  );
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const refMap = (constructResult as any)?.constructBlueprint?.result;
+  if (!refMap) {
+    throw new Error(`constructBlueprint failed for ${spec.tableName} — check blueprint_construction status`);
+  }
+  console.log(`   Provisioned app table: ${spec.tableName}`);
+  return blueprintId;
+}
 
 async function main() {
   console.log('\n  Constructive App — Schema Provisioning\n');
@@ -112,6 +334,26 @@ async function main() {
       }
     }
   }
+
+  // -------------------------------------------------------------------------
+  // PROVEN RECIPE (a): grant users self-update so account/profile edits pass RLS
+  // -------------------------------------------------------------------------
+  await grantUsersSelfUpdate(metaschemaClient);
+
+  // -------------------------------------------------------------------------
+  // App tables: declare them here via provisionAppTable(metaschemaClient, ...).
+  // The base scaffold ships a `todos` table; add your own following the same
+  // owner-scoped pattern. (Left as an explicit, easy-to-find seam rather than a
+  // hidden default so the agent provisions exactly the tables its app needs.)
+  //
+  //   await provisionAppTable(metaschemaClient, {
+  //     tableName: 'todos',
+  //     fields: [
+  //       { name: 'title', type: 'text', is_required: true },
+  //       { name: 'is_done', type: 'boolean', default: 'false' },
+  //     ],
+  //   });
+  // -------------------------------------------------------------------------
 
   // -------------------------------------------------------------------------
   // Set app membership defaults so new users are auto-approved
