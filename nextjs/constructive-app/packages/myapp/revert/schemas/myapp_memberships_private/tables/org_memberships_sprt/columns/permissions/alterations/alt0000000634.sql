@@ -1,0 +1,6 @@
+-- Revert: schemas/myapp_memberships_private/tables/org_memberships_sprt/columns/permissions/alterations/alt0000000634
+
+
+COMMENT ON COLUMN myapp_memberships_private.org_memberships_sprt.permissions IS NULL;
+
+

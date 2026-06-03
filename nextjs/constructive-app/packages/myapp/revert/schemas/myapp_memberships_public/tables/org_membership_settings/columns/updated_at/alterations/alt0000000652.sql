@@ -1,0 +1,7 @@
+-- Revert: schemas/myapp_memberships_public/tables/org_membership_settings/columns/updated_at/alterations/alt0000000652
+
+
+ALTER TABLE myapp_memberships_public.org_membership_settings 
+  ALTER COLUMN updated_at DROP DEFAULT;
+
+

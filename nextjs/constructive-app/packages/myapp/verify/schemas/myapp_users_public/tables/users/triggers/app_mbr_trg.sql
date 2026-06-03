@@ -1,0 +1,6 @@
+-- Verify: schemas/myapp_users_public/tables/users/triggers/app_mbr_trg
+
+
+SELECT verify_trigger('myapp_users_public.app_mbr_trg');
+
+

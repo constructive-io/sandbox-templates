@@ -1,0 +1,30 @@
+%syntax-version=1.0.0
+%project=myapp-service
+%uri=myapp-service
+
+migrate/database 2017-08-11T08:11:51Z constructive-app <constructive-app@5b0c196eeb62> # add undefined
+migrate/schema [migrate/database] 2017-08-11T08:11:51Z constructive-app <constructive-app@5b0c196eeb62> # add undefined
+migrate/function [migrate/schema] 2017-08-11T08:11:51Z constructive-app <constructive-app@5b0c196eeb62> # add undefined
+migrate/table [migrate/function] 2017-08-11T08:11:51Z constructive-app <constructive-app@5b0c196eeb62> # add undefined
+migrate/field [migrate/table] 2017-08-11T08:11:51Z constructive-app <constructive-app@5b0c196eeb62> # add undefined
+migrate/policy [migrate/field] 2017-08-11T08:11:51Z constructive-app <constructive-app@5b0c196eeb62> # add undefined
+migrate/index [migrate/policy] 2017-08-11T08:11:51Z constructive-app <constructive-app@5b0c196eeb62> # add undefined
+migrate/trigger [migrate/index] 2017-08-11T08:11:51Z constructive-app <constructive-app@5b0c196eeb62> # add undefined
+migrate/trigger_function [migrate/trigger] 2017-08-11T08:11:51Z constructive-app <constructive-app@5b0c196eeb62> # add undefined
+migrate/foreign_key_constraint [migrate/trigger_function] 2017-08-11T08:11:51Z constructive-app <constructive-app@5b0c196eeb62> # add undefined
+migrate/primary_key_constraint [migrate/foreign_key_constraint] 2017-08-11T08:11:51Z constructive-app <constructive-app@5b0c196eeb62> # add undefined
+migrate/unique_constraint [migrate/primary_key_constraint] 2017-08-11T08:11:51Z constructive-app <constructive-app@5b0c196eeb62> # add undefined
+migrate/check_constraint [migrate/unique_constraint] 2017-08-11T08:11:51Z constructive-app <constructive-app@5b0c196eeb62> # add undefined
+migrate/full_text_search [migrate/check_constraint] 2017-08-11T08:11:51Z constructive-app <constructive-app@5b0c196eeb62> # add undefined
+migrate/schema_grant [migrate/full_text_search] 2017-08-11T08:11:51Z constructive-app <constructive-app@5b0c196eeb62> # add undefined
+migrate/table_grant [migrate/schema_grant] 2017-08-11T08:11:51Z constructive-app <constructive-app@5b0c196eeb62> # add undefined
+migrate/default_privilege [migrate/table_grant] 2017-08-11T08:11:51Z constructive-app <constructive-app@5b0c196eeb62> # add undefined
+migrate/domains [migrate/default_privilege] 2017-08-11T08:11:51Z constructive-app <constructive-app@5b0c196eeb62> # add undefined
+migrate/sites [migrate/domains] 2017-08-11T08:11:51Z constructive-app <constructive-app@5b0c196eeb62> # add undefined
+migrate/apis [migrate/sites] 2017-08-11T08:11:51Z constructive-app <constructive-app@5b0c196eeb62> # add undefined
+migrate/apps [migrate/apis] 2017-08-11T08:11:51Z constructive-app <constructive-app@5b0c196eeb62> # add undefined
+migrate/site_modules [migrate/apps] 2017-08-11T08:11:51Z constructive-app <constructive-app@5b0c196eeb62> # add undefined
+migrate/site_themes [migrate/site_modules] 2017-08-11T08:11:51Z constructive-app <constructive-app@5b0c196eeb62> # add undefined
+migrate/api_modules [migrate/site_themes] 2017-08-11T08:11:51Z constructive-app <constructive-app@5b0c196eeb62> # add undefined
+migrate/api_schemas [migrate/api_modules] 2017-08-11T08:11:51Z constructive-app <constructive-app@5b0c196eeb62> # add undefined
+migrate/rls_settings [migrate/api_schemas] 2017-08-11T08:11:51Z constructive-app <constructive-app@5b0c196eeb62> # add undefined

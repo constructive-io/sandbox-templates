@@ -1,0 +1,10 @@
+-- Deploy: schemas/myapp_auth_private/tables/session_credentials/indexes/session_credentials_kind_idx
+-- made with <3 @ constructive.io
+
+-- requires: schemas/myapp_auth_private/schema
+-- requires: schemas/myapp_auth_private/tables/session_credentials/table
+-- requires: schemas/myapp_auth_private/tables/session_credentials/columns/kind/column
+
+
+CREATE INDEX session_credentials_kind_idx ON myapp_auth_private.session_credentials USING BTREE ( kind );
+

@@ -26,12 +26,14 @@ export interface ProvisionRelation {
   };
 }
 
+export type ModuleSpec = string | [string, { scope?: string }];
+
 export interface ProvisionConfig {
   platformAuth: string;
   platformApi: string;
   database: {
     name: string;
-    modules: string[];
+    modules: ModuleSpec[];
     bootstrapUser: boolean;
   };
   auth: {
@@ -156,7 +158,7 @@ export default defineProvisionConfig({
   platformApi: 'http://api.localhost:3000/graphql',
   database: {
     name: 'REPLACE_ME',
-    modules: ['all'],
+    modules: ['all'] as ModuleSpec[],
     bootstrapUser: true,
   },
   auth: {

@@ -2,12 +2,18 @@
  * Hook for creating a new organization
  * Tier 4 wrapper: Uses SDK hooks + cache invalidation
  *
- * Creating an organization creates a User with type=2 (Organization)
- * via the auth endpoint (which uses the app_admin role with INSERT on users).
- * A database trigger automatically creates the owner membership.
+ * Creating an organization is a single-step flow:
+ *   1. createUser with type=2 (Organization)
+ *      → The `type` column is in the INSERT GRANT, so it can be set
+ *        at creation time but never updated afterwards.
+ *      → A database trigger `membership_mbr_create` automatically
+ *        creates the owner membership using jwt_public.current_user_id()
+ *        as the owner.
+ *   2. Fetch the auto-created membership by entityId
  *
- * NOTE: The membership is created automatically by a database trigger when a User
- * with type=2 is inserted. The trigger uses jwt_public.current_user_id() as the owner.
+ * No "convert" step, no direct SQL, no SECURITY DEFINER — the regular
+ * PostGraphile `createUser` mutation accepts `type` as part of its input
+ * because INSERT grants include the column (only UPDATE grants exclude it).
  */
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -95,27 +101,26 @@ export function useCreateOrganization(options: UseCreateOrganizationOptions = {}
 	const { context = 'admin', onSuccess, onError } = options;
 	void context; // Context is handled by SDK execute-adapter
 	const queryClient = useQueryClient();
-
-	// createUser on the auth endpoint has INSERT on the users table
-	// (the auth endpoint uses the app_admin role, not app_user)
 	const createUserMutation = useCreateUserMutation({
 		selection: { fields: { id: true, displayName: true, username: true } },
 	});
 
 	const createOrganization = async (input: CreateOrganizationInput): Promise<CreateOrganizationResult> => {
-		// Create a User with type=2 (Organization) via the auth endpoint.
-		// The auth endpoint uses the app_admin role which has INSERT on users.
-		// Database trigger `membership_mbr_create` automatically creates owner membership.
-		const userInput: Record<string, unknown> = {
+		// Step 1: Create User as Organization (type=2)
+		// The `type` column is in the INSERT GRANT, so it can be set at creation.
+		// The `membership_mbr_create` trigger fires on insert and creates the
+		// owner membership automatically, using jwt_public.current_user_id()
+		// as the owner (i.e. the caller).
+		const userInput: { displayName: string; username?: string; type: number } = {
 			displayName: input.displayName,
 			type: ROLE_TYPE.ORGANIZATION,
 		};
-		if (input.username) userInput.username = input.username;
-		const userResult = await createUserMutation.mutateAsync(
-			userInput as Parameters<typeof createUserMutation.mutateAsync>[0],
-		);
+		if (input.username) {
+			userInput.username = input.username;
+		}
+		const userResult = await createUserMutation.mutateAsync(userInput);
 
-		const newOrg = userResult.createUser?.user;
+		const newOrg = userResult?.createUser?.user;
 		if (!newOrg?.id) {
 			throw new Error('Failed to create organization user');
 		}
@@ -144,29 +149,18 @@ export function useCreateOrganization(options: UseCreateOrganizationOptions = {}
 
 		// Invalidate organizations list cache
 		queryClient.invalidateQueries({ queryKey: organizationsQueryKeys.all });
-		onSuccess?.({
-			organization: {
-				id: newOrg.id,
-				displayName: newOrg.displayName ?? null,
-				username: newOrg.username ?? null,
-				profilePicture: null,
-				settings: null, // TODO: OrganizationSetting removed
-				memberCount: 1, // Just the owner
-			},
-			membershipId,
-		});
 
-		return {
-			organization: {
-				id: newOrg.id,
-				displayName: newOrg.displayName ?? null,
-				username: newOrg.username ?? null,
-				profilePicture: null,
-				settings: null, // TODO: OrganizationSetting removed
-				memberCount: 1, // Just the owner
-			},
-			membershipId,
+		const organization: Organization = {
+			id: newOrg.id,
+			displayName: newOrg.displayName ?? null,
+			username: newOrg.username ?? null,
+			profilePicture: null,
+			settings: null, // TODO: OrganizationSetting removed
+			memberCount: 1, // Just the owner
 		};
+		const result: CreateOrganizationResult = { organization, membershipId };
+		onSuccess?.(result);
+		return result;
 	};
 
 	return {

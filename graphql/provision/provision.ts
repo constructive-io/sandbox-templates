@@ -208,20 +208,25 @@ async function main(): Promise<void> {
   // -----------------------------------------------------------------------
   // Step 2: Create database
   // -----------------------------------------------------------------------
+  // The databaseProvisionModule mutation was moved from the "api" endpoint
+  // to the "modules" endpoint in the 2025-05 upstream refactor.
+  // We point public_.createClient() at the modules endpoint — the SDK
+  // still has the databaseProvisionModule model, it just lives on a
+  // different subdomain now.
   console.log('Step 2: Creating database...');
 
-  const apiDb = platform.createClient({
-    endpoint: config.platformApi,
+  const modulesClient = platform.createClient({
+    endpoint: process.env.MODULES_ENDPOINT || 'http://modules.localhost:3000/graphql',
     headers: { Authorization: `Bearer ${accessToken}` },
   });
 
-  const dbResult = await apiDb.databaseProvisionModule.create({
+  const dbResult = await modulesClient.databaseProvisionModule.create({
     data: {
       databaseName: config.database.name,
       ownerId: userId,
       subdomain: config.database.name,
       domain: 'localhost',
-      modules: config.database.modules,
+      modules: config.database.modules as any,
       bootstrapUser: config.database.bootstrapUser,
     },
     select: { id: true, databaseId: true, databaseName: true, status: true },
@@ -231,6 +236,13 @@ async function main(): Promise<void> {
   const databaseId = provisionModule?.databaseId;
   const databaseName = provisionModule?.databaseName ?? config.database.name;
   console.log(`  Database created. id=${databaseId}, name=${databaseName}`);
+
+  // Create API client for subsequent operations (tables, relations).
+  // These use the api endpoint (api-{dbName}.localhost), not modules.
+  const apiDb = platform.createClient({
+    endpoint: config.platformApi,
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
 
   // -----------------------------------------------------------------------
   // Step 3: Resolve schema prefix and apply workarounds

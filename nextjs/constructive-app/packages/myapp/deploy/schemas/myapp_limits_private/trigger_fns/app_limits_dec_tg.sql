@@ -1,0 +1,26 @@
+-- Deploy: schemas/myapp_limits_private/trigger_fns/app_limits_dec_tg
+-- made with <3 @ constructive.io
+
+-- requires: schemas/myapp_limits_private/schema
+-- requires: schemas/myapp_limits_private/procedures/app_limits_dec/procedure
+
+
+CREATE FUNCTION myapp_limits_private.app_limits_dec_tg() RETURNS TRIGGER AS $_PGFN_$
+DECLARE
+  actor_id uuid;
+  limitname citext;
+BEGIN
+  IF tg_nargs < 1 THEN
+    RAISE EXCEPTION 'LIMIT_TRIGGER_ARGS (%)', tg_name;
+  ELSIF tg_nargs = 1 THEN
+    limitname := (tg_argv)[0];
+    PERFORM myapp_limits_private.app_limits_dec(limitname);
+  ELSIF tg_nargs >= 2 THEN
+    limitname := (tg_argv)[0];
+    EXECUTE pg_catalog.format('SELECT ($1).%s', (tg_argv)[1]) INTO actor_id USING OLD;
+    PERFORM myapp_limits_private.app_limits_dec(limitname, actor_id);
+  END IF;
+  RETURN OLD;
+END;
+$_PGFN_$ LANGUAGE plpgsql VOLATILE;
+

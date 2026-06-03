@@ -1,22 +1,9 @@
-/**
- * seed/index.ts — Seed entry point for constructive-app
- *
- * Creates test users and organizations for development.
- *
- * Usage:
- *   pnpm run seed
- *
- * Prerequisites:
- *   - pnpm run create-db && pnpm run provision (sets up database + .env)
- *   - .env must contain DATABASE_ID, ACCESS_TOKEN
- */
+/** seed/index.ts — Create test users and orgs. Usage: pnpm run seed */
 
 import { config } from '../config.js';
 import { createDbAuthClient, withRetry, executeAuthMutation } from '../helpers.js';
 
-// ---------------------------------------------------------------------------
 // Seed fixtures
-// ---------------------------------------------------------------------------
 
 const SEED_USERS = [
   {
@@ -41,9 +28,7 @@ const SEED_ORGS = [
   },
 ];
 
-// ---------------------------------------------------------------------------
 // Main
-// ---------------------------------------------------------------------------
 
 interface SeedUserResult {
   fixture: typeof SEED_USERS[number];
@@ -62,9 +47,7 @@ async function main() {
     process.exit(1);
   }
 
-  // -----------------------------------------------------------------------
   // Step 1: Seed users
-  // -----------------------------------------------------------------------
   console.log(`\n${'─'.repeat(50)}`);
   console.log('  Seeding users...');
 
@@ -118,9 +101,7 @@ async function main() {
     console.log(`    ✓ ${userId}`);
   }
 
-  // -----------------------------------------------------------------------
-  // Step 2: Get admin token for org creation
-  // -----------------------------------------------------------------------
+  // Step 2: Get admin token
   console.log(`\n${'─'.repeat(50)}`);
   console.log('  Getting admin token...');
 
@@ -141,9 +122,7 @@ async function main() {
   }
   console.log(`  Admin token acquired`);
 
-  // -----------------------------------------------------------------------
-  // Step 3: Seed orgs (org users via auth endpoint with admin token)
-  // -----------------------------------------------------------------------
+  // Step 3: Seed orgs via auth endpoint
   console.log(`\n${'─'.repeat(50)}`);
   console.log('  Seeding orgs...');
 
@@ -153,38 +132,85 @@ async function main() {
     console.log(`    ${org.name} (${org.username})`);
 
     try {
-      const createData = await withRetry(() =>
+      // signUp + SQL pattern: INSERT on users via GraphQL is restricted,
+      // but signUp uses a SECURITY DEFINER function that bypasses GRANTs.
+      // After signUp, set type=2 (Organization) via direct SQL.
+      const signUpData = await withRetry(() =>
         executeAuthMutation(
           adminToken,
-          `mutation CreateUser($input: CreateUserInput!) {
-            createUser(input: $input) {
-              user {
-                id
-                username
-                displayName
-                type
+          `mutation SignUp($input: SignUpInput!) {
+            signUp(input: $input) {
+              result {
+                userId
               }
             }
           }`,
           {
             input: {
-              user: {
+              email: `${org.username}@org.seed.local`,
+              password: crypto.randomUUID(),
+            }
+          }
+        )
+      );
+
+      const signUpRaw = signUpData as any;
+      const orgUserId: string | undefined = signUpRaw?.signUp?.result?.userId;
+
+      if (!orgUserId) {
+        console.error(`    ✗ Failed to sign up org user for ${org.name}`);
+        continue;
+      }
+
+      // Set display name and username via updateUser (those columns are in UPDATE GRANT)
+      await withRetry(() =>
+        executeAuthMutation(
+          adminToken,
+          `mutation UpdateUser($input: UpdateUserInput!) {
+            updateUser(input: $input) {
+              user { id }
+            }
+          }`,
+          {
+            input: {
+              id: orgUserId,
+              userPatch: {
                 username: org.username,
                 displayName: org.name,
-                type: 2 // organization
               }
             }
           }
         )
       );
 
-      const raw = createData as any;
-      const entityId: string | undefined = raw?.createUser?.user?.id;
-
-      if (entityId) {
-        orgEntityIds.push({ name: org.name, entityId });
-        console.log(`    ✓ ${entityId}`);
+      // Set type=2 (Organization) via direct SQL — the `type` column
+      // is only in the INSERT GRANT, not UPDATE, and INSERT GRANTs may
+      // not be applied to tenant schemas.
+      if (!!process.env.PGHOST) {
+        try {
+          const { Pool } = await import('pg');
+          const pool = new Pool({ database: config.pgInternalDatabase });
+          const usersSchema = await pool.query(
+            `SELECT schema_name FROM information_schema.schemata
+             WHERE schema_name LIKE '%users_public' AND schema_name LIKE '${config.databaseName}%'
+             ORDER BY schema_name LIMIT 1`
+          );
+          const schemaName = usersSchema.rows[0]?.schema_name;
+          if (schemaName) {
+            await pool.query(
+              `UPDATE "${schemaName}".users SET type = 2, display_name = $2, username = $3 WHERE id = $1`,
+              [orgUserId, org.name, org.username]
+            );
+            console.log(`    ✓ type=2 set via SQL`);
+          }
+          await pool.end();
+        } catch (sqlErr: any) {
+          console.warn(`    ⚠ SQL type update failed: ${sqlErr.message}`);
+        }
       }
+
+      orgEntityIds.push({ name: org.name, entityId: orgUserId });
+      console.log(`    ✓ ${orgUserId}`);
     } catch (err: any) {
       if (err.message?.includes('already exists') || err.message?.includes('duplicate') || err.message?.includes('ACCOUNT_EXISTS')) {
         console.log(`    ⚠ ${org.name} already exists — skipping`);
@@ -194,9 +220,7 @@ async function main() {
     }
   }
 
-  // -----------------------------------------------------------------------
-  // Step 4: Add org memberships via direct SQL
-  // -----------------------------------------------------------------------
+  // Step 4: Add org memberships via SQL
   const pgAvailable = !!process.env.PGHOST;
   if (pgAvailable && orgEntityIds.length > 0) {
     console.log(`\n${'─'.repeat(50)}`);
@@ -255,9 +279,7 @@ async function main() {
     }
   }
 
-  // -----------------------------------------------------------------------
   // Done
-  // -----------------------------------------------------------------------
   console.log(`\n${'═'.repeat(50)}`);
   console.log('  Seed complete!');
   console.log(`${'═'.repeat(50)}\n`);

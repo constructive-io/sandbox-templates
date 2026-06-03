@@ -1,18 +1,11 @@
-/**
- * helpers.ts — Shared utilities for constructive-app provisioning
- *
- * Uses @constructive-io/node for auth/public_ SDK clients and @constructive-io/fetch for HTTP.
- */
+/** helpers.ts — Shared utilities for provisioning */
 
 import { auth, public_ } from '@constructive-io/node';
 import { createFetch } from '@constructive-io/fetch';
 
 import { config } from './config.js';
 
-/**
- * Retry helper for transient failures during provisioning.
- * Immediately rethrows "already exists" errors (idempotency).
- */
+/** Retry with backoff. Immediately rethrows "already exists" errors. */
 export async function withRetry<T>(
   fn: () => Promise<T>,
   maxRetries = 5,
@@ -34,10 +27,7 @@ export async function withRetry<T>(
   throw new Error('unreachable');
 }
 
-/**
- * Execute a raw GraphQL query/mutation against a given endpoint.
- * Uses @constructive-io/fetch for *.localhost DNS handling.
- */
+/** Raw GraphQL execution via @constructive-io/fetch (handles *.localhost DNS). */
 export async function rawExecute<T = unknown>(
   endpoint: string,
   headers: Record<string, string>,
@@ -75,11 +65,7 @@ export async function rawExecute<T = unknown>(
   return { ok: true, data: json.data as T };
 }
 
-/**
- * Create a metaschema client using the upstream Constructive SDK.
- * The metaschema client has models for blueprint, database,
- * constructBlueprint etc.
- */
+/** API endpoint client — database, schema, api, apiSchema, domain, etc. */
 export function createMetaschemaClient(): ReturnType<typeof public_.createClient> {
   const token = config.accessToken;
   if (!token) throw new Error('ACCESS_TOKEN is required');
@@ -94,12 +80,7 @@ export function createMetaschemaClient(): ReturnType<typeof public_.createClient
   return public_.createClient({ endpoint: config.apiEndpoint, headers });
 }
 
-/**
- * Create an auth client for sign-up / sign-in via the GLOBAL
- * metaschema auth endpoint (auth.localhost). Tokens from this
- * endpoint are NOT valid for database-scoped endpoints.
- * Only used by create-db.ts for the initial admin user.
- */
+/** Platform-level auth client (auth.localhost). Tokens NOT valid for db-scoped endpoints. */
 export function createAuthClient(): ReturnType<typeof auth.createClient> {
   return auth.createClient({ endpoint: config.authEndpoint, headers: {
     'X-Meta-Schema': 'true',
@@ -107,18 +88,12 @@ export function createAuthClient(): ReturnType<typeof auth.createClient> {
   } });
 }
 
-/**
- * Create an auth client for sign-up / sign-in via the DATABASE-SCOPED
- * auth endpoint (auth-{dbName}.localhost). Tokens from this endpoint
- * ARE valid for the app and admin endpoints of the same database.
- */
+/** Database-scoped auth client (auth-{dbName}.localhost). Tokens valid for app/admin endpoints. */
 export function createDbAuthClient(): ReturnType<typeof auth.createClient> {
   return auth.createClient({ endpoint: config.dbAuthEndpoint });
 }
 
-/**
- * Execute a raw GraphQL mutation against the auth endpoint.
- */
+/** Raw GraphQL mutation against db-scoped auth endpoint. */
 export async function executeAuthMutation<T = unknown>(
   accessToken: string,
   mutation: string,
@@ -134,9 +109,7 @@ export async function executeAuthMutation<T = unknown>(
   return result.data as T;
 }
 
-/**
- * Get the database ID from config, throwing if missing.
- */
+/** Require DATABASE_ID from config, exit if missing. */
 export function requireDatabaseId(): string {
   const id = config.databaseId;
   if (!id) {

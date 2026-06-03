@@ -15,7 +15,8 @@
     "codegen:w": "npx @constructive-io/graphql-codegen generate --config ./graphql-codegen.config.ts --watch",
     "create-db": "pnpm --filter @constructive-app/provision run create-db",
     "provision": "pnpm --filter @constructive-app/provision run provision",
-    "seed": "pnpm --filter @constructive-app/provision run seed"
+    "seed": "pnpm --filter @constructive-app/provision run seed",
+    "export:graphql": "pnpm --filter @constructive-app/export run export:graphql"
   },
   "dependencies": {
     "@0no-co/graphql.web": "^1.2.0",
@@ -36,6 +37,7 @@
     "next": "^16.2.6",
     "next-themes": "^0.4.6",
     "nuqs": "^2.8.9",
+    "pg": "^8.21.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "sonner": "^2.0.7",
@@ -50,6 +52,7 @@
     "@tailwindcss/postcss": "^4.3.0",
     "@tailwindcss/typography": "^0.5.19",
     "@types/node": "^25.9.1",
+    "@types/pg": "^8.20.0",
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
     "eslint": "^10.4.0",
