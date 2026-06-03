@@ -35,7 +35,7 @@ import { fileURLToPath } from 'url';
 import { Pool } from 'pg';
 
 import { config } from './config.js';
-import { withRetry } from './helpers.js';
+import { withRetry, resolvePhysicalSchemaName } from './helpers.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -110,8 +110,12 @@ async function main() {
   console.log(`   Signed up (ID: ${userId})`);
 
   // --- Step 2: Provision database (or use existing) ---
-  console.log('\n   Provisioning database...');
-  const apiClient = public_.createClient({ endpoint: config.apiEndpoint, headers: {
+  // createDatabaseProvisionModule lives on the MODULES host (modules.localhost),
+  // NOT api.localhost — its input type is only registered there. Routing it to
+  // apiEndpoint fails with 'Unknown type CreateDatabaseProvisionModuleInput'.
+  console.log('\n   Provisioning database (modules endpoint)...');
+  console.log(`   Modules:   ${config.modulesEndpoint}`);
+  const modulesClient = public_.createClient({ endpoint: config.modulesEndpoint, headers: {
     Authorization: `Bearer ${accessToken}`,
     'X-Meta-Schema': 'true'
   } });
@@ -119,7 +123,7 @@ async function main() {
   let databaseId: string;
   try {
     const provData = await withRetry(() =>
-      apiClient.databaseProvisionModule
+      modulesClient.databaseProvisionModule
         .create({
           data: {
             databaseName,
@@ -234,21 +238,19 @@ async function main() {
   let permissionsGranted = false;
   if (dbAdminUserId && pgAvailable) {
     try {
-      // Connect to the internal PG database (NOT PGDATABASE which may be 'postgres').
-      // Schema-based multi-tenancy stores all tenant schemas in this DB.
-      const permPool = new Pool({ database: config.pgInternalDatabase });
-      // Find the app_memberships schema for this specific tenant
-      const schemaResult = await permPool.query(
-        `SELECT schema_name FROM information_schema.schemata
-         WHERE schema_name LIKE '%memberships_public'
-         AND schema_name LIKE '${databaseName}%'
-         ORDER BY schema_name`
-      );
-      console.log(`   Found ${schemaResult.rows.length} membership schemas:`,
-        schemaResult.rows.map((r: any) => r.schema_name).join(', ') || '(none)');
-      // Use the first matching schema (app_memberships comes before org_memberships alphabetically)
-      const membershipsSchema = schemaResult.rows[0]?.schema_name;
+      // Resolve THIS tenant's physical app-memberships schema via the metaschema
+      // (scoped by database_id), NOT a floating `LIKE '%memberships_public'` —
+      // on a shared hub that LIKE can match a SIBLING tenant and corrupt its
+      // permissions. The metaschema read uses the freshly-issued accessToken
+      // (config.databaseId/ACCESS_TOKEN aren't in process env until .env is written).
+      const membershipsSchema = await resolvePhysicalSchemaName(databaseId, 'memberships_public', {
+        token: accessToken,
+      });
+      console.log(`   Memberships schema (this tenant): ${membershipsSchema ?? '(none)'}`);
       if (membershipsSchema) {
+        // Connect to the internal PG database (NOT PGDATABASE which may be 'postgres').
+        // Schema-based multi-tenancy stores all tenant schemas in this DB.
+        const permPool = new Pool({ database: config.pgInternalDatabase });
         const updateResult = await permPool.query(
           `UPDATE "${membershipsSchema}".app_memberships
            SET is_admin = true, is_owner = true,
@@ -258,10 +260,10 @@ async function main() {
         );
         console.log(`   Admin permissions granted (SQL): ${updateResult.rowCount} row(s) updated`);
         permissionsGranted = true;
+        await permPool.end();
       } else {
-        console.warn('   No memberships_public schema found for permission grant');
+        console.warn('   No memberships_public schema found for this tenant — will try GraphQL fallback');
       }
-      await permPool.end();
     } catch (err: any) {
       console.warn(`   SQL permission grant failed: ${err.message?.split('\n')[0]}`);
     }

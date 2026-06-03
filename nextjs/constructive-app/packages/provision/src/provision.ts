@@ -21,9 +21,20 @@ import * as path from 'path';
 import { Pool } from 'pg';
 
 import { config } from './config.js';
-import { withRetry, createMetaschemaClient, requireDatabaseId } from './helpers.js';
+import {
+  withRetry,
+  createMetaschemaClient,
+  createModulesClient,
+  resolvePhysicalSchemaName,
+  requireDatabaseId,
+} from './helpers.js';
 
+// `read` client = api.localhost (apis/schemas/tables/databases + createApiSchema).
+// `modules` client = modules.localhost (blueprint / constructBlueprint /
+// secureTableProvision). The two hosts expose disjoint type sets, so each call
+// MUST go to the right one.
 type MetaschemaClient = ReturnType<typeof createMetaschemaClient>;
+type ModulesClient = ReturnType<typeof createModulesClient>;
 
 const PG_DATABASE = config.pgInternalDatabase;
 
@@ -39,12 +50,15 @@ const PG_DATABASE = config.pgInternalDatabase;
 // Expressed via createSecureTableProvision on the platform (metaschema)
 // endpoint using the blueprint-style `policies` array the SDK accepts.
 // ---------------------------------------------------------------------------
-async function grantUsersSelfUpdate(client: MetaschemaClient): Promise<void> {
+async function grantUsersSelfUpdate(
+  readClient: MetaschemaClient,
+  modulesClient: ModulesClient
+): Promise<void> {
   console.log('\n  Granting users self-update (AuthzDirectOwner self_update)...');
 
-  // Resolve the users_public schema for this database.
+  // Resolve the users_public schema for this database (READ — api host).
   const schemaResult = await withRetry(() =>
-    client.schema.findMany({
+    readClient.schema.findMany({
       where: { databaseId: { equalTo: config.databaseId }, name: { equalTo: 'users_public' } },
       select: { id: true, name: true, schemaName: true },
     }).unwrap()
@@ -56,9 +70,9 @@ async function grantUsersSelfUpdate(client: MetaschemaClient): Promise<void> {
     return;
   }
 
-  // Resolve the users table inside that schema.
+  // Resolve the users table inside that schema (READ — api host).
   const tableResult = await withRetry(() =>
-    client.table.findMany({
+    readClient.table.findMany({
       where: {
         databaseId: { equalTo: config.databaseId },
         schemaId: { equalTo: usersSchema.id },
@@ -76,7 +90,8 @@ async function grantUsersSelfUpdate(client: MetaschemaClient): Promise<void> {
 
   try {
     await withRetry(() =>
-      client.secureTableProvision.create({
+      // createSecureTableProvision lives on the MODULES host.
+      modulesClient.secureTableProvision.create({
         data: {
           databaseId: config.databaseId!,
           schemaId: usersSchema.id,
@@ -132,10 +147,22 @@ async function grantUsersSelfUpdate(client: MetaschemaClient): Promise<void> {
 // DataOwnershipInEntity / DataEntityMembership node — but that is a b2b
 // concern; a base auth:email app uses the AuthzDirectOwner default below.
 // ---------------------------------------------------------------------------
+/**
+ * Author-facing field spec. The agent writes the ergonomic bare-string form
+ * (`type: 'text'`, `default: 'false'`); provisionAppTable converts it to the
+ * OBJECT shapes the blueprint validator requires before sending:
+ *   - FieldType:    { name: 'text' }                     (NOT the bare string 'text')
+ *   - FieldDefault: { value: false } | { value: 'foo' }  (discriminated union)
+ * Passing bare strings makes constructBlueprint fail with BAD_FIELD_INPUT and the
+ * table is never created. You may also pass the object forms directly to escape
+ * the convenience mapping (e.g. a function default `{ function: 'now' }`).
+ */
 export interface AppTableField {
   name: string;
-  type: string;
-  default?: string;
+  /** Bare SQL type ('text','boolean',...) or a full FieldType object ({ name, args?, ... }). */
+  type: string | Record<string, unknown>;
+  /** Literal ('false','hello'), or a FieldDefault object ({ value }, { function }, ...). */
+  default?: string | number | boolean | Record<string, unknown>;
   is_required?: boolean;
   index?: boolean;
 }
@@ -143,30 +170,49 @@ export interface AppTableField {
 export interface AppTableSpec {
   tableName: string;
   fields?: AppTableField[];
-  /** Defaults to owner-scoped: ['DataDirectOwner', 'DataTimestamps']. */
+  /**
+   * Defaults to owner-scoped with a PK: ['DataId', 'DataDirectOwner', 'DataTimestamps'].
+   * DataId MUST come first — it creates the UUID primary key. Without a PK the
+   * table has no id column, so per-row UPDATE/DELETE (and owner RLS) can't target rows.
+   */
   nodes?: unknown[];
   /** Defaults to AuthzDirectOwner (owner CRUDs own rows). */
   policyType?: string;
-  /** Defaults to { owner_field: 'owner_id' }. */
+  /** Defaults to { entity_field: 'owner_id' } — the key AuthzDirectOwner reads. */
   policyData?: Record<string, unknown>;
   /** Defaults to full CRUD for 'authenticated'. */
   grants?: { roles: string[]; privileges: [string, string][] }[];
 }
 
+/** Coerce an author field type (bare string or object) into a FieldType object: { name, ... }. */
+function toFieldType(type: string | Record<string, unknown>): Record<string, unknown> {
+  return typeof type === 'string' ? { name: type } : type;
+}
+
+/** Coerce an author default (literal or object) into a FieldDefault object: { value } | passthrough. */
+function toFieldDefault(
+  def: string | number | boolean | Record<string, unknown>
+): Record<string, unknown> {
+  return typeof def === 'object' && def !== null ? def : { value: def };
+}
+
 export async function provisionAppTable(
-  client: MetaschemaClient,
+  readClient: MetaschemaClient,
+  modulesClient: ModulesClient,
   spec: AppTableSpec
 ): Promise<string> {
-  // 1. Resolve the database owner_id (required on the blueprint record).
+  // 1. Resolve the database owner_id (READ — api host; `database` is not on modules).
   const dbResult = await withRetry(() =>
-    client.database.findOne({ id: requireDatabaseId(), select: { ownerId: true } }).unwrap()
+    readClient.database.findOne({ id: requireDatabaseId(), select: { ownerId: true } }).unwrap()
   );
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const ownerId = (dbResult as any)?.database?.ownerId;
   if (!ownerId) throw new Error('Could not resolve database owner_id');
 
   // 2. Build the blueprint table with the proven owner-scoped defaults.
-  const nodes = spec.nodes ?? ['DataDirectOwner', 'DataTimestamps'];
+  // DataId FIRST so the table gets a UUID primary key — without it there is no
+  // id column and per-row update/delete + owner RLS have nothing to target.
+  const nodes = spec.nodes ?? ['DataId', 'DataDirectOwner', 'DataTimestamps'];
   // Object-form grants — the shape the platform validator expects.
   const grants = spec.grants ?? [
     {
@@ -180,22 +226,34 @@ export async function provisionAppTable(
     },
   ];
   // AuthzDirectOwner owner-scoped default: every authenticated user CRUDs only
-  // their own rows (matched on owner_id).
+  // their own rows, matched on owner_id. The policy reads `data.entity_field`
+  // (NOT owner_field) — owner_field is silently ignored, leaving the table
+  // effectively locked.
   const policies = [
     {
       $type: spec.policyType ?? 'AuthzDirectOwner',
       permissive: true,
       privileges: ['select', 'insert', 'update', 'delete'],
-      data: spec.policyData ?? { owner_field: 'owner_id' },
+      data: spec.policyData ?? { entity_field: 'owner_id' },
     },
   ];
+
+  // Convert author field specs to the validator's OBJECT shapes:
+  //   type -> { name: 'text' }, default -> { value: false }.
+  const fields = (spec.fields ?? []).map((f) => {
+    const out: Record<string, unknown> = { name: f.name, type: toFieldType(f.type) };
+    if (f.default !== undefined) out.default = toFieldDefault(f.default);
+    if (f.is_required !== undefined) out.is_required = f.is_required;
+    if (f.index !== undefined) out.index = f.index;
+    return out;
+  });
 
   const definition = {
     tables: [
       {
         table_name: spec.tableName,
         nodes,
-        fields: spec.fields ?? [],
+        fields,
         grants,
         policies,
       },
@@ -205,10 +263,10 @@ export async function provisionAppTable(
     full_text_searches: [],
   };
 
-  // 3. Create the draft blueprint record.
+  // 3. Create the draft blueprint record (MUTATION — modules host).
   const blueprintName = `app_${spec.tableName.toLowerCase().replace(/[^a-z0-9]+/g, '_')}_${Date.now()}`;
   const bpResult = await withRetry(() =>
-    client.blueprint.create({
+    modulesClient.blueprint.create({
       data: {
         ownerId,
         databaseId: requireDatabaseId(),
@@ -224,9 +282,9 @@ export async function provisionAppTable(
   const blueprintId = (bpResult as any)?.createBlueprint?.blueprint?.id;
   if (!blueprintId) throw new Error(`Failed to create blueprint record for ${spec.tableName}`);
 
-  // 4. Execute all phases server-side in one transaction.
+  // 4. Execute all phases server-side in one transaction (MUTATION — modules host).
   const constructResult = await withRetry(() =>
-    client.mutation.constructBlueprint(
+    modulesClient.mutation.constructBlueprint(
       { input: { blueprintId } },
       { select: { result: true } }
     ).unwrap()
@@ -255,23 +313,33 @@ async function main() {
   const pgAvailable = !!process.env.PGHOST;
 
   // -------------------------------------------------------------------------
-  // Attach entity-related schemas to the 'app' API
+  // Attach entity-related schemas to the app-data API
   //
   // When a database is provisioned with modules (invites, memberships, etc.),
   // the platform creates schemas like {prefix}_public, {prefix}_memberships_public,
-  // {prefix}_invites_public, etc. The app API (app-public-{dbName}.localhost) needs
-  // these schemas attached so the app endpoint exposes the tables for codegen.
+  // {prefix}_invites_public, etc. The app-data API (served on api-{dbName}.localhost,
+  // named 'api' in services_public.apis — NOT 'app') needs these schemas attached
+  // so the endpoint exposes the tables for codegen.
+  //
+  // NOTE: constructBlueprint already auto-attaches each new app table's schema to
+  // the 'api' API, so this step is a best-effort top-up for module schemas — it is
+  // non-fatal and fully idempotent.
   // -------------------------------------------------------------------------
   console.log(`\n${'='.repeat(60)}`);
-  console.log('  Attaching schemas to app API');
+  console.log('  Attaching schemas to app-data API (api-' + config.databaseName + ')');
   console.log('='.repeat(60));
 
+  // READ client (api.localhost) for apis/schemas/tables + createApiSchema.
   const metaschemaClient = createMetaschemaClient();
+  // MUTATION client (modules.localhost) for blueprint / constructBlueprint / secureTableProvision.
+  const modulesClient = createModulesClient();
 
-  // Find the 'app' API for this database
+  // Find the app-data API for this database. The hub's base provisioning names it
+  // 'api' (services_public.apis ... name = 'api'); the earlier 'app' lookup never
+  // matched, so the schema-attach + table seam silently no-op'd.
   const apisResult = await withRetry(() =>
     metaschemaClient.api.findMany({
-      where: { databaseId: { equalTo: config.databaseId }, name: { equalTo: 'app' } },
+      where: { databaseId: { equalTo: config.databaseId }, name: { equalTo: 'api' } },
       select: { id: true, name: true, apiSchemas: { select: { id: true, schema: { select: { id: true, name: true, schemaName: true } } } } },
     }).unwrap()
   );
@@ -279,7 +347,7 @@ async function main() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const appApi = (apisResult as any)?.apis?.nodes?.[0];
   if (!appApi) {
-    console.warn('   App API not found — skipping schema attachment');
+    console.warn("   'api' app-data API not found — skipping schema attachment (constructBlueprint auto-attaches anyway)");
   } else {
     const appApiId: string = appApi.id;
     const existingSchemaNames = new Set<string>(
@@ -337,64 +405,56 @@ async function main() {
 
   // -------------------------------------------------------------------------
   // PROVEN RECIPE (a): grant users self-update so account/profile edits pass RLS
+  // (READS via api host, secureTableProvision via modules host)
   // -------------------------------------------------------------------------
-  await grantUsersSelfUpdate(metaschemaClient);
+  await grantUsersSelfUpdate(metaschemaClient, modulesClient);
 
   // -------------------------------------------------------------------------
-  // App tables: declare them here via provisionAppTable(metaschemaClient, ...).
-  // The base scaffold ships a `todos` table; add your own following the same
-  // owner-scoped pattern. (Left as an explicit, easy-to-find seam rather than a
-  // hidden default so the agent provisions exactly the tables its app needs.)
-  //
-  //   await provisionAppTable(metaschemaClient, {
-  //     tableName: 'todos',
-  //     fields: [
-  //       { name: 'title', type: 'text', is_required: true },
-  //       { name: 'is_done', type: 'boolean', default: 'false' },
-  //     ],
-  //   });
+  // App tables: declare them here via provisionAppTable(read, modules, spec).
+  // The base scaffold ships a `todos` table (owner-scoped: each user CRUDs only
+  // their own rows). Add your own following the same pattern. Author fields in
+  // the ergonomic bare-string form — provisionAppTable converts type/default to
+  // the FieldType/FieldDefault objects the blueprint validator requires.
   // -------------------------------------------------------------------------
+  await provisionAppTable(metaschemaClient, modulesClient, {
+    tableName: 'todos',
+    fields: [
+      { name: 'title', type: 'text', is_required: true },
+      { name: 'is_done', type: 'boolean', default: false },
+    ],
+  });
 
   // -------------------------------------------------------------------------
-  // Set app membership defaults so new users are auto-approved
+  // Set app membership defaults so new users are auto-approved.
+  // Anchor to THIS tenant's physical memberships schema (resolved by database_id
+  // via the metaschema) — a floating `LIKE '%memberships_public' DESC LIMIT 1`
+  // has no db filter and on a shared hub would mutate a SIBLING tenant.
   // -------------------------------------------------------------------------
   if (pgAvailable) {
     console.log('\n  Setting membership defaults...');
-    const defaultsPool = new Pool({ database: PG_DATABASE });
-
-    const schemaResult = await defaultsPool.query(
-      `SELECT schema_name FROM information_schema.schemata
-       WHERE (schema_name LIKE '%memberships-public' OR schema_name LIKE '%memberships_public')
-       ORDER BY schema_name DESC LIMIT 1`
-    );
-    if (schemaResult.rows.length > 0) {
-      const membershipsSchema = schemaResult.rows[0].schema_name;
+    const membershipsSchema = await resolvePhysicalSchemaName(config.databaseId!, 'memberships_public');
+    if (membershipsSchema) {
+      const defaultsPool = new Pool({ database: PG_DATABASE });
       await defaultsPool.query(
         `UPDATE "${membershipsSchema}".app_membership_defaults
          SET is_approved = TRUE, is_verified = TRUE`
       );
-      console.log(`   schema: ${membershipsSchema}`);
+      await defaultsPool.end();
+      console.log(`   schema: ${membershipsSchema} (this tenant)`);
       console.log('   is_approved = TRUE, is_verified = TRUE');
     } else {
-      console.log('   No memberships schema found - skipping defaults');
+      console.log('   No memberships_public schema for this tenant - skipping defaults');
     }
-
-    await defaultsPool.end();
   }
 
-  // Write SEED_SCHEMA to .env so seeding just works
+  // Write SEED_SCHEMA to .env so seeding just works.
+  // Resolve THIS tenant's physical app schema (logical name 'app_public') via the
+  // metaschema, NOT a floating LIKE that could pick a sibling tenant's app schema.
   if (pgAvailable) {
-    const detectPool = new Pool({ database: PG_DATABASE });
-    const appSchemaResult = await detectPool.query(
-      `SELECT schema_name FROM information_schema.schemata
-       WHERE (schema_name LIKE '%app-public' OR schema_name LIKE '%app_public')
-       ORDER BY schema_name DESC LIMIT 1`
-    );
-    await detectPool.end();
+    const seedSchema = await resolvePhysicalSchemaName(config.databaseId!, 'app_public');
 
-    if (appSchemaResult.rows.length > 0) {
-      const seedSchema = appSchemaResult.rows[0].schema_name;
-      console.log(`\n  Detected app schema: ${seedSchema}`);
+    if (seedSchema) {
+      console.log(`\n  Detected app schema (this tenant): ${seedSchema}`);
 
       const envPath = path.resolve(process.cwd(), '../../.env');
       try {

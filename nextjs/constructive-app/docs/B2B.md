@@ -66,3 +66,63 @@ minimal:
 
 That's the whole opt-in: provision the modules, regenerate the SDK, drop in the
 blocks, and wire the routes. No org UI is hand-written in this template.
+
+## 3. Prerequisite: the org-create RLS permission bit
+
+Creating an organization is a `createUser` with **`type = 2`** (an org is modelled
+as an entity-typed user row). The `users` table is RLS-protected, and the INSERT
+policy for entity-type rows requires the **acting** user to hold the
+**`create_entity`** app permission. Without it the create fails with:
+
+```
+new row violates row-level security policy for table "users"
+```
+
+`create_entity` is the 5th app-permission bit defined by `initialize_permissions`
+(app scope) — i.e. bit value `0x10000` (`1 << 16`) in the 64-bit app permission
+mask. The actor must have it set on their **app membership** row before they call
+the org-create mutation (the `org-create-card` block).
+
+How this template grants it: `packages/provision/src/create-db.ts` already
+elevates the bootstrap admin to full permissions right after provisioning — it
+resolves **this tenant's** `memberships_public` schema via the metaschema
+(scoped by `database_id`, not a floating `LIKE`) and runs:
+
+```sql
+UPDATE "<tenant>_memberships_public".app_memberships
+   SET is_admin = true, is_owner = true,
+       permissions = (64 one-bits)::bit(64)   -- includes the create_entity bit
+ WHERE actor_id = $1;
+```
+
+So the admin user that `create-db` registers can create orgs out of the box. For
+**non-admin** users who must create orgs, grant just the `create_entity` bit on
+their app membership (set bit `0x10000`, or via the admin SDK
+`appMembership.update`) — do not blanket-grant `is_admin`.
+
+### Note: `@constructive-io/node` and `*.localhost` ("fetch failed")
+
+`create-db.ts` registers the org/admin user against the per-tenant auth host
+`auth-<sub>.localhost` using `@constructive-io/node`'s `auth.createClient`. The
+convenience `{ endpoint }` form builds a `FetchAdapter` that calls
+`globalThis.fetch` directly. On many Linux/CI hosts Node cannot resolve
+`*.localhost` (ENOTFOUND → **"fetch failed"**), and undici also drops a manual
+`Host` header, breaking subdomain routing. (macOS resolves `*.localhost` to
+127.0.0.1, so it often "just works" locally — but CI will not.)
+
+Workaround — pass a `NodeHttpAdapter` (exported by `@constructive-io/node`)
+instead of `endpoint`; it rewrites the hostname to `localhost` and injects the
+original host as the `Host` header:
+
+```ts
+import { auth, NodeHttpAdapter } from '@constructive-io/node';
+
+const dbAuthClient = auth.createClient({
+  adapter: new NodeHttpAdapter(`http://auth-${databaseName}.localhost:3000/graphql`),
+});
+```
+
+The package's own raw-HTTP path (`helpers.rawExecute`) already routes through
+`@constructive-io/fetch`'s `createFetch()`, which applies the same rewrite — so
+prefer that (or `NodeHttpAdapter`) for any `*.localhost` call that errors with
+"fetch failed" in CI.
