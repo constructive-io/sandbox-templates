@@ -8,13 +8,13 @@ import { createDbAuthClient, withRetry, executeAuthMutation } from '../helpers.j
 const SEED_USERS = [
   {
     email: 'alice@example.com',
-    password: 'password123!',
+    password: 'Password123!',
     displayName: 'Alice Chen',
     role: 'founder' as const,
   },
   {
     email: 'bob@example.com',
-    password: 'password123!',
+    password: 'Password123!',
     displayName: 'Bob Martinez',
     role: 'member' as const,
   },

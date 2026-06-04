@@ -28,12 +28,12 @@ INSERT INTO services_public.apis (
   role_name,
   anon_role
 ) VALUES
-  ('019e8c61-4a0a-7a8a-8039-70e3486a12a3', '019e8c61-4997-70bf-8a77-bbd439338daf', 'admin', true, 'authenticated', 'anonymous'),
-  ('019e8c61-4a0a-7f8f-9e53-65ec95334efc', '019e8c61-4997-70bf-8a77-bbd439338daf', 'auth', true, 'authenticated', 'anonymous'),
-  ('019e8c61-4a0b-7145-913d-8f389afb2907', '019e8c61-4997-70bf-8a77-bbd439338daf', 'api', true, 'authenticated', 'anonymous'),
-  ('019e8c61-4a0b-7336-a41d-3e1cf3163822', '019e8c61-4997-70bf-8a77-bbd439338daf', 'usage', true, 'authenticated', 'anonymous'),
-  ('019e8c61-8fc6-79e7-a531-fd299567b9b3', '019e8c61-4997-70bf-8a77-bbd439338daf', 'config', true, 'authenticated', 'anonymous'),
-  ('019e8c61-aebf-73c9-8ccb-c5891f6ba9b6', '019e8c61-4997-70bf-8a77-bbd439338daf', 'migrate', true, 'administrator', 'anonymous');
+  ('019e917c-c75a-78a6-baa2-3719f2be3e3e', '019e917c-c6ea-7cbc-8453-5f56622546a6', 'admin', true, 'authenticated', 'anonymous'),
+  ('019e917c-c75a-7e77-b403-7536b1952127', '019e917c-c6ea-7cbc-8453-5f56622546a6', 'auth', true, 'authenticated', 'anonymous'),
+  ('019e917c-c75b-7074-b91d-72a88f8874e6', '019e917c-c6ea-7cbc-8453-5f56622546a6', 'api', true, 'authenticated', 'anonymous'),
+  ('019e917c-c75b-7229-a913-3924ddeca7ab', '019e917c-c6ea-7cbc-8453-5f56622546a6', 'usage', true, 'authenticated', 'anonymous'),
+  ('019e917d-0851-79d9-90e2-a3f89839fe59', '019e917c-c6ea-7cbc-8453-5f56622546a6', 'config', true, 'authenticated', 'anonymous'),
+  ('019e917d-269a-7d52-82e4-65e6bd503f97', '019e917c-c6ea-7cbc-8453-5f56622546a6', 'migrate', true, 'administrator', 'anonymous');
 
 
 SET session_replication_role TO DEFAULT;

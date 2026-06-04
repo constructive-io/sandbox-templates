@@ -26,13 +26,13 @@ INSERT INTO metaschema_public.trigger_function (
   name,
   code
 ) VALUES
-  ('019e8c61-4a60-7cc9-82fd-62f33428bc4f', '019e8c61-4997-70bf-8a77-bbd439338daf', 'users_search_tsv_tsv', NULL),
-  ('019e8c61-658c-7040-b68e-64c0e6fe7d38', '019e8c61-4997-70bf-8a77-bbd439338daf', 'org_membership_settings_seed_fn', NULL),
-  ('019e8c61-6f74-73d3-9edf-aeb27655977b', '019e8c61-4997-70bf-8a77-bbd439338daf', 'org_profile_templates_seed_fn', NULL),
-  ('019e8c61-8db5-7311-ae50-0fbc3f9418b0', '019e8c61-4997-70bf-8a77-bbd439338daf', 'app_namespaces_rename_proxy', NULL),
-  ('019e8c61-8dcb-724c-9105-0003cc3fd318', '019e8c61-4997-70bf-8a77-bbd439338daf', 'app_namespaces_job_namespaceprovision_insert', NULL),
-  ('019e8c61-9149-70ea-b0df-016100c1eb9a', '019e8c61-4997-70bf-8a77-bbd439338daf', 'user_secrets_hash', NULL),
-  ('019e8c61-9382-7f84-9fae-4b04f1007903', '019e8c61-4997-70bf-8a77-bbd439338daf', 'app_secrets_hash', NULL);
+  ('019e917c-c7ac-7624-9c7c-8e30f4a2551f', '019e917c-c6ea-7cbc-8453-5f56622546a6', 'users_search_tsv_tsv', NULL),
+  ('019e917c-e0b5-7883-b457-a10fcead6d8d', '019e917c-c6ea-7cbc-8453-5f56622546a6', 'org_membership_settings_seed_fn', NULL),
+  ('019e917c-e9cb-7c3e-aa88-16c15cc75915', '019e917c-c6ea-7cbc-8453-5f56622546a6', 'org_profile_templates_seed_fn', NULL),
+  ('019e917d-0667-74b0-996d-d29c521d5301', '019e917c-c6ea-7cbc-8453-5f56622546a6', 'app_namespaces_rename_proxy', NULL),
+  ('019e917d-067b-72e5-813e-ac6a9c52067b', '019e917c-c6ea-7cbc-8453-5f56622546a6', 'app_namespaces_job_namespaceprovision_insert', NULL),
+  ('019e917d-09cc-7ad4-b665-16bc62ccf54a', '019e917c-c6ea-7cbc-8453-5f56622546a6', 'user_secrets_hash', NULL),
+  ('019e917d-0bcb-7933-8e42-bd4955b25427', '019e917c-c6ea-7cbc-8453-5f56622546a6', 'app_secrets_hash', NULL);
 
 
 SET session_replication_role TO DEFAULT;

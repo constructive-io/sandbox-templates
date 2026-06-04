@@ -28,17 +28,17 @@ INSERT INTO metaschema_public.trigger (
   event,
   function_name
 ) VALUES
-  ('019e8c61-4a60-7f4c-9799-26cd861f2189', '019e8c61-4997-70bf-8a77-bbd439338daf', '019e8c61-4a23-7673-9b91-1910c9553eea', 'users_search_tsv_tsv_insert_tg', NULL, NULL),
-  ('019e8c61-4a61-7118-8556-85b172307847', '019e8c61-4997-70bf-8a77-bbd439338daf', '019e8c61-4a23-7673-9b91-1910c9553eea', 'users_search_tsv_tsv_update_tg', NULL, NULL),
-  ('019e8c61-658c-7bcf-93cb-652a46162b89', '019e8c61-4997-70bf-8a77-bbd439338daf', '019e8c61-4a23-7673-9b91-1910c9553eea', '_00050_users_org_membership_settings_seed_trg', NULL, NULL),
-  ('019e8c61-6f74-7f5c-a7d6-a777be418052', '019e8c61-4997-70bf-8a77-bbd439338daf', '019e8c61-4a23-7673-9b91-1910c9553eea', '_00060_users_org_profile_templates_seed_trg', NULL, NULL),
-  ('019e8c61-8db6-756d-9e4f-e150d4d2f37e', '019e8c61-4997-70bf-8a77-bbd439338daf', '019e8c61-8cb0-74c5-9efd-666ced7f5792', 'app_namespaces_rename_proxy_insert_tg', NULL, NULL),
-  ('019e8c61-8db6-765f-9e17-f8eb3fbc9fdb', '019e8c61-4997-70bf-8a77-bbd439338daf', '019e8c61-8cb0-74c5-9efd-666ced7f5792', 'app_namespaces_rename_proxy_update_tg', NULL, NULL),
-  ('019e8c61-8dcc-7387-92cf-3bae4629682c', '019e8c61-4997-70bf-8a77-bbd439338daf', '019e8c61-8cb0-74c5-9efd-666ced7f5792', 'app_namespaces_job_namespaceprovision_insert_tg', NULL, NULL),
-  ('019e8c61-914a-74cf-b354-38ec61157a6d', '019e8c61-4997-70bf-8a77-bbd439338daf', '019e8c61-905b-754a-9ac3-7235f1eca9fc', 'user_secrets_update_tg', NULL, NULL),
-  ('019e8c61-914a-7531-aedc-4335d804f7a2', '019e8c61-4997-70bf-8a77-bbd439338daf', '019e8c61-905b-754a-9ac3-7235f1eca9fc', 'user_secrets_insert_tg', NULL, NULL),
-  ('019e8c61-9384-749b-88fc-697a73be314a', '019e8c61-4997-70bf-8a77-bbd439338daf', '019e8c61-91df-7216-a942-eecfef8d79d7', 'app_secrets_update_tg', NULL, NULL),
-  ('019e8c61-9384-758c-8b31-a403906a3834', '019e8c61-4997-70bf-8a77-bbd439338daf', '019e8c61-91df-7216-a942-eecfef8d79d7', 'app_secrets_insert_tg', NULL, NULL);
+  ('019e917c-c7ac-791f-b186-6f584ee1e769', '019e917c-c6ea-7cbc-8453-5f56622546a6', '019e917c-c772-7ad9-bec4-337ce1956129', 'users_search_tsv_tsv_insert_tg', NULL, NULL),
+  ('019e917c-c7ac-7b63-9bc4-3f561f666564', '019e917c-c6ea-7cbc-8453-5f56622546a6', '019e917c-c772-7ad9-bec4-337ce1956129', 'users_search_tsv_tsv_update_tg', NULL, NULL),
+  ('019e917c-e0b6-7274-aeed-6581c1f0c2e7', '019e917c-c6ea-7cbc-8453-5f56622546a6', '019e917c-c772-7ad9-bec4-337ce1956129', '_00050_users_org_membership_settings_seed_trg', NULL, NULL),
+  ('019e917c-e9cc-77d7-975a-295c3efc17e4', '019e917c-c6ea-7cbc-8453-5f56622546a6', '019e917c-c772-7ad9-bec4-337ce1956129', '_00060_users_org_profile_templates_seed_trg', NULL, NULL),
+  ('019e917d-0668-7681-8cd6-15dfef1147a1', '019e917c-c6ea-7cbc-8453-5f56622546a6', '019e917d-0558-71ab-b908-9360125ec648', 'app_namespaces_rename_proxy_insert_tg', NULL, NULL),
+  ('019e917d-0668-778b-8e2c-a86ed699d6ae', '019e917c-c6ea-7cbc-8453-5f56622546a6', '019e917d-0558-71ab-b908-9360125ec648', 'app_namespaces_rename_proxy_update_tg', NULL, NULL),
+  ('019e917d-067c-73be-8821-14f3b2e8c940', '019e917c-c6ea-7cbc-8453-5f56622546a6', '019e917d-0558-71ab-b908-9360125ec648', 'app_namespaces_job_namespaceprovision_insert_tg', NULL, NULL),
+  ('019e917d-09cd-7da1-b382-79634c3cb06b', '019e917c-c6ea-7cbc-8453-5f56622546a6', '019e917d-08e8-7b39-a720-f7005f011c33', 'user_secrets_update_tg', NULL, NULL),
+  ('019e917d-09cd-7dfb-ad53-88825e9bf257', '019e917c-c6ea-7cbc-8453-5f56622546a6', '019e917d-08e8-7b39-a720-f7005f011c33', 'user_secrets_insert_tg', NULL, NULL),
+  ('019e917d-0bcc-7de9-8553-f43066dd64e7', '019e917c-c6ea-7cbc-8453-5f56622546a6', '019e917d-0a53-794b-876d-af7f636589ff', 'app_secrets_update_tg', NULL, NULL),
+  ('019e917d-0bcd-73fe-8a47-a54834b3305a', '019e917c-c6ea-7cbc-8453-5f56622546a6', '019e917d-0a53-794b-876d-af7f636589ff', 'app_secrets_insert_tg', NULL, NULL);
 
 
 SET session_replication_role TO DEFAULT;

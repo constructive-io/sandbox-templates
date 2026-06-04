@@ -1,0 +1,6 @@
+{
+  "name": "@constructive-app/myapp-test-seed",
+  "version": "0.0.1",
+  "private": true,
+  "description": "pgpm seed package for myapp local development"
+}

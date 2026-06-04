@@ -28,11 +28,11 @@ INSERT INTO services_public.domains (
   domain,
   subdomain
 ) VALUES
-  ('019e8c61-49e0-7dd7-8a50-4a3dee5762b5', '019e8c61-4997-70bf-8a77-bbd439338daf', NULL, '019e8c61-4a0a-7a8a-8039-70e3486a12a3', 'localhost', 'admin-myapp'),
-  ('019e8c61-49e1-7045-9f89-ad0eb2131845', '019e8c61-4997-70bf-8a77-bbd439338daf', NULL, '019e8c61-4a0a-7f8f-9e53-65ec95334efc', 'localhost', 'auth-myapp'),
-  ('019e8c61-49e1-7119-b3f3-f0f3601ab45a', '019e8c61-4997-70bf-8a77-bbd439338daf', NULL, '019e8c61-4a0b-7145-913d-8f389afb2907', 'localhost', 'api-myapp'),
-  ('019e8c61-49e1-71e9-9afa-93cb81bb8e9d', '019e8c61-4997-70bf-8a77-bbd439338daf', NULL, '019e8c61-4a0b-7336-a41d-3e1cf3163822', 'localhost', 'usage-myapp'),
-  ('019e8c61-aecd-7959-a216-c4b8c0d671c9', '019e8c61-4997-70bf-8a77-bbd439338daf', NULL, '019e8c61-aebf-73c9-8ccb-c5891f6ba9b6', 'localhost', 'migrate-myapp');
+  ('019e917c-c731-7c79-9154-ca31941ec486', '019e917c-c6ea-7cbc-8453-5f56622546a6', NULL, '019e917c-c75a-78a6-baa2-3719f2be3e3e', 'localhost', 'admin-myapp'),
+  ('019e917c-c731-7e9b-9614-3957f378eef3', '019e917c-c6ea-7cbc-8453-5f56622546a6', NULL, '019e917c-c75a-7e77-b403-7536b1952127', 'localhost', 'auth-myapp'),
+  ('019e917c-c731-7f6f-bb37-fb1ffef63723', '019e917c-c6ea-7cbc-8453-5f56622546a6', NULL, '019e917c-c75b-7074-b91d-72a88f8874e6', 'localhost', 'api-myapp'),
+  ('019e917c-c732-7038-9509-3361bfe6c41e', '019e917c-c6ea-7cbc-8453-5f56622546a6', NULL, '019e917c-c75b-7229-a913-3924ddeca7ab', 'localhost', 'usage-myapp'),
+  ('019e917d-26a8-74e0-ba89-30588897637c', '019e917c-c6ea-7cbc-8453-5f56622546a6', NULL, '019e917d-269a-7d52-82e4-65e6bd503f97', 'localhost', 'migrate-myapp');
 
 
 SET session_replication_role TO DEFAULT;

@@ -5,5 +5,5 @@
 -- requires: schemas/myapp_infra_public/tables/app_namespaces/columns/namespace_name/column
 
 
-COMMENT ON COLUMN myapp_infra_public.app_namespaces.namespace_name IS E'Globally unique computed namespace identifier via inflection_db.get_namespace_name';
+COMMENT ON COLUMN myapp_infra_public.app_namespaces.namespace_name IS E'Globally unique computed namespace identifier via substring(inflection.underscore FROM 1 FOR 63)';
 

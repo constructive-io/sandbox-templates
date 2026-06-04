@@ -6,6 +6,37 @@ Boilerplate templates for Constructive applications.
 
 - **nextjs/constructive-app** — Next.js frontend boilerplate with auth, org management, and GraphQL SDK integration
 
+## Quick Local Setup
+
+### Local Development
+
+```bash
+# 1. Start Postgres
+docker compose up -d
+
+# 2. Install dependencies
+pnpm install
+
+# 3. Setup database
+eval "$(pgpm env)"
+createdb myapp
+pgpm admin-users bootstrap --database myapp --yes
+pgpm admin-users add --database myapp --test --yes
+pgpm deploy --package myapp-service --database myapp --yes
+pgpm deploy --package myapp --database myapp --yes
+pgpm deploy --package myapp-test-seed --database myapp --yes
+
+# 4. Codegen
+pnpm run codegen
+
+# 5. Start GraphQL server
+PGDATABASE=myapp cnc server --port 3000 --origin "*"
+
+# 6. Start the app
+cd nextjs/constructive-app && pnpm run dev
+```
+
+
 
 ## Setup
 
