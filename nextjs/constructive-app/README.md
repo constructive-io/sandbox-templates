@@ -12,7 +12,7 @@
 |-----|----------|------------|------|
 | admin | http://admin-myapp.localhost:3000/graphql | React Query, ORM | [./src/graphql/sdk/admin/README.md](./src/graphql/sdk/admin/README.md) |
 | auth | http://auth-myapp.localhost:3000/graphql | React Query, ORM | [./src/graphql/sdk/auth/README.md](./src/graphql/sdk/auth/README.md) |
-| app | http://app-public-myapp.localhost:3000/graphql | React Query, ORM | [./src/graphql/sdk/app/README.md](./src/graphql/sdk/app/README.md) |
+| app | http://api-myapp.localhost:3000/graphql | React Query, ORM | [./src/graphql/sdk/app/README.md](./src/graphql/sdk/app/README.md) |
 
 ---
 

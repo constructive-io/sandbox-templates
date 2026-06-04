@@ -1,0 +1,6 @@
+-- Revert: schemas/myapp_profiles_public/tables/org_profile_permissions/triggers/org_profile_permissions_recompute_trg
+
+
+DROP TRIGGER org_profile_permissions_recompute_trg ON myapp_profiles_public.org_profile_permissions;
+
+

@@ -1,0 +1,7 @@
+-- Revert: schemas/myapp_auth_private/tables/auth_ip_rate_limits/columns/ua_hash/alterations/alt0000001294
+
+
+ALTER TABLE myapp_auth_private.auth_ip_rate_limits 
+  ALTER COLUMN ua_hash DROP DEFAULT;
+
+

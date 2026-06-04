@@ -1,0 +1,6 @@
+-- Verify: schemas/myapp_memberships_public/tables/org_membership_settings/indexes/org_membership_settings_updated_by_idx
+
+
+SELECT verify_index('myapp_memberships_public.org_membership_settings', 'org_membership_settings_updated_by_idx');
+
+

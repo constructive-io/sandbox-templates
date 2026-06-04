@@ -1,0 +1,7 @@
+-- Revert: schemas/myapp_store_private/tables/user_state/columns/value/column
+
+
+ALTER TABLE myapp_store_private.user_state 
+  DROP COLUMN value RESTRICT;
+
+

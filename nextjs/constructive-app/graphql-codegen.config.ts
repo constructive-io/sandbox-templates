@@ -45,7 +45,7 @@ if (!DB_NAME) {
 
 // Codegen connects via subdomain-based virtual hosts. Endpoints use the
 // per-DB subdomain pattern: admin-{db}.localhost, auth-{db}.localhost,
-// app-public-{db}.localhost. The Host header controls server-side API routing.
+// app-{db}.localhost. The Host header controls server-side API routing.
 const config: Record<string, GraphQLSDKConfigTarget> = {
 	admin: {
 		reactQuery: true,
@@ -61,8 +61,8 @@ const config: Record<string, GraphQLSDKConfigTarget> = {
 	},
 	app: {
 		reactQuery: true,
-		endpoint: process.env.CODEGEN_APP_ENDPOINT ?? `http://app-public-${DB_NAME}.localhost:3000/graphql`,
-		headers: { Host: `app-public-${DB_NAME}.localhost:3000` },
+		endpoint: process.env.CODEGEN_APP_ENDPOINT ?? `http://api-${DB_NAME}.localhost:3000/graphql`,
+		headers: { Host: `api-${DB_NAME}.localhost:3000` },
 		output: './src/graphql/sdk/app',
 	},
 };

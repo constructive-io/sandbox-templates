@@ -1,0 +1,6 @@
+-- Verify: schemas/myapp_invites_public/tables/org_claimed_invites/indexes/org_claimed_invites_updated_at_idx
+
+
+SELECT verify_index('myapp_invites_public.org_claimed_invites', 'org_claimed_invites_updated_at_idx');
+
+

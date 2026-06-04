@@ -1,0 +1,6 @@
+-- Revert: schemas/myapp_limits_public/tables/app_limit_credit_redemptions/triggers/_00100_app_limit_credit_redemptions_apply_tg
+
+
+DROP TRIGGER _00100_app_limit_credit_redemptions_apply_tg ON myapp_limits_public.app_limit_credit_redemptions;
+
+

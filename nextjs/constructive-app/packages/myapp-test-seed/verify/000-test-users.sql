@@ -1,0 +1,2 @@
+-- Verify: 000-test-users.sql
+-- No-op for seed data

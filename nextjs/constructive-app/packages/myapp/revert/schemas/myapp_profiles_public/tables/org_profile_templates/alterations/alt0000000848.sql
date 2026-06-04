@@ -1,0 +1,6 @@
+-- Revert: schemas/myapp_profiles_public/tables/org_profile_templates/alterations/alt0000000848
+
+
+COMMENT ON TABLE myapp_profiles_public.org_profile_templates IS NULL;
+
+

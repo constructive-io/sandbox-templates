@@ -1,0 +1,7 @@
+# myapp-test-seed extension
+comment = 'myapp test seed data for local development'
+default_version = '0.0.1'
+module_pathname = '$libdir/myapp-test-seed'
+requires = 'myapp'
+relocatable = false
+superuser = false

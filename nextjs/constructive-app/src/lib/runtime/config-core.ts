@@ -7,7 +7,7 @@ import { getRuntimeConfig } from './get-runtime-config';
  *
  * - admin: Organization, members, permissions, invites (admin-{db}.localhost)
  * - auth:  Users, emails, authentication (auth-{db}.localhost)
- * - app:   Business data - your tables (app-public-{db}.localhost)
+ * - app:   Business data - your tables (api-{db}.localhost)
  */
 export type SchemaContext = 'admin' | 'auth' | 'app';
 
@@ -80,7 +80,7 @@ export function getAuthEndpoint(): string {
  * Get the app endpoint.
  * Used for: your business data (boards, cards, etc.)
  *
- * Note: "app-public" maps to the PostgreSQL schema "app_public" via
+ * Note: "api" maps to the PostgreSQL schema "app_public" via
  * PostGraphile's virtual-host routing (hyphens → underscores).
  */
 export function getAppEndpoint(): string {
@@ -89,7 +89,7 @@ export function getAppEndpoint(): string {
 
 	const dbName = getDbName();
 	const port = getApiPort();
-	const endpoint = `http://app-public-${dbName}.localhost:${port}/graphql`;
+	const endpoint = `http://api-${dbName}.localhost:${port}/graphql`;
 	logger.debug('getAppEndpoint', { dbName, endpoint });
 	return endpoint;
 }

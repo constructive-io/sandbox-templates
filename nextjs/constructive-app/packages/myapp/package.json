@@ -1,0 +1,8 @@
+{
+  "name": "myapp",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "@pgpm/metaschema-modules": "0.26.2"
+  }
+}
