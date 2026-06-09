@@ -5,5 +5,5 @@
 -- requires: schemas/myapp_profiles_public/tables/app_profiles/table
 
 
-GRANT UPDATE ON myapp_profiles_public.app_profiles TO authenticated;
+GRANT UPDATE (name, slug, description, is_system, is_default) ON myapp_profiles_public.app_profiles TO authenticated;
 

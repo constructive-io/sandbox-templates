@@ -46,6 +46,7 @@ BEGIN
     is_verified = true
     WHERE
       id = v_email.id AND is_verified = false;
+  ELSIF v_invite.phone IS NOT NULL THEN
   ELSE
     SELECT *
     FROM myapp_user_identifiers_public.emails AS e

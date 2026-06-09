@@ -7,5 +7,5 @@
 
 
 ALTER TABLE myapp_memberships_public.app_owner_grants 
-  ALTER COLUMN id SET NOT NULL;
+  ALTER COLUMN id SET DEFAULT uuidv7();
 

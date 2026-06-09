@@ -2,7 +2,6 @@
 -- made with <3 @ constructive.io
 
 -- requires: schemas/myapp_memberships_private/schema
--- requires: schemas/myapp_memberships_private/schema
 -- requires: schemas/myapp_memberships_private/tables/app_memberships_sprt/table
 -- requires: schemas/myapp_memberships_private/trigger_fns/app_memberships_sprt_to_org_memberships_sprt_tg
 

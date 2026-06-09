@@ -4,6 +4,6 @@
 SELECT 1
 FROM metaschema_public.partition
 WHERE
-  table_id = '019e917d-1942-72c9-bb43-47a0fe675632'::uuid;
+  table_id = '019eaaf5-0111-711b-ab29-61002956e7d7'::uuid;
 
 

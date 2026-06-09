@@ -3,6 +3,7 @@
 
 -- requires: schemas/myapp_store_private/schema
 -- requires: schemas/myapp_store_private/tables/user_state/table
+-- requires: schemas/myapp_store_private/tables/user_state/policies/enable_row_level_security
 
 
 CREATE POLICY auth_upd_dir_own ON myapp_store_private.user_state

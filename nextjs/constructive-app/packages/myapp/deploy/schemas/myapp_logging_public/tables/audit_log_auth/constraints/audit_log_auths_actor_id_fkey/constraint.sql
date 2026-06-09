@@ -1,6 +1,7 @@
 -- Deploy: schemas/myapp_logging_public/tables/audit_log_auth/constraints/audit_log_auths_actor_id_fkey/constraint
 -- made with <3 @ constructive.io
 
+-- requires: schemas/myapp_users_public/schema
 -- requires: schemas/myapp_logging_public/schema
 -- requires: schemas/myapp_users_public/tables/users/table
 -- requires: schemas/myapp_logging_public/tables/audit_log_auth/table

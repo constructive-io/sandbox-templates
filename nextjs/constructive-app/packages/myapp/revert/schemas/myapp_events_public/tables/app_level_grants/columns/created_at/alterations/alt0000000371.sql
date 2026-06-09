@@ -1,7 +1,0 @@
--- Revert: schemas/myapp_events_public/tables/app_level_grants/columns/created_at/alterations/alt0000000371
-
-
-ALTER TABLE myapp_events_public.app_level_grants 
-  ALTER COLUMN created_at DROP DEFAULT;
-
-

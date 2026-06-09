@@ -1,0 +1,11 @@
+-- Deploy: schemas/myapp_auth_private/tables/sessions/columns/expires_at/alterations/alt0000001083
+-- made with <3 @ constructive.io
+
+-- requires: schemas/myapp_auth_private/schema
+-- requires: schemas/myapp_auth_private/tables/sessions/table
+-- requires: schemas/myapp_auth_private/tables/sessions/columns/expires_at/column
+
+
+ALTER TABLE myapp_auth_private.sessions 
+  ALTER COLUMN expires_at SET NOT NULL;
+

@@ -24,15 +24,17 @@ INSERT INTO metaschema_public.trigger_function (
   id,
   database_id,
   name,
-  code
+  code,
+  created_at,
+  updated_at
 ) VALUES
-  ('019e917c-c7ac-7624-9c7c-8e30f4a2551f', '019e917c-c6ea-7cbc-8453-5f56622546a6', 'users_search_tsv_tsv', NULL),
-  ('019e917c-e0b5-7883-b457-a10fcead6d8d', '019e917c-c6ea-7cbc-8453-5f56622546a6', 'org_membership_settings_seed_fn', NULL),
-  ('019e917c-e9cb-7c3e-aa88-16c15cc75915', '019e917c-c6ea-7cbc-8453-5f56622546a6', 'org_profile_templates_seed_fn', NULL),
-  ('019e917d-0667-74b0-996d-d29c521d5301', '019e917c-c6ea-7cbc-8453-5f56622546a6', 'app_namespaces_rename_proxy', NULL),
-  ('019e917d-067b-72e5-813e-ac6a9c52067b', '019e917c-c6ea-7cbc-8453-5f56622546a6', 'app_namespaces_job_namespaceprovision_insert', NULL),
-  ('019e917d-09cc-7ad4-b665-16bc62ccf54a', '019e917c-c6ea-7cbc-8453-5f56622546a6', 'user_secrets_hash', NULL),
-  ('019e917d-0bcb-7933-8e42-bd4955b25427', '019e917c-c6ea-7cbc-8453-5f56622546a6', 'app_secrets_hash', NULL);
+  ('019eaaf4-aa45-7835-81d6-339720ad547c', '019eaaf4-a983-769d-8cf4-acfa48dc2f74', 'users_search_tsv_tsv', NULL, '2026-06-09T05:57:01.000Z', '2026-06-09T05:57:01.000Z'),
+  ('019eaaf4-c490-75e5-89ee-bb739bab5d1b', '019eaaf4-a983-769d-8cf4-acfa48dc2f74', 'org_membership_settings_seed_fn', NULL, '2026-06-09T05:57:01.000Z', '2026-06-09T05:57:01.000Z'),
+  ('019eaaf4-cf5e-7bbe-af6e-0ccf58853680', '019eaaf4-a983-769d-8cf4-acfa48dc2f74', 'org_profile_templates_seed_fn', NULL, '2026-06-09T05:57:01.000Z', '2026-06-09T05:57:01.000Z'),
+  ('019eaaf4-ed50-7a50-abe6-f688a1f3b24f', '019eaaf4-a983-769d-8cf4-acfa48dc2f74', 'app_namespaces_rename_proxy', NULL, '2026-06-09T05:57:01.000Z', '2026-06-09T05:57:01.000Z'),
+  ('019eaaf4-ed64-75ac-ae83-a75e0beb281f', '019eaaf4-a983-769d-8cf4-acfa48dc2f74', 'app_namespaces_job_namespaceprovision_insert', NULL, '2026-06-09T05:57:01.000Z', '2026-06-09T05:57:01.000Z'),
+  ('019eaaf4-f0c1-7ba5-836b-a1b9946c7aa1', '019eaaf4-a983-769d-8cf4-acfa48dc2f74', 'user_secrets_hash', NULL, '2026-06-09T05:57:01.000Z', '2026-06-09T05:57:01.000Z'),
+  ('019eaaf4-f2be-7441-a35d-1ec31491349d', '019eaaf4-a983-769d-8cf4-acfa48dc2f74', 'app_secrets_hash', NULL, '2026-06-09T05:57:01.000Z', '2026-06-09T05:57:01.000Z');
 
 
 SET session_replication_role TO DEFAULT;

@@ -3,6 +3,7 @@
 
 -- requires: schemas/myapp_memberships_public/schema
 -- requires: schemas/myapp_memberships_public/tables/app_membership_defaults/table
+-- requires: schemas/myapp_memberships_public/tables/app_membership_defaults/policies/enable_row_level_security
 
 
 CREATE POLICY auth_upd_app_mem ON myapp_memberships_public.app_membership_defaults

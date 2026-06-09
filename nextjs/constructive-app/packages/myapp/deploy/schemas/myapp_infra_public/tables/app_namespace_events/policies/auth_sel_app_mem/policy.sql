@@ -3,6 +3,7 @@
 
 -- requires: schemas/myapp_infra_public/schema
 -- requires: schemas/myapp_infra_public/tables/app_namespace_events/table
+-- requires: schemas/myapp_infra_public/tables/app_namespace_events/policies/enable_row_level_security
 
 
 CREATE POLICY auth_sel_app_mem ON myapp_infra_public.app_namespace_events

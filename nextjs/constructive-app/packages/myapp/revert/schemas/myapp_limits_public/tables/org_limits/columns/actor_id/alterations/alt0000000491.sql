@@ -1,6 +1,0 @@
--- Revert: schemas/myapp_limits_public/tables/org_limits/columns/actor_id/alterations/alt0000000491
-
-
-COMMENT ON COLUMN myapp_limits_public.org_limits.actor_id IS NULL;
-
-

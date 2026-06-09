@@ -15,20 +15,11 @@ BEGIN
   END IF;
   v_entity_id := (tg_argv)[0];
   EXECUTE pg_catalog.format('SELECT ($1).%s', (tg_argv)[1]) INTO v_entity_id USING NEW;
-  SELECT max
-  FROM myapp_limits_public.org_limit_caps
-  WHERE
-    name = v_cap_name AND entity_id = v_entity_id INTO v_cap_value;
-  IF v_cap_value IS NULL THEN
-    SELECT max
-    FROM myapp_limits_public.org_limit_caps_defaults
-    WHERE
-      name = v_cap_name INTO v_cap_value;
-  END IF;
+  SELECT myapp_limits_private.org_limits_resolve_cap(v_cap_name, v_entity_id) INTO v_cap_value;
   IF pg_catalog.coalesce(v_cap_value, 0) <= 0 THEN
     RAISE EXCEPTION 'FEATURE_DISABLED (%)', v_cap_name;
   END IF;
   RETURN NEW;
 END;
-$_PGFN_$ LANGUAGE plpgsql VOLATILE SECURITY DEFINER;
+$_PGFN_$ LANGUAGE plpgsql VOLATILE SECURITY INVOKER;
 

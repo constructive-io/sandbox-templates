@@ -2,10 +2,8 @@
 -- made with <3 @ constructive.io
 
 -- requires: schemas/myapp_memberships_public/schema
--- requires: schemas/myapp_memberships_public/tables/app_owner_grants/table
 -- requires: schemas/myapp_memberships_public/tables/app_owner_grants/columns/is_grant/column
 
 
-ALTER TABLE myapp_memberships_public.app_owner_grants 
-  ALTER COLUMN is_grant SET DEFAULT true;
+COMMENT ON COLUMN myapp_memberships_public.app_owner_grants.is_grant IS E'True to grant ownership, false to revoke ownership';
 

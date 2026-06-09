@@ -3,6 +3,7 @@
 
 -- requires: schemas/myapp_permissions_public/schema
 -- requires: schemas/myapp_permissions_public/tables/org_permissions/table
+-- requires: schemas/myapp_permissions_public/tables/org_permissions/policies/enable_row_level_security
 
 
 CREATE POLICY auth_sel_all_all ON myapp_permissions_public.org_permissions

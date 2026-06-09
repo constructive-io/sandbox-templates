@@ -26,12 +26,12 @@ INSERT INTO metaschema_public.function (
   schema_id,
   name
 ) VALUES
-  ('019e917d-0f22-758d-9756-490179cfd0ec', '019e917c-c6ea-7cbc-8453-5f56622546a6', '019e917c-f8c8-71a7-a290-a547326f1537', 'authenticate'),
-  ('019e917d-0f23-78f8-8e4a-3cf816bd1453', '019e917c-c6ea-7cbc-8453-5f56622546a6', '019e917c-f8c8-71a7-a290-a547326f1537', 'authenticate_strict'),
-  ('019e917d-0f24-7b63-8893-cdeb82ee2591', '019e917c-c6ea-7cbc-8453-5f56622546a6', '019e917d-0e8d-7ce1-bda9-478afe2fc049', 'current_user'),
-  ('019e917d-0f25-7d88-a6ef-5611df1d6c11', '019e917c-c6ea-7cbc-8453-5f56622546a6', '019e917d-0e8d-7ce1-bda9-478afe2fc049', 'current_user_id'),
-  ('019e917d-0f26-7fd6-89af-1140e247e6d8', '019e917c-c6ea-7cbc-8453-5f56622546a6', '019e917d-0e8d-7ce1-bda9-478afe2fc049', 'current_user_agent'),
-  ('019e917d-0f28-7229-bbbf-61f6b369ef16', '019e917c-c6ea-7cbc-8453-5f56622546a6', '019e917d-0e8d-7ce1-bda9-478afe2fc049', 'current_ip_address');
+  ('019eaaf4-f635-76df-a1e0-60569fe994a8', '019eaaf4-a983-769d-8cf4-acfa48dc2f74', '019eaaf4-df08-7efd-a57e-3af6fdc50818', 'authenticate'),
+  ('019eaaf4-f636-7b1a-85bb-e28fdd00c2be', '019eaaf4-a983-769d-8cf4-acfa48dc2f74', '019eaaf4-df08-7efd-a57e-3af6fdc50818', 'authenticate_strict'),
+  ('019eaaf4-f637-7e7c-849b-bc116fbfede6', '019eaaf4-a983-769d-8cf4-acfa48dc2f74', '019eaaf4-f58d-7257-917f-1fe82bc504f5', 'current_user'),
+  ('019eaaf4-f639-71b4-92d5-98f08befa4ac', '019eaaf4-a983-769d-8cf4-acfa48dc2f74', '019eaaf4-f58d-7257-917f-1fe82bc504f5', 'current_user_id'),
+  ('019eaaf4-f63a-74c6-bdf5-7c4cad9c9903', '019eaaf4-a983-769d-8cf4-acfa48dc2f74', '019eaaf4-f58d-7257-917f-1fe82bc504f5', 'current_user_agent'),
+  ('019eaaf4-f63b-777b-b0e3-f124806fadd8', '019eaaf4-a983-769d-8cf4-acfa48dc2f74', '019eaaf4-f58d-7257-917f-1fe82bc504f5', 'current_ip_address');
 
 
 SET session_replication_role TO DEFAULT;

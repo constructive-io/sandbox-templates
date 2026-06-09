@@ -3,6 +3,7 @@
 
 -- requires: schemas/myapp_events_public/schema
 -- requires: schemas/myapp_events_public/tables/org_level_requirements/table
+-- requires: schemas/myapp_events_public/tables/org_level_requirements/policies/enable_row_level_security
 
 
 CREATE POLICY auth_sel_ent_mem ON myapp_events_public.org_level_requirements

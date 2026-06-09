@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
-    "@pgpm/metaschema-modules": "0.26.2",
-    "@pgpm/services": "0.26.2",
+    "@pgpm/metaschema-modules": "0.26.5",
+    "@pgpm/services": "0.26.5",
     "@pgpm/stamps": "0.26.0",
     "@pgpm/utils": "0.26.0"
   }

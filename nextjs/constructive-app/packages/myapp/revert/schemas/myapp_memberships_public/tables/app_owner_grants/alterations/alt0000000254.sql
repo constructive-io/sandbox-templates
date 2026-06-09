@@ -1,7 +1,6 @@
 -- Revert: schemas/myapp_memberships_public/tables/app_owner_grants/alterations/alt0000000254
 
 
-ALTER TABLE myapp_memberships_public.app_owner_grants 
-  ENABLE ROW LEVEL SECURITY;
+COMMENT ON TABLE myapp_memberships_public.app_owner_grants IS NULL;
 
 

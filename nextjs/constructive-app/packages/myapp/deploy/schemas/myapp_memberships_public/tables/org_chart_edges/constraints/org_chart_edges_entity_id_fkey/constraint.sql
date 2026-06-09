@@ -1,6 +1,7 @@
 -- Deploy: schemas/myapp_memberships_public/tables/org_chart_edges/constraints/org_chart_edges_entity_id_fkey/constraint
 -- made with <3 @ constructive.io
 
+-- requires: schemas/myapp_users_public/schema
 -- requires: schemas/myapp_memberships_public/schema
 -- requires: schemas/myapp_users_public/tables/users/table
 -- requires: schemas/myapp_memberships_public/tables/org_chart_edges/table

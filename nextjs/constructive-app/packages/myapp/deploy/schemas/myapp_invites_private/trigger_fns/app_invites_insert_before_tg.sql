@@ -9,7 +9,7 @@ CREATE FUNCTION myapp_invites_private.app_invites_insert_before_tg() RETURNS TRI
 DECLARE
   email_exists boolean;
 BEGIN
-  IF NEW.email IS NOT NULL THEN
+  IF NEW.channel = 'email' AND NEW.email IS NOT NULL THEN
     SELECT
       EXISTS (SELECT 1
       FROM myapp_user_identifiers_public.emails AS e

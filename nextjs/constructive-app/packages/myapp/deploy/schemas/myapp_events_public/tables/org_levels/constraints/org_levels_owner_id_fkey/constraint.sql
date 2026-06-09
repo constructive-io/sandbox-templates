@@ -1,6 +1,7 @@
 -- Deploy: schemas/myapp_events_public/tables/org_levels/constraints/org_levels_owner_id_fkey/constraint
 -- made with <3 @ constructive.io
 
+-- requires: schemas/myapp_users_public/schema
 -- requires: schemas/myapp_events_public/schema
 -- requires: schemas/myapp_users_public/tables/users/table
 -- requires: schemas/myapp_events_public/tables/org_levels/table

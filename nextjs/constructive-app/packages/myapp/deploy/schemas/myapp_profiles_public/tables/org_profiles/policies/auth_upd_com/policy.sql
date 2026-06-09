@@ -3,6 +3,7 @@
 
 -- requires: schemas/myapp_profiles_public/schema
 -- requires: schemas/myapp_profiles_public/tables/org_profiles/table
+-- requires: schemas/myapp_profiles_public/tables/org_profiles/policies/enable_row_level_security
 
 
 CREATE POLICY auth_upd_com ON myapp_profiles_public.org_profiles

@@ -1,6 +1,0 @@
--- Revert: schemas/myapp_events_public/tables/app_achievement_rewards/columns/credit_type/alterations/alt0000000387
-
-
-COMMENT ON COLUMN myapp_events_public.app_achievement_rewards.credit_type IS NULL;
-
-

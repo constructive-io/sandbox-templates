@@ -1,9 +1,0 @@
--- Deploy: schemas/myapp_memberships_public/tables/org_grants/columns/permissions/alterations/alt0000000776
--- made with <3 @ constructive.io
-
--- requires: schemas/myapp_memberships_public/schema
--- requires: schemas/myapp_memberships_public/tables/org_grants/columns/permissions/column
-
-
-COMMENT ON COLUMN myapp_memberships_public.org_grants.permissions IS 'Bitmask of permissions being granted or revoked';
-

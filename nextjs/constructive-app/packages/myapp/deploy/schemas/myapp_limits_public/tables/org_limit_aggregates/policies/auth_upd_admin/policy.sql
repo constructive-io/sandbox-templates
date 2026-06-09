@@ -3,6 +3,7 @@
 
 -- requires: schemas/myapp_limits_public/schema
 -- requires: schemas/myapp_limits_public/tables/org_limit_aggregates/table
+-- requires: schemas/myapp_limits_public/tables/org_limit_aggregates/policies/enable_row_level_security
 
 
 CREATE POLICY auth_upd_admin ON myapp_limits_public.org_limit_aggregates

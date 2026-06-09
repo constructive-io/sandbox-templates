@@ -1,0 +1,6 @@
+-- Verify: schemas/myapp_user_identifiers_public/tables/emails/columns/is_primary/alterations/alt0000001491
+
+
+
+
+

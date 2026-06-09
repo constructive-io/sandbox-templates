@@ -3,6 +3,7 @@
 
 -- requires: schemas/myapp_memberships_public/schema
 -- requires: schemas/myapp_memberships_public/tables/org_members/table
+-- requires: schemas/myapp_memberships_public/tables/org_members/policies/enable_row_level_security
 
 
 CREATE POLICY auth_sel_ent_mem ON myapp_memberships_public.org_members

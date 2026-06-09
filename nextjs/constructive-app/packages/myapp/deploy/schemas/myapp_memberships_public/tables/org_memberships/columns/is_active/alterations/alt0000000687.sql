@@ -1,9 +1,0 @@
--- Deploy: schemas/myapp_memberships_public/tables/org_memberships/columns/is_active/alterations/alt0000000687
--- made with <3 @ constructive.io
-
--- requires: schemas/myapp_memberships_public/schema
--- requires: schemas/myapp_memberships_public/tables/org_memberships/columns/is_active/column
-
-
-COMMENT ON COLUMN myapp_memberships_public.org_memberships.is_active IS E'Computed field indicating the membership is approved, verified, not banned, and not disabled';
-

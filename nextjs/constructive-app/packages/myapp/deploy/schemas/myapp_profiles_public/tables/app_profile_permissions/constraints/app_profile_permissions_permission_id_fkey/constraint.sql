@@ -2,6 +2,7 @@
 -- made with <3 @ constructive.io
 
 -- requires: schemas/myapp_profiles_public/schema
+-- requires: schemas/myapp_permissions_public/schema
 -- requires: schemas/myapp_permissions_public/tables/app_permissions/table
 -- requires: schemas/myapp_profiles_public/tables/app_profile_permissions/table
 

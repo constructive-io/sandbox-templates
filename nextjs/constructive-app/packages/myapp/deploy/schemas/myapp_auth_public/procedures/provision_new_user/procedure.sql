@@ -19,13 +19,15 @@ BEGIN
   VALUES
     (DEFAULT)
   RETURNING * INTO v_user;
-  INSERT INTO myapp_user_identifiers_public.emails (
-    owner_id,
-    email
-  )
-  VALUES
-    (v_user.id, trim(provision_new_user.email))
-  RETURNING * INTO v_email;
+  IF provision_new_user.email IS NOT NULL THEN
+    INSERT INTO myapp_user_identifiers_public.emails (
+      owner_id,
+      email
+    )
+    VALUES
+      (v_user.id, trim(provision_new_user.email))
+    RETURNING * INTO v_email;
+  END IF;
   IF provision_new_user.password IS NOT NULL THEN
     PERFORM myapp_store_private.user_secrets_set(v_user.id, 'password_hash', trim(provision_new_user.password), 'crypt');
   END IF;

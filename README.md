@@ -66,5 +66,6 @@ eval "$(pgpm env)"
 pnpm run create-db
 pnpm run provision
 pnpm run codegen
+pnpm run seed
 pnpm run dev
 ```

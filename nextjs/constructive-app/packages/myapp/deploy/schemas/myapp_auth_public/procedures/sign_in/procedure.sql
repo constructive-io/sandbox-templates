@@ -80,6 +80,9 @@ BEGIN
   IF NOT (COALESCE(v_settings.allow_password_sign_in, true)) THEN
     RAISE EXCEPTION 'PASSWORD_SIGN_IN_DISABLED';
   END IF;
+  IF v_settings.allowed_auth_methods IS NOT NULL AND NOT ('password' = ANY( v_settings.allowed_auth_methods )) THEN
+    RAISE EXCEPTION 'AUTH_METHOD_NOT_ALLOWED';
+  END IF;
   v_default_session_duration := COALESCE(v_settings.default_session_duration, '2 weeks'::interval);
   v_remember_me_duration := COALESCE(v_settings.remember_me_duration, '30 days'::interval);
   v_require_csrf := COALESCE(v_settings.require_csrf_for_auth, false);
@@ -119,6 +122,9 @@ BEGIN
     membership_status.actor_id = v_email.owner_id INTO v_user_is_verified, v_user_is_disabled, v_user_is_banned;
   IF v_user_is_disabled IS TRUE OR v_user_is_banned IS TRUE THEN
     RAISE EXCEPTION 'ACCOUNT_DISABLED';
+  END IF;
+  IF COALESCE(v_settings.enforce_primary_auth_method, true) AND myapp_store_private.user_state_get(v_email.owner_id, 'primary_auth_method') <> 'password' THEN
+    RAISE EXCEPTION 'PRIMARY_AUTH_METHOD_MISMATCH';
   END IF;
   IF myapp_store_private.user_secrets_verify(v_email.owner_id, 'password_hash', sign_in.password) THEN
     DELETE FROM myapp_auth_private.auth_rate_limits

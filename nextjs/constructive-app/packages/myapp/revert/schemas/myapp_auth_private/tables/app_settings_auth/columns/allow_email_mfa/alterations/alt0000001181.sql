@@ -1,7 +1,0 @@
--- Revert: schemas/myapp_auth_private/tables/app_settings_auth/columns/allow_email_mfa/alterations/alt0000001181
-
-
-ALTER TABLE myapp_auth_private.app_settings_auth 
-  ALTER COLUMN allow_email_mfa DROP DEFAULT;
-
-
