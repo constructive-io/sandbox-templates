@@ -2,10 +2,8 @@
 -- made with <3 @ constructive.io
 
 -- requires: schemas/myapp_memberships_public/schema
--- requires: schemas/myapp_memberships_public/tables/app_admin_grants/table
 -- requires: schemas/myapp_memberships_public/tables/app_admin_grants/columns/actor_id/column
 
 
-ALTER TABLE myapp_memberships_public.app_admin_grants 
-  ALTER COLUMN actor_id SET NOT NULL;
+COMMENT ON COLUMN myapp_memberships_public.app_admin_grants.actor_id IS E'The member receiving or losing the admin grant; NULL if user was deleted';
 

@@ -5,5 +5,5 @@
 -- requires: schemas/myapp_memberships_public/tables/app_memberships/table
 
 
-GRANT UPDATE (is_banned, is_approved, is_verified, is_disabled, granted) ON myapp_memberships_public.app_memberships TO authenticated;
+GRANT UPDATE (is_banned, is_approved, is_verified, is_disabled) ON myapp_memberships_public.app_memberships TO authenticated;
 

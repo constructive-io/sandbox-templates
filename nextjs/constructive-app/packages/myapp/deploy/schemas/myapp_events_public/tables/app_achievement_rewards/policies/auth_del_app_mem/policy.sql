@@ -3,6 +3,7 @@
 
 -- requires: schemas/myapp_events_public/schema
 -- requires: schemas/myapp_events_public/tables/app_achievement_rewards/table
+-- requires: schemas/myapp_events_public/tables/app_achievement_rewards/policies/enable_row_level_security
 
 
 CREATE POLICY auth_del_app_mem ON myapp_events_public.app_achievement_rewards
@@ -12,6 +13,6 @@ USING (
   EXISTS (SELECT 1
   FROM myapp_memberships_private.app_memberships_sprt AS app_sprt
   WHERE
-      app_sprt.actor_id = jwt_public.current_user_id() AND (app_sprt.permissions & '0000000000000000000000000000000000000000000000000000000010000000') = '0000000000000000000000000000000000000000000000000000000010000000')
+      app_sprt.actor_id = jwt_public.current_user_id() AND (app_sprt.permissions & '0000000000000000000000000000000000000000000000000000100000000000') = '0000000000000000000000000000000000000000000000000000100000000000')
 );
 

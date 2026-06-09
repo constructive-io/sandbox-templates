@@ -3,6 +3,7 @@
 
 -- requires: schemas/myapp_permissions_public/schema
 -- requires: schemas/myapp_permissions_public/tables/app_permission_defaults/table
+-- requires: schemas/myapp_permissions_public/tables/app_permission_defaults/policies/enable_row_level_security
 
 
 CREATE POLICY auth_del_app_mem ON myapp_permissions_public.app_permission_defaults

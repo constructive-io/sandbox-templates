@@ -1,0 +1,6 @@
+-- Revert: schemas/myapp_memberships_public/tables/org_permission_default_permissions/triggers/org_permission_default_permissions_recompute_trg
+
+
+DROP TRIGGER org_permission_default_permissions_recompute_trg ON myapp_memberships_public.org_permission_default_permissions;
+
+

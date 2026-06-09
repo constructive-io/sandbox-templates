@@ -23,10 +23,14 @@ $LQLMIGRATION$;
 INSERT INTO metaschema_public.database (
   id,
   owner_id,
+  schema_hash,
   name,
-  hash
+  label,
+  hash,
+  created_at,
+  updated_at
 ) VALUES
-  ('019e917c-c6ea-7cbc-8453-5f56622546a6', '019e917c-c46f-7cc2-b75f-766669375f40', 'myapp', 'ccfffad8-7abd-5a6a-b1cc-50cde71abc09');
+  ('019eaaf4-a983-769d-8cf4-acfa48dc2f74', '019eaaf4-a6d3-7e8a-8645-54589f0be8f4', 'myapp', 'myapp', 'myapp', 'abfbcb18-7c4c-58c4-9b29-7da37660a2b5', '2026-06-09T05:57:01.000Z', '2026-06-09T05:57:01.000Z');
 
 
 SET session_replication_role TO DEFAULT;

@@ -3,6 +3,7 @@
 
 -- requires: schemas/myapp_logging_public/schema
 -- requires: schemas/myapp_logging_public/tables/audit_log_auth/table
+-- requires: schemas/myapp_logging_public/tables/audit_log_auth/policies/enable_row_level_security
 
 
 CREATE POLICY auth_sel_dir_own ON myapp_logging_public.audit_log_auth

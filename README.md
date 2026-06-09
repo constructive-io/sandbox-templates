@@ -26,11 +26,11 @@ pgpm deploy --package myapp-service --database myapp --yes
 pgpm deploy --package myapp --database myapp --yes
 pgpm deploy --package myapp-test-seed --database myapp --yes
 
-# 4. Codegen
-pnpm run codegen
-
-# 5. Start GraphQL server
+# 4. Start GraphQL server
 PGDATABASE=myapp cnc server --port 3000 --origin "*"
+
+# 5. Codegen
+pnpm run codegen
 
 # 6. Start the app
 cd nextjs/constructive-app && pnpm run dev
@@ -66,5 +66,6 @@ eval "$(pgpm env)"
 pnpm run create-db
 pnpm run provision
 pnpm run codegen
+pnpm run seed
 pnpm run dev
 ```

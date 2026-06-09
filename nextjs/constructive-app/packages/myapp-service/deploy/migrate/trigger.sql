@@ -26,19 +26,26 @@ INSERT INTO metaschema_public.trigger (
   table_id,
   name,
   event,
-  function_name
+  function_name,
+  smart_tags,
+  category,
+  module,
+  scope,
+  tags,
+  created_at,
+  updated_at
 ) VALUES
-  ('019e917c-c7ac-791f-b186-6f584ee1e769', '019e917c-c6ea-7cbc-8453-5f56622546a6', '019e917c-c772-7ad9-bec4-337ce1956129', 'users_search_tsv_tsv_insert_tg', NULL, NULL),
-  ('019e917c-c7ac-7b63-9bc4-3f561f666564', '019e917c-c6ea-7cbc-8453-5f56622546a6', '019e917c-c772-7ad9-bec4-337ce1956129', 'users_search_tsv_tsv_update_tg', NULL, NULL),
-  ('019e917c-e0b6-7274-aeed-6581c1f0c2e7', '019e917c-c6ea-7cbc-8453-5f56622546a6', '019e917c-c772-7ad9-bec4-337ce1956129', '_00050_users_org_membership_settings_seed_trg', NULL, NULL),
-  ('019e917c-e9cc-77d7-975a-295c3efc17e4', '019e917c-c6ea-7cbc-8453-5f56622546a6', '019e917c-c772-7ad9-bec4-337ce1956129', '_00060_users_org_profile_templates_seed_trg', NULL, NULL),
-  ('019e917d-0668-7681-8cd6-15dfef1147a1', '019e917c-c6ea-7cbc-8453-5f56622546a6', '019e917d-0558-71ab-b908-9360125ec648', 'app_namespaces_rename_proxy_insert_tg', NULL, NULL),
-  ('019e917d-0668-778b-8e2c-a86ed699d6ae', '019e917c-c6ea-7cbc-8453-5f56622546a6', '019e917d-0558-71ab-b908-9360125ec648', 'app_namespaces_rename_proxy_update_tg', NULL, NULL),
-  ('019e917d-067c-73be-8821-14f3b2e8c940', '019e917c-c6ea-7cbc-8453-5f56622546a6', '019e917d-0558-71ab-b908-9360125ec648', 'app_namespaces_job_namespaceprovision_insert_tg', NULL, NULL),
-  ('019e917d-09cd-7da1-b382-79634c3cb06b', '019e917c-c6ea-7cbc-8453-5f56622546a6', '019e917d-08e8-7b39-a720-f7005f011c33', 'user_secrets_update_tg', NULL, NULL),
-  ('019e917d-09cd-7dfb-ad53-88825e9bf257', '019e917c-c6ea-7cbc-8453-5f56622546a6', '019e917d-08e8-7b39-a720-f7005f011c33', 'user_secrets_insert_tg', NULL, NULL),
-  ('019e917d-0bcc-7de9-8553-f43066dd64e7', '019e917c-c6ea-7cbc-8453-5f56622546a6', '019e917d-0a53-794b-876d-af7f636589ff', 'app_secrets_update_tg', NULL, NULL),
-  ('019e917d-0bcd-73fe-8a47-a54834b3305a', '019e917c-c6ea-7cbc-8453-5f56622546a6', '019e917d-0a53-794b-876d-af7f636589ff', 'app_secrets_insert_tg', NULL, NULL);
+  ('019eaaf4-aa45-7ae3-86ff-e147d0aefdaf', '019eaaf4-a983-769d-8cf4-acfa48dc2f74', '019eaaf4-aa0c-7194-9321-949d0e7e42bc', 'users_search_tsv_tsv_insert_tg', NULL, NULL, NULL, 'app', NULL, NULL, '{}', '2026-06-09T05:57:01.000Z', '2026-06-09T05:57:01.000Z'),
+  ('019eaaf4-aa45-7ca2-b192-68b0e81cd4df', '019eaaf4-a983-769d-8cf4-acfa48dc2f74', '019eaaf4-aa0c-7194-9321-949d0e7e42bc', 'users_search_tsv_tsv_update_tg', NULL, NULL, NULL, 'app', NULL, NULL, '{}', '2026-06-09T05:57:01.000Z', '2026-06-09T05:57:01.000Z'),
+  ('019eaaf4-c491-702a-b0ff-0697064e0cda', '019eaaf4-a983-769d-8cf4-acfa48dc2f74', '019eaaf4-aa0c-7194-9321-949d0e7e42bc', '_00050_users_org_membership_settings_seed_trg', NULL, NULL, NULL, 'app', NULL, NULL, '{}', '2026-06-09T05:57:01.000Z', '2026-06-09T05:57:01.000Z'),
+  ('019eaaf4-cf5f-7804-9b3f-e93b9caa6b4c', '019eaaf4-a983-769d-8cf4-acfa48dc2f74', '019eaaf4-aa0c-7194-9321-949d0e7e42bc', '_00060_users_org_profile_templates_seed_trg', NULL, NULL, NULL, 'app', NULL, NULL, '{}', '2026-06-09T05:57:01.000Z', '2026-06-09T05:57:01.000Z'),
+  ('019eaaf4-ed51-7d62-ae84-263448f52698', '019eaaf4-a983-769d-8cf4-acfa48dc2f74', '019eaaf4-ec22-7fe1-a687-7562ccc37509', 'app_namespaces_rename_proxy_insert_tg', NULL, NULL, NULL, 'app', NULL, NULL, '{}', '2026-06-09T05:57:01.000Z', '2026-06-09T05:57:01.000Z'),
+  ('019eaaf4-ed51-7e4c-bfda-9d203ff82373', '019eaaf4-a983-769d-8cf4-acfa48dc2f74', '019eaaf4-ec22-7fe1-a687-7562ccc37509', 'app_namespaces_rename_proxy_update_tg', NULL, NULL, NULL, 'app', NULL, NULL, '{}', '2026-06-09T05:57:01.000Z', '2026-06-09T05:57:01.000Z'),
+  ('019eaaf4-ed65-7724-8870-2071df73d4a3', '019eaaf4-a983-769d-8cf4-acfa48dc2f74', '019eaaf4-ec22-7fe1-a687-7562ccc37509', 'app_namespaces_job_namespaceprovision_insert_tg', NULL, NULL, NULL, 'app', NULL, NULL, '{}', '2026-06-09T05:57:01.000Z', '2026-06-09T05:57:01.000Z'),
+  ('019eaaf4-f0c2-7f4b-bdea-8894304fb4cf', '019eaaf4-a983-769d-8cf4-acfa48dc2f74', '019eaaf4-efd8-7480-ad4f-3700f53bf298', 'user_secrets_update_tg', NULL, NULL, NULL, 'app', NULL, NULL, '{}', '2026-06-09T05:57:01.000Z', '2026-06-09T05:57:01.000Z'),
+  ('019eaaf4-f0c2-7faa-88c9-cde4022da159', '019eaaf4-a983-769d-8cf4-acfa48dc2f74', '019eaaf4-efd8-7480-ad4f-3700f53bf298', 'user_secrets_insert_tg', NULL, NULL, NULL, 'app', NULL, NULL, '{}', '2026-06-09T05:57:01.000Z', '2026-06-09T05:57:01.000Z'),
+  ('019eaaf4-f2bf-7870-b5ad-78a321b264b2', '019eaaf4-a983-769d-8cf4-acfa48dc2f74', '019eaaf4-f148-71f2-a8e0-46c5f36c5a8f', 'app_secrets_update_tg', NULL, NULL, NULL, 'app', NULL, NULL, '{}', '2026-06-09T05:57:01.000Z', '2026-06-09T05:57:01.000Z'),
+  ('019eaaf4-f2bf-793d-bd06-a438e8c3f53c', '019eaaf4-a983-769d-8cf4-acfa48dc2f74', '019eaaf4-f148-71f2-a8e0-46c5f36c5a8f', 'app_secrets_insert_tg', NULL, NULL, NULL, 'app', NULL, NULL, '{}', '2026-06-09T05:57:01.000Z', '2026-06-09T05:57:01.000Z');
 
 
 SET session_replication_role TO DEFAULT;

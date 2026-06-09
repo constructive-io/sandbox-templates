@@ -1,0 +1,6 @@
+-- Revert: schemas/myapp_memberships_private/trigger_fns/org_permission_default_permissions_recompute_tg
+
+
+DROP FUNCTION myapp_memberships_private.org_permission_default_permissions_recompute_tg;
+
+

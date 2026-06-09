@@ -1,6 +1,7 @@
 -- Deploy: schemas/myapp_memberships_public/tables/app_memberships/constraints/app_memberships_profile_id_fkey/constraint
 -- made with <3 @ constructive.io
 
+-- requires: schemas/myapp_profiles_public/schema
 -- requires: schemas/myapp_memberships_public/schema
 -- requires: schemas/myapp_profiles_public/tables/app_profiles/table
 -- requires: schemas/myapp_memberships_public/tables/app_memberships/table

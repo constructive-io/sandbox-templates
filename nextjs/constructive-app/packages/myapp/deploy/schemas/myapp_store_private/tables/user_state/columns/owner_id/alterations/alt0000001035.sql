@@ -1,9 +1,0 @@
--- Deploy: schemas/myapp_store_private/tables/user_state/columns/owner_id/alterations/alt0000001035
--- made with <3 @ constructive.io
-
--- requires: schemas/myapp_store_private/schema
--- requires: schemas/myapp_store_private/tables/user_state/columns/owner_id/column
-
-
-COMMENT ON COLUMN myapp_store_private.user_state.owner_id IS 'User who owns this secret';
-

@@ -3,6 +3,7 @@
 
 -- requires: schemas/myapp_profiles_public/schema
 -- requires: schemas/myapp_profiles_public/tables/app_profile_grants/table
+-- requires: schemas/myapp_profiles_public/tables/app_profile_grants/policies/enable_row_level_security
 
 
 CREATE POLICY auth_sel_app_mem ON myapp_profiles_public.app_profile_grants

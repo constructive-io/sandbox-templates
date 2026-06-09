@@ -2,6 +2,6 @@
 
 
 ALTER TABLE myapp_memberships_public.app_owner_grants 
-  ALTER COLUMN id DROP NOT NULL;
+  ALTER COLUMN id DROP DEFAULT;
 
 

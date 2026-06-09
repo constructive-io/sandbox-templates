@@ -3,6 +3,7 @@
 
 -- requires: schemas/myapp_events_public/schema
 -- requires: schemas/myapp_events_public/tables/org_events/table
+-- requires: schemas/myapp_events_public/tables/org_events/policies/enable_row_level_security
 
 
 CREATE POLICY auth_sel_own ON myapp_events_public.org_events

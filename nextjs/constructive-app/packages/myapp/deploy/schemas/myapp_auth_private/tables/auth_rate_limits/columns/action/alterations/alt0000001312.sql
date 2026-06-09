@@ -1,9 +1,0 @@
--- Deploy: schemas/myapp_auth_private/tables/auth_rate_limits/columns/action/alterations/alt0000001312
--- made with <3 @ constructive.io
-
--- requires: schemas/myapp_auth_private/schema
--- requires: schemas/myapp_auth_private/tables/auth_rate_limits/columns/action/column
-
-
-COMMENT ON COLUMN myapp_auth_private.auth_rate_limits.action IS E'The auth function name this rate limit tracks (e.g. sign_in, verify_password, reset_password)';
-

@@ -3,6 +3,7 @@
 
 -- requires: schemas/myapp_limits_public/schema
 -- requires: schemas/myapp_limits_public/tables/app_limit_defaults/table
+-- requires: schemas/myapp_limits_public/tables/app_limit_defaults/policies/enable_row_level_security
 
 
 CREATE POLICY auth_upd_app_mem ON myapp_limits_public.app_limit_defaults

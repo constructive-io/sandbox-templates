@@ -10,5 +10,5 @@ ALTER TABLE myapp_profiles_public.app_profile_definition_grants
   ADD CONSTRAINT app_profile_definition_grants_profile_id_fkey 
     FOREIGN KEY(profile_id) 
     REFERENCES myapp_profiles_public.app_profiles (id) 
-    ON DELETE CASCADE;
+    ON DELETE SET NULL;
 

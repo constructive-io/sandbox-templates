@@ -3,6 +3,7 @@
 
 -- requires: schemas/myapp_auth_private/schema
 -- requires: schemas/myapp_auth_private/tables/app_settings_auth/table
+-- requires: schemas/myapp_auth_private/tables/app_settings_auth/policies/enable_row_level_security
 
 
 CREATE POLICY auth_upd_app_mem ON myapp_auth_private.app_settings_auth

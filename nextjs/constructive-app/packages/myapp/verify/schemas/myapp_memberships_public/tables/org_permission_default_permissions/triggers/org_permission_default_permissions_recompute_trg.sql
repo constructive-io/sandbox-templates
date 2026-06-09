@@ -1,0 +1,6 @@
+-- Verify: schemas/myapp_memberships_public/tables/org_permission_default_permissions/triggers/org_permission_default_permissions_recompute_trg
+
+
+SELECT verify_trigger('myapp_memberships_public.org_permission_default_permissions_recompute_trg');
+
+

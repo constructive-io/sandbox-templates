@@ -3,6 +3,7 @@
 
 -- requires: schemas/myapp_users_public/schema
 -- requires: schemas/myapp_users_public/tables/users/table
+-- requires: schemas/myapp_users_public/tables/users/policies/enable_row_level_security
 
 
 CREATE POLICY auth_upd_admin_updates ON myapp_users_public.users

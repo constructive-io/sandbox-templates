@@ -2,10 +2,8 @@
 -- made with <3 @ constructive.io
 
 -- requires: schemas/myapp_memberships_public/schema
--- requires: schemas/myapp_memberships_public/tables/app_grants/table
 -- requires: schemas/myapp_memberships_public/tables/app_grants/columns/permissions/column
 
 
-ALTER TABLE myapp_memberships_public.app_grants 
-  ALTER COLUMN permissions SET NOT NULL;
+COMMENT ON COLUMN myapp_memberships_public.app_grants.permissions IS 'Bitmask of permissions being granted or revoked';
 

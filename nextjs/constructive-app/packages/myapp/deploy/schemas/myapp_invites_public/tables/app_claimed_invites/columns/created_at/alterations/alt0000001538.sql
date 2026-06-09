@@ -1,0 +1,11 @@
+-- Deploy: schemas/myapp_invites_public/tables/app_claimed_invites/columns/created_at/alterations/alt0000001538
+-- made with <3 @ constructive.io
+
+-- requires: schemas/myapp_invites_public/schema
+-- requires: schemas/myapp_invites_public/tables/app_claimed_invites/table
+-- requires: schemas/myapp_invites_public/tables/app_claimed_invites/columns/created_at/column
+
+
+ALTER TABLE myapp_invites_public.app_claimed_invites 
+  ALTER COLUMN created_at SET DEFAULT now();
+

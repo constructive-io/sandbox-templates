@@ -73,6 +73,9 @@ BEGIN
   IF NOT (COALESCE(v_settings.allow_password_sign_up, true)) THEN
     RAISE EXCEPTION 'PASSWORD_SIGN_UP_DISABLED';
   END IF;
+  IF v_settings.allowed_auth_methods IS NOT NULL AND NOT ('password' = ANY( v_settings.allowed_auth_methods )) THEN
+    RAISE EXCEPTION 'AUTH_METHOD_NOT_ALLOWED';
+  END IF;
   v_default_session_duration := COALESCE(v_settings.default_session_duration, '2 weeks'::interval);
   v_remember_me_duration := COALESCE(v_settings.remember_me_duration, '30 days'::interval);
   v_require_csrf := COALESCE(v_settings.require_csrf_for_auth, false);
@@ -108,6 +111,7 @@ BEGIN
       (v_user.id, trim(sign_up.email))
     RETURNING * INTO v_email;
     PERFORM myapp_store_private.user_secrets_set(v_user.id, 'password_hash', trim(sign_up.password), 'crypt');
+    PERFORM myapp_store_private.user_state_set(v_user.id, 'primary_auth_method', 'password'::text);
     IF v_anon_session.id IS NOT NULL THEN
       UPDATE myapp_auth_private.sessions SET
       revoked_at = now()

@@ -1,6 +1,0 @@
--- Revert: schemas/myapp_memberships_public/tables/org_membership_settings/columns/allow_external_members/alterations/alt0000000669
-
-
-COMMENT ON COLUMN myapp_memberships_public.org_membership_settings.allow_external_members IS NULL;
-
-

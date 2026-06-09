@@ -1,0 +1,6 @@
+-- Revert: schemas/myapp_memberships_public/tables/org_permission_default_grants/indexes/org_permission_default_grants_grantor_id_idx
+
+
+DROP INDEX myapp_memberships_public.org_permission_default_grants_grantor_id_idx;
+
+

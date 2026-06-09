@@ -1,6 +1,0 @@
--- Verify: schemas/myapp_memberships_public/tables/org_membership_settings/columns/updated_at/alterations/alt0000000652
-
-
-
-
-

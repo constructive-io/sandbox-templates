@@ -7,5 +7,5 @@
 
 
 ALTER TABLE myapp_memberships_public.app_owner_grants 
-  ALTER COLUMN is_grant SET NOT NULL;
+  ALTER COLUMN is_grant SET DEFAULT true;
 

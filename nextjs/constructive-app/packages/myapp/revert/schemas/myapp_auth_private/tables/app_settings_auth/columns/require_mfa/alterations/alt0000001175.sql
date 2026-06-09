@@ -1,7 +1,0 @@
--- Revert: schemas/myapp_auth_private/tables/app_settings_auth/columns/require_mfa/alterations/alt0000001175
-
-
-ALTER TABLE myapp_auth_private.app_settings_auth 
-  ALTER COLUMN require_mfa DROP DEFAULT;
-
-

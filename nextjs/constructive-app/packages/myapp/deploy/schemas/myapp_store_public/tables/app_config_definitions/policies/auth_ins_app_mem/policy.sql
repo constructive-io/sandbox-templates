@@ -3,6 +3,7 @@
 
 -- requires: schemas/myapp_store_public/schema
 -- requires: schemas/myapp_store_public/tables/app_config_definitions/table
+-- requires: schemas/myapp_store_public/tables/app_config_definitions/policies/enable_row_level_security
 
 
 CREATE POLICY auth_ins_app_mem ON myapp_store_public.app_config_definitions

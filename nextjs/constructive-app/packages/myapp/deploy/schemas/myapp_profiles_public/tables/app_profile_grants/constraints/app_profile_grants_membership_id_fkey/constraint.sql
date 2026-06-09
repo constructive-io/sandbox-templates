@@ -2,6 +2,7 @@
 -- made with <3 @ constructive.io
 
 -- requires: schemas/myapp_profiles_public/schema
+-- requires: schemas/myapp_memberships_public/schema
 -- requires: schemas/myapp_memberships_public/tables/app_memberships/table
 -- requires: schemas/myapp_profiles_public/tables/app_profile_grants/table
 
@@ -10,5 +11,5 @@ ALTER TABLE myapp_profiles_public.app_profile_grants
   ADD CONSTRAINT app_profile_grants_membership_id_fkey 
     FOREIGN KEY(membership_id) 
     REFERENCES myapp_memberships_public.app_memberships (id) 
-    ON DELETE CASCADE;
+    ON DELETE SET NULL;
 

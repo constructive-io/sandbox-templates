@@ -3,7 +3,6 @@
 
 -- requires: schemas/myapp_auth_public/schema
 -- requires: schemas/myapp_store_private/schema
--- requires: schemas/myapp_store_private/schema
 -- requires: schemas/myapp_auth_private/tables/auth_rate_limits/table
 -- requires: schemas/myapp_auth_private/tables/app_settings_rate_limit/table
 

@@ -2,7 +2,6 @@
 -- made with <3 @ constructive.io
 
 -- requires: schemas/myapp_store_private/schema
--- requires: schemas/myapp_store_private/schema
 -- requires: schemas/myapp_store_private/tables/user_secrets/table
 -- requires: schemas/myapp_store_private/trigger_fns/user_secrets_hash
 

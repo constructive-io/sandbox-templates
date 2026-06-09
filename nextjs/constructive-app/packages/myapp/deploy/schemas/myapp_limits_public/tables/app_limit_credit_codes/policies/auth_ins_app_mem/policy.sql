@@ -3,6 +3,7 @@
 
 -- requires: schemas/myapp_limits_public/schema
 -- requires: schemas/myapp_limits_public/tables/app_limit_credit_codes/table
+-- requires: schemas/myapp_limits_public/tables/app_limit_credit_codes/policies/enable_row_level_security
 
 
 CREATE POLICY auth_ins_app_mem ON myapp_limits_public.app_limit_credit_codes
