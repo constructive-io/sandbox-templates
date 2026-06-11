@@ -1,0 +1,6 @@
+-- Verify: schemas/myapp_store_public/schema/default_seq_privs/authenticated
+
+
+
+
+

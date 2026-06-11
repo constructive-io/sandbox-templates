@@ -1,0 +1,10 @@
+-- Deploy: schemas/myapp_profiles_public/tables/app_profile_definition_grants/columns/is_grant/column
+-- made with <3 @ constructive.io
+
+-- requires: schemas/myapp_profiles_public/schema
+-- requires: schemas/myapp_profiles_public/tables/app_profile_definition_grants/table
+
+
+ALTER TABLE myapp_profiles_public.app_profile_definition_grants 
+  ADD COLUMN is_grant boolean;
+

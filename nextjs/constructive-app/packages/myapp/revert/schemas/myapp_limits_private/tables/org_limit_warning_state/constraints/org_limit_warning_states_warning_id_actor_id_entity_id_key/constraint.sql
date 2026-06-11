@@ -1,0 +1,7 @@
+-- Revert: schemas/myapp_limits_private/tables/org_limit_warning_state/constraints/org_limit_warning_states_warning_id_actor_id_entity_id_key/constraint
+
+
+ALTER TABLE myapp_limits_private.org_limit_warning_state 
+  DROP CONSTRAINT org_limit_warning_states_warning_id_actor_id_entity_id_key;
+
+

@@ -1,0 +1,6 @@
+-- Revert: schemas/myapp_profiles_public/tables/org_profile_definition_grants/policies/auth_sel_rel_ent_mem/policy
+
+
+DROP POLICY auth_sel_rel_ent_mem ON myapp_profiles_public.org_profile_definition_grants;
+
+

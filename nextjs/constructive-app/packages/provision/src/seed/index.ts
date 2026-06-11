@@ -21,26 +21,22 @@
 import { config } from '../config.js';
 import { createDbAuthClient, withRetry } from '../helpers.js';
 
-// ---------------------------------------------------------------------------
 // Seed fixtures
-// ---------------------------------------------------------------------------
 
 const SEED_USERS = [
   {
     email: 'alice@example.com',
-    password: 'password123!',
+    password: 'Password123!',
     displayName: 'Alice Chen',
   },
   {
     email: 'bob@example.com',
-    password: 'password123!',
+    password: 'Password123!',
     displayName: 'Bob Martinez',
   },
 ];
 
-// ---------------------------------------------------------------------------
 // Main
-// ---------------------------------------------------------------------------
 
 interface SeedUserResult {
   fixture: typeof SEED_USERS[number];
@@ -117,7 +113,6 @@ async function main() {
 
   // -----------------------------------------------------------------------
   // Done
-  // -----------------------------------------------------------------------
   console.log(`\n${'═'.repeat(50)}`);
   console.log('  Seed complete!');
   console.log(`${'═'.repeat(50)}\n`);

@@ -1,0 +1,11 @@
+-- Deploy: schemas/myapp_auth_private/tables/app_settings_auth/columns/identity_providers_max/alterations/alt0000001235
+-- made with <3 @ constructive.io
+
+-- requires: schemas/myapp_auth_private/schema
+-- requires: schemas/myapp_auth_private/tables/app_settings_auth/table
+-- requires: schemas/myapp_auth_private/tables/app_settings_auth/columns/identity_providers_max/column
+
+
+ALTER TABLE myapp_auth_private.app_settings_auth 
+  ALTER COLUMN identity_providers_max SET DEFAULT 10;
+

@@ -1,0 +1,6 @@
+-- Revert: schemas/myapp_memberships_public/tables/app_permission_default_grants/triggers/app_permission_default_grants_insert_trg
+
+
+DROP TRIGGER app_permission_default_grants_insert_trg ON myapp_memberships_public.app_permission_default_grants;
+
+

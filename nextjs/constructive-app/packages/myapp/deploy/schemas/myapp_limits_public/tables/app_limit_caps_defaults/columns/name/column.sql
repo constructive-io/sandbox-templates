@@ -1,0 +1,10 @@
+-- Deploy: schemas/myapp_limits_public/tables/app_limit_caps_defaults/columns/name/column
+-- made with <3 @ constructive.io
+
+-- requires: schemas/myapp_limits_public/schema
+-- requires: schemas/myapp_limits_public/tables/app_limit_caps_defaults/table
+
+
+ALTER TABLE myapp_limits_public.app_limit_caps_defaults 
+  ADD COLUMN name citext;
+

@@ -1,0 +1,22 @@
+{
+  "name": "@constructive-app/export",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "export:graphql": "tsx src/run-graphql-export.ts",
+    "build": "echo 'No build required'"
+  },
+  "dependencies": {
+    "@constructive-io/fetch": "^1.1.1",
+    "@constructive-io/node": "^0.10.12",
+    "@pgpmjs/core": "^6.24.0",
+    "@pgpmjs/export": "^0.21.4",
+    "@pgpmjs/migrate-client": "^0.15.5",
+    "dotenv": "^16.5.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}

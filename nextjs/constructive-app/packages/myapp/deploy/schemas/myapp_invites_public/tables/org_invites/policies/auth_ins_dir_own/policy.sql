@@ -1,0 +1,15 @@
+-- Deploy: schemas/myapp_invites_public/tables/org_invites/policies/auth_ins_dir_own/policy
+-- made with <3 @ constructive.io
+
+-- requires: schemas/myapp_invites_public/schema
+-- requires: schemas/myapp_invites_public/tables/org_invites/table
+-- requires: schemas/myapp_invites_public/tables/org_invites/policies/enable_row_level_security
+
+
+CREATE POLICY auth_ins_dir_own ON myapp_invites_public.org_invites
+FOR INSERT
+TO authenticated
+WITH CHECK (
+  sender_id = jwt_public.current_user_id()
+);
+

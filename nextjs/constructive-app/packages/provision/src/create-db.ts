@@ -1,12 +1,4 @@
-/**
- * create-db.ts — Create a new tenant database for the constructive-app
- *
- * Signs up a new admin user, provisions a database via the Constructive
- * platform API, and writes credentials to .env for subsequent use by
- * the provision and seed scripts.
- *
- * Usage:  pnpm run create-db
- */
+/** create-db.ts — Create a new tenant database. Usage: pnpm run create-db */
 
 import { auth, public_ } from '@constructive-io/node';
 
@@ -176,11 +168,7 @@ async function main() {
     }
   }
 
-  // --- Step 2.5: Set database-level session vars ---
-  // Constructive uses schema-based multi-tenancy inside a single PostgreSQL DB
-  // (typically named 'constructive'), so the tenant name (e.g. 'myapp') is NOT
-  // a real PostgreSQL database. The ALTER DATABASE commands only work if the
-  // tenant name happens to match a real PG database; otherwise skip gracefully.
+  // Step 2.5: Database-level settings (tenant name may not be a real PG DB)
   if (pgAvailable) {
     try {
       const settingsPool = new Pool({ database: config.pgInternalDatabase });
@@ -190,14 +178,13 @@ async function main() {
       console.log('   constructive.simple_schema_names = true (database-level)');
       console.log('   constructive.schema_use_underscores = true (database-level)');
     } catch (err: any) {
-      // Tenant DB name is not a real PostgreSQL DB (schema-based tenancy).
-      // Server-level settings from Step 0 are sufficient.
+      // Schema-based tenancy — server-level settings from Step 0 are sufficient
       console.log(`   Database-level settings skipped (${err.message?.split('\n')[0]})`);
       console.log('   Server-level settings from Step 0 are sufficient.');
     }
   }
 
-  // --- Step 3: Register admin at db-scoped auth level ---
+  // Step 3: Register admin at db-scoped auth
   console.log('\n   Registering admin at db-scoped auth level...');
   const dbAuthEndpoint = `http://auth-${databaseName}.localhost:3000/graphql`;
   const dbAuthClient = auth.createClient({ endpoint: dbAuthEndpoint });
@@ -230,11 +217,7 @@ async function main() {
     }
   }
 
-  // Grant full permissions to admin via direct SQL (when PG available)
-  // or via admin GraphQL API (fallback).
-  // NOTE: The SQL path requires connecting to the actual PostgreSQL database
-  // (typically 'constructive'), not the tenant name. If the Pool connection
-  // fails, fall through to the GraphQL path.
+  // Grant admin permissions (SQL when PG available, GraphQL fallback)
   let permissionsGranted = false;
   if (dbAdminUserId && pgAvailable) {
     try {
@@ -269,7 +252,7 @@ async function main() {
     }
   }
 
-  // Fallback: grant permissions via admin GraphQL API
+  // Fallback: grant via admin GraphQL API
   if (dbAdminUserId && !permissionsGranted) {
     try {
       const adminEndpoint = `http://admin-${databaseName}.localhost:3000/graphql`;
@@ -289,7 +272,7 @@ async function main() {
           headers: { Authorization: `Bearer ${dbAccessToken}` },
         });
 
-        // Find the auto-created app membership, then update it by ID
+        // Update auto-created app membership
         const membershipResult = await adminClient.appMembership.findMany({
           where: { actorId: { equalTo: dbAdminUserId } },
           select: { id: true },
@@ -297,15 +280,17 @@ async function main() {
         const membershipId = (membershipResult as any)?.appMemberships?.nodes?.[0]?.id;
 
         if (membershipId) {
+          // Column-level GRANTs only allow UPDATE on:
+          //   is_banned, is_approved, is_verified, is_disabled, granted
           await adminClient.appMembership.update({
             where: { id: membershipId },
             data: {
-              isAdmin: true,
-              isOwner: true,
+              isApproved: true,
+              isVerified: true,
             },
             select: { id: true },
           }).unwrap();
-          console.log('   Admin permissions granted (GraphQL)');
+          console.log('   Admin membership approved (GraphQL)');
         } else {
           console.warn('   No app membership found for admin — skipping permission grant');
         }
@@ -316,7 +301,7 @@ async function main() {
     }
   }
 
-  // --- Step 4: Write .env ---
+  // Step 4: Write .env
   const envPath = path.resolve(__dirname, '../../../.env');
   console.log(`\n   Writing credentials to ${envPath}`);
 

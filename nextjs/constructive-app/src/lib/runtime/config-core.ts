@@ -84,7 +84,8 @@ export function getAuthEndpoint(): string {
  * `app-public-{db}`). The browser sends the Host header from this URL's
  * hostname, and that Host header — not the URL — is what drives server-side
  * routing. PostGraphile maps the `{db}` segment back to the physical database
- * by converting hyphens to underscores.
+ * by converting hyphens to underscores (so "api" maps to the PostgreSQL
+ * schema "app_public").
  *
  * Override with NEXT_PUBLIC_APP_ENDPOINT to point at a different host
  * (e.g. when the per-DB domain in services_public.domains differs).

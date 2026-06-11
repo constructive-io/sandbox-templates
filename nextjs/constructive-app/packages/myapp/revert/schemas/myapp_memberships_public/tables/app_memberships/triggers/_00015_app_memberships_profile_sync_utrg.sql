@@ -1,0 +1,6 @@
+-- Revert: schemas/myapp_memberships_public/tables/app_memberships/triggers/_00015_app_memberships_profile_sync_utrg
+
+
+DROP TRIGGER _00015_app_memberships_profile_sync_utrg ON myapp_memberships_public.app_memberships;
+
+

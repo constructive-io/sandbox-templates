@@ -1,0 +1,6 @@
+-- Revert: schemas/myapp_events_public/tables/app_levels/grants/authenticated/update/grant
+
+
+REVOKE UPDATE ON myapp_events_public.app_levels FROM authenticated;
+
+

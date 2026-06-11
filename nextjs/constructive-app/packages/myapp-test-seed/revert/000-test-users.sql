@@ -1,0 +1,2 @@
+-- Revert: 000-test-users.sql
+-- No-op for seed data (test databases are ephemeral)

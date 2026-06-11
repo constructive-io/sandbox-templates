@@ -1,0 +1,6 @@
+-- Revert: schemas/myapp_limits_public/tables/app_limit_caps/grants/authenticated/delete/grant
+
+
+REVOKE DELETE ON myapp_limits_public.app_limit_caps FROM authenticated;
+
+

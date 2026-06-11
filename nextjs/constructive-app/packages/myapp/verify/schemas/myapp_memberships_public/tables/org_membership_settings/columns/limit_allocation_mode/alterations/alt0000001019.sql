@@ -1,0 +1,6 @@
+-- Verify: schemas/myapp_memberships_public/tables/org_membership_settings/columns/limit_allocation_mode/alterations/alt0000001019
+
+
+
+
+
