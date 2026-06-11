@@ -2,43 +2,24 @@
 
 import { auth, public_ } from '@constructive-io/node';
 
-// Scoped modules use JSONB tuples: ['module_name', { scope: 'app'|'org' }]
-// Plain strings for scope-less modules.
-const APP_MODULES: (string | [string, { scope?: string }])[] = [
-  // Core
-  'users_module',
-  'membership_types_module',
-  // App-level (scope: app)
-  ['permissions_module', { scope: 'app' }],
-  ['limits_module', { scope: 'app' }],
-  ['memberships_module', { scope: 'app' }],
-  ['events_module', { scope: 'app' }],
-  ['profiles_module', { scope: 'app' }],
-  ['levels_module', { scope: 'app' }],
-  // Org-level (scope: org)
-  ['permissions_module', { scope: 'org' }],
-  ['limits_module', { scope: 'org' }],
-  ['memberships_module', { scope: 'org' }],
-  ['events_module', { scope: 'org' }],
-  ['profiles_module', { scope: 'org' }],
-  ['levels_module', { scope: 'org' }],
-  ['hierarchy_module', { scope: 'org' }],
-  // Auth infrastructure
-  'user_state_module',
-  'sessions_module',
-  'session_secrets_module',
-  'rate_limits_module',
-  'rls_module',
-  'user_credentials_module',
-  'config_secrets_module',
-  // Contact modules
-  'emails_module',
-  // Invites
-  ['invites_module', { scope: 'app' }],
-  ['invites_module', { scope: 'org' }],
-  // Auth methods
-  'user_auth_module',
-];
+import { asModules, AUTH_EMAIL_MODULES, type ProvisionModule } from './modules.js';
+
+// BASE tier default module set: the `auth:email` preset.
+//
+// This is the ~13-module set that backs the email-password / profile auth
+// flows (see references/flows.json → email-password.backend.modules). It is
+// deliberately scoped to a single-user (app-level) auth surface: NO org /
+// memberships{org} / hierarchy / invites modules. A base scaffold ships no
+// org/b2b code, so it does not need those modules provisioned.
+//
+// B2B OPT-IN: an app that adopts the registry org blocks
+// (org-create-card / org-members-list / org-roles-editor / org-settings-form)
+// extends this set with the org modules — see docs/B2B.md.
+//
+// Scoped modules MUST use tuple form (['permissions_module', { scope: 'app' }]).
+// The live provision proc REJECTS the colon-string form
+// ('permissions_module:app') with a PROVISION-001 hard-fail.
+const APP_MODULES: ProvisionModule[] = AUTH_EMAIL_MODULES;
 
 import * as fs from 'fs';
 import * as path from 'path';
@@ -46,7 +27,7 @@ import { fileURLToPath } from 'url';
 import { Pool } from 'pg';
 
 import { config } from './config.js';
-import { withRetry } from './helpers.js';
+import { withRetry, resolvePhysicalSchemaName } from './helpers.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -120,8 +101,12 @@ async function main() {
   }
   console.log(`   Signed up (ID: ${userId})`);
 
-  // Step 2: Provision database — modules endpoint hosts databaseProvisionModule
-  console.log('\n   Provisioning database...');
+  // --- Step 2: Provision database (or use existing) ---
+  // createDatabaseProvisionModule lives on the MODULES host (modules.localhost),
+  // NOT api.localhost — its input type is only registered there. Routing it to
+  // apiEndpoint fails with 'Unknown type CreateDatabaseProvisionModuleInput'.
+  console.log('\n   Provisioning database (modules endpoint)...');
+  console.log(`   Modules:   ${config.modulesEndpoint}`);
   const modulesClient = public_.createClient({ endpoint: config.modulesEndpoint, headers: {
     Authorization: `Bearer ${accessToken}`,
     'X-Meta-Schema': 'true'
@@ -137,7 +122,7 @@ async function main() {
             ownerId: userId,
             subdomain: databaseName,
             domain: 'localhost',
-            modules: APP_MODULES as any,
+            modules: asModules(APP_MODULES),
             bootstrapUser: true,
             options: {}
           },
@@ -236,19 +221,19 @@ async function main() {
   let permissionsGranted = false;
   if (dbAdminUserId && pgAvailable) {
     try {
-      const permPool = new Pool({ database: config.pgInternalDatabase });
-      // Find the app_memberships schema for this tenant
-      const schemaResult = await permPool.query(
-        `SELECT schema_name FROM information_schema.schemata
-         WHERE schema_name LIKE '%memberships_public'
-         AND schema_name LIKE '${databaseName}%'
-         ORDER BY schema_name`
-      );
-      console.log(`   Found ${schemaResult.rows.length} membership schemas:`,
-        schemaResult.rows.map((r: any) => r.schema_name).join(', ') || '(none)');
-      // app_memberships comes before org_memberships alphabetically
-      const membershipsSchema = schemaResult.rows[0]?.schema_name;
+      // Resolve THIS tenant's physical app-memberships schema via the metaschema
+      // (scoped by database_id), NOT a floating `LIKE '%memberships_public'` —
+      // on a shared hub that LIKE can match a SIBLING tenant and corrupt its
+      // permissions. The metaschema read uses the freshly-issued accessToken
+      // (config.databaseId/ACCESS_TOKEN aren't in process env until .env is written).
+      const membershipsSchema = await resolvePhysicalSchemaName(databaseId, 'memberships_public', {
+        token: accessToken,
+      });
+      console.log(`   Memberships schema (this tenant): ${membershipsSchema ?? '(none)'}`);
       if (membershipsSchema) {
+        // Connect to the internal PG database (NOT PGDATABASE which may be 'postgres').
+        // Schema-based multi-tenancy stores all tenant schemas in this DB.
+        const permPool = new Pool({ database: config.pgInternalDatabase });
         const updateResult = await permPool.query(
           `UPDATE "${membershipsSchema}".app_memberships
            SET is_admin = true, is_owner = true,
@@ -258,10 +243,10 @@ async function main() {
         );
         console.log(`   Admin permissions granted (SQL): ${updateResult.rowCount} row(s) updated`);
         permissionsGranted = true;
+        await permPool.end();
       } else {
-        console.warn('   No memberships_public schema found for permission grant');
+        console.warn('   No memberships_public schema found for this tenant — will try GraphQL fallback');
       }
-      await permPool.end();
     } catch (err: any) {
       console.warn(`   SQL permission grant failed: ${err.message?.split('\n')[0]}`);
     }

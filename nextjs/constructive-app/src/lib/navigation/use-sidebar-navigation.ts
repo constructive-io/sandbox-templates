@@ -10,8 +10,6 @@ import { getSidebarConfig, type NavigationLevel, type SidebarConfigOptions } fro
 import { useEntityParams } from './use-entity-params';
 
 export interface UseSidebarNavigationOptions {
-	/** Whether the current user is an app admin */
-	isAppAdmin?: boolean;
 	/** Logout handler */
 	onLogout?: () => void;
 	/** Custom render for settings (e.g., RuntimeEndpointsDialog) */
@@ -23,27 +21,19 @@ export interface UseSidebarNavigationResult {
 	level: NavigationLevel;
 	/** Navigation groups for the current level */
 	navigation: NavGroup[];
-	/** Active organization ID from URL params */
-	activeOrgId: string | null;
 }
 
 /**
- * Hook to determine the current navigation level and return appropriate sidebar config
+ * Hook to build the sidebar navigation for the current URL.
  *
- * Level detection is URL-BASED for robust, shareable state:
- * - Entity hierarchy: App (root) → Org
- * - If orgId in URL → 'org' level
- * - Else → 'root' level
- *
- * This ensures the sidebar reflects the current URL context.
- * URLs are the source of truth for entity selection.
+ * Base tier sits at the app root (Home + Account). B2B apps reintroduce an
+ * org level here alongside the registry org blocks — see docs/B2B.md.
  */
 export function useSidebarNavigation(options: UseSidebarNavigationOptions = {}): UseSidebarNavigationResult {
 	const pathname = usePathname();
-	const { isAppAdmin, onLogout, settingsRender } = options;
+	const { onLogout, settingsRender } = options;
 
-	// Get entity IDs and level from URL params (source of truth)
-	const { orgId, level } = useEntityParams();
+	const { level } = useEntityParams();
 
 	// Create the route active checker
 	const checkRouteActive = useMemo(
@@ -55,19 +45,16 @@ export function useSidebarNavigation(options: UseSidebarNavigationOptions = {}):
 	const navigation = useMemo(() => {
 		const configOptions: SidebarConfigOptions = {
 			pathname,
-			isAppAdmin,
 			onLogout,
 			settingsRender,
-			activeOrgId: orgId ?? undefined,
 			isRouteActive: checkRouteActive,
 		};
 
 		return getSidebarConfig(level, configOptions);
-	}, [level, pathname, isAppAdmin, onLogout, settingsRender, orgId, checkRouteActive]);
+	}, [level, pathname, onLogout, settingsRender, checkRouteActive]);
 
 	return {
 		level,
 		navigation,
-		activeOrgId: orgId,
 	};
 }

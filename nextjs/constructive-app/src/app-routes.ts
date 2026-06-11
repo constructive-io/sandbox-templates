@@ -1,5 +1,5 @@
 import type { Route } from 'next';
-import { parseAsArrayOf, parseAsInteger, parseAsString } from 'nuqs';
+import { parseAsString } from 'nuqs';
 
 import type { SchemaContext } from '@/lib/runtime/config-core';
 
@@ -36,10 +36,14 @@ export interface RouteConfig {
 }
 
 // =============================================================================
-// ROUTE CONFIGURATION - Single source of truth for all routes
+// ROUTE CONFIGURATION - Single source of truth for all routes (BASE tier)
 // =============================================================================
-// Entity Hierarchy: Organizations
-// Organization management is scoped under /orgs/[orgId]
+// The base auth:email app has a single navigation level: the app root, plus
+// the auth + account surfaces. Organization-scoped routes (/orgs/[orgId]/*,
+// /organizations) and the app-admin routes (/users, /invites, /settings) are a
+// b2b opt-in delivered with the registry org blocks — see docs/B2B.md. The
+// `requiredPermission: 'app-admin'` gate (RouteGuard) still exists for b2b apps
+// to reuse, but no base route uses it.
 // =============================================================================
 
 export const APP_ROUTES = {
@@ -54,54 +58,6 @@ export const APP_ROUTES = {
 	},
 
 	// ==========================================================================
-	// ORGANIZATION-SCOPED ROUTES - Organization management under /orgs/[orgId]
-	// ==========================================================================
-
-	/** Organization members */
-	ORG_MEMBERS: {
-		path: '/orgs/[orgId]/members' as Route,
-		searchParams: {
-			search: parseAsString,
-			page: parseAsInteger.withDefault(1),
-			limit: parseAsInteger.withDefault(20),
-		},
-		access: 'protected' as RouteAccessType,
-		context: 'admin' as SchemaContext,
-	},
-
-	/** Organization invites */
-	ORG_INVITES: {
-		path: '/orgs/[orgId]/invites' as Route,
-		searchParams: {},
-		access: 'protected' as RouteAccessType,
-		context: 'admin' as SchemaContext,
-	},
-
-	/** Organization settings */
-	ORG_SETTINGS: {
-		path: '/orgs/[orgId]/settings' as Route,
-		searchParams: {
-			tab: parseAsString.withDefault('general'),
-		},
-		access: 'protected' as RouteAccessType,
-		context: 'admin' as SchemaContext,
-	},
-
-	// ==========================================================================
-	// ORGANIZATIONS ROUTES - Organization listing and management
-	// ==========================================================================
-	ORGANIZATIONS: {
-		path: '/organizations' as Route,
-		searchParams: {
-			search: parseAsString,
-			page: parseAsInteger.withDefault(1),
-			limit: parseAsInteger.withDefault(20),
-		},
-		access: 'protected' as RouteAccessType,
-		context: 'admin' as SchemaContext,
-	},
-
-	// ==========================================================================
 	// ACCOUNT ROUTES - User account management
 	// ==========================================================================
 	ACCOUNT_SETTINGS: {
@@ -111,46 +67,6 @@ export const APP_ROUTES = {
 		},
 		access: 'protected' as RouteAccessType,
 		context: 'admin' as SchemaContext,
-	},
-
-	// ==========================================================================
-	// APP-LEVEL ROUTES - Platform administration (requires app admin permission)
-	// These routes are for managing the platform itself, above organizations
-	// ==========================================================================
-	APP_USERS: {
-		path: '/users' as Route,
-		searchParams: {
-			search: parseAsString,
-			status: parseAsString,
-			page: parseAsInteger.withDefault(1),
-			limit: parseAsInteger.withDefault(50),
-		},
-		access: 'protected' as RouteAccessType,
-		context: 'admin' as SchemaContext,
-		requiredPermission: 'app-admin' as RequiredPermission,
-	},
-
-	APP_INVITES: {
-		path: '/invites' as Route,
-		searchParams: {
-			search: parseAsString,
-			status: parseAsString,
-			page: parseAsInteger.withDefault(1),
-			limit: parseAsInteger.withDefault(50),
-		},
-		access: 'protected' as RouteAccessType,
-		context: 'admin' as SchemaContext,
-		requiredPermission: 'app-admin' as RequiredPermission,
-	},
-
-	APP_SETTINGS: {
-		path: '/settings' as Route,
-		searchParams: {
-			tab: parseAsString.withDefault('general'),
-		},
-		access: 'protected' as RouteAccessType,
-		context: 'admin' as SchemaContext,
-		requiredPermission: 'app-admin' as RequiredPermission,
 	},
 
 	// ==========================================================================
@@ -194,12 +110,6 @@ export const APP_ROUTES = {
 		},
 		access: 'public' as RouteAccessType,
 	},
-
-	INVITE: {
-		path: '/invite' as Route,
-		searchParams: { invite_token: parseAsString, type: parseAsString },
-		access: 'public' as RouteAccessType,
-	},
 } as const;
 
 // Extract route keys for type safety
@@ -232,43 +142,6 @@ export function buildRoute<TRoute extends AppRouteKey>(
 	}
 
 	return url.pathname + url.search;
-}
-
-/**
- * Build an organization-scoped route URL with the given org ID.
- * Replaces [orgId] placeholder with the actual org ID.
- *
- * @param routeKey - The organization route key from APP_ROUTES
- * @param orgId - The organization ID
- * @param searchParams - Optional query parameters
- * @returns A typed Route string
- *
- * @example
- * buildOrgRoute('ORG_MEMBERS', 'org-123') // '/orgs/org-123/members'
- */
-export function buildOrgRoute(
-	routeKey: 'ORG_MEMBERS' | 'ORG_INVITES' | 'ORG_SETTINGS',
-	orgId: string,
-	searchParams?: Record<string, string | string[] | number | boolean | null>,
-): Route {
-	const route = APP_ROUTES[routeKey];
-	let path = route.path.replace('[orgId]', orgId);
-
-	if (searchParams) {
-		const url = new URL(path, 'http://localhost');
-		Object.entries(searchParams).forEach(([key, value]) => {
-			if (value !== null && value !== undefined) {
-				if (Array.isArray(value)) {
-					value.forEach((v) => url.searchParams.append(key, String(v)));
-				} else {
-					url.searchParams.set(key, String(value));
-				}
-			}
-		});
-		path = url.pathname + url.search;
-	}
-
-	return path as Route;
 }
 
 // Cache for compiled route patterns - avoids recreating RegExp on every call
@@ -391,8 +264,12 @@ export function isProtectedRoute(pathname: string): boolean {
  */
 export function getRouteRequiredPermission(pathname: string): RequiredPermission | null {
 	const config = getRouteConfig(pathname);
-	if (config && 'requiredPermission' in config && config.requiredPermission) {
-		return config.requiredPermission;
+	// No BASE route declares `requiredPermission`, so the inferred config union
+	// has no such member; b2b routes (see docs/B2B.md) reintroduce it. Read it
+	// defensively via an index lookup so the helper stays valid for both tiers.
+	const required = (config as Record<string, unknown> | null)?.requiredPermission;
+	if (required) {
+		return required as RequiredPermission;
 	}
 	return null;
 }
@@ -425,18 +302,8 @@ export const navigationUtils = {
 // Export route constants for easy access
 export const ROUTE_PATHS = {
 	ROOT: APP_ROUTES.ROOT.path,
-	// Organization-scoped routes
-	ORG_MEMBERS: APP_ROUTES.ORG_MEMBERS.path,
-	ORG_INVITES: APP_ROUTES.ORG_INVITES.path,
-	ORG_SETTINGS: APP_ROUTES.ORG_SETTINGS.path,
-	// Organizations routes
-	ORGANIZATIONS: APP_ROUTES.ORGANIZATIONS.path,
 	// Account routes
 	ACCOUNT_SETTINGS: APP_ROUTES.ACCOUNT_SETTINGS.path,
-	// App-level routes (admin only)
-	APP_USERS: APP_ROUTES.APP_USERS.path,
-	APP_INVITES: APP_ROUTES.APP_INVITES.path,
-	APP_SETTINGS: APP_ROUTES.APP_SETTINGS.path,
 	// Guest-only routes
 	LOGIN: APP_ROUTES.LOGIN.path,
 	REGISTER: APP_ROUTES.REGISTER.path,
@@ -444,5 +311,4 @@ export const ROUTE_PATHS = {
 	RESET_PASSWORD: APP_ROUTES.RESET_PASSWORD.path,
 	CHECK_EMAIL: APP_ROUTES.CHECK_EMAIL.path,
 	VERIFY_EMAIL: APP_ROUTES.VERIFY_EMAIL.path,
-	INVITE: APP_ROUTES.INVITE.path,
 } as const;

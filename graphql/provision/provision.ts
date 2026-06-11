@@ -226,7 +226,9 @@ async function main(): Promise<void> {
       ownerId: userId,
       subdomain: config.database.name,
       domain: 'localhost',
-      modules: config.database.modules as any,
+      // The generated SDK types `modules` as string[]; the server accepts the
+      // JSONB tuple form (['permissions_module', { scope: 'app' }]) at runtime.
+      modules: config.database.modules as unknown as string[],
       bootstrapUser: config.database.bootstrapUser,
     },
     select: { id: true, databaseId: true, databaseName: true, status: true },

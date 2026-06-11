@@ -28,10 +28,11 @@ export function TopBar({ config, sidebarWidth = 56, className }: TopBarProps) {
 	const { sidebarLogo, entityLevels, status, search, actions } = config;
 
 	// Filter to only show levels that have an active entity or are the first level
-	const visibleLevels = entityLevels.filter((level, index) => {
+	const levels = entityLevels ?? [];
+	const visibleLevels = levels.filter((level, index) => {
 		if (index === 0) return true;
 		// Show level if previous level has an active entity
-		const prevLevel = entityLevels[index - 1];
+		const prevLevel = levels[index - 1];
 		return prevLevel?.activeEntityId != null;
 	});
 

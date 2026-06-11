@@ -8,9 +8,7 @@ export {
 	useResetPassword,
 	useSendVerificationEmail,
 	useVerifyEmail,
-	useSubmitInviteCode,
-	useSubmitOrgInviteCode,
 } from './auth';
 
-// ==== Admin hooks (organizations, permissions, etc.)
+// ==== Admin hooks (account + app membership)
 export * from './admin';

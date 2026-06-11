@@ -12,5 +12,3 @@ export { useForgotPassword } from './use-forgot-password';
 export { useResetPassword } from './use-reset-password';
 export { useSendVerificationEmail } from './use-send-verification-email';
 export { useVerifyEmail } from './use-verify-email';
-export { useSubmitInviteCode } from './use-submit-invite-code';
-export { useSubmitOrgInviteCode } from './use-submit-org-invite-code';
