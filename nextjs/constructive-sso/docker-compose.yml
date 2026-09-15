@@ -14,14 +14,14 @@ services:
       - ./packages:/sql-packages
       - ./extensions:/sql-extensions
 
-  minio:
-    container_name: minio
-    image: minio/minio
+  rustfs:
+    container_name: rustfs
+    image: rustfs/rustfs:1.0.0-rc.5
     environment:
-      - MINIO_ACCESS_KEY=minioadmin
-      - MINIO_SECRET_KEY=minioadmin
+      RUSTFS_ACCESS_KEY: constructive
+      RUSTFS_SECRET_KEY: constructive-dev-secret
+      RUSTFS_ADDRESS: ":9000"
     ports:
       - "9000:9000"
     expose:
       - "9000"
-    command: server /data
