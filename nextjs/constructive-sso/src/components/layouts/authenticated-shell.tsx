@@ -41,6 +41,16 @@ export function AuthenticatedShell({ children }: AuthenticatedShellProps) {
 	const pathname = usePathname();
 	const { isAuthenticated, isLoading } = useAuth();
 
+	// Auth state lives in the client store only: the server always renders
+	// with isLoading=true (skeleton below), while the client store starts
+	// isLoading=false — branching on it before mount is the hydration
+	// mismatch that regenerates the whole tree. Same rule as RouteGuard's
+	// mounted gate; until then render exactly what the server rendered.
+	const [mounted, setMounted] = React.useState(false);
+	React.useEffect(() => {
+		setMounted(true);
+	}, []);
+
 	const accessType = getRouteAccessType(pathname);
 	const isProtectedRoute = accessType === 'protected';
 	const isInviteRoute = pathname === '/invite';
@@ -55,9 +65,10 @@ export function AuthenticatedShell({ children }: AuthenticatedShellProps) {
 		return <>{children}</>;
 	}
 
-	// Protected routes during loading: show shell frame with content skeleton
-	// This provides immediate visual feedback and stable layout
-	if (isLoading) {
+	// Protected routes before mount and during loading: show shell frame with
+	// content skeleton. This provides immediate visual feedback and a stable
+	// layout, and matches the server render one-for-one.
+	if (!mounted || isLoading) {
 		return (
 			<ShellFrameSkeleton>
 				<ShellContentFallback />

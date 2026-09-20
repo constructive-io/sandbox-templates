@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { Route } from 'next';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
@@ -15,7 +15,7 @@ import {
 	getRouteRequiredPermission,
 	ROUTE_PATHS,
 } from '@/app-routes';
-import { buildQueryString, INVITE_QUERY_PARAMS } from '@/app/invite/page';
+import { INVITE_QUERY_PARAMS } from '@/app/invite/page';
 
 import { useAuthContext } from './auth-context';
 import { TokenManager } from './token-manager';
@@ -38,6 +38,63 @@ function AuthLoadingFallback() {
 }
 
 /**
+ * Guest-only render gate.
+ *
+ * Lives in a child component because its useSearchParams call is what
+ * suspends (or client-side-bails-out) the closest Suspense boundary during
+ * prerender — keeping it out of RouteGuard means protected pages never
+ * lose their server-rendered shell to that bailout and hydrate cleanly.
+ */
+function GuestOnlyGate({
+	isLoading,
+	isAuthenticated,
+	mounted,
+	ctx,
+	children,
+}: {
+	isLoading: boolean;
+	isAuthenticated: boolean;
+	mounted: boolean;
+	ctx: Parameters<typeof getHomePath>[0];
+	children: React.ReactNode;
+}) {
+	const searchParams = useSearchParams();
+
+	// Check for invite token - if present, show loading while checking auth or if authenticated
+	const inviteToken = searchParams?.get(INVITE_QUERY_PARAMS.INVITE_TOKEN);
+	if (inviteToken) {
+		// If still loading auth state, show loading to prevent flash
+		if (isLoading) {
+			return <AuthLoadingFallback />;
+		}
+		// If authenticated, show loading while redirecting
+		if (isAuthenticated) {
+			return <AuthLoadingFallback />;
+		}
+		// If not authenticated and not loading, allow register page to show
+	}
+
+	// Storage reads are browser-only — until mounted, render the same tree
+	// the server rendered so hydration matches; the gate re-runs after mount.
+	if (!mounted) {
+		return <>{children}</>;
+	}
+	// If there's no token at all, render immediately without waiting for auth loading
+	if (isLoading && !TokenManager.hasToken(ctx)) {
+		return <>{children}</>;
+	}
+	// If there might be a token, wait for auth state to be determined
+	if (isLoading) {
+		return <AuthLoadingFallback />;
+	}
+	// Prevent flash of guest content when authenticated
+	if (isAuthenticated) {
+		return <AuthLoadingFallback />;
+	}
+	return <>{children}</>;
+}
+
+/**
  * Route guard component that handles authentication routing.
  *
  * Route access types are defined centrally in app-routes.ts:
@@ -53,7 +110,6 @@ function AuthLoadingFallback() {
 export function RouteGuard({ children }: { children: React.ReactNode }) {
 	const { isAuthenticated, isLoading } = useAuthContext();
 	const pathname = usePathname();
-	const searchParams = useSearchParams();
 	const router = useRouter();
 	// Browser storage only exists after mount: any render that branches on it
 	// (TokenManager.hasToken below) would let SSR and the first client render
@@ -69,20 +125,21 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
 	const redirectTarget = getRouteRedirectTarget(pathname);
 	const requiredPermission = getRouteRequiredPermission(pathname);
 
-	const redirectParam = useMemo(() => {
-		const raw = searchParams?.get('redirect');
-		if (!raw) return null;
-		if (!raw.startsWith('/')) return null;
-		if (raw.startsWith('//')) return null;
-		return raw;
-	}, [searchParams]);
-
 	// Get app membership for permission checks (only when authenticated and permission required)
 	const { isAppAdmin, isLoading: isAppMembershipLoading } = useCurrentUserAppMembership({
 		enabled: isAuthenticated && requiredPermission === 'app-admin',
 	});
 
 	useEffect(() => {
+		// Child effects run before AuthProvider's mount effect, so until
+		// mounted flips, isLoading/isAuthenticated still hold their initial
+		// unauthenticated values — redirecting on them would bounce a
+		// signed-in hard load to / before the session check starts (the
+		// loading gate initializeAuth sets lives in the parent).
+		if (!mounted) {
+			return;
+		}
+
 		// Handle redirect routes immediately
 		if (accessType === 'redirect' && redirectTarget) {
 			router.replace(redirectTarget);
@@ -102,19 +159,23 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
 
 		// Handle guest-only routes - only redirect if definitely authenticated
 		if (accessType === 'guest-only' && isAuthenticated) {
-			// Check for invite_token in query params - prioritize invite flow
-			const inviteToken = searchParams?.get(INVITE_QUERY_PARAMS.INVITE_TOKEN);
-			if (inviteToken) {
-				// Preserve all query params when redirecting to invite page
-				router.replace(`/invite${buildQueryString(searchParams)}` as Route);
+			// Effects run client-side only, so the address bar is a safe
+			// source for the query params the redirect needs.
+			const search = new URLSearchParams(window.location.search);
+			// Invite links win: keep every query param on the trip to /invite.
+			if (search.has(INVITE_QUERY_PARAMS.INVITE_TOKEN)) {
+				router.replace(`/invite${window.location.search}` as Route);
 				return;
 			}
+			const raw = search.get('redirect');
+			const redirectParam =
+				raw && raw.startsWith('/') && !raw.startsWith('//') ? raw : null;
 			const target = redirectParam || getHomePath(ctx);
 			router.replace(target as Route);
 			return;
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [isAuthenticated, isLoading, accessType, pathname, redirectTarget, redirectParam]);
+	}, [isAuthenticated, isLoading, accessType, pathname, redirectTarget, mounted]);
 
 	// Handle redirect routes - show loading while redirecting
 	if (accessType === 'redirect') {
@@ -162,37 +223,16 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
 
 	// For guest-only routes, optimize loading state
 	if (accessType === 'guest-only') {
-		// Check for invite token - if present, show loading while checking auth or if authenticated
-		const inviteToken = searchParams?.get(INVITE_QUERY_PARAMS.INVITE_TOKEN);
-		if (inviteToken) {
-			// If still loading auth state, show loading to prevent flash
-			if (isLoading) {
-				return <AuthLoadingFallback />;
-			}
-			// If authenticated, show loading while redirecting
-			if (isAuthenticated) {
-				return <AuthLoadingFallback />;
-			}
-			// If not authenticated and not loading, allow register page to show
-		}
-
-		// Storage reads are browser-only — until mounted, render the same tree
-		// the server rendered so hydration matches; the guard re-runs after mount.
-		if (!mounted) {
-			return <>{children}</>;
-		}
-		// If there's no token at all, render immediately without waiting for auth loading
-		if (isLoading && !TokenManager.hasToken(ctx)) {
-			return <>{children}</>;
-		}
-		// If there might be a token, wait for auth state to be determined
-		if (isLoading) {
-			return <AuthLoadingFallback />;
-		}
-		// Prevent flash of guest content when authenticated
-		if (isAuthenticated) {
-			return <AuthLoadingFallback />;
-		}
+		return (
+			<GuestOnlyGate
+				isLoading={isLoading}
+				isAuthenticated={isAuthenticated}
+				mounted={mounted}
+				ctx={ctx}
+			>
+				{children}
+			</GuestOnlyGate>
+		);
 	}
 
 	return <>{children}</>;
@@ -204,6 +244,6 @@ export const GuestRoute = RouteGuard;
 export const RouteProtectionWrapper = RouteGuard;
 export const AuthenticationWrapper = RouteGuard;
 
-// Legacy utility functions for backward compatibility
+// Legacy utility functions for backward compatibility (deprecated)
 export const shouldProtectRoute = (pathname: string): boolean => getRouteAccessType(pathname) === 'protected';
 export const shouldBeGuestOnly = (pathname: string): boolean => getRouteAccessType(pathname) === 'guest-only';
