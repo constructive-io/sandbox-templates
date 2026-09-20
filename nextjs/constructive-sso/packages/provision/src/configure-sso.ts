@@ -149,32 +149,85 @@ async function main(): Promise<void> {
 
   // The sign-in lane runs as the `anonymous` role (the sync gateway's default
   // for a request without a credential). Pool-baked tenants carry no anonymous
-  // grants, so the lane would fail at the first procedure call — grant the
-  // auth surface the way the sink seed does.
+  // grants, so the lane would fail at the first procedure call.
+  //
+  // The grant set mirrors what the platform module ships for the same lane:
+  // USAGE on the tenant's schemas, EXECUTE on the auth procedures the lane
+  // calls — an explicit list, because upstream grants anonymous per procedure,
+  // never by wildcard — and no table privileges at all. An earlier version of
+  // this block granted DML on every table and EXECUTE on every function in
+  // every prefixed schema, so this pass first strips everything anonymous
+  // holds in the tenant (REVOKE ... IN SCHEMA) and then applies the narrow
+  // set — re-running the script on such a tenant heals it.
   //
   // A DO block cannot take bind parameters, so the (trusted, DB-derived)
   // schema prefix is interpolated directly — single quotes escaped defensively.
   const prefix = providerSchema.split('-').slice(0, 3).join('-');
   const esc = (s: string): string => s.replace(/'/g, "''");
   const likeAll = esc(`${prefix}-%`);
-  const likeExclude = esc(`${prefix}-app-private%`);
+  const authPublic = esc(`${prefix}-auth-public`);
+  const authPrivate = esc(`${prefix}-auth-private`);
+  // The sign-in lane's procedures, by name: password/token/SMS/identity
+  // sign-in and sign-up, session helpers the runtime resolves on every
+  // request (current_user*), the OAuth start/callback pair, and the link
+  // tickets the SSO callback may mint and spend. The auth schemas hold
+  // admin-surface procedures too (rotate_identity_provider_app_secret,
+  // principal and credential management), which is exactly why the grant is
+  // a name list and not everything-in-schema: a lane added later fails
+  // closed until its procedure is named here.
+  const lane = [
+    'authenticate',
+    'authenticate_strict',
+    'complete_mfa_challenge',
+    'consume_app_oauth_request',
+    'consume_app_pending_identity_link',
+    'create_app_pending_identity_link',
+    'current_ip_address',
+    'current_user',
+    'current_user_agent',
+    'current_user_id',
+    'forgot_password',
+    'link_identity',
+    'refresh_access_token',
+    'request_magic_link',
+    'reset_password',
+    'send_sms_otp',
+    'sign_in',
+    'sign_in_cross_origin',
+    'sign_in_identity',
+    'sign_in_magic_link',
+    'sign_in_sms_otp',
+    'sign_out',
+    'sign_up',
+    'sign_up_identity',
+    'sign_up_magic_link',
+    'sign_up_sms',
+    'start_app_oauth_request',
+    'verify_email',
+    'verify_idp',
+    'verify_totp'
+  ].map(esc);
   await client.query(`
     DO $$
     DECLARE
-      r record;
+      s record;
+      f record;
     BEGIN
-      FOR r IN
+      FOR s IN
+        SELECT nspname AS schema FROM pg_namespace WHERE nspname LIKE '${likeAll}'
+      LOOP
+        EXECUTE format('REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA %I FROM anonymous', s.schema);
+        EXECUTE format('REVOKE ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA %I FROM anonymous', s.schema);
+        EXECUTE format('REVOKE ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA %I FROM anonymous', s.schema);
+        EXECUTE format('GRANT USAGE ON SCHEMA %I TO anonymous', s.schema);
+      END LOOP;
+      FOR f IN
         SELECT n.nspname AS s, p.proname AS f, pg_get_function_identity_arguments(p.oid) AS args
         FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
-        WHERE n.nspname LIKE '${likeAll}'
-          AND n.nspname NOT LIKE '${likeExclude}'
+        WHERE n.nspname IN ('${authPublic}', '${authPrivate}')
+          AND p.proname = ANY (ARRAY['${lane.join("','")}']::name[])
       LOOP
-        EXECUTE format('GRANT EXECUTE ON FUNCTION %I.%I(%s) TO anonymous', r.s, r.f, r.args);
-      END LOOP;
-      FOR r IN
-        SELECT schemaname AS s, tablename AS t FROM pg_tables WHERE schemaname LIKE '${likeAll}'
-      LOOP
-        EXECUTE format('GRANT SELECT, INSERT, UPDATE, DELETE ON %I.%I TO anonymous', r.s, r.t);
+        EXECUTE format('GRANT EXECUTE ON FUNCTION %I.%I(%s) TO anonymous', f.s, f.f, f.args);
       END LOOP;
     END $$;
   `);
