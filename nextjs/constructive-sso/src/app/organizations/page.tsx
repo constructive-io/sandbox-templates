@@ -33,15 +33,18 @@ export default function OrganizationsPage() {
 
 	const { availableOrgs: organizations, isLoading: isOrgsLoading } = useEntityParams();
 	const { refetch: refetchOrganizations } = useOrganizations();
-	// Creating an organization inserts a type=2 user through the auth
-	// endpoint; the DB gate (auth_ins_insert_chk) requires the acting
-	// principal's ACTIVE app membership to carry the create_entity
-	// capability — today only owner/admin memberships do. Hide the UI for
-	// everyone else so the button never offers an action the DB refuses.
-	const { isAppOwner, isAppAdmin, isLoading: isMembershipLoading } = useCurrentUserAppMembership();
+	// Creating an organization inserts a type=2 user; the DB gate
+	// (auth_ins_insert_chk) requires the acting principal's ACTIVE app
+	// membership to carry the create_entity capability. configure-orgs
+	// grants that capability to every member by default, so the button
+	// tracks membership activity — the DB stays authoritative and refuses
+	// the insert for any member that somehow lacks the bit. (The GraphQL
+	// AppMembership type does not expose the capability columns, so the
+	// bit itself cannot be read here.)
+	const { isActive, isLoading: isMembershipLoading } = useCurrentUserAppMembership();
 	// Hidden while the membership loads so the button never flashes for users
-	// who will turn out to lack the capability.
-	const canCreateOrganization = !isMembershipLoading && (isAppOwner || isAppAdmin);
+	// whose membership turns out inactive.
+	const canCreateOrganization = !isMembershipLoading && isActive;
 
 	const handleCreateClick = () => {
 		stack.push({
