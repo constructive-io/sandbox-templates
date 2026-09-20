@@ -123,6 +123,14 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
 
 	// For protected routes, defer loading UI to the shell
 	if (accessType === 'protected') {
+		// Same hydration rule as guest-only below: the server renders children
+		// here (its isLoading is true), while the client auth store starts
+		// unauthenticated with isLoading=false — branching on it before mount
+		// is the hydration mismatch that regenerates the tree and bounces a
+		// signed-in hard load to /.
+		if (!mounted) {
+			return <>{children}</>;
+		}
 		if (isLoading) {
 			return <>{children}</>;
 		}
