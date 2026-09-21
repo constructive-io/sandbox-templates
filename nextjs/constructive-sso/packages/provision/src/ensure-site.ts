@@ -17,8 +17,6 @@
  *   3. canonical_url in site_metadata (oauth_start composes the callback from
  *      it — SSO_SITE_ORIGIN_UNKNOWN without it);
  *   4. sites_install_mantra — the preset paths;
- *   4b. the tenant's invocation plane (see the block comment — upstream gap
- *       remainder, raised with Dan);
  *   5. sync lanes + sso/auth_flows lanes via one install_route_bindings custom
  *      doc, each carrying the typed `anonymous` flag the manifest declares
  *      (the gateway requires the route-level flag AND the definition's
@@ -221,78 +219,18 @@ async function main(): Promise<void> {
   );
   console.log(`mantra: installed preset '${MANTRA_PRESET_SLUG}' (report: ${JSON.stringify(mantraReport.rows[0])})`);
 
-  // ---- 4b. The tenant's invocation plane — upstream gap remainder. ----
-  // (Status at fd0bf6e6fdc: the anonymous-ledger gap and the entity_field
-  // overwrite are FIXED upstream — definitions declare anonymous_callable, the
-  // invocation carries route_binding_id, and the tracker's scopeKeyOwner stops
-  // actor attribution from reaching the scope-key column. The old workaround
-  // block (entity_field NULL updates, grants to anonymous, local_dev policies,
-  // tenant-local registration of who_am_i/sign_out) is GONE — tenant-local
-  // definitions would shadow the platform ones and defeat the frame chain.)
-  // What remains: request-role invocation creation (create_invocation.sql,
-  // insertRunningAsRequest) still expects a function_invocation_module at
-  // exactly the addressed database and scope, and no preset provisions one for
-  // a pure consumer tenant. Provision the bare plane — generated shapes
-  // untouched — and raise the provisioning gap upstream (Dan ask #3).
-  await tx(client, superClaims, async () => {
-    const fm = await client.query(
-      `SELECT 1 FROM metaschema_modules_public.function_module WHERE database_id = $1 AND scope = 'database'`,
-      [tenantDatabaseId]
-    );
-    if (fm.rowCount === 0) {
-      await client.query(
-        `INSERT INTO metaschema_modules_public.function_module (database_id, scope) VALUES ($1, 'database')`,
-        [tenantDatabaseId]
-      );
-    }
-    // Idempotent per (database_id, scope); the insert trigger generates the
-    // ledger tables with their own grants/policies — never mutate them.
-    await client.query(
-      `SELECT metaschema_generators.get_or_create_function_invocation_module(
-         v_database_id := $1, v_scope := 'database', v_prefix := '',
-         v_entity_table_id := NULL,
-         v_invocations_table_name := 'function_invocations',
-         v_execution_logs_table_name := 'function_execution_logs',
-         v_attempts_table_name := 'function_invocation_attempts',
-         v_policies := NULL, v_provisions := NULL)`,
-      [tenantDatabaseId]
-    );
-    // The per-tenant sync verb. Upstream emits <invocations>_create_sync only
-    // once BOTH planes of the same scope exist — its module triggers call
-    // invocation_sync_verb and it emits on the second arrival. A pure consumer
-    // tenant routes through the SHARED routing_public plane, so that second
-    // (per-tenant routes plane) arrival never happens and the request-role
-    // insert surface never appears in the tenant's schema: the gateway's
-    // anonymous lanes then fail with "function ..._create_sync(...) does not
-    // exist" (verified 2026-09-01 on fd0bf6e6fdc). Emit it directly, pointed
-    // at the shared routes plane and the shared functions catalog — the
-    // emitted body proves an anonymous caller's route_binding_id against
-    // routing_public.routes either way. Idempotent (the generator's pg_proc
-    // check makes re-runs no-ops). Raise alongside the plane gap (Dan ask #3).
-    const verb = await client.query(
-      `SELECT metaschema_generators.invocation_sync_verb(
-           database_id := $1, scope := 'database',
-           invocations_table_id := im.invocations_table_id,
-           invocations_key := im.entity_field,
-           routes_table_id := rm.routes_table_id,
-           routes_key := rm.entity_field,
-           functions_catalog_table_id := cat.id)
-       FROM metaschema_modules_public.function_invocation_module im
-       CROSS JOIN metaschema_modules_public.route_module rm
-       CROSS JOIN (
-         SELECT t.id FROM metaschema_public.table t
-         JOIN metaschema_public.schema s ON s.id = t.schema_id
-         WHERE s.name = 'catalog_private' AND t.name = 'functions'
-       ) cat
-       WHERE im.database_id = $1 AND im.scope = 'database'
-         AND rm.scope = 'database' AND rm.public_schema_name = 'routing_public'`,
-      [tenantDatabaseId]
-    );
-    if (verb.rowCount === 0) {
-      throw new Error('invocation_sync_verb emission matched no planes — shared routing_public plane missing');
-    }
-  });
-  console.log(`invocation plane: database-scope function + invocation modules ready, sync verb emitted (generated shapes untouched)`);
+  // ---- 4b. REMOVED 2026-09-16 — the tenant's invocation plane. ----
+  // Upstream aab3351a4be made the database-scope invocation plane a SHARED
+  // surface: a tenant with no registration of its own is served by the single
+  // shared ledger, exactly like the routing plane (resolveInvocationModule →
+  // loadSurface; regression test invocation.test.ts:321). The block that
+  // provisioned a tenant-local function_module + function_invocation_module
+  // and emitted a per-tenant sync verb was a workaround for the pre-fix
+  // loader and is gone; verified by the clean-tenant check (a throwaway
+  // tenant provisioned WITHOUT this block writes sync invocations through
+  // the shared plane). Do NOT drop the DB rows of tenants provisioned while
+  // the block ran — their local registrations keep winning the surface
+  // lookup, which is correct.
 
   // ---- 5. Sync + sso lanes, one custom doc. ----
   // Every flag mirrors the task manifest's `anonymousAccess` (the definition
@@ -307,6 +245,12 @@ async function main(): Promise<void> {
     { path: '/auth/sign-in', target: 'function', task_identifier: 'auth_flows:sign_in', anonymous: true },
     { path: '/auth/forgot-password', target: 'function', task_identifier: 'auth_flows:forgot_password', anonymous: true },
     { path: '/auth/reset-password', target: 'function', task_identifier: 'auth_flows:reset_password', anonymous: true },
+    // Phone sign-in: the JSON lane that asks for a code (sync channel) and the
+    // gateway-served form that spends it (page channel). Both manifest
+    // anonymousAccess, like the password lanes above. The tenant's send needs
+    // database-scope SMS config/secrets — configure-sms provisions those.
+    { path: '/auth/send-sms-otp', target: 'function', task_identifier: 'auth_flows:send_sms_otp', anonymous: true },
+    { path: '/auth/sms-code', target: 'function', task_identifier: 'auth_flows:sms_code', anonymous: true },
     { path: '/start', target: 'function', task_identifier: 'sso:start', anonymous: true },
     { path: '/sso/callback', target: 'function', task_identifier: 'sso:callback', anonymous: true },
     { path: '/auth/link', target: 'function', task_identifier: 'sso:link' },

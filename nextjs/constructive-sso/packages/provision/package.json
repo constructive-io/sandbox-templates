@@ -6,6 +6,8 @@
   "scripts": {
     "create-db": "tsx src/provision-tenant.ts",
     "provision": "tsx src/configure-sso.ts",
+    "configure-sms": "tsx src/configure-sms.ts",
+    "configure-orgs": "tsx src/configure-orgs.ts",
     "ensure-site": "tsx src/ensure-site.ts",
     "reset-db": "tsx src/reset-db.ts",
     "build": "echo 'No build required'",

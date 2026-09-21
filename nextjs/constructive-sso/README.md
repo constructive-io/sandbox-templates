@@ -47,13 +47,15 @@ Two parts:
 | 0 | Full teardown (optional) | A | no — manual |
 | 1 | `fun up --alt-ports` + port-forward + DNS guard | A | no — prerequisite |
 | 2 | Owner login + create the tenant | B | **yes** |
-| 3 | Rate-limiter stack | B | **yes** |
-| 4 | Membership seed (LEGACY only) | B | **yes** — auto-skipped in owner mode |
-| 5 | `fun register` + `ensure-site` (incl. root `/` → app redirect) | B | **yes** |
-| 5b | Publish site homepage (`index.html` → site bucket) | B | **yes** |
-| 6 | Bare-`localhost` ingress rule | B | **yes** |
-| 7 | Configure the provider | B | **yes** |
-| 8 | Start the app (`pnpm dev`) | B | **yes** — script's last step |
+| 3 | Membership seed (LEGACY only) | B | **yes** — auto-skipped in owner mode |
+| 4 | `fun register` + `ensure-site` (incl. root `/` → app redirect) | B | **yes** |
+| 4b | Publish site homepage (`index.html` → site bucket) | B | **yes** |
+| 5 | Bare-`localhost` ingress rule | B | **yes** |
+| 6 | Configure the provider | B | **yes** |
+| 7 | Start the app (`pnpm dev`) | B | **yes** — script's last step |
+
+(The old "rate-limiter stack" step is gone: the `b2b:storage` preset ships
+plans/billing/rate_limit_meters since upstream `fac0698a8ce`, 2026-09-08.)
 
 So the short path is: do Part A, put `OWNER_EMAIL`/`OWNER_PASSWORD` (and the
 `OAUTH_*` values) in `.env`, then one command:
@@ -159,31 +161,7 @@ capability `ensure-site` gates on) automatically, and the tenant's hostnames +
 > shape needs the `ensure-owner-self-membership` seed (below). Don't use it
 > for new setups.
 
-#### 3. Provision the rate-limiter stack (required for every NEW tenant)
-
-`ensure-site` fails with `INVOCATION_RATE_LIMIT_NOT_PROVISIONED` without this:
-upstream's `invocation_sync_verb` now hard-requires a tenant-scope
-`rate_limit_meters_module`, which the `b2b:storage` warm preset does not ship
-(it needs `plans_module` + `billing_module` first). One call, keyed by the
-`DATABASE_ID` step 2 just wrote:
-
-```bash
-cd sandbox-templates/nextjs/constructive-sso
-set -a; source .env; set +a
-psql -h localhost -p 15432 -U postgres -d constructive-functions-db1 -c "
-SELECT metaschema_generators.provision_database_modules(
-  v_database_id := '$DATABASE_ID'::uuid,
-  v_public_schema_id := (SELECT id FROM metaschema_public.schema WHERE database_id='$DATABASE_ID'::uuid AND schema_name='public'),
-  v_private_schema_id := (SELECT id FROM metaschema_public.schema WHERE database_id='$DATABASE_ID'::uuid AND schema_name='private'),
-  v_modules := '[\"plans_module\",\"billing_module\",\"rate_limit_meters_module\"]'::jsonb);"
-```
-
-Expected output: `{plans_module,billing_module,rate_limit_meters_module}`.
-The module entries must be JSON **strings** — `{"name":...}` objects are
-silently ignored. (Reported for upstream: this belongs in the preset or
-`ensure-site`, not in a runbook.)
-
-#### 4. Seed the owner's capability (LEGACY — machine-owned tenants only)
+#### 3. Seed the owner's capability (LEGACY — machine-owned tenants only)
 
 **Not needed for owner-mode tenants** (step 2): the owner bootstrap mints the
 owner's self-membership automatically. Only the legacy machine-owner shape
@@ -194,7 +172,7 @@ bypass of the platform boundary, kept solely for that path:
 pnpm run ensure-owner-self-membership
 ```
 
-#### 5. Register the shared functions, then ensure the tenant's site + routes
+#### 4. Register the shared functions, then ensure the tenant's site + routes
 
 ```bash
 cd constructive-db/compute
@@ -221,7 +199,7 @@ acting principal; register auto-detects the live cluster for secret seeding).
 Expected output: `… site 'myapp' provisioned, mantra + sync lanes bound, 23
 route(s) resolving on localhost`.
 
-#### 6. Add the bare-`localhost` rule to the gateway ingress
+#### 5. Add the bare-`localhost` rule to the gateway ingress
 
 `fun up` registers `*.localhost` / `app.localhost`; the provider callback on
 bare `localhost` may need an explicit rule (the route reconciler has a
@@ -234,7 +212,7 @@ kubectl get ingress constructive-route-hosts -n constructive-platform-default -o
   -p='[{"op":"add","path":"/spec/rules/-","value":{"host":"localhost","http":{"paths":[{"backend":{"service":{"name":"compute-sync-svc","port":{"number":8789}}},"path":"/","pathType":"Prefix"}]}}}]'
 ```
 
-#### 7. Configure the provider
+#### 6. Configure the provider
 
 ```bash
 cd sandbox-templates/nextjs/constructive-sso
@@ -246,7 +224,7 @@ secret into the tenant's encrypted store, sets the auth settings (host-only
 cookie, `/login` error path), and grants the anonymous role the sign-in lane
 needs.
 
-#### 8. Start the app
+#### 7. Start the app
 
 ```bash
 pnpm dev
@@ -269,8 +247,8 @@ curl -s -o /dev/null -w "%{http_code} %{redirect_url}\n" \
 ```
 
 > **Shortcut:** everything in Part B is chained by `pnpm run local:bringup` —
-> owner-login → create-db → rate-limiter stack → (legacy seed, auto-skipped
-> in owner mode) → register + ensure-site → ingress → provision → `pnpm dev`.
+> owner-login → create-db → (legacy seed, auto-skipped in owner mode) →
+> register + ensure-site → ingress → provision → `pnpm dev`.
 > Prerequisites: Part A done, and `OWNER_EMAIL`/`OWNER_PASSWORD` in `.env`.
 
 ## The two planes (auth surfaces vs. GraphQL data)
@@ -344,6 +322,19 @@ pnpm run promote-owner                    # promotes the newest human user
 PROMOTE_OWNER_EMAIL=you@example.com pnpm run promote-owner   # or pick by email
 ```
 
+### Let every member create organizations
+
+By default only the owner/admin can create organizations: fresh members
+arrive unapproved + unverified (their membership is inactive, so the RLS
+guards can't see them) and the default capability panel has no
+`create_entity` bit (the switch the users-table INSERT policy demands for
+organization rows). `configure-orgs` flips both defaults so every NEW
+member can create orgs (idempotent, data-only; run after promote-owner):
+
+```bash
+pnpm run configure-orgs
+```
+
 ## Re-runs / restarts
 
 - **Only mantra UI code changed?** No teardown needed. Rebuild the combined
@@ -369,8 +360,9 @@ PROMOTE_OWNER_EMAIL=you@example.com pnpm run promote-owner   # or pick by email
   `pnpm run local:bringup`.
 - **Docker restart only, pods still Running:** just re-run the port-forward
   and `pnpm run local:bringup`.
-- To wipe the tenant and start over: `pnpm run reset-db` (then re-run steps
-  3–5 — the rate-limiter stack and capability seed are per-tenant).
+- To wipe the tenant and start over: `pnpm run reset-db` (then re-run steps 3–4
+  — the legacy capability seed, site routes and invocation plane are
+  per-tenant).
 
 ## Debugging
 
@@ -405,7 +397,7 @@ Gateway logs: `kubectl logs deploy/compute-sync -n constructive-platform-default
 | `src/app/api/auth/sign-out/`  | BFF: revoke the session                                      |
 | `packages/provision`          | `create-db` (tenant) / `ensure-site` (site + routes) / `provision` (provider) / `promote-owner` / `reset-db` |
 | `packages/export`             | `export:graphql` (legacy GraphQL export; not used by SSO)    |
-| `scripts/local-bringup.sh`    | runs ALL of Part B: owner-login → create-db → rate-limiter stack → legacy seed (owner mode skips) → register + ensure-site → ingress → provision → dev; plus the CoreDNS guard |
+| `scripts/local-bringup.sh`    | runs ALL of Part B: owner-login → create-db → legacy seed (owner mode skips) → register + ensure-site → ingress → provision → dev; plus the CoreDNS guard |
 | `scripts/mock-oauth-server.ts`| local mock OAuth server for Google-free testing (`:4010`)    |
 
 ## Disclaimer
