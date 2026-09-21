@@ -13,25 +13,27 @@
 #      OWNER_EMAIL/OWNER_PASSWORD in .env) and provision the tenant owned by
 #      that user (b2b:storage warm claim). Ownership follows the caller —
 #      never platform-bootstrap.
-#   3. Provision the rate-limiter stack (plans/billing/rate_limit_meters).
-#      Upstream requirement for the sync-verb generator; not yet in the
-#      b2b:storage preset. Idempotent.
-#   4. LEGACY ONLY (no OWNER_USER_ID): seed the machine owner's
+#   3. LEGACY ONLY (no OWNER_USER_ID): seed the machine owner's
 #      self-membership. Owner-mode tenants get it from the owner bootstrap —
 #      this step skips itself.
-#   5. Register the shared functions at the platform (fun register --apply
+#   4. Register the shared functions at the platform (fun register --apply
 #      --as platform-bootstrap — platform-scope registration is that
 #      principal's job) and ensure the tenant's site + routes on 'localhost'
 #      (provision ensure-site: site verb + mantra install + sync lanes,
 #      consuming the platform's shared images via the frame chain. NO
 #      per-tenant registrations). Includes repointing the site root '/' at the
 #      app origin (redirect row) so mantra post-auth landings hop into :3000.
-#   5b. Publish the site homepage: wait for the bucket's physical provisioning
+#   4b. Publish the site homepage: wait for the bucket's physical provisioning
 #       (storage:provision_bucket, fixed upstream 5e9605e2c50) and upload
 #       assets/homepage/index.html — an empty bucket serves Not Found at '/'.
-#   6. Add the 'localhost' rule to the sync-gateway ingress (checks first).
-#   7. Configure the SSO provider (real Google from OAUTH_* in .env) + the
+#   5. Add the 'localhost' rule to the sync-gateway ingress (checks first).
+#   6. Configure the SSO provider (real Google from OAUTH_* in .env) + the
 #      anonymous grants the sign-in lane needs, then start Next.js on :3000.
+#
+# NOTE: the old "provision the rate-limiter stack" step is gone — the
+# b2b:storage preset ships plans/billing/rate_limit_meters since upstream
+# fac0698a8ce (2026-09-08). Tenants created before that date were provisioned
+# manually once and need nothing.
 #
 # The CNC GraphQL server and the mock OAuth server are NOT part of this
 # bring-up: the SSO lane is served by functions/sso + functions/auth through
@@ -52,7 +54,7 @@ PGHOST="${PGHOST:-localhost}"
 PGPORT="${PGPORT:-15432}"
 PGDATABASE="${PGDATABASE:-constructive-functions-db1}"
 
-echo "[1/7] Verifying the compute platform..."
+echo "[1/6] Verifying the compute platform..."
 if ! psql -h "$PGHOST" -p "$PGPORT" -U "${PGUSER:-postgres}" -d "$PGDATABASE" -c 'select 1' >/dev/null 2>&1; then
   echo "  ✗ Platform Postgres not reachable on :$PGPORT — run: cd constructive-db/compute && fun up --alt-ports"
   exit 1
@@ -81,7 +83,7 @@ PY
   echo "  ✓ CoreDNS forward re-pointed to public DNS (Docker Desktop proxy guard)"
 fi
 
-echo "[2/7] Establishing the owner and provisioning the tenant..."
+echo "[2/6] Establishing the owner and provisioning the tenant..."
 (cd "$ROOT_DIR" && pnpm run owner-login)
 # owner-login may have rewritten OWNER_USER_ID in .env; the values exported
 # above are stale by now, and dotenv never overrides an exported variable —
@@ -104,35 +106,14 @@ if [ -z "${DATABASE_ID:-}" ]; then
   exit 1
 fi
 
-echo "[3/7] Provisioning the rate-limiter stack (plans/billing/meters)..."
-# invocation_sync_verb hard-requires a tenant-scope rate_limit_meters_module
-# before emitting the sync-lane writer; b2b:storage does not ship it (reported
-# upstream). Guarded idempotency: the module row's insert is ON CONFLICT DO
-# NOTHING, but re-provisioning an already-meters-equipped tenant trips a
-# table-registration unique violation inside the generator — so only provision
-# when the tenant has no working meters module yet.
-psql -h "$PGHOST" -p "$PGPORT" -U "${PGUSER:-postgres}" -d "$PGDATABASE" -v ON_ERROR_STOP=1 -Atc "
-SELECT count(*) FROM metaschema_modules_public.rate_limit_meters_module
- WHERE database_id = '${DATABASE_ID}'::uuid
-   AND private_schema_id IS NOT NULL
-   AND check_rate_limit_function <> ''" \
-  | grep -qx 1 \
-  || psql -h "$PGHOST" -p "$PGPORT" -U "${PGUSER:-postgres}" -d "$PGDATABASE" -v ON_ERROR_STOP=1 -c "
-SELECT metaschema_generators.provision_database_modules(
-  v_database_id := '${DATABASE_ID}'::uuid,
-  v_public_schema_id := (SELECT id FROM metaschema_public.schema WHERE database_id='${DATABASE_ID}'::uuid AND schema_name='public'),
-  v_private_schema_id := (SELECT id FROM metaschema_public.schema WHERE database_id='${DATABASE_ID}'::uuid AND schema_name='private'),
-  v_modules := '[\"plans_module\",\"billing_module\",\"rate_limit_meters_module\"]'::jsonb);" >/dev/null
-echo "  ✓ rate-limit meters ready"
-
 if [ -z "${OWNER_USER_ID:-}" ]; then
-  echo "[4/7] LEGACY machine-owner mode: seeding the owner's self-membership..."
+  echo "[3/6] LEGACY machine-owner mode: seeding the owner's self-membership..."
   (cd "$ROOT_DIR/packages/dev-local" && pnpm run ensure-owner-self-membership)
 else
-  echo "[4/7] Owner mode (OWNER_USER_ID set) — membership seed skipped (owner bootstrap mints it)"
+  echo "[3/6] Owner mode (OWNER_USER_ID set) — membership seed skipped (owner bootstrap mints it)"
 fi
 
-echo "[5/7] Registering shared functions + ensuring the tenant's site/routes on 'localhost'..."
+echo "[4/6] Registering shared functions + ensuring the tenant's site/routes on 'localhost'..."
 # --as platform-bootstrap: fun register --apply requires an acting principal;
 # platform-scope registration is exactly that principal's job (it never gains
 # org reach). register auto-detects the live cluster context for its secret
@@ -165,11 +146,13 @@ if [ -z "$PHYS" ]; then
   echo "  ✗ bucket '${SITE_BUCKET_KEY}' has no physical_name after 60s — check app_jobs.jobs for storage:provision_bucket"
   exit 1
 fi
-mc alias set localminio "http://localhost:${MINIO_API_PORT:-19000}" "${MINIO_ROOT_USER:-minioadmin}" "${MINIO_ROOT_PASSWORD:-minioadmin}" >/dev/null
+# Upstream's RustFS floor credentials (k8s/local/secrets.yaml): changed from
+# minioadmin/minioadmin to constructive/constructive-dev-secret.
+mc alias set localminio "http://localhost:${MINIO_API_PORT:-19000}" "${S3_ACCESS_KEY:-constructive}" "${S3_SECRET_KEY:-constructive-dev-secret}" >/dev/null
 mc cp "$ROOT_DIR/assets/homepage/index.html" "localminio/${PHYS}/index.html"
 echo "  ✓ homepage published to bucket '${PHYS}'"
 
-echo "[6/7] Adding the 'localhost' rule to the sync-gateway ingress..."
+echo "[5/6] Adding the 'localhost' rule to the sync-gateway ingress..."
 if ! kubectl get ingress constructive-route-hosts -n constructive-platform-default >/dev/null 2>&1; then
   echo "  ✗ ingress constructive-route-hosts not found — is the platform up?"
   exit 1
@@ -182,7 +165,7 @@ if ! kubectl get ingress constructive-route-hosts -n constructive-platform-defau
 fi
 echo "  ✓ localhost -> compute-sync-svc"
 
-echo "[7/7] Configuring the SSO provider and starting Next.js on :3000..."
+echo "[6/6] Configuring the SSO provider and starting Next.js on :3000..."
 (cd "$ROOT_DIR/packages/provision" && pnpm run provision)
 
 cd "$ROOT_DIR"

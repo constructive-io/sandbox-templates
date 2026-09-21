@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 
 import { SignInCard, type SignInResult } from '@/blocks/auth/sign-in-card/sign-in-card';
 import { AuthScreenLayout } from '@/components/auth/auth-screen-layout';
+import { toLocalPath } from '@/lib/sso/local-path';
 
 /**
  * /auth/custom-complete — the landing the sso return leg always points at.
@@ -73,7 +74,19 @@ function CustomCompleteContent() {
 					const data = (await res.json()) as { signedIn?: boolean; mfaRequired?: boolean; error?: string };
 					if (data.mfaRequired) {
 						setLinkNotice('This account uses two-factor sign-in. Linking from a custom page is not available yet — sign in through the platform login page.');
-						return null;
+						// The non-fatal mfaRequired record (not null): a null return
+						// makes the card report rejected credentials on top of the
+						// notice.
+						return {
+							id: null,
+							userId: null,
+							accessToken: null,
+							accessTokenExpiresAt: null,
+							isVerified: true,
+							totpEnabled: false,
+							mfaRequired: true,
+							mfaChallengeToken: null
+						};
 					}
 					if (!res.ok || data.error) throw new Error(data.error ?? 'SIGN_IN_FAILED');
 					if (!data.signedIn) throw new Error('INVALID_CREDENTIALS');
@@ -104,13 +117,6 @@ function CustomCompleteContent() {
 			/>
 		</AuthScreenLayout>
 	);
-}
-
-function toLocalPath(value: string | null): string {
-	if (value && value.startsWith('/') && !value.startsWith('//') && !value.startsWith('/\\')) {
-		return value;
-	}
-	return '/';
 }
 
 export default function CustomCompletePage() {

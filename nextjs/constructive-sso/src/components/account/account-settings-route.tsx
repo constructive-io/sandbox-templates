@@ -22,6 +22,7 @@ import { useAppStore } from '@/store/app-store';
 import { PageHeaderWithIcon } from '@/components/shared/page-header-with-icon';
 
 import { EditPasswordCard } from './edit-password-card';
+import { PhoneNumberSection } from './phone-number-card';
 
 function DeleteAccountSection() {
 	const [isDeleting, setIsDeleting] = useState(false);
@@ -122,6 +123,9 @@ export function AccountSettingsRoute() {
 				/>
 
 				<div className='mt-12 space-y-16'>
+					{/* Phone Number Section */}
+					<PhoneNumberSection />
+
 					{/* Security Section */}
 					<section
 						className='animate-in fade-in-0 slide-in-from-bottom-4 fill-mode-backwards duration-500'

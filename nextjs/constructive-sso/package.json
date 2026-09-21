@@ -17,6 +17,8 @@
     "owner-login": "pnpm --filter @constructive-app/provision run owner-login",
     "reset-db": "pnpm --filter @constructive-app/provision run reset-db",
     "provision": "pnpm --filter @constructive-app/provision run provision",
+    "configure-sms": "pnpm --filter @constructive-app/provision run configure-sms",
+    "configure-orgs": "pnpm --filter @constructive-app/provision run configure-orgs",
     "ensure-site": "pnpm --filter @constructive-app/provision run ensure-site",
     "ensure-owner-self-membership": "pnpm --filter @constructive-app/dev-local run ensure-owner-self-membership",
     "export:graphql": "pnpm --filter @constructive-app/export run export:graphql",

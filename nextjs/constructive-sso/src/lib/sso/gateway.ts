@@ -14,6 +14,8 @@ import 'server-only';
 
 import { cookies } from 'next/headers';
 
+import { isLocalPath } from './local-path';
+
 const SESSION_COOKIE = 'constructive_session';
 
 /** Base URL of the compute sync gateway (Traefik → compute-sync). */
@@ -22,10 +24,8 @@ export const SSO_GATEWAY_URL = (process.env.SSO_GATEWAY_URL ?? 'http://localhost
 /** The app's own origin — where the provider's redirect lands (must be `localhost`). */
 export const APP_ORIGIN = process.env.APP_ORIGIN ?? 'http://localhost:3000';
 
-/** A local path the callback may send the browser to (`/…`, never `//…` or `/\\…`). */
-export function isLocalPath(value: string): boolean {
-  return value.startsWith('/') && !value.startsWith('//') && !value.startsWith('/\\') && !value.includes('\\');
-}
+/** A local path the callback may send the browser to — see ./local-path. */
+export { isLocalPath };
 
 /** The session credential the request carries, if any (cookie → bearer value). */
 export async function sessionCredential(): Promise<string | null> {
