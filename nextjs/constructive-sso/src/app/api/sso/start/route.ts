@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { readJsonBody, sameOriginGuard } from '@/lib/bff/request-guard';
-import { APP_ORIGIN, GatewayError, gatewayPost } from '@/lib/sso/gateway';
+import { APP_ORIGIN, GatewayError, gatewayPost, isLocalPath } from '@/lib/sso/gateway';
 
 interface StartBody {
   provider?: string;
@@ -45,7 +45,7 @@ export async function POST(req: Request): Promise<NextResponse> {
   // spending the ticket. Local path only; an absolute returnTo would be an
   // open redirect, and safeTarget on the platform side refuses one anyway.
   const next = body.returnTo ?? '/';
-  if (!next.startsWith('/') || next.startsWith('//') || next.startsWith('/\\')) {
+  if (!isLocalPath(next)) {
     return NextResponse.json({ error: 'returnTo must be a local path' }, { status: 400 });
   }
   const returnTo = `/auth/custom-complete?next=${encodeURIComponent(next)}`;

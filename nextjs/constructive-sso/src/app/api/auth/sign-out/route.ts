@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { clearSessionCookie } from '@/lib/bff/session-cookie';
+import { sameOriginGuard } from '@/lib/bff/request-guard';
 import { gatewayPost, sessionCredential } from '@/lib/sso/gateway';
 
 /**
@@ -8,7 +9,11 @@ import { gatewayPost, sessionCredential } from '@/lib/sso/gateway';
  * cookie. The clear uses the shared cookie helper so the attributes always
  * match how the password sign-in route mints them.
  */
-export async function POST(): Promise<NextResponse> {
+export async function POST(req: Request): Promise<NextResponse> {
+  // State-changing POST: same-origin only, like the other auth routes.
+  const csrf = sameOriginGuard(req);
+  if (csrf) return csrf;
+
   const session = await sessionCredential();
   const result = await gatewayPost<{ signedOut: boolean }>('/auth/sign-out', {}, session);
 

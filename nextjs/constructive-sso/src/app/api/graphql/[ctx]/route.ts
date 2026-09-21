@@ -28,15 +28,24 @@ export async function POST(
 
   const session = await sessionCredential();
   const body = await req.text();
-  const res = await fetch(upstream, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      ...(session ? { authorization: `Bearer ${session}` } : {}),
-    },
-    body,
-    cache: 'no-store',
-  });
+  // Timeout + sanitized failure, mirroring gatewayPost: a hung or unreachable
+  // upstream must not leave the handler pending, and a transport error must
+  // surface as a 502, never as a raw rejection.
+  let res: Response;
+  try {
+    res = await fetch(upstream, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        ...(session ? { authorization: `Bearer ${session}` } : {}),
+      },
+      body,
+      cache: 'no-store',
+      signal: AbortSignal.timeout(10_000),
+    });
+  } catch {
+    return NextResponse.json({ error: 'GRAPHQL_UPSTREAM_UNREACHABLE' }, { status: 502 });
+  }
 
   return new NextResponse(Buffer.from(await res.arrayBuffer()), {
     status: res.status,

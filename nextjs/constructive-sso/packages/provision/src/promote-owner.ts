@@ -45,7 +45,9 @@ async function main(): Promise<void> {
     port: Number(env.PGPORT ?? 15432),
     database: env.PGDATABASE ?? 'constructive-functions-db1',
     user: env.PGUSER ?? 'postgres',
-    password: env.PGPASSWORD ?? 'password',
+    // 'postgres' is the local dev cluster's password (what local-bringup
+    // deploys); set PGPASSWORD for any other environment.
+    password: env.PGPASSWORD ?? 'postgres',
   });
   await client.connect();
 

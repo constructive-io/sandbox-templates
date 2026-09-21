@@ -30,8 +30,10 @@ export async function POST(req: Request): Promise<NextResponse> {
 	if (!body) {
 		return NextResponse.json({ error: 'invalid JSON body' }, { status: 400 });
 	}
-	const phone = body.phone?.trim();
-	const code = body.code?.trim();
+	// typeof guards: optional chaining only skips null/undefined — non-string
+	// values (e.g. {"phone":123}) would throw on .trim() outside the try below.
+	const phone = typeof body.phone === 'string' ? body.phone.trim() : '';
+	const code = typeof body.code === 'string' ? body.code.trim() : '';
 	if (!phone || !E164.test(phone)) {
 		return NextResponse.json({ error: 'phone must be in E.164 format (+country number)' }, { status: 400 });
 	}

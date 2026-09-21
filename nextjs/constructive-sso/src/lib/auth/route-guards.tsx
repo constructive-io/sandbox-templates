@@ -16,6 +16,7 @@ import {
 	ROUTE_PATHS,
 } from '@/app-routes';
 import { INVITE_QUERY_PARAMS } from '@/app/invite/page';
+import { isLocalPath } from '@/lib/sso/local-path';
 
 import { useAuthContext } from './auth-context';
 import { TokenManager } from './token-manager';
@@ -168,8 +169,7 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
 				return;
 			}
 			const raw = search.get('redirect');
-			const redirectParam =
-				raw && raw.startsWith('/') && !raw.startsWith('//') ? raw : null;
+			const redirectParam = raw && isLocalPath(raw) ? raw : null;
 			const target = redirectParam || getHomePath(ctx);
 			router.replace(target as Route);
 			return;
