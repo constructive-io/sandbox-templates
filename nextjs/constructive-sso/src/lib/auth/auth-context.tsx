@@ -51,23 +51,25 @@ export function useAuthContext(): AuthContextType {
 /**
  * Try cookie-based session auth when no localStorage token exists.
  *
- * The OAuth callback sets an httpOnly constructive_session cookie
- * (domain=localhost). This runs a currentUser query with
- * credentials:'include' — the server authenticates via the cookie
- * because no Bearer header is sent (TokenManager has no token).
+ * The cloud-function callback sets an httpOnly constructive_session cookie
+ * (host-only on `localhost`). This asks the same-origin BFF
+ * (`/api/auth/session`), which relays the cookie to the tenant's own who-am-i
+ * as a Bearer credential — the HttpOnly cookie never reaches client JS.
  */
 async function trySessionAuth(
 	authActions: ReturnType<typeof useAuthActions>,
 ): Promise<void> {
 	try {
-		const result = await executeAuth(`
-			query SsoSessionCheck {
-				currentUser { id }
-			}
-		`) as { currentUser?: { id?: string } };
-		if (result?.currentUser?.id) {
+		const res = await fetch('/api/auth/session', {
+			method: 'POST',
+			credentials: 'include',
+			headers: { 'content-type': 'application/json' },
+			body: '{}',
+		});
+		const result = (await res.json()) as { authenticated?: boolean; userId?: string };
+		if (result.authenticated && result.userId) {
 			authActions.setSessionAuthenticated({
-				id: result.currentUser.id,
+				id: result.userId,
 				email: '',
 			});
 			reconfigureSdkClients();
@@ -130,6 +132,14 @@ function consumeOAuthFragment(
 async function initializeAuth(
 	authActions: ReturnType<typeof useAuthActions>,
 ) {
+	// Hold the loading gate while we resolve: the store initializes to
+	// unauthenticated with isLoading=false (deserializeAuth), so without this a
+	// page that hard-redirects on !isAuthenticated would win the race against
+	// the async session check below (~40ms) and bounce signed-in users to the
+	// login page. Every completion path (setAuthenticated /
+	// setSessionAuthenticated / setUnauthenticated) clears it.
+	authActions.setLoading(true);
+
 	// OAuth redirect handoff (fragment token) takes precedence over stored tokens.
 	if (consumeOAuthFragment(authActions)) {
 		return;

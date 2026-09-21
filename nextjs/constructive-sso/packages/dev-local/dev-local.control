@@ -1,7 +1,0 @@
-# constructive-app dev-local extension
-comment = 'constructive-app dev-local extension — local-dev patch SQL for upstream drift'
-default_version = '0.0.1'
-module_pathname = '$libdir/dev-local'
-requires = 'uuid-ossp,plpgsql'
-relocatable = false
-superuser = false

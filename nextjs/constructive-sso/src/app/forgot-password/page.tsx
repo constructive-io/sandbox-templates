@@ -1,32 +1,28 @@
-'use client';
+import { redirect } from 'next/navigation';
+import type { Route } from 'next';
 
-import { Suspense } from 'react';
+import { SSO_GATEWAY_URL } from '@/lib/sso/gateway';
 
-import { ForgotPasswordCard } from '@/blocks/auth/forgot-password-card/forgot-password-card';
-import { AuthScreenLayout } from '@/components/auth/auth-screen-layout';
-import { useForgotPassword } from '@/lib/gql/hooks/auth';
-
-function ForgotPasswordPageContent() {
-	const forgotPasswordMutation = useForgotPassword();
-
-	return (
-		<AuthScreenLayout>
-			<ForgotPasswordCard
-				signInHref='/login'
-				onSubmit={async (vars) => {
-					// Bridge: the block owns form/success-state UI; the app's
-					// forgot-password hook owns the network call.
-					await forgotPasswordMutation.mutateAsync({ email: vars.email });
-				}}
-			/>
-		</AuthScreenLayout>
-	);
-}
-
-export default function ForgotPasswordPage() {
-	return (
-		<Suspense fallback={<AuthScreenLayout><div className='flex justify-center py-8'>Loading...</div></AuthScreenLayout>}>
-			<ForgotPasswordPageContent />
-		</Suspense>
-	);
+/**
+ * Password recovery is owned by the platform's mantra page set — this page is
+ * a thin redirect to the gateway's /forgot-password (see the README do-this
+ * table). Every search param is forwarded verbatim (e.g. ?next=…).
+ */
+export default async function ForgotPasswordPage({
+	searchParams
+}: {
+	searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+	const params = await searchParams;
+	const qs = new URLSearchParams();
+	for (const [key, value] of Object.entries(params)) {
+		if (value === undefined) continue;
+		if (Array.isArray(value)) {
+			if (value.length > 0) qs.set(key, value[0]);
+		} else {
+			qs.set(key, value);
+		}
+	}
+	const search = qs.toString();
+	redirect(`${SSO_GATEWAY_URL}/forgot-password${search ? `?${search}` : ''}` as Route);
 }

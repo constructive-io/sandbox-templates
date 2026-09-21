@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import type { Route } from 'next';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
@@ -55,6 +55,13 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
 	const router = useRouter();
+	// Browser storage only exists after mount: any render that branches on it
+	// (TokenManager.hasToken below) would let SSR and the first client render
+	// disagree — the classic hydration mismatch on guest-only pages.
+	const [mounted, setMounted] = useState(false);
+	useEffect(() => {
+		setMounted(true);
+	}, []);
 
 	// Get route configuration from centralized config
 	const accessType = getRouteAccessType(pathname);
@@ -161,6 +168,11 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
 			// If not authenticated and not loading, allow register page to show
 		}
 
+		// Storage reads are browser-only — until mounted, render the same tree
+		// the server rendered so hydration matches; the guard re-runs after mount.
+		if (!mounted) {
+			return <>{children}</>;
+		}
 		// If there's no token at all, render immediately without waiting for auth loading
 		if (isLoading && !TokenManager.hasToken(ctx)) {
 			return <>{children}</>;

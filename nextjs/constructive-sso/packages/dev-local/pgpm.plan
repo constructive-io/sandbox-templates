@@ -1,5 +1,0 @@
-%syntax-version=1.0.0
-%project=dev-local
-%uri=dev-local
-
-local-fixes 2026-04-28T00:00:00Z constructive <constructive@000000000000> # local-dev patches for upstream drift (validator fix, memberships mirror views, membership auto-approve)

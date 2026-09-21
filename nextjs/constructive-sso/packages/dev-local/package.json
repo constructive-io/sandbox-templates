@@ -2,5 +2,19 @@
   "name": "@constructive-app/dev-local",
   "version": "0.0.1",
   "private": true,
-  "description": "constructive-app dev-local patch module (local-dev fixes for upstream drift)"
+  "type": "module",
+  "description": "constructive-app dev-local patch module (local-dev fixes for upstream drift)",
+  "scripts": {
+    "ensure-owner-self-membership": "tsx src/ensure-owner-self-membership.ts",
+    "build": "echo 'No build required'"
+  },
+  "dependencies": {
+    "dotenv": "^16.5.0",
+    "pg": "^8.21.0"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.15.4",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
 }

@@ -37,7 +37,13 @@ export interface UseCurrentUserResult {
 
 export function useCurrentUser(options: UseCurrentUserOptions = {}): UseCurrentUserResult {
 	const { enabled = true, context = 'admin' } = options;
-	const token = useAppStore((state) => state.auth.token);
+	const auth = useAppStore((state) => state.auth);
+	const token = auth.token;
+	// Cookie-based sessions (SSO) carry no localStorage token by design — the
+	// httpOnly session cookie authenticates the request. Gate on authenticated
+	// state, not on a token being present, or SSO sessions never fetch their
+	// own user and every consumer renders empty.
+	const sessionEnabled = enabled && (!!token || auth.isAuthenticated);
 
 	// Use the SDK's currentUser query which relies on backend auth context
 	const { data, isLoading, error, refetch } = useCurrentUserQuerySdk({
@@ -49,7 +55,7 @@ export function useCurrentUser(options: UseCurrentUserOptions = {}): UseCurrentU
 				profilePicture: true,
 			},
 		},
-		enabled: enabled && !!token,
+		enabled: sessionEnabled,
 		staleTime: 5 * 60 * 1000,
 		refetchOnMount: true,
 	});

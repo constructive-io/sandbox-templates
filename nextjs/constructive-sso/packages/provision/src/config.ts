@@ -11,9 +11,12 @@
 
 import dotenv from 'dotenv';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
 
-// Load .env from project root (cwd is packages/provision/ when run via pnpm)
-dotenv.config({ path: path.resolve(process.cwd(), '../../.env') });
+// Load .env from project root — resolved from this module's location so it
+// works regardless of the launching directory (src/ -> ... -> project root).
+const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.resolve(MODULE_DIR, '../../../.env') });
 
 export const config = {
   /** Platform API endpoint — schema builder / metaschema */
@@ -46,7 +49,7 @@ export const config = {
    * schemas inside one physical DB). Do NOT fall back to PGDATABASE: pgpm env
    * sets that to 'postgres' (maintenance DB), which is wrong here.
    */
-  pgInternalDatabase: process.env.PG_INTERNAL_DATABASE || 'constructive',
+  pgInternalDatabase: process.env.PG_INTERNAL_DATABASE || 'constructive-functions-db1',
 
   /** Database name (set by create-db, read by provision) */
   databaseName: process.env.DATABASE_NAME || 'myapp',

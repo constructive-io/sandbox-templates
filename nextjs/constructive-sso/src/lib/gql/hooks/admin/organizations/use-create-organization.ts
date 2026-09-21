@@ -3,7 +3,12 @@
  * Tier 4 wrapper: Uses SDK hooks + cache invalidation
  *
  * Creating an organization creates a User with type=2 (Organization)
- * via the auth endpoint (which uses the app_admin role with INSERT on users).
+ * via the auth endpoint. The DB gate (auth_ins_insert_chk on users) runs as
+ * role `authenticated` and requires the acting principal's ACTIVE app
+ * membership to carry the `create_entity` capability — owner/admin
+ * memberships qualify; a fresh self-signed-up user does NOT (membership
+ * exists but is inactive with zero capabilities), and the insert fails with
+ * an RLS violation. Gate the UI on useCurrentUserAppMembership accordingly.
  * A database trigger automatically creates the owner membership.
  *
  * NOTE: The membership is created automatically by a database trigger when a User
@@ -104,7 +109,8 @@ export function useCreateOrganization(options: UseCreateOrganizationOptions = {}
 
 	const createOrganization = async (input: CreateOrganizationInput): Promise<CreateOrganizationResult> => {
 		// Create a User with type=2 (Organization) via the auth endpoint.
-		// The auth endpoint uses the app_admin role which has INSERT on users.
+		// Requires the actor's active app membership to hold create_entity
+		// (see the header comment) — UI must gate on useCurrentUserAppMembership.
 		// Database trigger `membership_mbr_create` automatically creates owner membership.
 		const userInput: Record<string, unknown> = {
 			displayName: input.displayName,

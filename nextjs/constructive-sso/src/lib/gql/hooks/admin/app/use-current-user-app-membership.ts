@@ -20,8 +20,6 @@ export interface AppMembership {
 	isBanned: boolean;
 	isDisabled: boolean;
 	isVerified: boolean;
-	permissions: unknown;
-	granted: unknown;
 }
 
 export interface UseCurrentUserAppMembershipOptions {
@@ -75,6 +73,10 @@ export function useCurrentUserAppMembership(
 	// Determine the actor ID to use
 	const actorId = userId || user?.id || token?.userId;
 
+	// NOTE: the GraphQL AppMembership type exposes only the flags below — the
+	// capability bit columns (capabilities/granted) are not selectable here, so
+	// capability-specific gating must key on isOwner/isAdmin (the memberships
+	// that carry the bits) until the schema exposes them.
 	const { data, isLoading, error, refetch } = useAppMembershipsQuery({
 		selection: {
 			fields: {
@@ -87,8 +89,6 @@ export function useCurrentUserAppMembership(
 				isBanned: true,
 				isDisabled: true,
 				isVerified: true,
-				permissions: true,
-				granted: true,
 			},
 			where: { actorId: { equalTo: actorId! } },
 			first: 1,
@@ -110,8 +110,6 @@ export function useCurrentUserAppMembership(
 				isBanned: membership.isBanned ?? false,
 				isDisabled: membership.isDisabled ?? false,
 				isVerified: membership.isVerified ?? false,
-				permissions: membership.permissions,
-				granted: membership.granted,
 			}
 		: null;
 

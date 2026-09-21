@@ -4,11 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "create-db": "tsx src/create-db.ts",
+    "create-db": "tsx src/provision-tenant.ts",
+    "provision": "tsx src/configure-sso.ts",
+    "ensure-site": "tsx src/ensure-site.ts",
     "reset-db": "tsx src/reset-db.ts",
-    "provision": "tsx src/provision.ts",
-    "seed": "tsx src/seed/index.ts",
-    "build": "echo 'No build required'"
+    "build": "echo 'No build required'",
+    "promote-owner": "tsx src/promote-owner.ts",
+    "owner-login": "tsx src/owner-login.ts"
   },
   "dependencies": {
     "@constructive-io/fetch": "^1.1.1",

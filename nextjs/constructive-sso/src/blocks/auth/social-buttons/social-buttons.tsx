@@ -5,17 +5,23 @@
  *
  * Row of OAuth provider sign-in / sign-up buttons.
  *
- * DEFAULT DATA PATH — generated hook (sdk-binding-contract.md §3, §5):
- *   `useIdentityProvidersQuery` is imported from `@/generated/auth` (the host's
- *   generated `auth` SDK). The block calls it with a `selection` field-picker
- *   and maps `data.identityProviders.nodes` → IdentityProvider[].
+ * DATA PATH — provider discovery is via the static `providers` prop (the
+ *   boilerplate passes the configured provider list). The block still carries
+ *   a dormant default-discovery fetch for reuse elsewhere, but the
+ *   `/api/sso/providers` BFF lane it once targeted is retired in this
+ *   boilerplate — always pass `providers` here.
  *
- * STATIC OVERRIDE — when `providers` prop is set the DB query is skipped
- *   (enabled: false React Query option) and the static slug list is used.
- *
- * OAUTH FLOW — the block constructs `/auth/{slug}?redirect_uri={encoded}` and
- *   navigates with `window.location.href`. It does NOT call any sign-in
- *   mutation; the Express OAuth middleware handles the handshake.
+ * OAUTH FLOW — two start modes, selected by `startMode`:
+ *   • 'gateway' (default) — navigate the browser straight to the compute sync
+ *     gateway's `/auth/start?provider=<slug>&next=<path>` (mantra:oauth_start
+ *     handles state/PKCE and composes the redirect URI from the site's
+ *     canonical_url).
+ *   • 'bff' — POST the same-origin `/api/sso/start` (the `sso:start` sync
+ *     lane through the BFF, redirect URI constructed server-side) and
+ *     navigate to the returned authorize URL. Used by the app-owned custom
+ *     login surface at /custom-login.
+ *   Neither mode calls a sign-in mutation; the cloud function's callback page
+ *   lane handles the handshake.
  *
  * NO client bootstrap — the host mounts `@constructive/blocks-runtime` once;
  *   this block never calls configure()/getClient() or mounts a QueryClientProvider.
@@ -27,8 +33,7 @@ import { Skeleton } from '@constructive-io/ui/skeleton';
 import { Button } from '@constructive-io/ui/button';
 
 import { cn } from '@/lib/utils';
-import { useIdentityProvidersQuery } from '@/graphql/sdk/auth';
-import { parseGraphQLError } from '@/blocks/lib/auth-errors';
+import { getSSOGatewayOrigin } from '@/app-config';
 import { AuthErrorAlert } from '@/blocks/primitives/auth-error-alert';
 
 import { defaultAuthSocialButtonsMessages, type AuthSocialButtonsMessages, type AuthSocialButtonsMessageOverrides } from './messages';
@@ -153,6 +158,22 @@ function interpolateProvider(template: string, providerName: string): string {
   return template.replace(/\{\{provider\}\}/g, providerName);
 }
 
+/**
+ * mantra's `next` param accepts only a local path (safeNext is strictly
+ * relative). Host pages upgraded from the CNC lane pass full URLs
+ * (`http://localhost:3000/`), so reduce whatever arrives to its path + query
+ * before sending.
+ */
+function toLocalPath(value: string): string {
+  if (value.startsWith('/')) return value;
+  try {
+    const url = new URL(value);
+    return `${url.pathname}${url.search}` || '/';
+  } catch {
+    return '/';
+  }
+}
+
 // ─── Props ───────────────────────────────────────────────────────────────────
 
 export type AuthSocialButtonsProps = {
@@ -177,6 +198,12 @@ export type AuthSocialButtonsProps = {
    * Defaults to `window.location.href` at click time (falls back to `'/'` in SSR).
    */
   returnTo?: string;
+  /**
+   * OAuth start transport. 'gateway' navigates to the mantra page lane
+   * directly; 'bff' asks the same-origin /api/sso/start (sso:start sync lane)
+   * for the authorize URL. Default: 'gateway' — the mantra wiring.
+   */
+  startMode?: 'gateway' | 'bff';
   /**
    * Base path for the Express OAuth middleware.
    * Default: '/auth'
@@ -208,6 +235,7 @@ export function AuthSocialButtons({
   layout = 'stacked',
   showDivider = true,
   returnTo,
+  startMode = 'gateway',
   baseOAuthPath = '/auth',
   renderButton,
   onProviderClick,
@@ -224,18 +252,43 @@ export function AuthSocialButtons({
   };
 
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [providers, setProviders] = useState<IdentityProvider[]>([]);
+  const [providersLoading, setProvidersLoading] = useState(false);
+  const [startingSlug, setStartingSlug] = useState<string | null>(null);
 
-  // Generated hook from the host's `auth` SDK. The `enabled` flag bypasses the
-  // DB call entirely when a static `providers` prop is set.
-  const providersQuery = useIdentityProvidersQuery({
-    selection: {
-      fields: { slug: true, kind: true, displayName: true, enabled: true }
-    },
-    enabled: !staticProviders,
-    staleTime: 5 * 60 * 1000
-  });
+  // Provider discovery now comes from the cloud-function lane (`sso:providers`
+  // through the same-origin BFF) instead of the GraphQL identityProviders query.
+  useEffect(() => {
+    if (staticProviders) return;
+    let cancelled = false;
+    setProvidersLoading(true);
+    fetch('/api/sso/providers', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' })
+      .then((res) => res.json())
+      .then((data: { providers?: Array<{ slug: string; displayName: string }> }) => {
+        if (cancelled) return;
+        const list = (data.providers ?? []).map((p) => ({
+          slug: p.slug,
+          displayName: p.displayName ?? BUILTIN_DISPLAY_NAMES[p.slug] ?? p.slug,
+          kind: 'oauth2' as const
+        }));
+        setProviders(list);
+        setFetchError(null);
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        setFetchError(err instanceof Error ? err.message : 'UNKNOWN_ERROR');
+        onError?.(err);
+      })
+      .finally(() => {
+        if (!cancelled) setProvidersLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [staticProviders]);
 
-  // Derive the final provider list from either the static prop or the DB query.
+  // Derive the final provider list from either the static prop or the BFF query.
   const providerList: IdentityProvider[] = (() => {
     if (staticProviders) {
       return staticProviders.map((slug) => ({
@@ -245,19 +298,9 @@ export function AuthSocialButtons({
       }));
     }
 
-    if (providersQuery.data) {
-      const nodes = providersQuery.data.identityProviders?.nodes ?? [];
-      const filtered = nodes
-        .filter((n) => n.enabled !== false)
-        .map((n) => ({
-          slug: n.slug ?? '',
-          displayName: n.displayName ?? BUILTIN_DISPLAY_NAMES[n.slug ?? ''] ?? n.slug ?? '',
-          kind: n.kind ?? 'oauth2'
-        }))
-        .filter((p) => p.slug);
-
-      // Sort: built-ins first (BUILTIN_ORDER alphabetical), then custom alphabetically.
-      return filtered.sort((a, b) => {
+    return providers
+      .filter((p) => p.slug)
+      .sort((a, b) => {
         const ai = BUILTIN_ORDER.indexOf(a.slug);
         const bi = BUILTIN_ORDER.indexOf(b.slug);
         if (ai !== -1 && bi !== -1) return ai - bi;
@@ -265,32 +308,17 @@ export function AuthSocialButtons({
         if (bi !== -1) return 1;
         return a.slug.localeCompare(b.slug);
       });
-    }
-
-    return [];
   })();
 
-  // Sync query error into state (in an effect to avoid render-phase setState —
-  // same pattern as passkey-management-list.tsx line 234).
-  // M1: destructure `code` so onMessage carries the actual error code, not a
-  // hardcoded fallback.
   useEffect(() => {
-    if (providersQuery.error && !staticProviders) {
-      const { code, message } = parseGraphQLError(providersQuery.error, {
-        customMessages: merged.errors,
-        defaultMessage: merged.errors.UNKNOWN_ERROR
-      });
-      setFetchError(message);
-      onMessage?.({ kind: 'error', key: code ?? 'UNKNOWN_ERROR', message });
-      onError?.(providersQuery.error);
-    } else if (!providersQuery.error) {
-      setFetchError(null);
+    if (fetchError && !staticProviders) {
+      onMessage?.({ kind: 'error', key: 'UNKNOWN_ERROR', message: fetchError });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [providersQuery.error, staticProviders]);
+  }, [fetchError, staticProviders]);
 
   // Loading state — show skeletons.
-  const isLoading = !staticProviders && providersQuery.isPending;
+  const isLoading = !staticProviders && providersLoading;
 
   // B2: Fire onMessage({ kind: 'info', key: 'noProviders' }) when provider list
   // resolves to empty — the host uses this seam for analytics / auto-collapse.
@@ -301,19 +329,41 @@ export function AuthSocialButtons({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [providerList.length, isLoading, fetchError]);
 
-  // Build OAuth redirect URL.
-  function buildOAuthUrl(slug: string): string {
-    const base = baseOAuthPath.replace(/\/$/, '');
-    const ret = returnTo ?? (typeof window !== 'undefined' ? window.location.href : '/');
-    return `${base}/${slug}?redirect_uri=${encodeURIComponent(ret)}`;
-  }
-
-  function handleProviderClick(provider: IdentityProvider) {
-    const url = buildOAuthUrl(provider.slug);
-    const shouldNavigate = onProviderClick?.(provider, url);
-    if (shouldNavigate === false) return;
-    if (typeof window !== 'undefined') {
-      window.location.href = url;
+  // Start the flow. 'gateway': navigate straight to the mantra page lane.
+  // 'bff': the sso:start sync lane through the same-origin BFF answers the
+  // authorize URL as data; navigate to it. Both mint state/PKCE platform-side.
+  async function handleProviderClick(provider: IdentityProvider) {
+    setStartingSlug(provider.slug);
+    setFetchError(null);
+    try {
+      const ret = toLocalPath(returnTo ?? (typeof window !== 'undefined' ? window.location.pathname : '/'));
+      let url: string;
+      if (startMode === 'bff') {
+        const res = await fetch('/api/sso/start', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ provider: provider.slug, returnTo: ret })
+        });
+        const data = (await res.json()) as { location?: string; error?: string };
+        if (!res.ok || !data.location) {
+          throw new Error(data.error ?? 'START_FAILED');
+        }
+        url = data.location;
+      } else {
+        url = `${getSSOGatewayOrigin()}/auth/start?provider=${encodeURIComponent(provider.slug)}&next=${encodeURIComponent(ret)}`;
+      }
+      const shouldNavigate = onProviderClick?.(provider, url);
+      if (shouldNavigate === false) return;
+      if (typeof window !== 'undefined') {
+        window.location.href = url;
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'UNKNOWN_ERROR';
+      setFetchError(message);
+      onError?.(err);
+      onMessage?.({ kind: 'error', key: 'START_FAILED', message });
+    } finally {
+      setStartingSlug(null);
     }
   }
 

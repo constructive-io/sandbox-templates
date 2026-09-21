@@ -19,8 +19,16 @@ async function main(): Promise<void> {
   const host = process.env.OAUTH_MOCK_HOST || '0.0.0.0';
   const subject = process.env.OAUTH_TEST_SUB || 'sso-test-user';
   const email = process.env.OAUTH_TEST_EMAIL || `${subject}@example.test`;
+  // The issuer URL travels INSIDE the id_token (`iss`) and must match the
+  // provider row the platform validates against. When the exchange runs in a
+  // cluster pod, `localhost` means the POD — override with a pod-reachable
+  // address (Docker Desktop: 192.168.65.254) and point the provider row's
+  // endpoints at the same origin.
+  const issuer = process.env.OAUTH_MOCK_ISSUER || `http://localhost:${port}`;
 
   const server = new OAuth2Server();
+  // v9 exposes the issuer URL as a settable property (id_token `iss`).
+  server.issuer.url = issuer;
   await server.issuer.keys.generate('RS256');
 
   server.service.on(Events.BeforeUserinfo, (response) => {
@@ -33,13 +41,21 @@ async function main(): Promise<void> {
     };
   });
 
+  // The id_token's sub must MATCH the userinfo sub: the platform's callback
+  // rejects a provider whose two responses describe different subjects
+  // (SSO_PROVIDER_RESPONSE_INVALID). The mock's default token subject is its
+  // built-in demo user, so align it with the userinfo override above.
+  server.service.on(Events.BeforeTokenSigning, (token) => {
+    token.payload.sub = subject;
+  });
+
   server.service.addRoute('GET', '/health', (_req, res) => {
     res.writeHead(200, { 'content-type': 'application/json' });
     res.end(JSON.stringify({ ok: true, issuer: server.issuer.url }));
   });
 
   await server.start(port, host);
-  console.log(`oauth2-mock-server listening at ${server.issuer.url}`);
+  console.log(`oauth2-mock-server listening at ${server.issuer.url} (issuer: ${issuer})`);
 
   let stopping = false;
   async function stop(signal: string): Promise<void> {

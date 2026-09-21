@@ -121,8 +121,13 @@ export class TokenManager {
 	 */
 	static hasToken(_ctx?: SchemaContext): boolean {
 		try {
-			const hasInLocal = safeLocalStorage?.getItem(TOKEN_STORAGE_KEY) !== null;
-			const hasInSession = safeSessionStorage?.getItem(TOKEN_STORAGE_KEY) !== null;
+			// `!= null` (not `!== null`): on the server the storage is undefined and
+			// `undefined?.getItem()` yields undefined — which must count as "no
+			// token", not "token present". The strict comparison made SSR believe
+			// every visitor had a token, desynchronizing RouteGuard's tree from the
+			// client's during hydration.
+			const hasInLocal = safeLocalStorage?.getItem(TOKEN_STORAGE_KEY) != null;
+			const hasInSession = safeSessionStorage?.getItem(TOKEN_STORAGE_KEY) != null;
 			return hasInLocal || hasInSession;
 		} catch {
 			return false;

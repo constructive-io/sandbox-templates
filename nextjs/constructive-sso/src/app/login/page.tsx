@@ -1,68 +1,30 @@
-'use client';
+import { redirect } from 'next/navigation';
+import type { Route } from 'next';
 
-import { Suspense } from 'react';
+import { SSO_GATEWAY_URL } from '@/lib/sso/gateway';
 
-import { SignInCard, type SignInResult } from '@/blocks/auth/sign-in-card/sign-in-card';
-import { AuthSocialProvidersGrid } from '@/blocks/auth/social-providers-grid/social-providers-grid';
-import { getAppOrigin, getEndpoint } from '@/app-config';
-import { AuthScreenLayout } from '@/components/auth/auth-screen-layout';
-import { useAuthContext } from '@/lib/auth/auth-context';
-
-function LoginPageContent() {
-	const { login } = useAuthContext();
-	// OAuth middleware lives on the auth API origin (not this app's origin).
-	const authOrigin = new URL(getEndpoint('auth')).origin;
-	// After OAuth success the middleware redirects to `returnTo` — this must be
-	// the FRONTEND app origin (Next.js on :3011), NOT the auth API origin
-	// (:3000, which has no UI and 404s). Uses the auth hostname + app port so
-	// it works even when the page is opened via localhost:3011. The session
-	// cookie is host-only on auth-{db}.localhost, so it crosses ports.
-	const appOrigin = getAppOrigin();
-
-	return (
-		<AuthScreenLayout>
-			<AuthSocialProvidersGrid
-				mode='sign-in'
-				baseOAuthPath={`${authOrigin}/auth`}
-				returnTo={`${appOrigin}/`}
-				className='mb-4 w-full max-w-sm mx-auto'
-			/>
-			<SignInCard
-				forgotPasswordHref='/forgot-password'
-				signUpHref='/register'
-				onSubmit={async (vars): Promise<SignInResult | null> => {
-					// Bridge: the block owns form/validation/error UI; the app's
-					// auth-context owns the network call + token/session state.
-					// Route guards navigate away once authenticated.
-					await login({
-						email: vars.email,
-						password: vars.password,
-						rememberMe: vars.rememberMe
-					});
-					return {
-						id: null,
-						userId: null,
-						accessToken: null,
-						accessTokenExpiresAt: null,
-						isVerified: true,
-						totpEnabled: false,
-						mfaRequired: false,
-						mfaChallengeToken: null
-					};
-				}}
-			/>
-		</AuthScreenLayout>
-	);
-}
-
-// NOTE: redirect_uri must be same-origin with the auth server (the middleware
-// rejects cross-origin). Session handoff back to this app is handled by the
-// .localhost cookie domain + a callback/hydrate step — see the SSO plan.
-
-export default function LoginPage() {
-	return (
-		<Suspense fallback={<AuthScreenLayout><div className='flex justify-center py-8'>Loading...</div></AuthScreenLayout>}>
-			<LoginPageContent />
-		</Suspense>
-	);
+/**
+ * Sign-in is owned by the platform's mantra page set — this page is a thin
+ * redirect to the gateway's /login (see the README do-this table). The app no
+ * longer renders a sign-in form. Every search param is forwarded verbatim:
+ * OAuth refusals land here as /login?error=SSO_… and mantra's sign-in page
+ * names the code, so dropping the query would hide why sign-in failed.
+ */
+export default async function LoginPage({
+	searchParams
+}: {
+	searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+	const params = await searchParams;
+	const qs = new URLSearchParams();
+	for (const [key, value] of Object.entries(params)) {
+		if (value === undefined) continue;
+		if (Array.isArray(value)) {
+			if (value.length > 0) qs.set(key, value[0]);
+		} else {
+			qs.set(key, value);
+		}
+	}
+	const search = qs.toString();
+	redirect(`${SSO_GATEWAY_URL}/login${search ? `?${search}` : ''}` as Route);
 }

@@ -3,7 +3,8 @@
 /**
  * sign-out-button  (registry: auth-sign-out-button)
  *
- * Single-click sign-out button bound to the host's GENERATED `useSignOutMutation`
+ * Single-click sign-out button. SSO sessions revoke through the same-origin
+ * BFF (`/api/auth/sign-out`); the password lane can supply `onSubmitOverride`.
  * hook. On click: runs the mutation (or `onSubmit` override), clears the
  * React Query cache via `queryClient.clear()`, then fires `onSuccess`.
  *
@@ -18,8 +19,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@constructive-io/ui/button';
 
 import { cn } from '@/lib/utils';
-import { useSignOutMutation } from '@/graphql/sdk/auth';
-import { parseGraphQLError } from '@/blocks/lib/auth-errors';
 
 import { defaultSignOutButtonMessages, type SignOutButtonMessages } from './messages';
 
@@ -64,43 +63,38 @@ export function SignOutButton({
     errors: { ...defaultSignOutButtonMessages.errors, ...messageOverrides?.errors }
   };
 
-  // Generated hook from the host's `auth` SDK. The PostGraphile mutation
-  // payload is composite, so select clientMutationId even though sign_out()
-  // itself returns void.
-  const defaultMutation = useSignOutMutation({
-    selection: {
-      fields: { clientMutationId: true }
-    }
-  });
-
-  // Hybrid pending: the generated hook tracks its own; the override path does not.
-  const [overridePending, setOverridePending] = useState(false);
-  const isPending = onSubmitOverride ? overridePending : defaultMutation.isPending;
+  // SSO sessions sign out through the same-origin BFF, which revokes the
+  // session at the gateway and expires the HttpOnly cookie. The password lane
+  // (GraphQL mutation) remains available via `onSubmitOverride`.
+  const [pending, setPending] = useState(false);
+  const isPending = pending;
 
   const queryClient = useQueryClient();
 
   async function handleSignOut() {
-    if (onSubmitOverride) setOverridePending(true);
+    setPending(true);
     try {
       if (onSubmitOverride) {
         await onSubmitOverride();
       } else {
-        await defaultMutation.mutateAsync({ input: {} });
+        const res = await fetch('/api/auth/sign-out', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'content-type': 'application/json' },
+          body: '{}'
+        });
+        if (!res.ok) throw new Error('sign-out failed');
       }
       // Clear all cached query data to prevent stale auth state post-sign-out.
       queryClient.clear();
       onMessage?.({ kind: 'success', key: 'signOut.success', message: merged.successMessage });
       onSuccess?.();
     } catch (err) {
-      const { code, message } = parseGraphQLError(err, {
-        customMessages: merged.errors,
-        defaultMessage: merged.errors.UNKNOWN_ERROR
-      });
-      const key = code ?? 'UNKNOWN_ERROR';
-      onMessage?.({ kind: 'error', key, message });
-      onError?.({ message, code: key });
+      const message = err instanceof Error ? err.message : 'UNKNOWN_ERROR';
+      onMessage?.({ kind: 'error', key: 'UNKNOWN_ERROR', message });
+      onError?.({ message, code: 'UNKNOWN_ERROR' });
     } finally {
-      if (onSubmitOverride) setOverridePending(false);
+      setPending(false);
     }
   }
 

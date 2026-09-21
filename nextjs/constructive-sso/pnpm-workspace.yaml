@@ -1,3 +1,20 @@
 packages:
   - 'packages/*'
-onlyBuiltDependencies: esbuild,sharp,unrs-resolver
+
+# pnpm 10+ reads these here, not from the "pnpm" field in package.json.
+overrides:
+  graphql: 16.14.0
+
+# Build-script allowlist. pnpm 10.33+ also understands the explicit map form
+# below and will NOT append its `set this to true or false` placeholder when
+# real booleans are present — keep both forms; older/newer pnpm ignore the one
+# they don't know.
+allowBuilds:
+  esbuild: true
+  sharp: true
+  unrs-resolver: true
+
+onlyBuiltDependencies:
+  - esbuild
+  - sharp
+  - unrs-resolver

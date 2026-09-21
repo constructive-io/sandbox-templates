@@ -20,6 +20,8 @@ export const RUNTIME_CONFIG_KEYS = [
 	'NEXT_PUBLIC_ADMIN_ENDPOINT',
 	'NEXT_PUBLIC_AUTH_ENDPOINT',
 	'NEXT_PUBLIC_APP_ENDPOINT',
+	// Compute sync gateway origin (mantra auth pages + OAuth start; client blocks)
+	'NEXT_PUBLIC_SSO_GATEWAY_URL',
 ] as const;
 
 /** Type representing any valid runtime config key */
@@ -48,6 +50,7 @@ export const BUILD_TIME_ENV_VALUES: Record<RuntimeConfigKey, string | undefined>
 	NEXT_PUBLIC_ADMIN_ENDPOINT: process.env.NEXT_PUBLIC_ADMIN_ENDPOINT,
 	NEXT_PUBLIC_AUTH_ENDPOINT: process.env.NEXT_PUBLIC_AUTH_ENDPOINT,
 	NEXT_PUBLIC_APP_ENDPOINT: process.env.NEXT_PUBLIC_APP_ENDPOINT,
+	NEXT_PUBLIC_SSO_GATEWAY_URL: process.env.NEXT_PUBLIC_SSO_GATEWAY_URL,
 };
 
 /**

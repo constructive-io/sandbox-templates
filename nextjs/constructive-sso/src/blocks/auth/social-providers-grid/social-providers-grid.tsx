@@ -28,6 +28,7 @@ import { Button } from '@constructive-io/ui/button';
 import { Separator } from '@constructive-io/ui/separator';
 
 import { cn } from '@/lib/utils';
+import { getSSOGatewayOrigin } from '@/app-config';
 import { AuthSocialButtons, type AuthSocialButtonsProps, type IdentityProvider } from '@/blocks/auth/social-buttons/social-buttons';
 
 import {
@@ -174,6 +175,33 @@ export function AuthSocialProvidersGrid({
     return `${base}/${slug}?redirect_uri=${encodeURIComponent(ret)}`;
   }
 
+  // The last-used badge button renders outside AuthSocialButtons' own click
+  // path, so it starts the flow itself through the same-origin BFF. The BFF
+  // accepts only a local path; host pages upgraded from the CNC lane pass a
+  // full URL, so reduce it to its path + query.
+  function toLocalPath(value: string): string {
+    if (value.startsWith('/')) return value;
+    try {
+      const url = new URL(value);
+      return `${url.pathname}${url.search}` || '/';
+    } catch {
+      return '/';
+    }
+  }
+
+  async function startViaGateway(provider: IdentityProvider): Promise<void> {
+    try {
+      // Navigate the browser straight to the gateway's /auth/start — mantra's
+      // oauth_start mints state + PKCE and composes the redirect URI from the
+      // site's canonical_url. (Replaces the old same-origin BFF hop, which
+      // would have 404'd once /api/sso/start was removed.)
+      const url = `${getSSOGatewayOrigin()}/auth/start?provider=${encodeURIComponent(provider.slug)}&next=${encodeURIComponent(toLocalPath(returnTo ?? '/'))}`;
+      if (typeof window !== 'undefined') window.location.href = url;
+    } catch (err: unknown) {
+      onError?.(err);
+    }
+  }
+
   // If the host supplied a custom renderButton, pass it straight through —
   // no badge injection (the host owns the full button rendering).
   // Otherwise, for the last-used provider we render the default button style
@@ -207,7 +235,9 @@ export function AuthSocialProvidersGrid({
                 className="w-full justify-start gap-3"
                 aria-label={`${label} (${merged.lastUsedBadge})`}
                 data-testid={`social-btn-${provider.slug}`}
-                onClick={() => handleProviderClick(provider, buildOAuthUrl(provider.slug))}
+                onClick={() => {
+                  void startViaGateway(provider);
+                }}
               >
                 <span>{label}</span>
               </Button>
