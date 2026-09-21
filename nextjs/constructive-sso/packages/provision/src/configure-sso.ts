@@ -162,7 +162,10 @@ async function main(): Promise<void> {
   //
   // A DO block cannot take bind parameters, so the (trusted, DB-derived)
   // schema prefix is interpolated directly — single quotes escaped defensively.
-  const prefix = providerSchema.split('-').slice(0, 3).join('-');
+  // The tenant's prefix is naming-convention-dependent (pool-baked tenants
+  // use pool-<a>-<b>-…, direct ones <name>-<hash>-…): strip the known
+  // -auth-private suffix instead of counting dash segments.
+  const prefix = providerSchema.replace(/-auth-private$/, '');
   const esc = (s: string): string => s.replace(/'/g, "''");
   const likeAll = esc(`${prefix}-%`);
   const authPublic = esc(`${prefix}-auth-public`);
