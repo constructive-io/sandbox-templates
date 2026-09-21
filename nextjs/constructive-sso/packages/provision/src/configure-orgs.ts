@@ -69,8 +69,12 @@ async function main(): Promise<void> {
   if (identityModule.rowCount === 0) {
     throw new Error(`no identity module for database ${DATABASE_ID}`);
   }
+  // The module row names the auth-private schema. The tenant's other schemas
+  // share its prefix, but the prefix itself is naming-convention-dependent
+  // (pool-baked tenants use pool-<a>-<b>, direct ones <name>-<hash>) — strip
+  // the known suffix instead of counting segments.
   const prefix = ((identityModule.rows[0] as { schema_name: string }).schema_name
-    .split('-').slice(0, 3).join('-'));
+    .replace(/-auth-private$/, ''));
   const memberships = `"${prefix}-memberships-public"`;
   const capabilities = `"${prefix}-capabilities-public"`;
 
