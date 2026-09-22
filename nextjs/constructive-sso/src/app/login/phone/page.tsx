@@ -36,11 +36,13 @@ export default function PhoneLoginPage() {
 	const [phone, setPhone] = useState('');
 	const [code, setCode] = useState('');
 	const [error, setError] = useState<string | null>(null);
+	const [notice, setNotice] = useState<string | null>(null);
 	const [busy, setBusy] = useState(false);
 
-	const sendCode = async (event: React.FormEvent) => {
+	const sendCode = async (event: React.FormEvent, resend = false) => {
 		event.preventDefault();
 		setError(null);
+		setNotice(null);
 		const trimmed = phone.trim();
 		if (!E164.test(trimmed)) {
 			setError('Enter the number in international format, e.g. +14155550123');
@@ -60,6 +62,11 @@ export default function PhoneLoginPage() {
 			}
 			setPhone(trimmed);
 			setStep('code');
+			// Step 2 → 2 (a resend): the step doesn't change, so say the send
+			// happened — the code window repeats the same digits.
+			if (resend) {
+				setNotice(`New code sent to ${trimmed}. The same digits apply within the ten-minute window.`);
+			}
 		} catch {
 			setError('could not reach the app server — is the dev server running?');
 		} finally {
@@ -70,6 +77,7 @@ export default function PhoneLoginPage() {
 	const verifyCode = async (event: React.FormEvent) => {
 		event.preventDefault();
 		setError(null);
+		setNotice(null);
 		if (!/^\d{6}$/.test(code)) {
 			setError('The code is the six digits from the text message.');
 			return;
@@ -172,6 +180,11 @@ export default function PhoneLoginPage() {
 									{error}
 								</div>
 							) : null}
+							{notice ? (
+								<div role='status' className='bg-primary/10 text-foreground rounded-md px-3 py-2 text-sm'>
+									{notice}
+								</div>
+							) : null}
 							<input
 								id='code'
 								name='code'
@@ -206,6 +219,7 @@ export default function PhoneLoginPage() {
 									setStep('phone');
 									setCode('');
 									setError(null);
+									setNotice(null);
 								}}
 							>
 								<ArrowLeftIcon className='size-4' />
@@ -215,9 +229,10 @@ export default function PhoneLoginPage() {
 								type='button'
 								disabled={busy}
 								className='text-primary hover:text-primary/80 font-medium disabled:opacity-50'
-								onClick={() => sendCode({ preventDefault: () => {} } as React.FormEvent)}
+								data-testid='phone-login-resend'
+								onClick={(e) => sendCode(e, true)}
 							>
-								Resend code
+								{busy ? 'Sending…' : 'Resend code'}
 							</button>
 						</div>
 					</>
