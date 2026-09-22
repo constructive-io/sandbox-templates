@@ -108,6 +108,13 @@ export const queryClient = new QueryClient({
 				if (error instanceof DataError) {
 					return error.isRetryable();
 				}
+				// Generated SDK hooks throw plain TypeError on network failure and
+				// GraphQLRequestError with an "HTTP 5xx" message on gateway/server
+				// hiccups. Both are transient; retry them.
+				if (error instanceof TypeError) return true;
+				if (error instanceof Error && error.name === 'GraphQLRequestError' && /HTTP 5\d\d/.test(error.message)) {
+					return true;
+				}
 				return false;
 			},
 			retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),

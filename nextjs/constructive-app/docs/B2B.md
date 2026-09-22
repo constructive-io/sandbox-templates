@@ -70,9 +70,9 @@ renders `<OrganizationsFeaturePack>` with the appropriate `section` prop.
 
 The org pages mount the adapter:
 
-- `/orgs/[orgId]/members` — `<OrgFeaturePackAdapter section="members" />`
-- `/orgs/[orgId]/invites` — `<OrgFeaturePackAdapter section="invitations" />`
-- `/orgs/[orgId]/settings` — `<OrgFeaturePackAdapter section="settings" />`
+- `/orgs/members?orgId=...` — `<OrgFeaturePackAdapter section="members" />`
+- `/orgs/invites?orgId=...` — `<OrgFeaturePackAdapter section="invitations" />`
+- `/orgs/settings?orgId=...` — `<OrgFeaturePackAdapter section="settings" />`
 
 ### Navigation
 
@@ -80,8 +80,8 @@ The org navigation seam is already wired in this template:
 
 - `src/lib/navigation/sidebar-config.ts` — includes an `Organizations` nav entry
   and an org-level nav group (Members, Invites, Settings).
-- `src/lib/navigation/use-entity-params.ts` — resolves the `orgId` path param and
-  provides an org switcher so `/orgs/[orgId]/*` routes resolve.
+- `src/lib/navigation/use-entity-params.ts` — resolves the `orgId` search param and
+  provides an org switcher so the `/orgs/*` routes resolve.
 - `src/app-routes.ts` — declares the org-scoped routes with `access: 'protected'`.
 
 ## 3. Prerequisite: the org-create RLS permission bit

@@ -10,7 +10,8 @@ interface OrgLayoutProps {
 }
 
 /**
- * Organization layout - validates org from URL and renders children.
+ * Organization layout - validates the org from the orgId search param and
+ * renders children.
  *
  * URL is the source of truth for entity selection.
  * This layout validates that the org exists and redirects if not found.

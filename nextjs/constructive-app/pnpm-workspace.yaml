@@ -3,7 +3,14 @@ packages:
 
 minimumReleaseAge: 2880
 
-onlyBuiltDependencies:
-  - esbuild
-  - sharp
-  - unrs-resolver
+# pnpm 11 links packages from a global store by default, which makes Turbopack
+# resolve `next` outside the workspace and reject it.
+enableGlobalVirtualStore: false
+
+overrides:
+  graphql: 16.14.0
+
+allowBuilds:
+  esbuild: true
+  sharp: true
+  unrs-resolver: true
