@@ -165,6 +165,19 @@ export function useAccountPhoneNumbers({
     });
   }
 
+  async function onSetPrimary(phone: AccountPhoneNumber) {
+    if (!adapter.setPrimary) return;
+    const busyRow = { scope: 'phone', phoneId: phone.id, action: 'setPrimary' } as const;
+    const done = await run(busyRow, 'setPrimary', () => adapter.setPrimary!({ id: phone.id, number: phone.number }));
+    if (!done.ok) return;
+    setPhones((current) => current?.map((row) => ({ ...row, isPrimary: row.id === phone.id })) ?? null);
+    setFeedback({
+      scope: 'phone',
+      phoneId: phone.id,
+      notice: interpolate(messages.setPrimaryNotice, { number: formatPhoneNumber(phone.number) })
+    });
+  }
+
   async function onRemove(phone: AccountPhoneNumber) {
     const busyRow = { scope: 'phone', phoneId: phone.id, action: 'remove' } as const;
     const removed = await run(busyRow, 'remove', () => adapter.remove({ id: phone.id, number: phone.number }));
@@ -193,6 +206,7 @@ export function useAccountPhoneNumbers({
       setFeedback(undefined);
     },
     onRemove: (phone) => void onRemove(phone),
+    onSetPrimary: adapter.setPrimary ? (phone) => void onSetPrimary(phone) : undefined,
     onRetry: () => void refresh()
   };
 }

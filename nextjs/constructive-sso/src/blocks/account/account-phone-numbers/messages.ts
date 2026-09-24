@@ -10,6 +10,9 @@ export type AccountPhoneNumbersMessages = {
   verified: string;
   unverified: string;
   primary: string;
+  setPrimaryButton: string;
+  settingPrimaryButton: string;
+  setPrimaryNotice: string;
   sendCodeButton: string;
   sendingCodeButton: string;
   resendCodeButton: string;
@@ -56,6 +59,9 @@ export const defaultAccountPhoneNumbersMessages: AccountPhoneNumbersMessages = {
   verified: 'Verified',
   unverified: 'Unverified',
   primary: 'Primary',
+  setPrimaryButton: 'Set primary',
+  settingPrimaryButton: 'Setting…',
+  setPrimaryNotice: 'Primary number set to {number}.',
   sendCodeButton: 'Send code',
   sendingCodeButton: 'Sending…',
   resendCodeButton: 'Resend code',

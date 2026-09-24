@@ -55,6 +55,8 @@ export type AccountPhoneNumbersViewProps = {
   onVerify: (phone: AccountPhoneNumber, event: FormEvent<HTMLFormElement>) => void;
   onCancelCode: () => void;
   onRemove: (phone: AccountPhoneNumber) => void;
+  /** Present only when the host wired `adapter.setPrimary`; the row offers the action when it is. */
+  onSetPrimary?: (phone: AccountPhoneNumber) => void;
   onRetry: () => void;
 };
 
@@ -216,7 +218,8 @@ function PhoneRow({
   onSendCode,
   onVerify,
   onCancelCode,
-  onRemove
+  onRemove,
+  onSetPrimary
 }: {
   phone: AccountPhoneNumber;
   feedback?: AccountPhoneNumbersFeedback;
@@ -225,7 +228,7 @@ function PhoneRow({
   code?: string;
   codeLength: number;
   messages: AccountPhoneNumbersMessages;
-} & Pick<AccountPhoneNumbersViewProps, 'onCodeChange' | 'onSendCode' | 'onVerify' | 'onCancelCode' | 'onRemove'>) {
+} & Pick<AccountPhoneNumbersViewProps, 'onCodeChange' | 'onSendCode' | 'onVerify' | 'onCancelCode' | 'onRemove' | 'onSetPrimary'>) {
   const display = formatPhoneNumber(phone.number);
   const codeOpen = !phone.isVerified && code !== undefined;
   const error = feedback?.error;
@@ -253,6 +256,18 @@ function PhoneRow({
             >
               {rowBusy === 'send' ? spinner : null}
               {rowBusy === 'send' ? messages.sendingCodeButton : messages.sendCodeButton}
+            </Button>
+          ) : null}
+          {onSetPrimary && phone.isVerified && !phone.isPrimary ? (
+            <Button
+              size="xs"
+              variant="outline"
+              className="@max-xs/phones:h-6 @max-xs/phones:px-2"
+              disabled={Boolean(rowBusy)}
+              onClick={() => onSetPrimary(phone)}
+            >
+              {rowBusy === 'setPrimary' ? spinner : null}
+              {rowBusy === 'setPrimary' ? messages.settingPrimaryButton : messages.setPrimaryButton}
             </Button>
           ) : null}
           <Button
@@ -407,6 +422,7 @@ export function AccountPhoneNumbersView({
   onVerify,
   onCancelCode,
   onRemove,
+  onSetPrimary,
   onRetry
 }: AccountPhoneNumbersViewProps) {
   const messages = mergeAccountPhoneNumbersMessages(messageOverrides);
@@ -469,6 +485,7 @@ export function AccountPhoneNumbersView({
                     onVerify={onVerify}
                     onCancelCode={onCancelCode}
                     onRemove={onRemove}
+                    onSetPrimary={onSetPrimary}
                   />
                 ))}
               </ul>

@@ -23,9 +23,11 @@ export type AccountPhoneNumbersAdapter = Readonly<{
   /** Resolves `true` when the code matched and the number is now verified, `false` for a wrong or expired code. */
   verify: (input: AccountPhoneNumberRef & Readonly<{ code: string }>) => Promise<boolean>;
   remove: (input: AccountPhoneNumberRef) => Promise<void>;
+  /** Makes a verified number the account's primary. Hosts whose backend has no primary concept may omit it. */
+  setPrimary?: (input: AccountPhoneNumberRef) => Promise<void>;
 }>;
 
-export type AccountPhoneNumbersAction = 'load' | 'add' | 'send' | 'verify' | 'remove';
+export type AccountPhoneNumbersAction = 'load' | 'add' | 'send' | 'verify' | 'remove' | 'setPrimary';
 
 /** Where a message belongs: the whole card, the add form, or one number's row. */
 export type AccountPhoneNumbersScope = Readonly<
@@ -37,7 +39,7 @@ export type AccountPhoneNumbersFeedback = AccountPhoneNumbersScope & Readonly<{ 
 
 /** The request in flight: claiming a new number, or an action on one row. */
 export type AccountPhoneNumbersBusy = Readonly<
-  { scope: 'add' } | { scope: 'phone'; phoneId: string; action: 'send' | 'verify' | 'remove' }
+  { scope: 'add' } | { scope: 'phone'; phoneId: string; action: 'send' | 'verify' | 'remove' | 'setPrimary' }
 >;
 
 /** The open code field and what has been typed into it. */
