@@ -61,28 +61,6 @@ if ! psql -h "$PGHOST" -p "$PGPORT" -U "${PGUSER:-postgres}" -d "$PGDATABASE" -c
 fi
 echo "  ✓ Platform Postgres reachable"
 
-# Docker Desktop's built-in DNS (192.168.65.254) silently stops answering
-# after host sleep/restarts; CoreDNS forwards there by default, so pods then
-# fail EXTERNAL name resolution (OAuth token exchange dies with
-# SSO_PROVIDER_TOKEN_EXCHANGE_FAILED). Re-point the forward at public DNS.
-# Idempotent — no-op once patched.
-if kubectl get configmap coredns -n kube-system -o jsonpath='{.data.Corefile}' 2>/dev/null | grep -q 'forward . /etc/resolv.conf'; then
-  python3 - <<'PY'
-import json, subprocess
-cm = json.loads(subprocess.run(
-    ['kubectl','get','configmap','coredns','-n','kube-system','-o','json'],
-    capture_output=True, text=True).stdout)
-corefile = cm['data']['Corefile'].replace(
-    'forward . /etc/resolv.conf {', 'forward . 8.8.8.8 1.1.1.1 {')
-print(subprocess.run(
-    ['kubectl','patch','configmap','coredns','-n','kube-system','--type','merge',
-     '-p', json.dumps({'data': {'Corefile': corefile}})],
-    capture_output=True, text=True).stdout.strip())
-PY
-  kubectl rollout restart deploy/coredns -n kube-system >/dev/null 2>&1
-  echo "  ✓ CoreDNS forward re-pointed to public DNS (Docker Desktop proxy guard)"
-fi
-
 echo "[2/6] Establishing the owner and provisioning the tenant..."
 (cd "$ROOT_DIR" && pnpm run owner-login)
 # owner-login may have rewritten OWNER_USER_ID in .env; the values exported

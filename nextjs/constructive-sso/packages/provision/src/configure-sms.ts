@@ -18,8 +18,8 @@
  *   3. A plain UPDATE of app_settings_auth.allow_sms_sign_in inside the
  *      setup window — measured from owner bootstrap (#3765), so it covers
  *      this script by design when run within six hours of claiming the
- *      tenant. (Plus step 0: the shared plane's per-tenant namespace row —
- *      the one manual insert the CLI write path still requires.)
+ *      tenant. The CLI creates the tenant's shared-plane namespace row on
+ *      the first scoped write (#3845), so nothing is inserted by hand.
  *
  * All values come from the environment (.env): SMS_PROVIDER,
  * TWILIO_VERIFY_SERVICE_SID, TWILIO_ACCOUNT_SID, TWILIO_API_KEY_SID,
@@ -82,34 +82,8 @@ function fun(args: string[]): void {
   );
 }
 
-/** Ensure the tenant's 'default' row in the SHARED plane's namespaces table
- * (infra_public.namespaces, resolved from the platform DB's database-scope
- * namespace_module). Idempotent. */
-function ensureSharedNamespace(): void {
-  const k8sName = `constructive_database_${DATABASE_ID.replace(/-/g, '_')}_default`;
-  execFileSync(
-    'psql',
-    [
-      '-h', PGHOST, '-p', PGPORT, '-U', env.PGUSER ?? 'postgres', '-d', PGDATABASE,
-      '-v', 'ON_ERROR_STOP=1', '-Atc',
-      `INSERT INTO infra_public.namespaces
-         (name, namespace_name, database_id, is_active, status, is_managed)
-       VALUES ('default', '${k8sName}', '${DATABASE_ID}'::uuid, true, 'pending', false)
-       ON CONFLICT DO NOTHING`,
-    ],
-    { stdio: ['ignore', 'inherit', 'inherit'] }
-  );
-  console.log('namespace: shared-plane default row present for the tenant');
-}
-
 async function main(): Promise<void> {
   console.log(`tenant ${DATABASE_ID}: configuring the SMS lane through the platform CLI`);
-
-  // ---- 0. Shared-plane namespace row (the one step the CLI leaves manual). ----
-  // The shared database-scope store is namespace-backed: the addressed tenant
-  // needs a 'default' row in infra_public.namespaces before `fun config` will
-  // write values keyed to it (#3747's error names this insert).
-  ensureSharedNamespace();
 
   // ---- 1. Config rows (shared plane, keyed by the tenant). ----
   fun([
