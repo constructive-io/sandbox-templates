@@ -105,7 +105,7 @@ export function useAccountPhoneNumbers({
     next: AccountPhoneNumbersBusy,
     action: AccountPhoneNumbersAction,
     work: () => Promise<T>
-  ): Promise<{ ok: true; value: T } | { ok: false }> {
+  ): Promise<{ ok: true; value: T; own: boolean } | { ok: false; own: boolean }> {
     // Actions can overlap (the add form and a row's verify are disabled
     // separately), so each run owns the slots it takes: a later run's state
     // survives an earlier run's finally, and a failure only clears feedback
@@ -115,12 +115,16 @@ export function useAccountPhoneNumbers({
     setFeedback(undefined);
     try {
       const value = await work();
-      if (token === runSeq.current) setBusy(undefined);
-      return { ok: true, value };
+      const own = token === runSeq.current;
+      if (own) setBusy(undefined);
+      return { ok: true, value, own };
     } catch (cause) {
-      if (token === runSeq.current) setBusy(undefined);
-      fail(cause, action, scopeOf(next));
-      return { ok: false };
+      const own = token === runSeq.current;
+      if (own) setBusy(undefined);
+      // A newer action owns the feedback slot now — its outcome is what the
+      // user is waiting on, so this older failure steps aside entirely.
+      if (own) fail(cause, action, scopeOf(next));
+      return { ok: false, own };
     }
   }
 
@@ -130,6 +134,7 @@ export function useAccountPhoneNumbers({
     if (!sent.ok) return;
     // Nothing was sent because the number is already verified; reload so the row shows that.
     if (!sent.value) return refresh();
+    if (!sent.own) return;
     setCodeEntry({ phoneId: phone.id, code: '' });
     setFeedback({
       scope: 'phone',
@@ -161,16 +166,19 @@ export function useAccountPhoneNumbers({
     const verified = await run(busyRow, 'verify', () => adapter.verify({ id: phone.id, number: phone.number, code }));
     if (!verified.ok) return;
     if (!verified.value) {
-      setFeedback({ scope: 'phone', phoneId: phone.id, error: messages.wrongCode });
+      if (verified.own) setFeedback({ scope: 'phone', phoneId: phone.id, error: messages.wrongCode });
       return;
     }
+    // The row's own state updates regardless (a late verify still flipped
+    // the row); only the shared notice defers to a newer action.
     setPhones((current) => current?.map((row) => (row.id === phone.id ? { ...row, isVerified: true } : row)) ?? null);
-    setCodeEntry(undefined);
-    setFeedback({
-      scope: 'phone',
-      phoneId: phone.id,
-      notice: interpolate(messages.verifiedNotice, { number: formatPhoneNumber(phone.number) })
-    });
+    setCodeEntry((entry) => (entry?.phoneId === phone.id ? undefined : entry));
+    if (verified.own)
+      setFeedback({
+        scope: 'phone',
+        phoneId: phone.id,
+        notice: interpolate(messages.verifiedNotice, { number: formatPhoneNumber(phone.number) })
+      });
   }
 
   async function onSetPrimary(phone: AccountPhoneNumber) {
@@ -179,11 +187,12 @@ export function useAccountPhoneNumbers({
     const done = await run(busyRow, 'setPrimary', () => adapter.setPrimary!({ id: phone.id, number: phone.number }));
     if (!done.ok) return;
     setPhones((current) => current?.map((row) => ({ ...row, isPrimary: row.id === phone.id })) ?? null);
-    setFeedback({
-      scope: 'phone',
-      phoneId: phone.id,
-      notice: interpolate(messages.setPrimaryNotice, { number: formatPhoneNumber(phone.number) })
-    });
+    if (done.own)
+      setFeedback({
+        scope: 'phone',
+        phoneId: phone.id,
+        notice: interpolate(messages.setPrimaryNotice, { number: formatPhoneNumber(phone.number) })
+      });
   }
 
   async function onRemove(phone: AccountPhoneNumber) {

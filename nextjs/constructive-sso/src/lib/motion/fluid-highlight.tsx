@@ -78,6 +78,9 @@ function useFluidHighlight(container: HTMLElement | null): { rect: Rect; visible
 		resizeObserver?.observe(container);
 		container.addEventListener('scroll', update, { capture: true, passive: true });
 		return () => {
+			// A frame scheduled by the last event before unmount would measure
+			// and setState on a dead element — cancel it with the observers.
+			if (frame) cancelAnimationFrame(frame);
 			observer.disconnect();
 			resizeObserver?.disconnect();
 			container.removeEventListener('scroll', update, { capture: true });
