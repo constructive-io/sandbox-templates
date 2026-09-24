@@ -34,22 +34,32 @@ function useFluidHighlight(container: HTMLElement | null): { rect: Rect; visible
 	useEffect(() => {
 		if (!container) return;
 
+		// Measure at most once per frame and only re-render when the target
+		// actually moved: scroll, hover and list re-renders each used to pay a
+		// forced layout plus a fresh-object setState per event.
+		let frame = 0;
 		const update = () => {
-			const target = container.querySelector<HTMLElement>(TARGET_SELECTOR);
-			if (!target) {
-				setState((s) => (s ? { ...s, visible: false } : s));
-				return;
-			}
-			const t = target.getBoundingClientRect();
-			const c = container.getBoundingClientRect();
-			setState({
-				rect: {
+			if (frame) return;
+			frame = requestAnimationFrame(() => {
+				frame = 0;
+				const target = container.querySelector<HTMLElement>(TARGET_SELECTOR);
+				if (!target) {
+					setState((s) => (s ? { ...s, visible: false } : s));
+					return;
+				}
+				const t = target.getBoundingClientRect();
+				const c = container.getBoundingClientRect();
+				const rect = {
 					top: t.top - c.top - container.clientTop + container.scrollTop,
 					left: t.left - c.left - container.clientLeft,
 					width: t.width,
 					height: t.height,
-				},
-				visible: true,
+				};
+				setState((s) =>
+					s && s.visible && s.rect.top === rect.top && s.rect.left === rect.left && s.rect.width === rect.width && s.rect.height === rect.height
+						? s
+						: { rect, visible: true }
+				);
 			});
 		};
 

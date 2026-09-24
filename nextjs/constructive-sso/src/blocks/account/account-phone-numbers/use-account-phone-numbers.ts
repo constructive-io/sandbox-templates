@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 
 import { formatPhoneNumber, normalizePhoneNumber } from '@/components/ui/phone-input';
 
@@ -67,6 +67,8 @@ export function useAccountPhoneNumbers({
 }: UseAccountPhoneNumbersOptions): UseAccountPhoneNumbersResult {
   const messages = mergeAccountPhoneNumbersMessages(messageOverrides);
   const [phones, setPhones] = useState<readonly AccountPhoneNumber[] | null>(null);
+  /** Sequence of in-flight runs; the newest owns the shared busy/feedback slots. */
+  const runSeq = useRef(0);
   const [loading, setLoading] = useState(true);
   const [unavailable, setUnavailable] = useState(false);
   const [feedback, setFeedback] = useState<AccountPhoneNumbersFeedback>();
@@ -104,15 +106,21 @@ export function useAccountPhoneNumbers({
     action: AccountPhoneNumbersAction,
     work: () => Promise<T>
   ): Promise<{ ok: true; value: T } | { ok: false }> {
+    // Actions can overlap (the add form and a row's verify are disabled
+    // separately), so each run owns the slots it takes: a later run's state
+    // survives an earlier run's finally, and a failure only clears feedback
+    // it still owns.
+    const token = ++runSeq.current;
     setBusy(next);
     setFeedback(undefined);
     try {
-      return { ok: true, value: await work() };
+      const value = await work();
+      if (token === runSeq.current) setBusy(undefined);
+      return { ok: true, value };
     } catch (cause) {
+      if (token === runSeq.current) setBusy(undefined);
       fail(cause, action, scopeOf(next));
       return { ok: false };
-    } finally {
-      setBusy(undefined);
     }
   }
 

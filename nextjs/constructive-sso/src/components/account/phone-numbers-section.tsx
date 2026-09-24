@@ -73,11 +73,23 @@ export function PhoneNumbersSection() {
 	};
 
 	const adapter: AccountPhoneNumbersAdapter = {
-		list: () => Promise.resolve(rows().map(toRow)),
+		// Fetch, never snapshot: the block lists once on mount, before the
+		// query's first response arrives — a snapshot would hand it an empty
+		// list it never re-reads.
+		list: () => reload(),
 		add: async ({ number }) => {
-			const created = await createPhoneNumber({ cc: '+', number, isPrimary: rows().length === 0 });
+			const existing = await reload();
+			const created = await createPhoneNumber({
+				cc: '+',
+				number,
+				// The platform's writers store cc '+' with the full E.164 in
+				// `number` — sign-in and verification both match on that shape,
+				// and the block's contract calls `number` E.164.
+				isPrimary: existing.length === 0
+			});
 			queryClient.invalidateQueries({ queryKey: ['phoneNumbers'] });
-			return toRow(created as unknown as PhoneRow);
+			const row = created.createPhoneNumber?.phoneNumber as PhoneRow | undefined;
+			return toRow(row ?? { id: '', number, isVerified: false, isPrimary: existing.length === 0 });
 		},
 		// The texted-code pair ships on the live auth schema but no codegen
 		// target of this app emits it yet, so both go through the raw auth
