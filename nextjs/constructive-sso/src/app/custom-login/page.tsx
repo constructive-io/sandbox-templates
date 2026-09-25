@@ -1,6 +1,7 @@
 'use client';
 
 import { Suspense, useState } from 'react';
+import type { Route } from 'next';
 import { useSearchParams } from 'next/navigation';
 
 import { AuthSocialButtons } from '@/blocks/auth/social-buttons/social-buttons';
@@ -67,11 +68,10 @@ function CustomLoginPageContent() {
 						error?: string;
 					};
 					if (data.mfaRequired) {
-						setNotice('This account uses two-factor sign-in. Please sign in through the platform login page for now.');
-						// The non-fatal mfaRequired record (not null): a null return
-						// makes the card report rejected credentials on top of the
-						// notice. Its own MFA branch is an unwired message seam —
-						// the notice above is the UI.
+						// The BFF parked the challenge in the HttpOnly cookie —
+						// the two-factor page owns finishing it (send the code,
+						// spend the token). The sign-in stays non-fatal here.
+						window.location.href = '/login/two-factor' as Route;
 						return {
 							id: null,
 							userId: null,

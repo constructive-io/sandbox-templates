@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 
+import { challengeCookie } from '@/lib/bff/challenge-cookie';
 import { maxAgeFromExpiresAt, sessionCookie } from '@/lib/bff/session-cookie';
 import { readJsonBody, sameOriginGuard } from '@/lib/bff/request-guard';
 import { GatewayError, gatewayPost } from '@/lib/sso/gateway';
@@ -45,12 +46,15 @@ export async function POST(req: Request): Promise<NextResponse> {
       null
     );
     if (result.mfaRequired) {
-      // No session exists to set — the challenge token must never reach the
-      // browser. A custom MFA completion lane is a follow-up milestone.
-      return NextResponse.json(
-        { mfaRequired: true, error: 'MFA_REQUIRED' },
-        { status: 200 }
+      // No session exists to set — park the challenge in the HttpOnly cookie
+      // (same name and shape the platform /2fa page reads) and let the two-factor
+      // page finish it. The token never appears in the JSON body.
+      const headers = new Headers();
+      headers.append(
+        'set-cookie',
+        challengeCookie(String(result.userId), String(result.mfaChallengeToken))
       );
+      return NextResponse.json({ mfaRequired: true }, { status: 200, headers });
     }
     if (!result.signedIn || !result.accessToken) {
       return NextResponse.json({ signedIn: false }, { status: 200 });
