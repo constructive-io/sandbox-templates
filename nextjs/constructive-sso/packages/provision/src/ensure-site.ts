@@ -251,6 +251,11 @@ async function main(): Promise<void> {
     // database-scope SMS config/secrets — configure-sms provisions those.
     { path: '/auth/send-sms-otp', target: 'function', task_identifier: 'auth_flows:send_sms_otp', anonymous: true },
     { path: '/auth/sms-code', target: 'function', task_identifier: 'auth_flows:sms_code', anonymous: true },
+    // MFA challenge lanes: the send (possession of the challenge token is the
+    // proof a pre-session caller offers) and the JSON spender. Same anonymous
+    // pair as the phone lanes above.
+    { path: '/auth/send-mfa-code', target: 'function', task_identifier: 'auth_flows:send_mfa_code', anonymous: true },
+    { path: '/auth/mfa/complete', target: 'function', task_identifier: 'auth_flows:complete_mfa', anonymous: true },
     { path: '/start', target: 'function', task_identifier: 'sso:start', anonymous: true },
     { path: '/sso/callback', target: 'function', task_identifier: 'sso:callback', anonymous: true },
     { path: '/auth/link', target: 'function', task_identifier: 'sso:link' },
