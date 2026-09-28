@@ -182,6 +182,11 @@ async function main(): Promise<void> {
     'authenticate',
     'authenticate_strict',
     'complete_mfa_challenge',
+    // Challenge lanes the runtime reaches for anonymous callers (private
+    // schema — nothing grants them by default).
+    'get_challenge_question',
+    'enroll_security_questions',
+    'send_mfa_challenge_code',
     'consume_app_oauth_request',
     'consume_app_pending_identity_link',
     'create_app_pending_identity_link',
