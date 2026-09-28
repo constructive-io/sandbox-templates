@@ -256,6 +256,12 @@ async function main(): Promise<void> {
     // pair as the phone lanes above.
     { path: '/auth/send-mfa-code', target: 'function', task_identifier: 'auth_flows:send_mfa_code', anonymous: true },
     { path: '/auth/mfa/complete', target: 'function', task_identifier: 'auth_flows:complete_mfa', anonymous: true },
+    // Questions + step-up lanes (challenge-scoped are anonymous, step-up
+    // carries the session being re-verified).
+    { path: '/auth/challenge-question', target: 'function', task_identifier: 'auth_flows:challenge_question', anonymous: true },
+    { path: '/auth/enroll-security-questions', target: 'function', task_identifier: 'auth_flows:enroll_security_questions', anonymous: true },
+    { path: '/auth/send-step-up-code', target: 'function', task_identifier: 'auth_flows:send_step_up_code' },
+    { path: '/auth/verify-step-up-code', target: 'function', task_identifier: 'auth_flows:verify_step_up_code' },
     { path: '/start', target: 'function', task_identifier: 'sso:start', anonymous: true },
     { path: '/sso/callback', target: 'function', task_identifier: 'sso:callback', anonymous: true },
     { path: '/auth/link', target: 'function', task_identifier: 'sso:link' },

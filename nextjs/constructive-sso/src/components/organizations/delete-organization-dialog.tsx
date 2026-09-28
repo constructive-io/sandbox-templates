@@ -34,6 +34,13 @@ interface DeleteOrganizationDialogProps {
  */
 export function DeleteOrganizationDialog({ open, onOpenChange, organization, onSuccess }: DeleteOrganizationDialogProps) {
 	const [confirmName, setConfirmName] = useState('');
+	// Step-up: deleting an organization demands mfa-fresh verification. When
+	// the tenant refuses with STEP_UP_REQUIRED_MFA we offer the SMS code here —
+	// send, type, verify, and the delete retries inside the 30-minute window.
+	const [stepUp, setStepUp] = useState<'idle' | 'code' | 'sent'>('idle');
+	const [stepUpCode, setStepUpCode] = useState('');
+	const [stepUpBusy, setStepUpBusy] = useState(false);
+	const [stepUpError, setStepUpError] = useState<string | null>(null);
 
 	const { deleteOrganization, isDeleting } = useDeleteOrganization({
 		onSuccess: (result) => {
@@ -46,6 +53,11 @@ export function DeleteOrganizationDialog({ open, onOpenChange, organization, onS
 			onSuccess?.();
 		},
 		onError: (error) => {
+			if (error.message.includes('STEP_UP_REQUIRED_MFA')) {
+				setStepUp(stepUp === 'sent' ? 'sent' : 'code');
+				setStepUpError(null);
+				return;
+			}
 			showErrorToast({
 				message: 'Failed to delete organization',
 				description: error.message,
@@ -56,8 +68,52 @@ export function DeleteOrganizationDialog({ open, onOpenChange, organization, onS
 	const orgName = organization?.displayName || organization?.username || '';
 	const canDelete = confirmName === orgName;
 
+	const sendStepUpCode = async () => {
+		setStepUpBusy(true);
+		setStepUpError(null);
+		try {
+			const response = await fetch('/api/auth/step-up/send', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: '{}'
+			});
+			const payload = (await response.json()) as { sent?: boolean; error?: string };
+			if (response.ok && payload.sent) {
+				setStepUp('sent');
+				return;
+			}
+			setStepUpError(payload.error ?? `sending the code failed (HTTP ${response.status})`);
+		} catch {
+			setStepUpError('could not reach the app server');
+		} finally {
+			setStepUpBusy(false);
+		}
+	};
+
 	const handleDelete = async () => {
 		if (!organization || !canDelete) return;
+		// The step-up lane is open: verify the typed code first, then retry.
+		if (stepUp === 'sent') {
+			setStepUpBusy(true);
+			setStepUpError(null);
+			try {
+				const response = await fetch('/api/auth/step-up/verify', {
+					method: 'POST',
+					headers: { 'content-type': 'application/json' },
+					body: JSON.stringify({ code: stepUpCode })
+				});
+				const payload = (await response.json()) as { verified?: boolean; error?: string };
+				if (!response.ok || !payload.verified) {
+					setStepUpError(payload.error ?? 'That code didn\u2019t match — check the text and retry.');
+					return;
+				}
+			} catch {
+				setStepUpError('could not reach the app server');
+				return;
+			} finally {
+				setStepUpBusy(false);
+			}
+		}
 
 		await deleteOrganization({
 			orgId: organization.id,
@@ -141,6 +197,61 @@ export function DeleteOrganizationDialog({ open, onOpenChange, organization, onS
 							className='h-10'
 						/>
 					</div>
+
+					{/* Step-up: the tenant demanded mfa-fresh verification for this delete */}
+					{stepUp !== 'idle' && (
+						<div className='mx-6 mt-3 space-y-2 rounded-md border border-border/60 bg-muted/40 p-4'>
+							<p className='text-sm font-medium'>
+								{stepUp === 'code' || stepUp === 'sent'
+									? 'This deletion needs a verification code'
+									: ''}
+							</p>
+							<p className='text-muted-foreground text-sm'>
+								We text a one-time code to your verified number. Enter it, then delete again —
+								your verification lasts thirty minutes.
+							</p>
+							{stepUp === 'code' && (
+								<Button
+									type='button'
+									variant='outline'
+									className='h-9'
+									disabled={stepUpBusy}
+									onClick={() => void sendStepUpCode()}
+								>
+									{stepUpBusy ? 'Sending…' : 'Send code by SMS'}
+								</Button>
+							)}
+							{stepUp === 'sent' && (
+								<div className='flex items-center gap-2'>
+									<input
+										value={stepUpCode}
+										onChange={(event) =>
+											setStepUpCode(event.target.value.replace(/\D/g, '').slice(0, 6))
+										}
+										inputMode='numeric'
+										autoComplete='one-time-code'
+										placeholder='······'
+										aria-label='Six-digit code'
+										className='input h-9 w-28 text-center tracking-[0.3em]'
+									/>
+									<Button
+										type='button'
+										variant='outline'
+										className='h-9'
+										disabled={stepUpBusy || !/^\d{6}$/.test(stepUpCode)}
+										onClick={() => void sendStepUpCode()}
+									>
+										Resend
+									</Button>
+								</div>
+							)}
+							{stepUpError && (
+								<p className='text-destructive text-sm' role='alert'>
+									{stepUpError}
+								</p>
+							)}
+						</div>
+					)}
 
 					{/* Footer */}
 					<AlertDialogFooter className='px-6 py-4 bg-muted/30 border-t border-border/60'>
