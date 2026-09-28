@@ -256,6 +256,9 @@ async function main(): Promise<void> {
     // pair as the phone lanes above.
     { path: '/auth/send-mfa-code', target: 'function', task_identifier: 'auth_flows:send_mfa_code', anonymous: true },
     { path: '/auth/mfa/complete', target: 'function', task_identifier: 'auth_flows:complete_mfa', anonymous: true },
+    // The setup page the registration flows land on (mantra preset binding —
+    // warm templates baked before it exists carry no serving row for it).
+    { path: '/setup-2fa', target: 'function', task_identifier: 'mantra:setup_2fa' },
     // Questions + step-up lanes (challenge-scoped are anonymous, step-up
     // carries the session being re-verified).
     { path: '/auth/challenge-question', target: 'function', task_identifier: 'auth_flows:challenge_question', anonymous: true },
