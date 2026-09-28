@@ -18,6 +18,7 @@ interface SignInLaneResult {
   accessTokenExpiresAt?: string;
   mfaRequired?: boolean;
   mfaChallengeToken?: string | null;
+  enrollmentRequired?: boolean;
 }
 
 /**
@@ -45,7 +46,7 @@ export async function POST(req: Request): Promise<NextResponse> {
       { email: body.email, password: body.password, remember_me: Boolean(body.rememberMe) },
       null
     );
-    if (result.mfaRequired) {
+    if (result.mfaRequired || result.enrollmentRequired) {
       // No session exists to set — park the challenge in the HttpOnly cookie
       // (same name and shape the platform /2fa page reads) and let the two-factor
       // page finish it. The token never appears in the JSON body.

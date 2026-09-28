@@ -12,7 +12,8 @@
     "reset-db": "tsx src/reset-db.ts",
     "build": "echo 'No build required'",
     "promote-owner": "tsx src/promote-owner.ts",
-    "owner-login": "tsx src/owner-login.ts"
+    "owner-login": "tsx src/owner-login.ts",
+    "configure-2fa": "tsx src/configure-2fa.ts"
   },
   "dependencies": {
     "@constructive-io/fetch": "^1.1.1",
