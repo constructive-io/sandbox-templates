@@ -36,6 +36,10 @@ const POLICY = {
   sign_up: { collect: ['phone', 'security_questions'] },
   exemptions: [{ kind: 'owner' }]
 };
+// The tenant SQL reads snake_case keys (jsonb_extract_path 'login'/'require');
+// the page-runtime settings read the camelCase mirror. Write both so every
+// reader sees its own spelling.
+const POLICY_JSON = JSON.stringify({ ...POLICY, signUp: POLICY.sign_up });
 
 // The settings module's rls_settings row names the tenant's auth schema —
 // same resolution configure-sso uses (never a literal: a scope prefixes its
@@ -52,7 +56,7 @@ const schema = execFileSync(
 execFileSync(
   'psql',
   [...psqlBase, '-v', 'ON_ERROR_STOP=1', '-c',
-    `UPDATE "${schema}".app_settings_auth SET verification_policy = '${JSON.stringify(POLICY)}'::jsonb`],
+    `UPDATE "${schema}".app_settings_auth SET verification_policy = '${POLICY_JSON}'::jsonb`],
   { stdio: ['ignore', 'inherit', 'inherit'] }
 );
 
