@@ -19,7 +19,7 @@ import { fileURLToPath } from 'node:url';
 import * as dotenv from 'dotenv';
 
 const MODULE_DIR = dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: resolve(MODULE_DIR, '../../../../.env') });
+dotenv.config({ path: resolve(MODULE_DIR, '../../../.env') });
 
 const env = process.env;
 const DATABASE_ID = env.DATABASE_ID ?? '';
