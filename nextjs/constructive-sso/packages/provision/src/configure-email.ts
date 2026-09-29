@@ -10,8 +10,11 @@
  *
  *   1. A provider account (provider 'smtp') whose host is the Mailpit service
  *      `fun up` renders from the platform-mailpit bundle — `:1025`, no AUTH
- *      (an unauthenticated relay is a supported SMTP path; the credentials
- *      secret name is a placeholder nothing resolves while smtp_user is NULL).
+ *      (an unauthenticated relay is a supported SMTP path: the mailer only
+ *      consults the credential when the account names an SMTP user, and
+ *      Mailpit names none — the secret stays unset). The credential is named
+ *      'SMTP_PASS' because that is a secret the email function already
+ *      declares; any other name is refused as undeclared before the send.
  *   2. The database scope's default identity (`is_default`), transport_mode
  *      'own', sending through that account.
  *
@@ -52,14 +55,14 @@ const PGPORT = env.PGPORT ?? '15432';
 const PGDATABASE = env.PGDATABASE ?? 'constructive-functions-db1';
 const psqlBase = ['-h', PGHOST, '-p', PGPORT, '-U', env.PGUSER ?? 'postgres', '-d', PGDATABASE];
 
-// The local sender. The address only needs to be syntactically valid —
-// Mailpit accepts everything — but keep the check so a broken .env fails here
-// rather than as a refused send mid-flow.
-const FROM_ADDRESS = (env.EMAIL_FROM_ADDRESS ?? 'no-reply@localhost').toLowerCase();
+// The local sender. The address must be FQDN-shaped (the identities table's
+// CHECK rejects a dotless domain), so the default uses the reserved .test
+// TLD; Mailpit accepts everything, and nothing real ever sees it.
+const FROM_ADDRESS = (env.EMAIL_FROM_ADDRESS ?? 'no-reply@localhost.test').toLowerCase();
 const FROM_NAME = env.EMAIL_FROM_NAME ?? 'Constructive Local';
 const SUPPORT_ADDRESS = env.EMAIL_SUPPORT_ADDRESS ?? null;
-if (!/^[^@\s]+@[^@\s]+$/.test(FROM_ADDRESS)) {
-  throw new Error(`EMAIL_FROM_ADDRESS '${FROM_ADDRESS}' is not an email address`);
+if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(FROM_ADDRESS)) {
+  throw new Error(`EMAIL_FROM_ADDRESS '${FROM_ADDRESS}' is not an FQDN-shaped email address`);
 }
 
 /** Quote one env-derived value for the single-quoted SQL literals below. */
@@ -79,27 +82,62 @@ const run = (sql: string): void => {
 async function main(): Promise<void> {
   console.log(`tenant ${DATABASE_ID}: configuring the email lane (smtp → in-cluster Mailpit)`);
 
-  // ---- 1. The email-sender module's physical tables for this scope. ----
+  // ---- 1. The email-sender module's row for this database scope. ----
   // Same resolution the module loader performs (EMAIL_SENDER_MODULE_SQL):
-  // the scope prefixes its tables, so the generated row is the fact.
-  const moduleRow = scalar(`
-    SELECT ps.schema_name || ';' || coalesce(accounts_t.name, '') || ';' || coalesce(identities_t.name, '')
-      FROM metaschema_modules_public.email_sender_module esm
-      LEFT JOIN metaschema_public.schema ps ON ps.id = esm.schema_id
-      LEFT JOIN metaschema_public.table accounts_t
-        ON accounts_t.id = esm.email_provider_accounts_table_id
-       AND esm.email_provider_accounts_table_id <> uuid_nil()
-      LEFT JOIN metaschema_public.table identities_t
-        ON identities_t.id = esm.email_identities_table_id
-       AND esm.email_identities_table_id <> uuid_nil()
-     WHERE esm.database_id = '${DATABASE_ID}'::uuid
-       AND esm.scope = 'database'`);
+  // the scope prefixes its tables, so the generated row is the fact. A warm
+  // tenant can predate the row (the #3861 family), so heal it the way
+  // local-bringup's store-fix does: INSERT the database-scope row pointing at
+  // the SHARED routing_public tables every scope reads (the loader always
+  // binds the platform instance's tables and filters by the scope key).
+  const resolveModule = (): string =>
+    scalar(`
+      SELECT ps.schema_name || ';' || coalesce(accounts_t.name, '') || ';' || coalesce(identities_t.name, '')
+        FROM metaschema_modules_public.email_sender_module esm
+        LEFT JOIN metaschema_public.schema ps ON ps.id = esm.schema_id
+        LEFT JOIN metaschema_public.table accounts_t
+          ON accounts_t.id = esm.email_provider_accounts_table_id
+         AND esm.email_provider_accounts_table_id <> uuid_nil()
+        LEFT JOIN metaschema_public.table identities_t
+          ON identities_t.id = esm.email_identities_table_id
+         AND esm.email_identities_table_id <> uuid_nil()
+       WHERE esm.database_id = '${DATABASE_ID}'::uuid
+         AND esm.scope = 'database'`);
+  let moduleRow = resolveModule();
+  if (!moduleRow || moduleRow.split(';').some((part) => !part)) {
+    // The module table's insert trigger demands the super-constructive GUC for
+    // database-scope rows — the same three set_config statements
+    // local-bringup's store-fix opens with, in the SAME session as the INSERT.
+    run(`
+      SELECT set_config('constructive.allow_super_constructive','true',false);
+      SELECT set_config('jwt.strict_attribution','false',false);
+      SELECT set_config('jwt.claims.database_id','${DATABASE_ID}',false);
+      INSERT INTO metaschema_modules_public.email_sender_module (
+        database_id, entity_field, schema_id, public_schema_name,
+        email_provider_accounts_table_id, email_identities_table_id, email_site_identities_table_id,
+        email_provider_accounts_table_name, email_identities_table_name, email_site_identities_table_name,
+        site_surface_module_id, scope, prefix, default_capabilities
+      )
+      SELECT '${DATABASE_ID}'::uuid, 'database_id', s.id, 'routing_public',
+             ta.id, ti.id, ts.id,
+             'email_provider_accounts', 'email_identities', 'email_site_identities',
+             (SELECT id FROM metaschema_modules_public.site_surface_module
+               WHERE database_id = '${DATABASE_ID}'::uuid AND scope = 'database' LIMIT 1),
+             'database', '', '{}'
+        FROM metaschema_public.schema s
+        JOIN metaschema_public.table ta ON ta.name = 'email_provider_accounts' AND ta.schema_id = s.id
+        JOIN metaschema_public.table ti ON ti.name = 'email_identities' AND ti.schema_id = s.id
+        LEFT JOIN metaschema_public.table ts ON ts.name = 'email_site_identities' AND ts.schema_id = s.id
+       WHERE s.schema_name = 'routing_public'
+         AND NOT EXISTS (SELECT 1 FROM metaschema_modules_public.email_sender_module
+                          WHERE database_id = '${DATABASE_ID}'::uuid AND scope = 'database')`);
+    moduleRow = resolveModule();
+  }
   const [publicSchema, accountsTable, identitiesTable] = moduleRow.split(';');
   if (!publicSchema || !accountsTable || !identitiesTable) {
     throw new Error(
       `no database-scope email_sender_module row (or half-provisioned: ` +
         `'${moduleRow.replace(/;/g, '|')}') for tenant ${DATABASE_ID} — ` +
-        'a warm tenant can predate the module; see the store-fix pattern in local-bringup'
+        'the self-heal INSERT matched nothing; check routing_public tables exist'
     );
   }
   console.log(`module: ${publicSchema}.${accountsTable} + ${identitiesTable}`);
@@ -123,7 +161,7 @@ async function main(): Promise<void> {
           webhook_signing_secret_name, is_active, database_id
         ) VALUES (
           gen_random_uuid(), now(), now(), '${accountName}', 'smtp', 'mailpit.local',
-          '${smtpHost}', ${smtpPort}, false, NULL, 'mailpit-no-auth',
+          '${smtpHost}', ${smtpPort}, false, NULL, 'SMTP_PASS',
           NULL, true, '${DATABASE_ID}'
         ) RETURNING id INTO v_account_id;
       ELSE
@@ -131,7 +169,7 @@ async function main(): Promise<void> {
            SET updated_at = now(), provider = 'smtp',
                smtp_host = '${smtpHost}', smtp_port = ${smtpPort},
                smtp_secure = false, smtp_user = NULL,
-               credentials_secret_name = 'mailpit-no-auth', is_active = true
+               credentials_secret_name = 'SMTP_PASS', is_active = true
          WHERE id = v_account_id;
       END IF;
 
