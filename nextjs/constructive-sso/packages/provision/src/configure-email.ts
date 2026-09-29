@@ -62,6 +62,9 @@ if (!/^[^@\s]+@[^@\s]+$/.test(FROM_ADDRESS)) {
   throw new Error(`EMAIL_FROM_ADDRESS '${FROM_ADDRESS}' is not an email address`);
 }
 
+/** Quote one env-derived value for the single-quoted SQL literals below. */
+const esc = (value: string): string => value.replace(/'/g, "''");
+
 /** One psql -Atc scalar (or empty string), so a missing fact fails by shape. */
 const scalar = (sql: string): string =>
   execFileSync('psql', [...psqlBase, '-Atc', sql], { encoding: 'utf8' }).trim();
@@ -140,15 +143,15 @@ async function main(): Promise<void> {
           is_default, is_active, database_id
         ) VALUES (
           gen_random_uuid(), now(), now(), 'transactional', v_account_id, 'own',
-          '${FROM_ADDRESS}', '${FROM_NAME.replace(/'/g, "''")}', NULL,
-          ${SUPPORT_ADDRESS ? `'${SUPPORT_ADDRESS.replace(/'/g, "''")}'` : 'NULL'},
+          '${esc(FROM_ADDRESS)}', '${esc(FROM_NAME)}', NULL,
+          ${SUPPORT_ADDRESS ? `'${esc(SUPPORT_ADDRESS)}'` : 'NULL'},
           true, true, '${DATABASE_ID}'
         );
       ELSE
         UPDATE "${publicSchema}"."${identitiesTable}"
            SET updated_at = now(), provider_account_id = v_account_id,
-               transport_mode = 'own', from_address = '${FROM_ADDRESS}',
-               from_name = '${FROM_NAME.replace(/'/g, "''")}', is_active = true
+               transport_mode = 'own', from_address = '${esc(FROM_ADDRESS)}',
+               from_name = '${esc(FROM_NAME)}', is_active = true
          WHERE database_id = '${DATABASE_ID}'::uuid AND is_default;
       END IF;
     END $$;`);

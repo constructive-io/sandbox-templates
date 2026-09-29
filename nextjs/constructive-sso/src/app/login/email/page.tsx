@@ -28,6 +28,7 @@ const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 const FRIENDLY_ERRORS: Record<string, string> = {
 	INVALID_CODE: 'That code didn\u2019t match. Codes expire after ten minutes — resend and use the latest email.',
+	ACCOUNT_NOT_FOUND: 'No account uses this address yet. Sign up first, or sign in another way.',
 	ACCOUNT_DISABLED: 'This account is disabled. Contact the workspace owner.',
 	EMAIL_OTP_SIGN_IN_DISABLED: 'Email-code sign-in is switched off for this workspace.',
 	TOO_MANY_REQUESTS: 'Too many requests — wait a minute and try again.',
