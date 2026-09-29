@@ -20,6 +20,7 @@
     "configure-sms": "pnpm --filter @constructive-app/provision run configure-sms",
     "configure-orgs": "pnpm --filter @constructive-app/provision run configure-orgs",
     "configure-2fa": "pnpm --filter @constructive-app/provision run configure-2fa",
+    "configure-email": "pnpm --filter @constructive-app/provision run configure-email",
     "ensure-site": "pnpm --filter @constructive-app/provision run ensure-site",
     "ensure-owner-self-membership": "pnpm --filter @constructive-app/dev-local run ensure-owner-self-membership",
     "export:graphql": "pnpm --filter @constructive-app/export run export:graphql",

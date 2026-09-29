@@ -162,6 +162,20 @@ export const APP_ROUTES = {
 		access: 'guest-only' as RouteAccessType,
 	},
 
+	// The email twin of the phone lane: request a one-time sign-in link.
+	LOGIN_MAGIC: {
+		path: '/login/magic' as Route,
+		searchParams: {},
+		access: 'guest-only' as RouteAccessType,
+	},
+
+	// The email-code lane: request and spend a one-time sign-in code.
+	LOGIN_EMAIL: {
+		path: '/login/email' as Route,
+		searchParams: {},
+		access: 'guest-only' as RouteAccessType,
+	},
+
 	REGISTER: {
 		path: '/register' as Route,
 		searchParams: { redirect: parseAsString },

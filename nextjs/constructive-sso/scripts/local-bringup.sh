@@ -174,10 +174,11 @@ UPDATE metaschema_modules_public.internal_config_module
  WHERE scope='database' AND private_schema_name IS NULL;
 SQL
 
-echo "[8/8] Configuring the SMS / orgs / 2FA lanes..."
+echo "[8/8] Configuring the SMS / orgs / 2FA / email lanes..."
 (cd "$ROOT_DIR/packages/provision" && pnpm run configure-sms)
 (cd "$ROOT_DIR/packages/provision" && pnpm run configure-orgs)
 (cd "$ROOT_DIR/packages/provision" && pnpm run configure-2fa)
+(cd "$ROOT_DIR/packages/provision" && pnpm run configure-email)
 
 # The tenant's auth schema: rls_settings names it — never "the newest
 # -auth-private schema" (the warm pool leaves several; the wrong one no-ops).

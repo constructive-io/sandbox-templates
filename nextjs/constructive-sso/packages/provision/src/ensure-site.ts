@@ -251,6 +251,23 @@ async function main(): Promise<void> {
     // database-scope SMS config/secrets — configure-sms provisions those.
     { path: '/auth/send-sms-otp', target: 'function', task_identifier: 'auth_flows:send_sms_otp', anonymous: true },
     { path: '/auth/sms-code', target: 'function', task_identifier: 'auth_flows:sms_code', anonymous: true },
+    // Email-code sign-in: the JSON lane that mails the code and the
+    // gateway-served form that spends it — the email twin of the phone pair.
+    // The tenant's send needs the sender identity configure-email provisions.
+    { path: '/auth/send-email-otp', target: 'function', task_identifier: 'auth_flows:send_email_otp', anonymous: true },
+    { path: '/auth/email-code', target: 'function', task_identifier: 'auth_flows:email_code', anonymous: true },
+    // Magic link: the JSON lane that mails the link (the tenant mints the
+    // token and queues the email itself), and the landing that spends it — a
+    // page channel, because its answer is a redirect plus the session cookie.
+    // The emailed link's path must match the landing's own route
+    // ('/auth/magic-link' in the pages manifest) or it 404s in the inbox.
+    { path: '/auth/request-magic-link', target: 'function', task_identifier: 'auth_flows:request_magic_link', anonymous: true },
+    { path: '/auth/magic-link', target: 'function', task_identifier: 'auth_flows:magic_link', anonymous: true },
+    // Email verification send (pre-auth): the resend lane the check-email
+    // screen and post-signup trigger use. The emailed link itself points at
+    // the site's '/verify-email', which the redirect row below hops into the
+    // app's own page (the app consumes email_id + verification_token).
+    { path: '/auth/send-verification-email', target: 'function', task_identifier: 'auth_flows:send_verification_email', anonymous: true },
     // MFA challenge lanes: the send (possession of the challenge token is the
     // proof a pre-session caller offers) and the JSON spender. Same anonymous
     // pair as the phone lanes above.
@@ -332,65 +349,71 @@ async function main(): Promise<void> {
     console.log(`  ${DOMAIN}${path} -> ${task}${isMantra ? ` (site ${siteId})` : ''}`);
   }
 
-  // ---- 7. Site root '/' resolves to an app-origin redirect. ----
+  // ---- 7. Gateway paths that hop into the app origin. ----
   // The mantra pages' post-auth landing is '/' (same-origin `next` only —
   // open-redirect guard). A redirect row is tenant-configured data, exempt
   // from the guard, so a redirect route at '/' turns that landing into an
   // instant hop into the app; the session cookie is already on localhost
   // (cookies ignore ports).
-  // Shape: TWO routes at '/', never an in-place repoint — the site keeps its
-  // own '/' route because sites_install_mantra/install_route_bindings refuse
-  // to run for a site that "serves no hostname" (ROUTE_BINDINGS_SITE_NOT_ROUTED
-  // on re-run). The redirect route carries priority 10 and resolve_route orders
-  // priority DESC, so it wins while the site route keeps the verbs satisfied.
-  // Idempotent: upsert the redirect row by (database_id, name); insert the
-  // redirect route only when missing.
-  await tx(client, tenantClaims, async () => {
-    const redirect = await client.query(
-      `INSERT INTO routing_public.redirects
-         (database_id, name, to_host, to_path, status_code, preserve_path, preserve_query)
-       VALUES ($1, 'app-origin', $2, '/', 302, false, true)
-       ON CONFLICT (database_id, name) DO UPDATE SET
-         to_host = EXCLUDED.to_host, to_path = EXCLUDED.to_path,
-         status_code = EXCLUDED.status_code, preserve_path = EXCLUDED.preserve_path,
-         preserve_query = EXCLUDED.preserve_query, updated_at = now()
-       RETURNING id`,
-      [tenantDatabaseId, REDIRECT_TO_HOST]
-    );
-    const redirectId = (redirect.rows[0] as { id: string }).id;
-    const inserted = await client.query(
-      `INSERT INTO routing_public.routes (database_id, domain_id, path, target_redirect_id, priority, is_active)
-       SELECT $1::uuid, $2::uuid, '/', $3::uuid, 10, true
-        WHERE NOT EXISTS (
-          SELECT 1 FROM routing_public.routes x
-           WHERE x.database_id = $1 AND x.domain_id = $2 AND x.path = '/' AND x.target_redirect_id = $3
-        )
-       RETURNING id`,
-      [tenantDatabaseId, domainId, redirectId]
-    );
-    if (inserted.rowCount === 0) {
-      const stillThere = await client.query(
-        `SELECT 1 FROM routing_public.routes
-          WHERE database_id = $1 AND domain_id = $2 AND path = '/' AND target_redirect_id = $3`,
-        [tenantDatabaseId, domainId, redirectId]
+  // '/verify-email' rides the same bridge for the same reason: the emailed
+  // verification link is built on the site's canonical URL (the gateway), but
+  // the page that consumes email_id + verification_token is the app's own.
+  // preserve_query keeps both the landing's ?next=… and the verification
+  // link's ?email_id=…&verification_token=… intact across the hop.
+  // Shape per path: the redirect route carries priority 10 and resolve_route
+  // orders priority DESC, so it wins over any site route at the same path
+  // while that route keeps its verbs satisfied. Idempotent: upsert the
+  // redirect row by (database_id, name); insert the route only when missing.
+  const ensureAppRedirect = async (name: string, path: string): Promise<void> => {
+    await tx(client, tenantClaims, async () => {
+      const redirect = await client.query(
+        `INSERT INTO routing_public.redirects
+           (database_id, name, to_host, to_path, status_code, preserve_path, preserve_query)
+         VALUES ($1, $2, $3, $4, 302, false, true)
+         ON CONFLICT (database_id, name) DO UPDATE SET
+           to_host = EXCLUDED.to_host, to_path = EXCLUDED.to_path,
+           status_code = EXCLUDED.status_code, preserve_path = EXCLUDED.preserve_path,
+           preserve_query = EXCLUDED.preserve_query, updated_at = now()
+         RETURNING id`,
+        [tenantDatabaseId, name, REDIRECT_TO_HOST, path]
       );
-      if (stillThere.rowCount === 0) {
-        throw new Error('app-origin redirect route at "/" was neither inserted nor present');
+      const redirectId = (redirect.rows[0] as { id: string }).id;
+      const inserted = await client.query(
+        `INSERT INTO routing_public.routes (database_id, domain_id, path, target_redirect_id, priority, is_active)
+         SELECT $1::uuid, $2::uuid, $3, $4::uuid, 10, true
+          WHERE NOT EXISTS (
+            SELECT 1 FROM routing_public.routes x
+             WHERE x.database_id = $1 AND x.domain_id = $2 AND x.path = $3 AND x.target_redirect_id = $4
+          )
+         RETURNING id`,
+        [tenantDatabaseId, domainId, path, redirectId]
+      );
+      if (inserted.rowCount === 0) {
+        const stillThere = await client.query(
+          `SELECT 1 FROM routing_public.routes
+            WHERE database_id = $1 AND domain_id = $2 AND path = $3 AND target_redirect_id = $4`,
+          [tenantDatabaseId, domainId, path, redirectId]
+        );
+        if (stillThere.rowCount === 0) {
+          throw new Error(`app-origin redirect route at '${path}' was neither inserted nor present`);
+        }
       }
-    }
-  });
-  const rootLane = await client.query(
-    `SELECT serving_lane, resolved_config->>'to_host' AS to_host
-       FROM routing_public.resolve_route($1, '/', 'GET')`,
-    [DOMAIN]
-  );
-  const root = rootLane.rows[0] as { serving_lane: string; to_host: string } | undefined;
-  if (root?.serving_lane !== 'redirect' || root.to_host !== REDIRECT_TO_HOST) {
-    throw new Error(
-      `root '/' does not resolve to the app-origin redirect (lane ${root?.serving_lane ?? 'none'}, to_host ${root?.to_host ?? 'none'})`
+    });
+    const lane = await client.query(
+      `SELECT serving_lane, resolved_config->>'to_host' AS to_host
+         FROM routing_public.resolve_route($1, $2, 'GET')`,
+      [DOMAIN, path]
     );
-  }
-  console.log(`site root: '/' -> 302 ${REDIRECT_TO_HOST}/ (app-origin redirect, priority over the site route)`);
+    const answer = lane.rows[0] as { serving_lane: string; to_host: string } | undefined;
+    if (answer?.serving_lane !== 'redirect' || answer.to_host !== REDIRECT_TO_HOST) {
+      throw new Error(
+        `'${path}' does not resolve to the app-origin redirect (lane ${answer?.serving_lane ?? 'none'}, to_host ${answer?.to_host ?? 'none'})`
+      );
+    }
+    console.log(`gateway hop: '${path}' -> 302 ${REDIRECT_TO_HOST}${path} (app-origin redirect, priority over the site route)`);
+  };
+  await ensureAppRedirect('app-origin', '/');
+  await ensureAppRedirect('app-verify-email', '/verify-email');
 
   console.log(
     `tenant ${tenantDatabaseId}: site '${SITE_NAME}' provisioned, mantra + sync lanes bound, ${allPaths.length} route(s) resolving on ${DOMAIN}`
