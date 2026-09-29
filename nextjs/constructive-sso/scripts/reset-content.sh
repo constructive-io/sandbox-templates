@@ -23,13 +23,19 @@ PSQL=(psql -h "${PGHOST:-localhost}" -p "${PGPORT:-15432}" -U "${PGUSER:-postgre
 # The warm template this tenant claim created (name = pool-...; the tenant row
 # itself is 'myapp'). Deleting both frees the schemas and the claim.
 POOL_DB=$("${PSQL[@]}" -Atc "SELECT id FROM metaschema_public.database WHERE name LIKE 'pool-%' AND id::text <> '${DATABASE_ID}'")
+[ -n "$POOL_DB" ] && echo "      and its warm template ${POOL_DB}"
 
 echo "[1/2] Dropping tenant ${DATABASE_ID}"
-"${PSQL[@]}" -c "DELETE FROM metaschema_public.database WHERE id='${DATABASE_ID}'::uuid"
-if [ -n "$POOL_DB" ]; then
-  echo "      Dropping its warm template ${POOL_DB}"
-  "${PSQL[@]}" -c "DELETE FROM metaschema_public.database WHERE id='${POOL_DB}'"
-fi
+# The delete cascades into guarded tables (rls_settings carries a step-up
+# posture whose trigger demands an authenticated user). This is a deliberate
+# teardown by the superuser: session_replication_role=replica suspends every
+# trigger for this session only, the deletes land, and the connection close
+# restores them.
+"${PSQL[@]}" -v ON_ERROR_STOP=1 <<SQL
+SET session_replication_role = replica;
+DELETE FROM metaschema_public.database WHERE id='${DATABASE_ID}'::uuid;
+${POOL_DB:+DELETE FROM metaschema_public.database WHERE id='${POOL_DB}';}
+SQL
 
 echo "[2/2] Clearing the app's tenant identity from .env"
 sed -E '/^(DATABASE_ID|OWNER_USER_ID)=/d' "$ROOT_DIR/.env" > "$ROOT_DIR/.env.tmp" && mv "$ROOT_DIR/.env.tmp" "$ROOT_DIR/.env"
