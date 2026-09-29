@@ -143,8 +143,65 @@ if ! kubectl get ingress constructive-route-hosts -n constructive-platform-defau
 fi
 echo "  ✓ localhost -> compute-sync-svc"
 
-echo "[6/6] Configuring the SSO provider and starting Next.js on :3000..."
+echo "[6/8] Configuring the SSO provider..."
 (cd "$ROOT_DIR/packages/provision" && pnpm run provision)
+
+# ---- 7. The 2FA lanes ------------------------------------------------------
+# #3861 made `fun config/secrets --scope database` demand a database-scope
+# internal store; warm-pool tenants bake only the app-scope one, and the
+# platform's own database-scope rows carry no schema names. Register the
+# tenant against the SHARED platform store (keyed by database_id — that is
+# the #3861 design) until upstream ships warm tenants with their stores.
+echo "[7/8] Provisioning the database-scope internal stores (upstream #3861 gap)..."
+STORE_SQL=$(psql -h "$PGHOST" -p "$PGPORT" -U "${PGUSER:-postgres}" -d "$PGDATABASE" -Atc "
+  SELECT set_config('constructive.allow_super_constructive','true',false)
+   || set_config('jwt.strict_attribution','false',false)
+   || set_config('jwt.claims.database_id','${DATABASE_ID}',false)")
+psql -h "$PGHOST" -p "$PGPORT" -U "${PGUSER:-postgres}" -d "$PGDATABASE" -v ON_ERROR_STOP=1 <<SQL || exit 1
+SELECT set_config('constructive.allow_super_constructive','true',false);
+SELECT set_config('jwt.strict_attribution','false',false);
+SELECT set_config('jwt.claims.database_id','${DATABASE_ID}',false);
+INSERT INTO metaschema_modules_public.internal_secrets_module
+  (database_id, internal_secrets_table_name, scope, api_name, private_schema_name, public_schema_name, prefix)
+VALUES ('${DATABASE_ID}','internal_secrets','database','config','constructive_store_private','constructive_store_public','')
+ON CONFLICT DO NOTHING;
+INSERT INTO metaschema_modules_public.internal_config_module
+  (database_id, internal_config_table_name, scope, api_name, private_schema_name, public_schema_name, prefix)
+VALUES ('${DATABASE_ID}','internal_configs','database','config','constructive_store_private','constructive_store_public','')
+ON CONFLICT DO NOTHING;
+UPDATE metaschema_modules_public.internal_config_module
+   SET private_schema_name='constructive_store_private', public_schema_name='constructive_store_public'
+ WHERE scope='database' AND private_schema_name IS NULL;
+SQL
+
+echo "[8/8] Configuring the SMS / orgs / 2FA lanes..."
+(cd "$ROOT_DIR/packages/provision" && pnpm run configure-sms)
+(cd "$ROOT_DIR/packages/provision" && pnpm run configure-orgs)
+(cd "$ROOT_DIR/packages/provision" && pnpm run configure-2fa)
+
+# The tenant's auth schema: rls_settings names it — never "the newest
+# -auth-private schema" (the warm pool leaves several; the wrong one no-ops).
+AUTH_POOL=$(psql -h "$PGHOST" -p "$PGPORT" -U "${PGUSER:-postgres}" -d "$PGDATABASE" -Atc "
+  SELECT split_part(s.schema_name,'-auth-private',1)
+    FROM routing_public.rls_settings rs
+    JOIN metaschema_public.schema s ON s.id = rs.authenticate_schema_id
+   WHERE rs.database_id = '${DATABASE_ID}'::uuid")
+# Phone sign-up is a separate flag configure-sms does not touch.
+psql -h "$PGHOST" -p "$PGPORT" -U "${PGUSER:-postgres}" -d "$PGDATABASE" -c \
+  "UPDATE \"${AUTH_POOL}-auth-private\".app_settings_auth SET allow_sms_sign_up = true"
+
+# The demo admin: the provisioned owner skips the login challenge (is_owner)
+# but carries the org-delete OTP's phone. Phone uniqueness is per-tenant, so
+# this only lands when the number is free here.
+if [ -n "${OWNER_PHONE:-}" ]; then
+  psql -h "$PGHOST" -p "$PGPORT" -U "${PGUSER:-postgres}" -d "$PGDATABASE" \
+    -c "INSERT INTO \"${AUTH_POOL}-user-identifiers-public\".phone_numbers (owner_id,cc,number,is_verified,is_primary)
+        VALUES ('${OWNER_USER_ID}','+','${OWNER_PHONE}',true,true) ON CONFLICT DO NOTHING" \
+    -c "INSERT INTO \"${AUTH_POOL}-users-public\".user_settings_security (owner_id) VALUES ('${OWNER_USER_ID}') ON CONFLICT (owner_id) DO NOTHING" \
+    -c "UPDATE \"${AUTH_POOL}-users-public\".user_settings_security SET sms_mfa_enabled=true, mfa_enrolled_at=now() WHERE owner_id='${OWNER_USER_ID}'" \
+    -c "UPDATE \"${AUTH_POOL}-memberships-public\".app_memberships SET is_owner=true, is_admin=true WHERE actor_id='${OWNER_USER_ID}'"
+  echo "  ✓ owner enrolled (phone + SMS factor + is_owner)"
+fi
 
 cd "$ROOT_DIR"
 exec pnpm dev

@@ -25,7 +25,8 @@
     "export:graphql": "pnpm --filter @constructive-app/export run export:graphql",
     "local:bringup": "./scripts/local-bringup.sh",
     "mock-oauth": "tsx scripts/mock-oauth-server.ts",
-    "promote-owner": "pnpm --filter @constructive-app/provision run promote-owner"
+    "promote-owner": "pnpm --filter @constructive-app/provision run promote-owner",
+    "reset:content": "./scripts/reset-content.sh"
   },
   "dependencies": {
     "@0no-co/graphql.web": "^1.2.0",
