@@ -115,10 +115,20 @@ export function DeleteOrganizationDialog({ open, onOpenChange, organization, onS
 			}
 		}
 
-		await deleteOrganization({
-			orgId: organization.id,
-			confirmName,
-		});
+		try {
+			await deleteOrganization({
+				orgId: organization.id,
+				confirmName
+			});
+		} catch (error) {
+			// The step-up refusal is a state, not a fault: onError already
+			// opened the SMS panel for it. Everything else surfaces as a
+			// failure the user can read (and stops the unhandled rejection
+			// that renders the dev overlay over the open panel).
+			if (!(error instanceof Error) || !error.message.includes('STEP_UP_REQUIRED_MFA')) {
+				throw error;
+			}
+		}
 	};
 
 	const handleOpenChange = (newOpen: boolean) => {
@@ -175,7 +185,7 @@ export function DeleteOrganizationDialog({ open, onOpenChange, organization, onS
 					onSubmit={(e) => {
 						e.preventDefault();
 						if (canDelete && !isDeleting) {
-							handleDelete();
+							void handleDelete();
 						}
 					}}
 				>
