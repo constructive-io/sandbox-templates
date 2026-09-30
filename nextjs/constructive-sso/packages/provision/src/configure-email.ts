@@ -23,9 +23,12 @@
  *   - allow_magic_link_sign_in / allow_magic_link_sign_up — the lanes this
  *     tenant should demo
  *   - enforce_primary_auth_method = false — demo-permissive: an account that
- *     signed up with a password may also sign in by magic link or email code.
- *     NULL-primary accounts pass regardless; upstream pinning semantics are
- *     untouched.
+ *     signed up with a password may also sign in by magic link. NULL-primary
+ *     accounts pass regardless; upstream pinning semantics are untouched.
+ *     (The email-code login lane stays OFF: its switch,
+ *     allow_email_otp_sign_in, is deliberately not flipped — emailed codes
+ *     belong to recovery, not to login, and this tenant logs in by password,
+ *     SSO or magic link.)
  *
  * Reading the email: Mailpit's UI and API answer on :8025 behind the service —
  *   kubectl -n constructive-platform-default port-forward svc/mailpit-svc 8025:8025
@@ -216,11 +219,10 @@ async function main(): Promise<void> {
     UPDATE "${authSchema}".app_settings_auth
        SET allow_magic_link_sign_in = true,
            allow_magic_link_sign_up = true,
-           allow_email_otp_sign_in = true,
            enforce_primary_auth_method = false`);
   console.log(
-    `auth: allow_magic_link_sign_in/sign_up + allow_email_otp_sign_in = true, ` +
-      `enforce_primary_auth_method = false on ${authSchema}.app_settings_auth`
+    `auth: allow_magic_link_sign_in/sign_up = true, enforce_primary_auth_method = false ` +
+      `on ${authSchema}.app_settings_auth`
   );
 
   console.log(

@@ -251,15 +251,8 @@ async function main(): Promise<void> {
     // database-scope SMS config/secrets — configure-sms provisions those.
     { path: '/auth/send-sms-otp', target: 'function', task_identifier: 'auth_flows:send_sms_otp', anonymous: true },
     { path: '/auth/sms-code', target: 'function', task_identifier: 'auth_flows:sms_code', anonymous: true },
-    // Email-code sign-in: the JSON lane that mails the code and the
-    // gateway-served form that spends it — the email twin of the phone pair.
-    // The tenant's send needs the sender identity configure-email provisions.
-    { path: '/auth/send-email-otp', target: 'function', task_identifier: 'auth_flows:send_email_otp', anonymous: true },
-    { path: '/auth/email-code', target: 'function', task_identifier: 'auth_flows:email_code', anonymous: true },
-    // Magic link: the JSON lane that mails the link (the tenant mints the
-    // token and queues the email itself), and the landing that spends it — a
-    // page channel, because its answer is a redirect plus the session cookie.
-    // The emailed link's path must match the landing's own route
+    // Magic link: the JSON lane that mails the link and the landing that spends
+    // it. The emailed link's path must match the landing's own route
     // ('/auth/magic-link' in the pages manifest) or it 404s in the inbox.
     { path: '/auth/request-magic-link', target: 'function', task_identifier: 'auth_flows:request_magic_link', anonymous: true },
     { path: '/auth/magic-link', target: 'function', task_identifier: 'auth_flows:magic_link', anonymous: true },
