@@ -99,9 +99,13 @@ async function main(): Promise<void> {
      '-v', 'ON_ERROR_STOP=1', '-c',
      `SET constructive.allow_super_constructive = 'true';
       INSERT INTO metaschema_modules_public.internal_config_module (database_id, scope)
-      VALUES ('${DATABASE_ID}'::uuid, 'database') ON CONFLICT DO NOTHING;
+      SELECT '${DATABASE_ID}'::uuid, 'database'
+       WHERE NOT EXISTS (SELECT 1 FROM metaschema_modules_public.internal_config_module
+                          WHERE database_id = '${DATABASE_ID}'::uuid AND scope = 'database');
       INSERT INTO metaschema_modules_public.internal_secrets_module (database_id, scope)
-      VALUES ('${DATABASE_ID}'::uuid, 'database') ON CONFLICT DO NOTHING;`],
+      SELECT '${DATABASE_ID}'::uuid, 'database'
+       WHERE NOT EXISTS (SELECT 1 FROM metaschema_modules_public.internal_secrets_module
+                          WHERE database_id = '${DATABASE_ID}'::uuid AND scope = 'database');`],
     { stdio: ['ignore', 'inherit', 'inherit'] }
   );
   console.log('modules: internal_config_module + internal_secrets_module ensured at database scope');

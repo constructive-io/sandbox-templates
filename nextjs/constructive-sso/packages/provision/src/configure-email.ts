@@ -83,12 +83,19 @@ async function main(): Promise<void> {
   // Everything else on this bring-up that writes tenant-scoped config or
   // secrets (configure-sms, the fun CLI) needs these two rows at database
   // scope; a fresh tenant ships only the 'app'-scope pair.
+  // NB: WHERE NOT EXISTS, not ON CONFLICT — these module tables carry no
+  // unique constraint, so a bare INSERT would re-run the install trigger and
+  // die generating already-existing tables.
   psqlRun(`
     SET constructive.allow_super_constructive = 'true';
     INSERT INTO metaschema_modules_public.internal_config_module (database_id, scope)
-    VALUES ('${DATABASE_ID}'::uuid, 'database') ON CONFLICT DO NOTHING;
+    SELECT '${DATABASE_ID}'::uuid, 'database'
+     WHERE NOT EXISTS (SELECT 1 FROM metaschema_modules_public.internal_config_module
+                        WHERE database_id = '${DATABASE_ID}'::uuid AND scope = 'database');
     INSERT INTO metaschema_modules_public.internal_secrets_module (database_id, scope)
-    VALUES ('${DATABASE_ID}'::uuid, 'database') ON CONFLICT DO NOTHING;`);
+    SELECT '${DATABASE_ID}'::uuid, 'database'
+     WHERE NOT EXISTS (SELECT 1 FROM metaschema_modules_public.internal_secrets_module
+                        WHERE database_id = '${DATABASE_ID}'::uuid AND scope = 'database');`);
   console.log('modules: internal_config_module + internal_secrets_module ensured at database scope');
 
   // ---- 1. The email sender module (its trigger generates the tables). ----
