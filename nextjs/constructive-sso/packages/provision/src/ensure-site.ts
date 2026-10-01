@@ -251,6 +251,23 @@ async function main(): Promise<void> {
     // database-scope SMS config/secrets — configure-sms provisions those.
     { path: '/auth/send-sms-otp', target: 'function', task_identifier: 'auth_flows:send_sms_otp', anonymous: true },
     { path: '/auth/sms-code', target: 'function', task_identifier: 'auth_flows:sms_code', anonymous: true },
+    // Phone recovery, the emailed reset link's sibling. The mantra
+    // /forgot-password page calls the procs itself, but the JSON lane is what
+    // the app's own UI (or any API client) spends.
+    { path: '/auth/send-reset-sms-code', target: 'function', task_identifier: 'auth_flows:send_reset_sms_code', anonymous: true },
+    { path: '/auth/reset-password-sms', target: 'function', task_identifier: 'auth_flows:reset_password_sms', anonymous: true },
+    // The magic-link and verification-email request lanes.
+    { path: '/auth/request-magic-link', target: 'function', task_identifier: 'auth_flows:request_magic_link', anonymous: true },
+    { path: '/auth/send-verification-email', target: 'function', task_identifier: 'auth_flows:send_verification_email', anonymous: true },
+    // The MFA challenge pair: send texts the code a withheld sign-in demands
+    // (anonymous — the browser holds the challenge, not a session), complete
+    // spends it and mints the session.
+    { path: '/auth/send-mfa-code', target: 'function', task_identifier: 'auth_flows:send_mfa_code', anonymous: true },
+    { path: '/auth/mfa/complete', target: 'function', task_identifier: 'auth_flows:complete_mfa', anonymous: true },
+    // Step-up for postured (sensitive) actions — authenticated: the session
+    // the request carries is the thing being re-verified.
+    { path: '/auth/send-step-up-code', target: 'function', task_identifier: 'auth_flows:send_step_up_code' },
+    { path: '/auth/verify-step-up-code', target: 'function', task_identifier: 'auth_flows:verify_step_up_code' },
     { path: '/start', target: 'function', task_identifier: 'sso:start', anonymous: true },
     { path: '/sso/callback', target: 'function', task_identifier: 'sso:callback', anonymous: true },
     { path: '/auth/link', target: 'function', task_identifier: 'sso:link' },

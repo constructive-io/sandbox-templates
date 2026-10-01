@@ -28,7 +28,10 @@
 #       assets/homepage/index.html — an empty bucket serves Not Found at '/'.
 #   5. Add the 'localhost' rule to the sync-gateway ingress (checks first).
 #   6. Configure the SSO provider (real Google from OAUTH_* in .env) + the
-#      anonymous grants the sign-in lane needs, then start Next.js on :3000.
+#      anonymous grants the sign-in lane needs.
+#   7. The per-tenant lanes a fresh cluster has none of, each idempotent:
+#      email (Mailpit sender), SMS (twilio verify), phone-2FA posture
+#      (sign-up collects a phone; allow_sms_mfa). Then Next.js on :3000.
 #
 # NOTE: the old "provision the rate-limiter stack" step is gone — the
 # b2b:storage preset ships plans/billing/rate_limit_meters since upstream
@@ -143,8 +146,19 @@ if ! kubectl get ingress constructive-route-hosts -n constructive-platform-defau
 fi
 echo "  ✓ localhost -> compute-sync-svc"
 
-echo "[6/6] Configuring the SSO provider and starting Next.js on :3000..."
+echo "[6/8] Configuring the SSO provider..."
 (cd "$ROOT_DIR/packages/provision" && pnpm run provision)
 
+# The per-tenant lanes a fresh cluster has none of. Each script is
+# idempotent and self-heals what it needs (internal store modules, the
+# email sender module) — re-running the whole bring-up is safe.
+echo "[7/8] Configuring the email lane (smtp -> Mailpit)..."
+(cd "$ROOT_DIR/packages/provision" && pnpm run configure-email)
+echo "[7b/8] Configuring the SMS lane (twilio verify)..."
+(cd "$ROOT_DIR/packages/provision" && pnpm run configure-sms)
+echo "[7c/8] Configuring the phone-2FA posture (sign-up collects a phone)..."
+(cd "$ROOT_DIR/packages/provision" && pnpm run configure-2fa)
+
+echo "[8/8] Starting Next.js on :3000..."
 cd "$ROOT_DIR"
 exec pnpm dev

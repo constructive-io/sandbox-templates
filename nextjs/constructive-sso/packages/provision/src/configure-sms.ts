@@ -5,9 +5,12 @@
  * Since upstream #3747 (frame-chain store resolution + `fun config|secrets
  * --database-id`) and #3765 (the auth-settings setup window measured from
  * owner bootstrap), everything this
- * script needs is a supported path. No store provisioning, no namespace
- * module, no ephemeral bypass principal:
+ * script needs is a supported path. No namespace module, no ephemeral bypass
+ * principal:
  *
+ *   0. Self-heal: ensure internal_config_module + internal_secrets_module at
+ *      database scope (a fresh tenant has only the 'app'-scope pair; the CLI
+ *      refuses scoped writes without them).
  *   1. `fun config set` SMS_PROVIDER + TWILIO_VERIFY_SERVICE_SID at
  *      `--scope database --database-id <tenant>` — writes the shared
  *      database-scope plane keyed by the tenant, the same store the sms
@@ -84,6 +87,24 @@ function fun(args: string[]): void {
 
 async function main(): Promise<void> {
   console.log(`tenant ${DATABASE_ID}: configuring the SMS lane through the platform CLI`);
+
+  // ---- 0. Self-heal the internal store modules a fresh tenant lacks. ----
+  // `fun config|secrets --scope database` refuses until BOTH
+  // internal_config_module and internal_secrets_module exist at database
+  // scope; a fresh tenant ships only the 'app'-scope pair. One INSERT each —
+  // the modules' triggers provision the stores — idempotent on conflict.
+  execFileSync(
+    'psql',
+    ['-h', PGHOST, '-p', PGPORT, '-U', env.PGUSER ?? 'postgres', '-d', PGDATABASE,
+     '-v', 'ON_ERROR_STOP=1', '-c',
+     `SET constructive.allow_super_constructive = 'true';
+      INSERT INTO metaschema_modules_public.internal_config_module (database_id, scope)
+      VALUES ('${DATABASE_ID}'::uuid, 'database') ON CONFLICT DO NOTHING;
+      INSERT INTO metaschema_modules_public.internal_secrets_module (database_id, scope)
+      VALUES ('${DATABASE_ID}'::uuid, 'database') ON CONFLICT DO NOTHING;`],
+    { stdio: ['ignore', 'inherit', 'inherit'] }
+  );
+  console.log('modules: internal_config_module + internal_secrets_module ensured at database scope');
 
   // ---- 1. Config rows (shared plane, keyed by the tenant). ----
   fun([

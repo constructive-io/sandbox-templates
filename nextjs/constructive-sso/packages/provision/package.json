@@ -4,15 +4,17 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "create-db": "tsx src/provision-tenant.ts",
-    "provision": "tsx src/configure-sso.ts",
-    "configure-sms": "tsx src/configure-sms.ts",
-    "configure-orgs": "tsx src/configure-orgs.ts",
-    "ensure-site": "tsx src/ensure-site.ts",
-    "reset-db": "tsx src/reset-db.ts",
     "build": "echo 'No build required'",
+    "configure-2fa": "tsx src/configure-2fa.ts",
+    "configure-email": "tsx src/configure-email.ts",
+    "configure-orgs": "tsx src/configure-orgs.ts",
+    "configure-sms": "tsx src/configure-sms.ts",
+    "create-db": "tsx src/provision-tenant.ts",
+    "ensure-site": "tsx src/ensure-site.ts",
+    "owner-login": "tsx src/owner-login.ts",
     "promote-owner": "tsx src/promote-owner.ts",
-    "owner-login": "tsx src/owner-login.ts"
+    "provision": "tsx src/configure-sso.ts",
+    "reset-db": "tsx src/reset-db.ts"
   },
   "dependencies": {
     "@constructive-io/fetch": "^1.1.1",
