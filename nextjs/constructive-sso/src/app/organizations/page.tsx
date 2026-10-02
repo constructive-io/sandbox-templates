@@ -87,16 +87,14 @@ export default function OrganizationsPage() {
 					description='Manage your organizations and team memberships'
 					icon={Building2}
 					actions={
-						(
-							<Button
-								className='gap-2'
-								onClick={handleCreateClick}
-								data-testid='orgs-create-button'
-							>
-								<Plus className='h-4 w-4' />
-								New Organization
-							</Button>
-						) : undefined
+						<Button
+							className='gap-2'
+							onClick={handleCreateClick}
+							data-testid='orgs-create-button'
+						>
+							<Plus className='h-4 w-4' />
+							New Organization
+						</Button>
 					}
 				/>
 
