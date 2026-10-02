@@ -21,7 +21,6 @@ import {
 import { CreateOrganizationCard } from '@/components/organizations/create-organization-card';
 import { EditOrganizationCard } from '@/components/organizations/edit-organization-card';
 import { PageHeaderWithIcon } from '@/components/shared/page-header-with-icon';
-import { useCurrentUserAppMembership } from '@/lib/gql/hooks/admin/app/use-current-user-app-membership';
 
 export default function OrganizationsPage() {
 	const router = useRouter();
@@ -33,18 +32,11 @@ export default function OrganizationsPage() {
 
 	const { availableOrgs: organizations, isLoading: isOrgsLoading } = useEntityParams();
 	const { refetch: refetchOrganizations } = useOrganizations();
-	// Creating an organization inserts a type=2 user; the DB gate
-	// (auth_ins_insert_chk) requires the acting principal's ACTIVE app
-	// membership to carry the create_entity capability. configure-orgs
-	// grants that capability to every member by default, so the button
-	// tracks membership activity — the DB stays authoritative and refuses
-	// the insert for any member that somehow lacks the bit. (The GraphQL
-	// AppMembership type does not expose the capability columns, so the
-	// bit itself cannot be read here.)
-	const { isActive, isLoading: isMembershipLoading } = useCurrentUserAppMembership();
-	// Hidden while the membership loads so the button never flashes for users
-	// whose membership turns out inactive.
-	const canCreateOrganization = !isMembershipLoading && isActive;
+	// The button is unconditional: configure-orgs opens org creation to
+	// every member at provisioning, and the DB gate (auth_ins_insert_chk)
+	// stays authoritative anyway — it refuses the insert for any member
+	// that somehow lacks the create_entity bit, with a clearer answer than
+	// a button that is not there.
 
 	const handleCreateClick = () => {
 		stack.push({
@@ -95,7 +87,7 @@ export default function OrganizationsPage() {
 					description='Manage your organizations and team memberships'
 					icon={Building2}
 					actions={
-						canCreateOrganization ? (
+						(
 							<Button
 								className='gap-2'
 								onClick={handleCreateClick}
@@ -207,7 +199,7 @@ export default function OrganizationsPage() {
 									? 'Try adjusting your search query'
 									: 'Create your first organization to start managing projects and databases.'}
 							</p>
-							{!searchValue && canCreateOrganization && (
+							{!searchValue && (
 								<Button
 									className='mt-6 gap-2'
 									onClick={handleCreateClick}

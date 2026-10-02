@@ -145,6 +145,20 @@ async function main(): Promise<void> {
       SET from_address = EXCLUDED.from_address, from_name = EXCLUDED.from_name,
           is_default = true, is_active = true, updated_at = now();`);
 
+  // ---- 4. The emailed-link sign-in lane this mailbox serves. ----
+  // A link that signs in is mail the tenant sends, so the lane's switch
+  // belongs beside the sender it depends on; it rides the owner-bootstrap
+  // setup window like every auth toggle this bring-up touches.
+  const authSchema = psql(`
+    SELECT s.schema_name FROM routing_public.rls_settings rs
+      JOIN metaschema_public.schema s ON s.id = rs.authenticate_schema_id
+     WHERE rs.database_id = '${DATABASE_ID}'::uuid`);
+  psqlRun(`
+    UPDATE "${authSchema}".app_settings_auth
+       SET allow_magic_link_sign_in = true,
+           allow_magic_link_sign_up = true`);
+  console.log('auth: magic-link sign-in + sign-up on (the email lane this mailbox serves)');
+
   console.log(
     `email: identity '${FROM_ADDRESS}' (${FROM_NAME}) via ${MAILPIT_SMTP_HOST}:${MAILPIT_SMTP_PORT} — ` +
       'Mailpit at http://localhost:18025 is the mailbox'

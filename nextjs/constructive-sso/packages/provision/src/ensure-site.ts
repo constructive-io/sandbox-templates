@@ -256,8 +256,11 @@ async function main(): Promise<void> {
     // the app's own UI (or any API client) spends.
     { path: '/auth/send-reset-sms-code', target: 'function', task_identifier: 'auth_flows:send_reset_sms_code', anonymous: true },
     { path: '/auth/reset-password-sms', target: 'function', task_identifier: 'auth_flows:reset_password_sms', anonymous: true },
-    // The magic-link and verification-email request lanes.
+    // The magic-link lane: the JSON request, and the page its emails land on
+    // (entry form without a token, the spend with one — the same route the
+    // email task builds into every link, so the binding is the contract).
     { path: '/auth/request-magic-link', target: 'function', task_identifier: 'auth_flows:request_magic_link', anonymous: true },
+    { path: '/auth/magic-link', target: 'function', task_identifier: 'auth_flows:magic_link', anonymous: true },
     { path: '/auth/send-verification-email', target: 'function', task_identifier: 'auth_flows:send_verification_email', anonymous: true },
     // The MFA challenge pair: send texts the code a withheld sign-in demands
     // (anonymous — the browser holds the challenge, not a session), complete

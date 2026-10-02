@@ -158,6 +158,8 @@ echo "[7b/8] Configuring the SMS lane (twilio verify)..."
 (cd "$ROOT_DIR/packages/provision" && pnpm run configure-sms)
 echo "[7c/8] Configuring the phone-2FA posture (sign-up collects a phone)..."
 (cd "$ROOT_DIR/packages/provision" && pnpm run configure-2fa)
+echo "[7d/8] Opening org creation to every member..."
+(cd "$ROOT_DIR/packages/provision" && pnpm run configure-orgs)
 
 echo "[8/8] Starting Next.js on :3000..."
 cd "$ROOT_DIR"
