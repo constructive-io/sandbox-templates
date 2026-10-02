@@ -155,10 +155,12 @@ async function main(): Promise<void> {
     'psql',
     ['-h', PGHOST, '-p', PGPORT, '-U', env.PGUSER ?? 'postgres', '-d', PGDATABASE,
       '-v', 'ON_ERROR_STOP=1', '-c',
-      `UPDATE "${schema}".app_settings_auth SET allow_sms_sign_in = true`],
+      `UPDATE "${schema}".app_settings_auth
+          SET allow_sms_sign_in = true,
+              allow_sms_sign_up = true`],
     { stdio: ['ignore', 'inherit', 'inherit'] }
   );
-  console.log(`auth: allow_sms_sign_in = true on ${schema}.app_settings_auth (setup window measured from owner bootstrap per #3765)`);
+  console.log(`auth: allow_sms_sign_in + allow_sms_sign_up = true on ${schema}.app_settings_auth (setup window measured from owner bootstrap per #3765)`);
 
   console.log(
     `tenant ${DATABASE_ID}: SMS lane configured (2 config rows, 3 secrets, ` +
