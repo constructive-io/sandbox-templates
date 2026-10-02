@@ -170,18 +170,25 @@ async function main(): Promise<void> {
   const likeAll = esc(`${prefix}-%`);
   const authPublic = esc(`${prefix}-auth-public`);
   const authPrivate = esc(`${prefix}-auth-private`);
-  // The sign-in lane's procedures, by name: password/token/SMS/identity
-  // sign-in and sign-up, session helpers the runtime resolves on every
-  // request (current_user*), the OAuth start/callback pair, and the link
-  // tickets the SSO callback may mint and spend. The auth schemas hold
-  // admin-surface procedures too (rotate_identity_provider_app_secret,
-  // principal and credential management), which is exactly why the grant is
-  // a name list and not everything-in-schema: a lane added later fails
-  // closed until its procedure is named here.
-  const lane = [
-    'authenticate',
-    'authenticate_strict',
-    'complete_mfa_challenge',
+  // The grant set is the platform's own declaration of what anonymous may
+  // call: the tenant's `*_grant_anonymous` rows in the action ledger name
+  // every procedure the auth module granted the role at emission — password/
+  // token/SMS/identity sign-in and sign-up, the challenge senders and
+  // spenders, recovery, the session helpers — and nothing else. Reading it
+  // from the ledger (instead of a name list copied by hand) is the whole
+  // point: a lane added upstream appears here the moment the tenant is
+  // emitted, and can never be silently stripped by this pass again (which is
+  // exactly how the MFA code sender was lost: the hand-list predated it, and
+  // this pass revoked everything not on it). Admin-surface procedures hold
+  // no such row, so they stay excluded by the same fact.
+  // The runtime helpers are NOT in that ledger: the sessions module emits
+  // current_user/current_user_id/current_user_agent/current_ip_address and
+  // the OAuth/link ticket procs without recording anonymous-grant actions
+  // for them, so the ledger alone answers too narrow a set and every page's
+  // first currentUser() dies with "permission denied for function
+  // current_user". They are granted by name beside the ledger set — an
+  // upstream gap worth filing (the helpers should declare like the rest).
+  const runtimeHelpers = [
     'consume_app_oauth_request',
     'consume_app_pending_identity_link',
     'create_app_pending_identity_link',
@@ -189,27 +196,31 @@ async function main(): Promise<void> {
     'current_user',
     'current_user_agent',
     'current_user_id',
-    'forgot_password',
     'link_identity',
-    'refresh_access_token',
     'request_magic_link',
-    'reset_password',
-    'send_sms_otp',
-    'sign_in',
-    'sign_in_cross_origin',
-    'sign_in_identity',
-    'sign_in_magic_link',
-    'sign_in_sms_otp',
+    'send_verification_email',
     'sign_out',
-    'sign_up',
-    'sign_up_identity',
-    'sign_up_magic_link',
-    'sign_up_sms',
     'start_app_oauth_request',
-    'verify_email',
     'verify_idp',
     'verify_totp'
   ].map(esc);
+
+  const laneFromLedger = `
+      SELECT p.oid
+        FROM actions_public.ast_actions a
+        JOIN pg_proc p
+          ON p.proname = a.payload->>'function_name'
+         AND p.pronamespace = (SELECT oid FROM pg_namespace
+                                WHERE nspname = a.payload->>'function_schema')
+       WHERE a.database_id = '${esc(DATABASE_ID)}'::uuid
+         AND a.name LIKE '%!_grant!_anonymous' ESCAPE '!'
+         AND a.payload ? 'function_name'
+      UNION
+      SELECT p.oid
+        FROM pg_proc p
+        JOIN pg_namespace n ON n.oid = p.pronamespace
+       WHERE n.nspname IN ('${authPublic}', '${authPrivate}')
+         AND p.proname = ANY (ARRAY['${runtimeHelpers.join("','")}']::name[])`;
   await client.query(`
     DO $$
     DECLARE
@@ -224,13 +235,9 @@ async function main(): Promise<void> {
         EXECUTE format('REVOKE ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA %I FROM anonymous', s.schema);
         EXECUTE format('GRANT USAGE ON SCHEMA %I TO anonymous', s.schema);
       END LOOP;
-      FOR f IN
-        SELECT n.nspname AS s, p.proname AS f, pg_get_function_identity_arguments(p.oid) AS args
-        FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
-        WHERE n.nspname IN ('${authPublic}', '${authPrivate}')
-          AND p.proname = ANY (ARRAY['${lane.join("','")}']::name[])
+      FOR f IN ${laneFromLedger}
       LOOP
-        EXECUTE format('GRANT EXECUTE ON FUNCTION %I.%I(%s) TO anonymous', f.s, f.f, f.args);
+        EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO anonymous', f.oid::regprocedure::text);
       END LOOP;
     END $$;
   `);

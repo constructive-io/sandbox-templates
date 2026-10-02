@@ -98,6 +98,20 @@ async function main(): Promise<void> {
     );
   }
 
+  // 0. Local-dev databases plan. Upstream's paid catalog has no free tier
+  //    for databases (a fresh owner's effective `databases` limit is 0, so
+  //    request_database answers LIMIT_REACHED). The platform's own system
+  //    actors get unlimited rows at bootstrap; the dev owner gets the same
+  //    here — a local stand-in for the plan a paid tenant would hold.
+  await client.query(
+    `INSERT INTO constructive_limits_public.app_limits (name, actor_id, num, max, plan_max)
+     VALUES ('databases', $1, 0, -1, -1)
+     ON CONFLICT ON CONSTRAINT app_limits_name_actor_id_key
+     DO UPDATE SET plan_max = -1, max = -1`,
+    [userId]
+  );
+  console.log('databases limit: unlimited (local dev plan stand-in)');
+
   // 1. Request the tenant under the acting identity. Idempotent: a tenant
   //    this owner already named `DATABASE_NAME` is reused, not re-requested
   //    (the catalog's (owner_id, name) pair is unique).
