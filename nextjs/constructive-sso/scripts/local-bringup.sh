@@ -133,6 +133,29 @@ mc alias set localminio "http://localhost:${MINIO_API_PORT:-19000}" "${S3_ACCESS
 mc cp "$ROOT_DIR/assets/homepage/index.html" "localminio/${PHYS}/index.html"
 echo "  ✓ homepage published to bucket '${PHYS}'"
 
+# 4b. Wait for the registered deployments to render, then requeue any job the
+# race killed: `fun register --apply` returns before the reconciler has given
+# every function its service URL, and a schedule that fires in that window
+# (billing:reconcile runs at :15 past every hour) dies for good — its fanout
+# spec allows one attempt. "No service URL" is purely a not-yet-rendered
+# deployment, so once every deployment is active those casualties are retried.
+echo "[4b/7] Waiting for registered deployments to render..."
+for _ in $(seq 1 60); do
+  PENDING=$(PGPASSWORD="${PGPASSWORD:-password}" psql -h "$PGHOST" -p "$PGPORT" -U "${PGUSER:-postgres}" -d "$PGDATABASE" -Atc "
+    SELECT count(*) FROM compute_public.platform_function_deployments WHERE status <> 'active'" 2>/dev/null)
+  [ "$PENDING" = "0" ] && break
+  sleep 2
+done
+echo "  ✓ deployments active"
+REQUEUED=$(PGPASSWORD="${PGPASSWORD:-password}" psql -h "$PGHOST" -p "$PGPORT" -U "${PGUSER:-postgres}" -d "$PGDATABASE" -Atc "
+  WITH raced AS (
+    UPDATE app_jobs.jobs
+       SET attempts = 0, run_at = now(), locked_at = NULL, locked_by = NULL, last_error = NULL
+     WHERE last_error LIKE 'No service URL%' AND attempts >= max_attempts
+    RETURNING 1)
+  SELECT count(*) FROM raced" 2>/dev/null)
+[ "$REQUEUED" != "0" ] && echo "  ✓ requeued $REQUEUED job(s) that raced a rendering deployment"
+
 echo "[5/6] Adding the 'localhost' rule to the sync-gateway ingress..."
 if ! kubectl get ingress constructive-route-hosts -n constructive-platform-default >/dev/null 2>&1; then
   echo "  ✗ ingress constructive-route-hosts not found — is the platform up?"
