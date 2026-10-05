@@ -13,25 +13,41 @@ export interface OrgGetSubordinatesRecord {
   userId: string | null;
   depth: number | null;
 }
-export interface AppPermission {
+export interface MyPendingAppInvitesRecord {
+  id: string | null;
+  senderId: string | null;
+  channel: string | null;
+  expiresAt: string | null;
+  createdAt: string | null;
+}
+export interface MyPendingOrgInvitesRecord {
+  id: string | null;
+  entityId: string | null;
+  senderId: string | null;
+  channel: string | null;
+  expiresAt: string | null;
+  createdAt: string | null;
+}
+export interface AppCapability {
   id: string | null;
   name: string | null;
   bitnum: number | null;
   bitstr: string | null;
   description: string | null;
+  kind: string | null;
 }
-export interface AppPermissionDefaultGrant {
+export interface AppCapabilityDefaultGrant {
   id: string | null;
-  permissionId: string | null;
+  capabilityId: string | null;
   isGrant: boolean | null;
   grantorId: string | null;
   createdAt: string | null;
   updatedAt: string | null;
 }
-export interface AppProfilePermission {
+export interface AppProfileCapability {
   id: string | null;
   profileId: string | null;
-  permissionId: string | null;
+  capabilityId: string | null;
   createdAt: string | null;
   updatedAt: string | null;
 }
@@ -41,6 +57,8 @@ export interface AppMembership {
   updatedAt: string | null;
   createdBy: string | null;
   updatedBy: string | null;
+  createdByPrincipal: string | null;
+  updatedByPrincipal: string | null;
   isApproved: boolean | null;
   isBanned: boolean | null;
   isDisabled: boolean | null;
@@ -48,7 +66,7 @@ export interface AppMembership {
   isActive: boolean | null;
   isOwner: boolean | null;
   isAdmin: boolean | null;
-  permissions: string | null;
+  capabilities: string | null;
   granted: string | null;
   actorId: string | null;
   profileId: string | null;
@@ -62,10 +80,18 @@ export interface AppProfileGrant {
   createdAt: string | null;
   updatedAt: string | null;
 }
+export interface AppMembershipProfile {
+  id: string | null;
+  membershipId: string | null;
+  profileId: string | null;
+  actorId: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
 export interface AppProfileDefinitionGrant {
   id: string | null;
   profileId: string | null;
-  permissionId: string | null;
+  capabilityId: string | null;
   grantorId: string | null;
   isGrant: boolean | null;
   createdAt: string | null;
@@ -88,33 +114,34 @@ export interface AppInvite {
   createdAt: string | null;
   updatedAt: string | null;
 }
-export interface OrgPermission {
+export interface OrgCapability {
   id: string | null;
   name: string | null;
   bitnum: number | null;
   bitstr: string | null;
   description: string | null;
+  kind: string | null;
 }
-export interface OrgPermissionDefaultPermission {
+export interface OrgCapabilityDefaultCapability {
   id: string | null;
-  permissionId: string | null;
+  capabilityId: string | null;
   entityId: string | null;
   createdAt: string | null;
   updatedAt: string | null;
 }
-export interface OrgPermissionDefaultGrant {
+export interface OrgCapabilityDefaultGrant {
   id: string | null;
-  permissionId: string | null;
+  capabilityId: string | null;
   isGrant: boolean | null;
   grantorId: string | null;
   entityId: string | null;
   createdAt: string | null;
   updatedAt: string | null;
 }
-export interface OrgProfilePermission {
+export interface OrgProfileCapability {
   id: string | null;
   profileId: string | null;
-  permissionId: string | null;
+  capabilityId: string | null;
   createdAt: string | null;
   updatedAt: string | null;
 }
@@ -124,6 +151,8 @@ export interface OrgMembership {
   updatedAt: string | null;
   createdBy: string | null;
   updatedBy: string | null;
+  createdByPrincipal: string | null;
+  updatedByPrincipal: string | null;
   isApproved: boolean | null;
   isBanned: boolean | null;
   isDisabled: boolean | null;
@@ -131,7 +160,7 @@ export interface OrgMembership {
   isExternal: boolean | null;
   isOwner: boolean | null;
   isAdmin: boolean | null;
-  permissions: string | null;
+  capabilities: string | null;
   granted: string | null;
   actorId: string | null;
   entityId: string | null;
@@ -148,10 +177,18 @@ export interface OrgProfileGrant {
   createdAt: string | null;
   updatedAt: string | null;
 }
+export interface OrgMembershipProfile {
+  id: string | null;
+  membershipId: string | null;
+  profileId: string | null;
+  actorId: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
 export interface OrgProfileDefinitionGrant {
   id: string | null;
   profileId: string | null;
-  permissionId: string | null;
+  capabilityId: string | null;
   grantorId: string | null;
   isGrant: boolean | null;
   createdAt: string | null;
@@ -183,18 +220,18 @@ export interface OrgMember {
   actorId: string | null;
   entityId: string | null;
 }
-export interface AppPermissionDefault {
+export interface AppCapabilityDefault {
   id: string | null;
-  permissions: string | null;
+  capabilities: string | null;
 }
-export interface OrgPermissionDefault {
+export interface OrgCapabilityDefault {
   id: string | null;
-  permissions: string | null;
+  capabilities: string | null;
   entityId: string | null;
 }
-export interface AppPermissionDefaultPermission {
+export interface AppCapabilityDefaultCapability {
   id: string | null;
-  permissionId: string | null;
+  capabilityId: string | null;
   createdAt: string | null;
   updatedAt: string | null;
 }
@@ -261,30 +298,12 @@ export interface MembershipType {
 }
 export interface AppGrant {
   id: string | null;
-  permissions: string | null;
+  capabilities: string | null;
   isGrant: boolean | null;
   actorId: string | null;
   grantorId: string | null;
   createdAt: string | null;
   updatedAt: string | null;
-}
-export interface AppMembershipDefault {
-  id: string | null;
-  createdAt: string | null;
-  updatedAt: string | null;
-  createdBy: string | null;
-  updatedBy: string | null;
-  isApproved: boolean | null;
-  isVerified: boolean | null;
-}
-export interface OrgMembershipDefault {
-  id: string | null;
-  createdAt: string | null;
-  updatedAt: string | null;
-  createdBy: string | null;
-  updatedBy: string | null;
-  isApproved: boolean | null;
-  entityId: string | null;
 }
 export interface OrgClaimedInvite {
   id: string | null;
@@ -297,7 +316,7 @@ export interface OrgClaimedInvite {
 }
 export interface OrgGrant {
   id: string | null;
-  permissions: string | null;
+  capabilities: string | null;
   isGrant: boolean | null;
   actorId: string | null;
   entityId: string | null;
@@ -320,7 +339,7 @@ export interface AppProfileTemplate {
   name: string | null;
   slug: string | null;
   description: string | null;
-  permissions: string | null;
+  capabilities: string | null;
   isDefault: boolean | null;
   createdAt: string | null;
   updatedAt: string | null;
@@ -330,17 +349,39 @@ export interface OrgProfileTemplate {
   name: string | null;
   slug: string | null;
   description: string | null;
-  permissions: string | null;
+  capabilities: string | null;
   isDefault: boolean | null;
   createdAt: string | null;
   updatedAt: string | null;
+}
+export interface AppMembershipDefault {
+  id: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+  createdBy: string | null;
+  updatedBy: string | null;
+  createdByPrincipal: string | null;
+  updatedByPrincipal: string | null;
+  isApproved: boolean | null;
+  isVerified: boolean | null;
+}
+export interface OrgMembershipDefault {
+  id: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+  createdBy: string | null;
+  updatedBy: string | null;
+  createdByPrincipal: string | null;
+  updatedByPrincipal: string | null;
+  isApproved: boolean | null;
+  entityId: string | null;
 }
 export interface AppProfile {
   id: string | null;
   name: string | null;
   slug: string | null;
   description: string | null;
-  permissions: string | null;
+  capabilities: string | null;
   isSystem: boolean | null;
   isDefault: boolean | null;
   createdAt: string | null;
@@ -351,28 +392,12 @@ export interface OrgProfile {
   name: string | null;
   slug: string | null;
   description: string | null;
-  permissions: string | null;
+  capabilities: string | null;
   isSystem: boolean | null;
   isDefault: boolean | null;
   createdAt: string | null;
   updatedAt: string | null;
   entityId: string | null;
-}
-export interface OrgMembershipSetting {
-  id: string | null;
-  createdAt: string | null;
-  updatedAt: string | null;
-  createdBy: string | null;
-  updatedBy: string | null;
-  entityId: string | null;
-  deleteMemberCascadeChildren: boolean | null;
-  createChildCascadeOwners: boolean | null;
-  createChildCascadeAdmins: boolean | null;
-  createChildCascadeMembers: boolean | null;
-  allowExternalMembers: boolean | null;
-  inviteProfileAssignmentMode: string | null;
-  populateMemberEmail: boolean | null;
-  limitAllocationMode: string | null;
 }
 export interface OrgMemberProfile {
   id: string | null;
@@ -386,6 +411,26 @@ export interface OrgMemberProfile {
   title: string | null;
   bio: string | null;
   profilePicture: ConstructiveInternalTypeImage | null;
+}
+export interface OrgMembershipSetting {
+  id: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+  createdBy: string | null;
+  updatedBy: string | null;
+  createdByPrincipal: string | null;
+  updatedByPrincipal: string | null;
+  entityId: string | null;
+  deleteMemberCascadeChildren: boolean | null;
+  createChildCascadeOwners: boolean | null;
+  createChildCascadeAdmins: boolean | null;
+  createChildCascadeMembers: boolean | null;
+  allowExternalMembers: boolean | null;
+  allowPrincipalOwnedApiKeys: boolean | null;
+  apiKeyMaxDuration: string | null;
+  inviteProfileAssignmentMode: string | null;
+  populateMemberEmail: boolean | null;
+  limitAllocationMode: string | null;
 }
 export interface StringFilter {
   isNull?: boolean;

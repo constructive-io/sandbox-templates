@@ -58,7 +58,14 @@ export function useLogout() {
 			// page (`next` is resolved relative to the gateway). This must be a
 			// hard navigation: the goal is to land ON the mantra page with every
 			// session cookie gone, not to bounce through this app's auth state.
-			window.location.assign(`${getSSOGatewayOrigin()}/logout?next=%2Flogin`);
+			//
+			// That sign-in page carries its own `next=/`: without one, every lane
+			// on it (password, phone, SSO) falls back to `/login` and a fresh sign-in
+			// lands on mantra's "Signed in" card instead of the gateway root, whose
+			// app-origin redirect is what brings the browser back into this app.
+			window.location.assign(
+				`${getSSOGatewayOrigin()}/logout?next=${encodeURIComponent('/login?next=/')}`
+			);
 		},
 	});
 }

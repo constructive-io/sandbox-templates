@@ -25,6 +25,9 @@ export default async function LoginPage({
 			qs.set(key, value);
 		}
 	}
+	// No `next` means mantra falls back to `/login` itself, so the sign-in ends
+	// on its "Signed in" card; the gateway root redirects into this app.
+	if (!qs.has('next')) qs.set('next', '/');
 	const search = qs.toString();
 	redirect(`${SSO_GATEWAY_URL}/login${search ? `?${search}` : ''}` as Route);
 }

@@ -1,8 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Loader2Icon } from 'lucide-react';
 
+import { StepUpCodeForm } from '@/components/auth/step-up-code-form';
+import { isCodeStepUp } from '@/lib/auth/step-up';
 import { useDeleteOrganization, type OrganizationWithRole } from '@/lib/gql/hooks/admin';
 import {
 	AlertDialog,
@@ -34,18 +36,34 @@ interface DeleteOrganizationDialogProps {
  */
 export function DeleteOrganizationDialog({ open, onOpenChange, organization, onSuccess }: DeleteOrganizationDialogProps) {
 	const [confirmName, setConfirmName] = useState('');
+	// Deleting an organization is a step-up-guarded write: the tenant refuses it
+	// with STEP_UP_REQUIRED_MFA until this session re-verifies, so the dialog
+	// swaps to the code step and retries once the code is accepted.
+	const [stepUp, setStepUp] = useState(false);
+	// Set once a code was accepted: a second step-up refusal after that is a
+	// fault to show, not another prompt to loop on.
+	const verifiedRetry = useRef(false);
+
+	const orgName = organization?.displayName || organization?.username || '';
+	const canDelete = confirmName === orgName;
 
 	const { deleteOrganization, isDeleting } = useDeleteOrganization({
-		onSuccess: (result) => {
+		onSuccess: () => {
 			showSuccessToast({
 				message: 'Organization deleted',
-				description: `"${result.deletedOrgName}" has been permanently deleted.`,
+				description: `"${orgName}" has been permanently deleted.`,
 			});
 			setConfirmName('');
+			setStepUp(false);
+			verifiedRetry.current = false;
 			onOpenChange(false);
 			onSuccess?.();
 		},
 		onError: (error) => {
+			if (isCodeStepUp(error) && !verifiedRetry.current) {
+				setStepUp(true);
+				return;
+			}
 			showErrorToast({
 				message: 'Failed to delete organization',
 				description: error.message,
@@ -53,16 +71,18 @@ export function DeleteOrganizationDialog({ open, onOpenChange, organization, onS
 		},
 	});
 
-	const orgName = organization?.displayName || organization?.username || '';
-	const canDelete = confirmName === orgName;
-
 	const handleDelete = async () => {
 		if (!organization || !canDelete) return;
 
-		await deleteOrganization({
-			orgId: organization.id,
-			confirmName,
-		});
+		try {
+			await deleteOrganization({
+				orgId: organization.id,
+				confirmName,
+			});
+		} catch {
+			// onError above already answered it: the step-up form or a toast.
+			// Rethrowing here would only surface as an unhandled rejection.
+		}
 	};
 
 	const handleOpenChange = (newOpen: boolean) => {
@@ -70,6 +90,8 @@ export function DeleteOrganizationDialog({ open, onOpenChange, organization, onS
 			onOpenChange(newOpen);
 			if (!newOpen) {
 				setConfirmName('');
+				setStepUp(false);
+				verifiedRetry.current = false;
 			}
 		}
 	};
@@ -82,88 +104,104 @@ export function DeleteOrganizationDialog({ open, onOpenChange, organization, onS
 				{/* Header */}
 				<AlertDialogHeader className='px-6 pt-6 pb-4'>
 					<AlertDialogTitle className='text-lg font-semibold tracking-tight'>
-						Delete organization
+						{stepUp ? 'Verify it’s you' : 'Delete organization'}
 					</AlertDialogTitle>
 					<AlertDialogDescription className='text-sm text-muted-foreground pt-1'>
-						This will permanently delete{' '}
-						<span className='font-medium text-foreground'>{orgName}</span>{' '}
-						and cannot be undone.
+						{stepUp ? 'Deleting ' : 'This will permanently delete '}
+						<span className='font-medium text-foreground'>{orgName}</span>
+						{stepUp ? ' needs a code from your phone first.' : ' and cannot be undone.'}
 					</AlertDialogDescription>
 				</AlertDialogHeader>
 
-				{/* Info section */}
-				<div className='px-6 pb-5'>
-					<div className='rounded-lg border border-border/60 bg-muted/30 p-4'>
-						<p className='text-[13px] font-medium text-foreground/80 mb-2'>
-							The following will be removed:
-						</p>
-						<ul className='text-[13px] text-muted-foreground space-y-1.5'>
-							<li className='flex items-center gap-2'>
-								<span className='h-1 w-1 rounded-full bg-muted-foreground/50' />
-								Organization settings and configuration
-							</li>
-							<li className='flex items-center gap-2'>
-								<span className='h-1 w-1 rounded-full bg-muted-foreground/50' />
-								All member relationships
-							</li>
-							<li className='flex items-center gap-2'>
-								<span className='h-1 w-1 rounded-full bg-muted-foreground/50' />
-								Associated resources and permissions
-							</li>
-						</ul>
-					</div>
-				</div>
-
-				{/* Form with confirmation input */}
-				<form
-					onSubmit={(e) => {
-						e.preventDefault();
-						if (canDelete && !isDeleting) {
-							handleDelete();
-						}
-					}}
-				>
+				{stepUp ? (
 					<div className='px-6 pb-6'>
-						<label
-							htmlFor='confirm-name'
-							className='block text-[13px] text-muted-foreground mb-2'
-						>
-							Type <span className='font-mono text-foreground bg-muted px-1.5 py-0.5 rounded text-xs'>{orgName}</span> to confirm
-						</label>
-						<Input
-							id='confirm-name'
-							placeholder='Enter organization name'
-							value={confirmName}
-							onChange={(e) => setConfirmName(e.target.value)}
-							disabled={isDeleting}
-							autoComplete='off'
-							autoFocus
-							className='h-10'
+						<StepUpCodeForm
+							busy={isDeleting}
+							busyLabel='Deleting…'
+							onCancel={() => handleOpenChange(false)}
+							onVerified={async () => {
+								verifiedRetry.current = true;
+								await handleDelete();
+							}}
 						/>
 					</div>
+				) : (
+					<>
+						{/* Info section */}
+						<div className='px-6 pb-5'>
+							<div className='rounded-lg border border-border/60 bg-muted/30 p-4'>
+								<p className='text-[13px] font-medium text-foreground/80 mb-2'>
+									The following will be removed:
+								</p>
+								<ul className='text-[13px] text-muted-foreground space-y-1.5'>
+									<li className='flex items-center gap-2'>
+										<span className='h-1 w-1 rounded-full bg-muted-foreground/50' />
+										Organization settings and configuration
+									</li>
+									<li className='flex items-center gap-2'>
+										<span className='h-1 w-1 rounded-full bg-muted-foreground/50' />
+										All member relationships
+									</li>
+									<li className='flex items-center gap-2'>
+										<span className='h-1 w-1 rounded-full bg-muted-foreground/50' />
+										Associated resources and permissions
+									</li>
+								</ul>
+							</div>
+						</div>
 
-					{/* Footer */}
-					<AlertDialogFooter className='px-6 py-4 bg-muted/30 border-t border-border/60'>
-						<Button
-							type='button'
-							variant='ghost'
-							onClick={() => handleOpenChange(false)}
-							disabled={isDeleting}
-							className='h-9'
+						{/* Form with confirmation input */}
+						<form
+							onSubmit={(e) => {
+								e.preventDefault();
+								if (canDelete && !isDeleting) {
+									handleDelete();
+								}
+							}}
 						>
-							Cancel
-						</Button>
-						<Button
-							type='submit'
-							variant='destructive'
-							disabled={isDeleting || !canDelete}
-							className='h-9'
-						>
-							{isDeleting && <Loader2Icon className='mr-2 h-3.5 w-3.5 animate-spin' />}
-							{isDeleting ? 'Deleting...' : 'Delete organization'}
-						</Button>
-					</AlertDialogFooter>
-				</form>
+							<div className='px-6 pb-6'>
+								<label
+									htmlFor='confirm-name'
+									className='block text-[13px] text-muted-foreground mb-2'
+								>
+									Type <span className='font-mono text-foreground bg-muted px-1.5 py-0.5 rounded text-xs'>{orgName}</span> to confirm
+								</label>
+								<Input
+									id='confirm-name'
+									placeholder='Enter organization name'
+									value={confirmName}
+									onChange={(e) => setConfirmName(e.target.value)}
+									disabled={isDeleting}
+									autoComplete='off'
+									autoFocus
+									className='h-10'
+								/>
+							</div>
+
+							{/* Footer */}
+							<AlertDialogFooter className='px-6 py-4 bg-muted/30 border-t border-border/60'>
+								<Button
+									type='button'
+									variant='ghost'
+									onClick={() => handleOpenChange(false)}
+									disabled={isDeleting}
+									className='h-9'
+								>
+									Cancel
+								</Button>
+								<Button
+									type='submit'
+									variant='destructive'
+									disabled={isDeleting || !canDelete}
+									className='h-9'
+								>
+									{isDeleting && <Loader2Icon className='mr-2 h-3.5 w-3.5 animate-spin' />}
+									{isDeleting ? 'Deleting...' : 'Delete organization'}
+								</Button>
+							</AlertDialogFooter>
+						</form>
+					</>
+				)}
 			</AlertDialogContent>
 		</AlertDialog>
 	);

@@ -15,10 +15,9 @@ build/
 .next/
 out/
 
-# Generated SDK code (placeholder index.ts files are force-tracked)
-src/graphql/sdk/admin/
-src/graphql/sdk/auth/
-src/graphql/sdk/app/
+# src/graphql/sdk/ is committed generated output (pnpm codegen, run by
+# local:bringup) — not ignored, so files for tables the platform adds are
+# committed with the rest instead of silently left out.
 
 # Environment (copy .env.example to .env.local)
 .env

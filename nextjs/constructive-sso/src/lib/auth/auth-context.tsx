@@ -59,24 +59,32 @@ export function useAuthContext(): AuthContextType {
 async function trySessionAuth(
 	authActions: ReturnType<typeof useAuthActions>,
 ): Promise<void> {
-	try {
-		const res = await fetch('/api/auth/session', {
-			method: 'POST',
-			credentials: 'include',
-			headers: { 'content-type': 'application/json' },
-			body: '{}',
-		});
-		const result = (await res.json()) as { authenticated?: boolean; userId?: string };
-		if (result.authenticated && result.userId) {
-			authActions.setSessionAuthenticated({
-				id: result.userId,
-				email: '',
+	// The BFF route compiles on first hit in dev, and a compile-in-progress
+	// 500 reads the same as "no session" to a single fetch — logging a
+	// freshly-landed, fully signed-in user out one navigation after the
+	// gateway set their cookie. One retry absorbs exactly that; a genuinely
+	// absent cookie answers fast twice.
+	for (let attempt = 0; attempt < 2; attempt++) {
+		try {
+			const res = await fetch('/api/auth/session', {
+				method: 'POST',
+				credentials: 'include',
+				headers: { 'content-type': 'application/json' },
+				body: '{}',
 			});
-			reconfigureSdkClients();
-			return;
+			const result = (await res.json()) as { authenticated?: boolean; userId?: string };
+			if (result.authenticated && result.userId) {
+				authActions.setSessionAuthenticated({
+					id: result.userId,
+					email: '',
+				});
+				reconfigureSdkClients();
+				return;
+			}
+			break; // a resolved answer is final — only a failed fetch retries
+		} catch {
+			// Fetch-level failure (dev compile, network blip): retry once.
 		}
-	} catch {
-		// No session cookie or expired — fall through to unauthenticated
 	}
 	authActions.setUnauthenticated();
 	authActions.setLoading(false);

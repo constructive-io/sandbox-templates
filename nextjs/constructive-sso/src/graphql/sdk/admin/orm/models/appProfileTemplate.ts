@@ -196,7 +196,8 @@ export class AppProfileTemplateModel {
       'UpdateAppProfileTemplateInput',
       'id',
       'appProfileTemplatePatch',
-      connectionFieldsMap
+      connectionFieldsMap,
+      undefined
     );
     return new QueryBuilder({
       client: this.client,

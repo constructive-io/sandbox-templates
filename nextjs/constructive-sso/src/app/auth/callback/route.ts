@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-import { SSO_GATEWAY_URL } from '@/lib/sso/gateway';
+import { gatewayLocation, SSO_GATEWAY_URL } from '@/lib/sso/gateway';
 
 /**
  * GET /auth/callback — the identity provider's return leg, relayed to the
@@ -12,9 +12,12 @@ import { SSO_GATEWAY_URL } from '@/lib/sso/gateway';
  * here, and this route bridges to the cloud function's callback at
  * `${SSO_GATEWAY_URL}/auth/callback`. The raw query (`code`, `state`,
  * provider errors) is forwarded with `redirect: 'manual'`, and the upstream
- * 302 + every `Set-Cookie` value is relayed verbatim so the browser lands on
- * the app with its session cookie — the session token never touches client
- * JavaScript.
+ * 302 + every `Set-Cookie` value is relayed so the browser lands with its
+ * session cookie — the session token never touches client JavaScript. The
+ * 302's `Location` is a path on the GATEWAY (mantra's `/`, `/2fa`,
+ * `/setup-2fa`, `/login?error=…`), so it is made absolute against the gateway
+ * before it is relayed; verbatim, the browser resolved it against this app
+ * and `/setup-2fa` answered 404.
  *
  * NOTE: this is a route handler, not a page. The old session-hydration page at
  * this path was removed — the upstream 302 to `next` plus the app's
@@ -22,9 +25,10 @@ import { SSO_GATEWAY_URL } from '@/lib/sso/gateway';
  */
 export async function GET(req: Request): Promise<NextResponse> {
   const query = new URL(req.url).search;
+  const upstreamUrl = `${SSO_GATEWAY_URL}/auth/callback${query}`;
   let upstream: Response;
   try {
-    upstream = await fetch(`${SSO_GATEWAY_URL}/auth/callback${query}`, {
+    upstream = await fetch(upstreamUrl, {
       method: 'GET',
       redirect: 'manual',
       cache: 'no-store',
@@ -40,7 +44,7 @@ export async function GET(req: Request): Promise<NextResponse> {
 
   const headers = new Headers();
   const location = upstream.headers.get('location');
-  if (location) headers.set('location', location);
+  if (location) headers.set('location', gatewayLocation(location, upstreamUrl));
   const contentType = upstream.headers.get('content-type');
   if (contentType) headers.set('content-type', contentType);
   for (const cookie of upstream.headers.getSetCookie()) {

@@ -1,13 +1,16 @@
 /**
  * Hook for fetching app and membership permissions
  * Tier 4 wrapper: Uses SDK hooks + cache invalidation
+ *
+ * The platform renamed permissions to capabilities (appPermissions →
+ * appCapabilities, orgPermissions → orgCapabilities); this hook keeps its
+ * permission-shaped result so its consumers are unchanged. The capability
+ * catalog also carries achievement levels (`kind: 'level'`), which are not
+ * grantable bits and are left out.
  */
 import { useQuery } from '@tanstack/react-query';
 
-import {
-	fetchAppPermissionsQuery,
-	fetchOrgPermissionsQuery,
-} from '@/lib/gql/admin-compat';
+import { fetchAppCapabilitiesQuery, fetchOrgCapabilitiesQuery } from '@/lib/gql/admin-compat';
 
 export interface PermissionNode {
 	bitnum: number | null;
@@ -36,7 +39,7 @@ export function usePermissions(options: UsePermissionsOptions = {}) {
 		queryFn: async () => {
 			// Fetch both permission types in parallel using SDK fetch functions
 			const [appResult, orgResult] = await Promise.all([
-				fetchAppPermissionsQuery({
+				fetchAppCapabilitiesQuery({
 					selection: {
 						fields: {
 							id: true,
@@ -44,11 +47,12 @@ export function usePermissions(options: UsePermissionsOptions = {}) {
 							bitnum: true,
 							bitstr: true,
 							description: true,
+							kind: true,
 						},
 						orderBy: ['NAME_ASC'],
 					},
 				}),
-				fetchOrgPermissionsQuery({
+				fetchOrgCapabilitiesQuery({
 					selection: {
 						fields: {
 							id: true,
@@ -56,13 +60,16 @@ export function usePermissions(options: UsePermissionsOptions = {}) {
 							bitnum: true,
 							bitstr: true,
 							description: true,
+							kind: true,
 						},
 						orderBy: ['NAME_ASC'],
 					},
 				}),
 			]);
 
-			const appPermissions: AppPermission[] = (appResult.appPermissions?.nodes ?? []).map((node: any) => ({
+			const grantable = (node: { kind?: string | null }) => node.kind !== 'level';
+
+			const appPermissions: AppPermission[] = (appResult.appCapabilities?.nodes ?? []).filter(grantable).map((node: any) => ({
 				id: node.id ?? '',
 				name: node.name ?? '',
 				bitnum: node.bitnum ?? null,
@@ -70,7 +77,7 @@ export function usePermissions(options: UsePermissionsOptions = {}) {
 				description: node.description ?? null,
 			}));
 
-			const membershipPermissions: MembershipPermission[] = (orgResult.orgPermissions?.nodes ?? []).map((node: any) => ({
+			const membershipPermissions: MembershipPermission[] = (orgResult.orgCapabilities?.nodes ?? []).filter(grantable).map((node: any) => ({
 				id: node.id ?? '',
 				name: node.name ?? '',
 				bitnum: node.bitnum ?? null,

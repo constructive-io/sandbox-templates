@@ -16,6 +16,7 @@ import type {
   RoleType,
   User,
   UserConnectedAccount,
+  UserSettingsSecurity,
   WebauthnCredential,
   BigFloatFilter,
   BigIntFilter,
@@ -39,6 +40,39 @@ export type Base64EncodedBinary = unknown;
 export type ConstructiveInternalTypeEmail = unknown;
 export type ConstructiveInternalTypeImage = unknown;
 export type ConstructiveInternalTypeOrigin = unknown;
+/** Methods to use when ordering `Principal`. */
+export type PrincipalOrderBy =
+  | 'NATURAL'
+  | 'PRIMARY_KEY_ASC'
+  | 'PRIMARY_KEY_DESC'
+  | 'ID_ASC'
+  | 'ID_DESC'
+  | 'CREATED_AT_ASC'
+  | 'CREATED_AT_DESC'
+  | 'UPDATED_AT_ASC'
+  | 'UPDATED_AT_DESC'
+  | 'OWNER_ID_ASC'
+  | 'OWNER_ID_DESC'
+  | 'USER_ID_ASC'
+  | 'USER_ID_DESC'
+  | 'NAME_ASC'
+  | 'NAME_DESC'
+  | 'USE_ADMIN_OWNER_ASC'
+  | 'USE_ADMIN_OWNER_DESC'
+  | 'IS_READ_ONLY_ASC'
+  | 'IS_READ_ONLY_DESC'
+  | 'BYPASS_STEP_UP_ASC'
+  | 'BYPASS_STEP_UP_DESC'
+  | 'PARENT_PRINCIPAL_ID_ASC'
+  | 'PARENT_PRINCIPAL_ID_DESC'
+  | 'DEPTH_ASC'
+  | 'DEPTH_DESC'
+  | 'EXPIRES_AT_ASC'
+  | 'EXPIRES_AT_DESC'
+  | 'API_KEY_MAX_DURATION_ASC'
+  | 'API_KEY_MAX_DURATION_DESC'
+  | 'CREATED_BY_SESSION_ID_ASC'
+  | 'CREATED_BY_SESSION_ID_DESC';
 /** Methods to use when ordering `PrincipalEntity`. */
 export type PrincipalEntityOrderBy =
   | 'NATURAL'
@@ -79,29 +113,6 @@ export type PrincipalScopeOverrideOrderBy =
   | 'IS_ACTIVE_DESC'
   | 'IS_READ_ONLY_ASC'
   | 'IS_READ_ONLY_DESC';
-/** Methods to use when ordering `Principal`. */
-export type PrincipalOrderBy =
-  | 'NATURAL'
-  | 'PRIMARY_KEY_ASC'
-  | 'PRIMARY_KEY_DESC'
-  | 'ID_ASC'
-  | 'ID_DESC'
-  | 'CREATED_AT_ASC'
-  | 'CREATED_AT_DESC'
-  | 'UPDATED_AT_ASC'
-  | 'UPDATED_AT_DESC'
-  | 'OWNER_ID_ASC'
-  | 'OWNER_ID_DESC'
-  | 'USER_ID_ASC'
-  | 'USER_ID_DESC'
-  | 'NAME_ASC'
-  | 'NAME_DESC'
-  | 'USE_ADMIN_OWNER_ASC'
-  | 'USE_ADMIN_OWNER_DESC'
-  | 'IS_READ_ONLY_ASC'
-  | 'IS_READ_ONLY_DESC'
-  | 'BYPASS_STEP_UP_ASC'
-  | 'BYPASS_STEP_UP_DESC';
 /** Methods to use when ordering `Email`. */
 export type EmailOrderBy =
   | 'NATURAL'
@@ -199,7 +210,9 @@ export type AuditLogAuthOrderBy =
   | 'IP_ADDRESS_ASC'
   | 'IP_ADDRESS_DESC'
   | 'SUCCESS_ASC'
-  | 'SUCCESS_DESC';
+  | 'SUCCESS_DESC'
+  | 'DETAILS_ASC'
+  | 'DETAILS_DESC';
 /** Methods to use when ordering `IdentityProvider`. */
 export type IdentityProviderOrderBy =
   | 'NATURAL'
@@ -235,6 +248,31 @@ export type UserConnectedAccountOrderBy =
   | 'DETAILS_DESC'
   | 'IS_VERIFIED_ASC'
   | 'IS_VERIFIED_DESC'
+  | 'CREATED_AT_ASC'
+  | 'CREATED_AT_DESC'
+  | 'UPDATED_AT_ASC'
+  | 'UPDATED_AT_DESC';
+/** Methods to use when ordering `UserSettingsSecurity`. */
+export type UserSettingsSecurityOrderBy =
+  | 'NATURAL'
+  | 'PRIMARY_KEY_ASC'
+  | 'PRIMARY_KEY_DESC'
+  | 'ID_ASC'
+  | 'ID_DESC'
+  | 'OWNER_ID_ASC'
+  | 'OWNER_ID_DESC'
+  | 'TOTP_ENABLED_ASC'
+  | 'TOTP_ENABLED_DESC'
+  | 'EMAIL_MFA_ENABLED_ASC'
+  | 'EMAIL_MFA_ENABLED_DESC'
+  | 'SMS_MFA_ENABLED_ASC'
+  | 'SMS_MFA_ENABLED_DESC'
+  | 'BACKUP_CODES_COUNT_ASC'
+  | 'BACKUP_CODES_COUNT_DESC'
+  | 'MFA_ENROLLED_AT_ASC'
+  | 'MFA_ENROLLED_AT_DESC'
+  | 'MFA_LAST_USED_AT_ASC'
+  | 'MFA_LAST_USED_AT_DESC'
   | 'CREATED_AT_ASC'
   | 'CREATED_AT_DESC'
   | 'UPDATED_AT_ASC'
@@ -293,32 +331,106 @@ export type UserOrderBy =
   | 'DISPLAY_NAME_TRGM_SIMILARITY_DESC'
   | 'SEARCH_SCORE_ASC'
   | 'SEARCH_SCORE_DESC';
-/** A filter to be used against `PrincipalEntity` object types. All fields are combined with a logical ‘and.’ */
-export interface PrincipalEntityFilter {
+/** A filter to be used against `Principal` object types. All fields are combined with a logical ‘and.’ */
+export interface PrincipalFilter {
   /** Filter by the object’s `id` field. */
   id?: UUIDFilter;
   /** Filter by the object’s `createdAt` field. */
   createdAt?: DatetimeFilter;
   /** Filter by the object’s `updatedAt` field. */
   updatedAt?: DatetimeFilter;
-  /** Filter by the object’s `principalId` field. */
-  principalId?: UUIDFilter;
-  /** Filter by the object’s `entityId` field. */
-  entityId?: UUIDFilter;
   /** Filter by the object’s `ownerId` field. */
   ownerId?: UUIDFilter;
+  /** Filter by the object’s `userId` field. */
+  userId?: UUIDFilter;
+  /** Filter by the object’s `name` field. */
+  name?: StringFilter;
+  /** Filter by the object’s `useAdminOwner` field. */
+  useAdminOwner?: BooleanFilter;
+  /** Filter by the object’s `isReadOnly` field. */
+  isReadOnly?: BooleanFilter;
+  /** Filter by the object’s `bypassStepUp` field. */
+  bypassStepUp?: BooleanFilter;
+  /** Filter by the object’s `parentPrincipalId` field. */
+  parentPrincipalId?: UUIDFilter;
+  /** Filter by the object’s `depth` field. */
+  depth?: IntFilter;
+  /** Filter by the object’s `expiresAt` field. */
+  expiresAt?: DatetimeFilter;
+  /** Filter by the object’s `apiKeyMaxDuration` field. */
+  apiKeyMaxDuration?: IntervalFilter;
+  /** Filter by the object’s `createdBySessionId` field. */
+  createdBySessionId?: UUIDFilter;
   /** Checks for all expressions in this list. */
-  and?: PrincipalEntityFilter[];
+  and?: PrincipalFilter[];
   /** Checks for any expressions in this list. */
-  or?: PrincipalEntityFilter[];
+  or?: PrincipalFilter[];
   /** Negates the expression. */
-  not?: PrincipalEntityFilter;
-  /** Filter by the object’s `entity` relation. */
-  entity?: UserFilter;
+  not?: PrincipalFilter;
   /** Filter by the object’s `owner` relation. */
   owner?: UserFilter;
-  /** Filter by the object’s `principal` relation. */
-  principal?: PrincipalFilter;
+  /** Filter by the object’s `parentPrincipal` relation. */
+  parentPrincipal?: PrincipalFilter;
+  /** A related `parentPrincipal` exists. */
+  parentPrincipalExists?: boolean;
+  /** Filter by the object’s `user` relation. */
+  user?: UserFilter;
+  /** Filter by the object’s `child_principals` relation. */
+  child_principals?: PrincipalToManyPrincipalFilter;
+  /** `child_principals` exist. */
+  child_principalsExist?: boolean;
+  /** Filter by the object’s `principalEntities` relation. */
+  principalEntities?: PrincipalToManyPrincipalEntityFilter;
+  /** `principalEntities` exist. */
+  principalEntitiesExist?: boolean;
+  /** Filter by the object’s `principalScopeOverrides` relation. */
+  principalScopeOverrides?: PrincipalToManyPrincipalScopeOverrideFilter;
+  /** `principalScopeOverrides` exist. */
+  principalScopeOverridesExist?: boolean;
+}
+/** A filter to be used against Interval fields. All fields are combined with a logical ‘and.’ */
+export interface IntervalFilter {
+  /** Is null (if `true` is specified) or is not null (if `false` is specified). */
+  isNull?: boolean;
+  /** Equal to the specified value. */
+  equalTo?: IntervalInput;
+  /** Not equal to the specified value. */
+  notEqualTo?: IntervalInput;
+  /** Not equal to the specified value, treating null like an ordinary value. */
+  distinctFrom?: IntervalInput;
+  /** Equal to the specified value, treating null like an ordinary value. */
+  notDistinctFrom?: IntervalInput;
+  /** Included in the specified list. */
+  in?: IntervalInput[];
+  /** Not included in the specified list. */
+  notIn?: IntervalInput[];
+  /** Less than the specified value. */
+  lessThan?: IntervalInput;
+  /** Less than or equal to the specified value. */
+  lessThanOrEqualTo?: IntervalInput;
+  /** Greater than the specified value. */
+  greaterThan?: IntervalInput;
+  /** Greater than or equal to the specified value. */
+  greaterThanOrEqualTo?: IntervalInput;
+}
+/** An interval of time that has passed where the smallest distinct unit is a second. */
+export interface IntervalInput {
+  /**
+   * A quantity of seconds. This is the only non-integer field, as all the other
+   * fields will dump their overflow into a smaller unit of time. Intervals don’t
+   * have a smaller unit than seconds.
+   */
+  seconds?: number;
+  /** A quantity of minutes. */
+  minutes?: number;
+  /** A quantity of hours. */
+  hours?: number;
+  /** A quantity of days. */
+  days?: number;
+  /** A quantity of months. */
+  months?: number;
+  /** A quantity of years. */
+  years?: number;
 }
 /** A filter to be used against `User` object types. All fields are combined with a logical ‘and.’ */
 export interface UserFilter {
@@ -346,6 +458,10 @@ export interface UserFilter {
   not?: UserFilter;
   /** Filter by the object’s `roleType` relation. */
   roleType?: RoleTypeFilter;
+  /** Filter by the object’s `ownedUserSettingsSecurity` relation. */
+  ownedUserSettingsSecurity?: UserSettingsSecurityFilter;
+  /** A related `ownedUserSettingsSecurity` exists. */
+  ownedUserSettingsSecurityExists?: boolean;
   /** Filter by the object’s `principals` relation. */
   principals?: UserToManyPrincipalFilter;
   /** `principals` exist. */
@@ -519,6 +635,37 @@ export interface RoleTypeFilter {
   /** Negates the expression. */
   not?: RoleTypeFilter;
 }
+/** A filter to be used against `UserSettingsSecurity` object types. All fields are combined with a logical ‘and.’ */
+export interface UserSettingsSecurityFilter {
+  /** Filter by the object’s `id` field. */
+  id?: UUIDFilter;
+  /** Filter by the object’s `ownerId` field. */
+  ownerId?: UUIDFilter;
+  /** Filter by the object’s `totpEnabled` field. */
+  totpEnabled?: BooleanFilter;
+  /** Filter by the object’s `emailMfaEnabled` field. */
+  emailMfaEnabled?: BooleanFilter;
+  /** Filter by the object’s `smsMfaEnabled` field. */
+  smsMfaEnabled?: BooleanFilter;
+  /** Filter by the object’s `backupCodesCount` field. */
+  backupCodesCount?: IntFilter;
+  /** Filter by the object’s `mfaEnrolledAt` field. */
+  mfaEnrolledAt?: DatetimeFilter;
+  /** Filter by the object’s `mfaLastUsedAt` field. */
+  mfaLastUsedAt?: DatetimeFilter;
+  /** Filter by the object’s `createdAt` field. */
+  createdAt?: DatetimeFilter;
+  /** Filter by the object’s `updatedAt` field. */
+  updatedAt?: DatetimeFilter;
+  /** Checks for all expressions in this list. */
+  and?: UserSettingsSecurityFilter[];
+  /** Checks for any expressions in this list. */
+  or?: UserSettingsSecurityFilter[];
+  /** Negates the expression. */
+  not?: UserSettingsSecurityFilter;
+  /** Filter by the object’s `owner` relation. */
+  owner?: UserFilter;
+}
 /** A filter to be used against many `Principal` object types. All fields are combined with a logical ‘and.’ */
 export interface UserToManyPrincipalFilter {
   /** Filters to entities where at least one related entity matches. */
@@ -528,92 +675,6 @@ export interface UserToManyPrincipalFilter {
   /** Filters to entities where no related entity matches. */
   none?: PrincipalFilter;
 }
-/** A filter to be used against `Principal` object types. All fields are combined with a logical ‘and.’ */
-export interface PrincipalFilter {
-  /** Filter by the object’s `id` field. */
-  id?: UUIDFilter;
-  /** Filter by the object’s `createdAt` field. */
-  createdAt?: DatetimeFilter;
-  /** Filter by the object’s `updatedAt` field. */
-  updatedAt?: DatetimeFilter;
-  /** Filter by the object’s `ownerId` field. */
-  ownerId?: UUIDFilter;
-  /** Filter by the object’s `userId` field. */
-  userId?: UUIDFilter;
-  /** Filter by the object’s `name` field. */
-  name?: StringFilter;
-  /** Filter by the object’s `useAdminOwner` field. */
-  useAdminOwner?: BooleanFilter;
-  /** Filter by the object’s `isReadOnly` field. */
-  isReadOnly?: BooleanFilter;
-  /** Filter by the object’s `bypassStepUp` field. */
-  bypassStepUp?: BooleanFilter;
-  /** Checks for all expressions in this list. */
-  and?: PrincipalFilter[];
-  /** Checks for any expressions in this list. */
-  or?: PrincipalFilter[];
-  /** Negates the expression. */
-  not?: PrincipalFilter;
-  /** Filter by the object’s `owner` relation. */
-  owner?: UserFilter;
-  /** Filter by the object’s `user` relation. */
-  user?: UserFilter;
-  /** Filter by the object’s `principalEntities` relation. */
-  principalEntities?: PrincipalToManyPrincipalEntityFilter;
-  /** `principalEntities` exist. */
-  principalEntitiesExist?: boolean;
-  /** Filter by the object’s `principalScopeOverrides` relation. */
-  principalScopeOverrides?: PrincipalToManyPrincipalScopeOverrideFilter;
-  /** `principalScopeOverrides` exist. */
-  principalScopeOverridesExist?: boolean;
-}
-/** A filter to be used against many `PrincipalEntity` object types. All fields are combined with a logical ‘and.’ */
-export interface PrincipalToManyPrincipalEntityFilter {
-  /** Filters to entities where at least one related entity matches. */
-  some?: PrincipalEntityFilter;
-  /** Filters to entities where every related entity matches. */
-  every?: PrincipalEntityFilter;
-  /** Filters to entities where no related entity matches. */
-  none?: PrincipalEntityFilter;
-}
-/** A filter to be used against many `PrincipalScopeOverride` object types. All fields are combined with a logical ‘and.’ */
-export interface PrincipalToManyPrincipalScopeOverrideFilter {
-  /** Filters to entities where at least one related entity matches. */
-  some?: PrincipalScopeOverrideFilter;
-  /** Filters to entities where every related entity matches. */
-  every?: PrincipalScopeOverrideFilter;
-  /** Filters to entities where no related entity matches. */
-  none?: PrincipalScopeOverrideFilter;
-}
-/** A filter to be used against `PrincipalScopeOverride` object types. All fields are combined with a logical ‘and.’ */
-export interface PrincipalScopeOverrideFilter {
-  /** Filter by the object’s `id` field. */
-  id?: UUIDFilter;
-  /** Filter by the object’s `createdAt` field. */
-  createdAt?: DatetimeFilter;
-  /** Filter by the object’s `updatedAt` field. */
-  updatedAt?: DatetimeFilter;
-  /** Filter by the object’s `principalId` field. */
-  principalId?: UUIDFilter;
-  /** Filter by the object’s `membershipType` field. */
-  membershipType?: IntFilter;
-  /** Filter by the object’s `allowedMask` field. */
-  allowedMask?: BitStringFilter;
-  /** Filter by the object’s `useAdminOwner` field. */
-  useAdminOwner?: BooleanFilter;
-  /** Filter by the object’s `isActive` field. */
-  isActive?: BooleanFilter;
-  /** Filter by the object’s `isReadOnly` field. */
-  isReadOnly?: BooleanFilter;
-  /** Checks for all expressions in this list. */
-  and?: PrincipalScopeOverrideFilter[];
-  /** Checks for any expressions in this list. */
-  or?: PrincipalScopeOverrideFilter[];
-  /** Negates the expression. */
-  not?: PrincipalScopeOverrideFilter;
-  /** Filter by the object’s `principal` relation. */
-  principal?: PrincipalFilter;
-}
 /** A filter to be used against many `PrincipalEntity` object types. All fields are combined with a logical ‘and.’ */
 export interface UserToManyPrincipalEntityFilter {
   /** Filters to entities where at least one related entity matches. */
@@ -622,6 +683,33 @@ export interface UserToManyPrincipalEntityFilter {
   every?: PrincipalEntityFilter;
   /** Filters to entities where no related entity matches. */
   none?: PrincipalEntityFilter;
+}
+/** A filter to be used against `PrincipalEntity` object types. All fields are combined with a logical ‘and.’ */
+export interface PrincipalEntityFilter {
+  /** Filter by the object’s `id` field. */
+  id?: UUIDFilter;
+  /** Filter by the object’s `createdAt` field. */
+  createdAt?: DatetimeFilter;
+  /** Filter by the object’s `updatedAt` field. */
+  updatedAt?: DatetimeFilter;
+  /** Filter by the object’s `principalId` field. */
+  principalId?: UUIDFilter;
+  /** Filter by the object’s `entityId` field. */
+  entityId?: UUIDFilter;
+  /** Filter by the object’s `ownerId` field. */
+  ownerId?: UUIDFilter;
+  /** Checks for all expressions in this list. */
+  and?: PrincipalEntityFilter[];
+  /** Checks for any expressions in this list. */
+  or?: PrincipalEntityFilter[];
+  /** Negates the expression. */
+  not?: PrincipalEntityFilter;
+  /** Filter by the object’s `entity` relation. */
+  entity?: UserFilter;
+  /** Filter by the object’s `owner` relation. */
+  owner?: UserFilter;
+  /** Filter by the object’s `principal` relation. */
+  principal?: PrincipalFilter;
 }
 /** A filter to be used against many `Email` object types. All fields are combined with a logical ‘and.’ */
 export interface UserToManyEmailFilter {
@@ -866,6 +954,8 @@ export interface AuditLogAuthFilter {
   ipAddress?: InternetAddressFilter;
   /** Filter by the object’s `success` field. */
   success?: BooleanFilter;
+  /** Filter by the object’s `details` field. */
+  details?: JSONFilter;
   /** Checks for all expressions in this list. */
   and?: AuditLogAuthFilter[];
   /** Checks for any expressions in this list. */
@@ -954,6 +1044,62 @@ export interface ConstructiveInternalTypeOriginFilter {
   /** Greater than or equal to the specified value (case-insensitive). */
   greaterThanOrEqualToInsensitive?: string;
 }
+/** A filter to be used against many `Principal` object types. All fields are combined with a logical ‘and.’ */
+export interface PrincipalToManyPrincipalFilter {
+  /** Filters to entities where at least one related entity matches. */
+  some?: PrincipalFilter;
+  /** Filters to entities where every related entity matches. */
+  every?: PrincipalFilter;
+  /** Filters to entities where no related entity matches. */
+  none?: PrincipalFilter;
+}
+/** A filter to be used against many `PrincipalEntity` object types. All fields are combined with a logical ‘and.’ */
+export interface PrincipalToManyPrincipalEntityFilter {
+  /** Filters to entities where at least one related entity matches. */
+  some?: PrincipalEntityFilter;
+  /** Filters to entities where every related entity matches. */
+  every?: PrincipalEntityFilter;
+  /** Filters to entities where no related entity matches. */
+  none?: PrincipalEntityFilter;
+}
+/** A filter to be used against many `PrincipalScopeOverride` object types. All fields are combined with a logical ‘and.’ */
+export interface PrincipalToManyPrincipalScopeOverrideFilter {
+  /** Filters to entities where at least one related entity matches. */
+  some?: PrincipalScopeOverrideFilter;
+  /** Filters to entities where every related entity matches. */
+  every?: PrincipalScopeOverrideFilter;
+  /** Filters to entities where no related entity matches. */
+  none?: PrincipalScopeOverrideFilter;
+}
+/** A filter to be used against `PrincipalScopeOverride` object types. All fields are combined with a logical ‘and.’ */
+export interface PrincipalScopeOverrideFilter {
+  /** Filter by the object’s `id` field. */
+  id?: UUIDFilter;
+  /** Filter by the object’s `createdAt` field. */
+  createdAt?: DatetimeFilter;
+  /** Filter by the object’s `updatedAt` field. */
+  updatedAt?: DatetimeFilter;
+  /** Filter by the object’s `principalId` field. */
+  principalId?: UUIDFilter;
+  /** Filter by the object’s `membershipType` field. */
+  membershipType?: IntFilter;
+  /** Filter by the object’s `allowedMask` field. */
+  allowedMask?: BitStringFilter;
+  /** Filter by the object’s `useAdminOwner` field. */
+  useAdminOwner?: BooleanFilter;
+  /** Filter by the object’s `isActive` field. */
+  isActive?: BooleanFilter;
+  /** Filter by the object’s `isReadOnly` field. */
+  isReadOnly?: BooleanFilter;
+  /** Checks for all expressions in this list. */
+  and?: PrincipalScopeOverrideFilter[];
+  /** Checks for any expressions in this list. */
+  or?: PrincipalScopeOverrideFilter[];
+  /** Negates the expression. */
+  not?: PrincipalScopeOverrideFilter;
+  /** Filter by the object’s `principal` relation. */
+  principal?: PrincipalFilter;
+}
 /** A filter to be used against `IdentityProvider` object types. All fields are combined with a logical ‘and.’ */
 export interface IdentityProviderFilter {
   /** Filter by the object’s `slug` field. */
@@ -1029,15 +1175,41 @@ export interface OrgApiKeyListFilter {
   /** Negates the expression. */
   not?: OrgApiKeyListFilter;
 }
+export interface DisableEmailMfaInput {
+  clientMutationId?: string;
+}
+export interface DisableSmsMfaInput {
+  clientMutationId?: string;
+}
+export interface EnableEmailMfaInput {
+  clientMutationId?: string;
+}
+export interface EnableSmsMfaInput {
+  clientMutationId?: string;
+}
 export interface SendAccountDeletionEmailInput {
   clientMutationId?: string;
 }
 export interface SignOutInput {
   clientMutationId?: string;
 }
+export interface EnableTotpInput {
+  clientMutationId?: string;
+}
+export interface GenerateBackupCodesInput {
+  clientMutationId?: string;
+}
 export interface ApproveDeviceInput {
   clientMutationId?: string;
   approvalToken: string;
+}
+export interface AttachPhoneNumberInput {
+  clientMutationId?: string;
+  phone?: string;
+}
+export interface ConfirmTotpSetupInput {
+  clientMutationId?: string;
+  totpValue: string;
 }
 export interface DeleteOrgPrincipalInput {
   clientMutationId?: string;
@@ -1046,6 +1218,10 @@ export interface DeleteOrgPrincipalInput {
 export interface DeletePrincipalInput {
   clientMutationId?: string;
   principalId?: string;
+}
+export interface DisableTotpInput {
+  clientMutationId?: string;
+  totpValue: string;
 }
 export interface DisconnectAccountInput {
   clientMutationId?: string;
@@ -1058,6 +1234,14 @@ export interface RevokeApiKeyInput {
 export interface RevokeSessionInput {
   clientMutationId?: string;
   sessionId: string;
+}
+export interface SendPhoneVerificationCodeInput {
+  clientMutationId?: string;
+  phone?: string;
+}
+export interface SetPrimaryPhoneInput {
+  clientMutationId?: string;
+  phone?: string;
 }
 export interface VerifyPasswordInput {
   clientMutationId?: string;
@@ -1091,6 +1275,11 @@ export interface VerifyEmailInput {
   emailId?: string;
   token?: string;
 }
+export interface VerifyPhoneInput {
+  clientMutationId?: string;
+  phone?: string;
+  code?: string;
+}
 export interface ProvisionNewUserInput {
   clientMutationId?: string;
   email?: string;
@@ -1102,6 +1291,12 @@ export interface ResetPasswordInput {
   resetToken?: string;
   newPassword?: string;
 }
+export interface ResetPasswordSmsInput {
+  clientMutationId?: string;
+  phone?: string;
+  code?: string;
+  newPassword?: string;
+}
 export interface CreateOrgPrincipalInput {
   clientMutationId?: string;
   name?: string;
@@ -1110,14 +1305,33 @@ export interface CreateOrgPrincipalInput {
   isReadOnly?: boolean;
   bypassStepUp?: boolean;
 }
+export interface RefreshAccessTokenInput {
+  clientMutationId?: string;
+  token?: string;
+}
 export interface SignInCrossOriginInput {
   clientMutationId?: string;
   token?: string;
   credentialKind?: string;
 }
-export interface SignUpSmsInput {
+export interface SignInMagicLinkInput {
   clientMutationId?: string;
-  phone?: string;
+  token?: string;
+  credentialKind?: string;
+  rememberMe?: boolean;
+  deviceToken?: string;
+}
+export interface SignUpMagicLinkInput {
+  clientMutationId?: string;
+  token?: string;
+  credentialKind?: string;
+  rememberMe?: boolean;
+  deviceToken?: string;
+  inviteToken?: string;
+}
+export interface SignInEmailOtpInput {
+  clientMutationId?: string;
+  email?: string;
   code?: string;
   credentialKind?: string;
   rememberMe?: boolean;
@@ -1131,6 +1345,26 @@ export interface SignInSmsOtpInput {
   rememberMe?: boolean;
   deviceToken?: string;
 }
+export interface SignUpSmsInput {
+  clientMutationId?: string;
+  phone?: string;
+  code?: string;
+  credentialKind?: string;
+  rememberMe?: boolean;
+  deviceToken?: string;
+  inviteToken?: string;
+}
+export interface CompleteMfaChallengeInput {
+  clientMutationId?: string;
+  userId?: string;
+  mfaChallengeToken?: string;
+  totpCode?: string;
+  mfaMethod?: string;
+  credentialKind?: string;
+  rememberMe?: boolean;
+  trustDevice?: boolean;
+  deviceToken?: string;
+}
 export interface SignUpInput {
   clientMutationId?: string;
   email?: string;
@@ -1139,6 +1373,8 @@ export interface SignUpInput {
   credentialKind?: string;
   csrfToken?: string;
   deviceToken?: string;
+  inviteToken?: string;
+  code?: string;
 }
 export interface SignInInput {
   clientMutationId?: string;
@@ -1149,11 +1385,23 @@ export interface SignInInput {
   csrfToken?: string;
   deviceToken?: string;
 }
+export interface SetPrincipalEntitiesInput {
+  clientMutationId?: string;
+  principalId?: string;
+  entityIds?: string[];
+}
 export interface LinkIdentityInput {
   clientMutationId?: string;
   service: string;
   identifier: string;
   details?: unknown;
+}
+export interface CreatePrincipalFromPresetInput {
+  clientMutationId?: string;
+  slug?: string;
+  name?: string;
+  entityIds?: string[];
+  overrides?: unknown;
 }
 export interface CreatePrincipalInput {
   clientMutationId?: string;
@@ -1163,28 +1411,24 @@ export interface CreatePrincipalInput {
   isReadOnly?: boolean;
   bypassStepUp?: boolean;
 }
+export interface UpdatePrincipalInput {
+  clientMutationId?: string;
+  principalId?: string;
+  name?: string;
+  useAdminOwner?: boolean;
+  isReadOnly?: boolean;
+  bypassStepUp?: boolean;
+  apiKeyMaxDuration?: IntervalInput;
+}
 export interface ExtendTokenExpiresInput {
   clientMutationId?: string;
   amount?: IntervalInput;
 }
-/** An interval of time that has passed where the smallest distinct unit is a second. */
-export interface IntervalInput {
-  /**
-   * A quantity of seconds. This is the only non-integer field, as all the other
-   * fields will dump their overflow into a smaller unit of time. Intervals don’t
-   * have a smaller unit than seconds.
-   */
-  seconds?: number;
-  /** A quantity of minutes. */
-  minutes?: number;
-  /** A quantity of hours. */
-  hours?: number;
-  /** A quantity of days. */
-  days?: number;
-  /** A quantity of months. */
-  months?: number;
-  /** A quantity of years. */
-  years?: number;
+export interface MintAccessTokenInput {
+  clientMutationId?: string;
+  principalId?: string;
+  intent?: string;
+  accessTtl?: IntervalInput;
 }
 export interface CreateOrgApiKeyInput {
   clientMutationId?: string;
@@ -1195,6 +1439,15 @@ export interface CreateOrgApiKeyInput {
   mfaLevel?: string;
   expiresIn?: IntervalInput;
 }
+export interface SetPrincipalScopeInput {
+  clientMutationId?: string;
+  principalId?: string;
+  membershipType?: number;
+  allowedMask?: string;
+  useAdminOwner?: boolean;
+  isActive?: boolean;
+  isReadOnly?: boolean;
+}
 export interface CreateApiKeyInput {
   clientMutationId?: string;
   keyName?: string;
@@ -1202,6 +1455,16 @@ export interface CreateApiKeyInput {
   mfaLevel?: string;
   expiresIn?: IntervalInput;
   principalId?: string;
+}
+export interface CreateChildPrincipalInput {
+  clientMutationId?: string;
+  parentPrincipalId?: string;
+  name?: string;
+  allowedMask?: string;
+  entityIds?: string[];
+  isReadOnly?: boolean;
+  expiresAt?: string;
+  intent?: string;
 }
 export interface RequestCrossOriginTokenInput {
   clientMutationId?: string;
@@ -1228,23 +1491,6 @@ export interface RoleTypeInput {
   id: number;
   name: string;
 }
-export interface CreatePrincipalEntityInput {
-  clientMutationId?: string;
-  /** The `PrincipalEntity` to be created by this mutation. */
-  principalEntity: PrincipalEntityInput;
-}
-/** An input for mutations affecting `PrincipalEntity` */
-export interface PrincipalEntityInput {
-  id?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  /** The principal this scoping row belongs to */
-  principalId: string;
-  /** The organization this principal is scoped to */
-  entityId: string;
-  /** Denormalized owner_id from principals table for RLS */
-  ownerId: string;
-}
 export interface CreatePhoneNumberInput {
   clientMutationId?: string;
   /** The `PhoneNumber` to be created by this mutation. */
@@ -1254,9 +1500,9 @@ export interface CreatePhoneNumberInput {
 export interface PhoneNumberInput {
   id?: string;
   ownerId?: string;
-  /** Country calling code (e.g. +1, +44) */
+  /** Country calling code the number was entered under (e.g. +1, +44). Display only: `number` already carries it, and sign-in matches `number`. */
   cc: string;
-  /** The phone number without country code */
+  /** The full number in E.164 form, country calling code included (e.g. +15551234567). This is the value SMS sign-in and MFA match, so it is unique across the table and constrained to that shape. */
   number: string;
   /** Whether the phone number has been verified via SMS code */
   isVerified?: boolean;
@@ -1264,6 +1510,30 @@ export interface PhoneNumberInput {
   isPrimary?: boolean;
   /** Optional user-provided label for this phone number (e.g. "Mobile", "Work"). */
   name?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+export interface CreateUserSettingsSecurityInput {
+  clientMutationId?: string;
+  /** The `UserSettingsSecurity` to be created by this mutation. */
+  userSettingsSecurity: UserSettingsSecurityInput;
+}
+/** An input for mutations affecting `UserSettingsSecurity` */
+export interface UserSettingsSecurityInput {
+  id?: string;
+  ownerId?: string;
+  /** Whether TOTP (authenticator app) MFA is active for this user */
+  totpEnabled?: boolean;
+  /** Whether email-based MFA codes are active for this user */
+  emailMfaEnabled?: boolean;
+  /** Whether SMS-based MFA codes are active for this user */
+  smsMfaEnabled?: boolean;
+  /** Number of remaining unused backup codes */
+  backupCodesCount?: number;
+  /** When the first MFA method was enabled */
+  mfaEnrolledAt?: string;
+  /** When MFA was last successfully verified */
+  mfaLastUsedAt?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -1289,6 +1559,8 @@ export interface AuditLogAuthInput {
   ipAddress?: string;
   /** Whether the authentication attempt succeeded */
   success: boolean;
+  /** Event-specific structured payload (e.g. preset slug and catalog commit id for create_principal_from_preset) */
+  details?: unknown;
 }
 export interface CreateEmailInput {
   clientMutationId?: string;
@@ -1368,24 +1640,6 @@ export interface RoleTypePatch {
   id?: number;
   name?: string;
 }
-export interface UpdatePrincipalEntityInput {
-  clientMutationId?: string;
-  id: string;
-  /** An object where the defined keys will be set on the `PrincipalEntity` being updated. */
-  principalEntityPatch: PrincipalEntityPatch;
-}
-/** Represents an update to a `PrincipalEntity`. Fields that are set will be updated. */
-export interface PrincipalEntityPatch {
-  id?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  /** The principal this scoping row belongs to */
-  principalId?: string;
-  /** The organization this principal is scoped to */
-  entityId?: string;
-  /** Denormalized owner_id from principals table for RLS */
-  ownerId?: string;
-}
 export interface UpdatePhoneNumberInput {
   clientMutationId?: string;
   id: string;
@@ -1396,9 +1650,9 @@ export interface UpdatePhoneNumberInput {
 export interface PhoneNumberPatch {
   id?: string;
   ownerId?: string;
-  /** Country calling code (e.g. +1, +44) */
+  /** Country calling code the number was entered under (e.g. +1, +44). Display only: `number` already carries it, and sign-in matches `number`. */
   cc?: string;
-  /** The phone number without country code */
+  /** The full number in E.164 form, country calling code included (e.g. +15551234567). This is the value SMS sign-in and MFA match, so it is unique across the table and constrained to that shape. */
   number?: string;
   /** Whether the phone number has been verified via SMS code */
   isVerified?: boolean;
@@ -1406,6 +1660,31 @@ export interface PhoneNumberPatch {
   isPrimary?: boolean;
   /** Optional user-provided label for this phone number (e.g. "Mobile", "Work"). */
   name?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+export interface UpdateUserSettingsSecurityInput {
+  clientMutationId?: string;
+  id: string;
+  /** An object where the defined keys will be set on the `UserSettingsSecurity` being updated. */
+  userSettingsSecurityPatch: UserSettingsSecurityPatch;
+}
+/** Represents an update to a `UserSettingsSecurity`. Fields that are set will be updated. */
+export interface UserSettingsSecurityPatch {
+  id?: string;
+  ownerId?: string;
+  /** Whether TOTP (authenticator app) MFA is active for this user */
+  totpEnabled?: boolean;
+  /** Whether email-based MFA codes are active for this user */
+  emailMfaEnabled?: boolean;
+  /** Whether SMS-based MFA codes are active for this user */
+  smsMfaEnabled?: boolean;
+  /** Number of remaining unused backup codes */
+  backupCodesCount?: number;
+  /** When the first MFA method was enabled */
+  mfaEnrolledAt?: string;
+  /** When MFA was last successfully verified */
+  mfaLastUsedAt?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -1434,6 +1713,8 @@ export interface AuditLogAuthPatch {
   ipAddress?: string;
   /** Whether the authentication attempt succeeded */
   success?: boolean;
+  /** Event-specific structured payload (e.g. preset slug and catalog commit id for create_principal_from_preset) */
+  details?: unknown;
 }
 export interface UpdateEmailInput {
   clientMutationId?: string;
@@ -1511,11 +1792,11 @@ export interface DeleteRoleTypeInput {
   clientMutationId?: string;
   id: number;
 }
-export interface DeletePrincipalEntityInput {
+export interface DeletePhoneNumberInput {
   clientMutationId?: string;
   id: string;
 }
-export interface DeletePhoneNumberInput {
+export interface DeleteUserSettingsSecurityInput {
   clientMutationId?: string;
   id: string;
 }
@@ -1546,6 +1827,12 @@ export interface ProvisionBucketInput {
    */
   ownerId?: string;
 }
+export interface GetMfaStatusRecord {
+  totpEnabled?: boolean | null;
+  emailMfaEnabled?: boolean | null;
+  smsMfaEnabled?: boolean | null;
+  backupCodesCount?: number | null;
+}
 /** A connection to a list of `IdentityProvider` values. */
 export interface IdentityProviderConnection {
   nodes: IdentityProvider[];
@@ -1574,10 +1861,10 @@ export interface UserConnectedAccountConnection {
   pageInfo: PageInfo;
   totalCount: number;
 }
-/** A connection to a list of `Principal` values. */
-export interface PrincipalConnection {
-  nodes: Principal[];
-  edges: PrincipalEdge[];
+/** A connection to a list of `PrincipalScopeOverride` values. */
+export interface PrincipalScopeOverrideConnection {
+  nodes: PrincipalScopeOverride[];
+  edges: PrincipalScopeOverrideEdge[];
   pageInfo: PageInfo;
   totalCount: number;
 }
@@ -1585,6 +1872,13 @@ export interface PrincipalConnection {
 export interface PhoneNumberConnection {
   nodes: PhoneNumber[];
   edges: PhoneNumberEdge[];
+  pageInfo: PageInfo;
+  totalCount: number;
+}
+/** A connection to a list of `UserSettingsSecurity` values. */
+export interface UserSettingsSecurityConnection {
+  nodes: UserSettingsSecurity[];
+  edges: UserSettingsSecurityEdge[];
   pageInfo: PageInfo;
   totalCount: number;
 }
@@ -1602,17 +1896,17 @@ export interface OrgApiKeyListConnection {
   pageInfo: PageInfo;
   totalCount: number;
 }
-/** A connection to a list of `PrincipalScopeOverride` values. */
-export interface PrincipalScopeOverrideConnection {
-  nodes: PrincipalScopeOverride[];
-  edges: PrincipalScopeOverrideEdge[];
-  pageInfo: PageInfo;
-  totalCount: number;
-}
 /** A connection to a list of `Email` values. */
 export interface EmailConnection {
   nodes: Email[];
   edges: EmailEdge[];
+  pageInfo: PageInfo;
+  totalCount: number;
+}
+/** A connection to a list of `Principal` values. */
+export interface PrincipalConnection {
+  nodes: Principal[];
+  edges: PrincipalEdge[];
   pageInfo: PageInfo;
   totalCount: number;
 }
@@ -1634,6 +1928,22 @@ export interface WebauthnCredentialConnection {
 export interface MetaSchema {
   tables: MetaTable[];
 }
+export interface DisableEmailMfaPayload {
+  clientMutationId?: string | null;
+  result?: boolean | null;
+}
+export interface DisableSmsMfaPayload {
+  clientMutationId?: string | null;
+  result?: boolean | null;
+}
+export interface EnableEmailMfaPayload {
+  clientMutationId?: string | null;
+  result?: boolean | null;
+}
+export interface EnableSmsMfaPayload {
+  clientMutationId?: string | null;
+  result?: boolean | null;
+}
 export interface SendAccountDeletionEmailPayload {
   clientMutationId?: string | null;
   result?: boolean | null;
@@ -1641,7 +1951,23 @@ export interface SendAccountDeletionEmailPayload {
 export interface SignOutPayload {
   clientMutationId?: string | null;
 }
+export interface EnableTotpPayload {
+  clientMutationId?: string | null;
+  result?: string | null;
+}
+export interface GenerateBackupCodesPayload {
+  clientMutationId?: string | null;
+  result?: string | null;
+}
 export interface ApproveDevicePayload {
+  clientMutationId?: string | null;
+  result?: boolean | null;
+}
+export interface AttachPhoneNumberPayload {
+  clientMutationId?: string | null;
+  result?: boolean | null;
+}
+export interface ConfirmTotpSetupPayload {
   clientMutationId?: string | null;
   result?: boolean | null;
 }
@@ -1650,6 +1976,10 @@ export interface DeleteOrgPrincipalPayload {
   result?: boolean | null;
 }
 export interface DeletePrincipalPayload {
+  clientMutationId?: string | null;
+  result?: boolean | null;
+}
+export interface DisableTotpPayload {
   clientMutationId?: string | null;
   result?: boolean | null;
 }
@@ -1662,6 +1992,14 @@ export interface RevokeApiKeyPayload {
   result?: boolean | null;
 }
 export interface RevokeSessionPayload {
+  clientMutationId?: string | null;
+  result?: boolean | null;
+}
+export interface SendPhoneVerificationCodePayload {
+  clientMutationId?: string | null;
+  result?: boolean | null;
+}
+export interface SetPrimaryPhonePayload {
   clientMutationId?: string | null;
   result?: boolean | null;
 }
@@ -1692,6 +2030,10 @@ export interface VerifyEmailPayload {
   clientMutationId?: string | null;
   result?: boolean | null;
 }
+export interface VerifyPhonePayload {
+  clientMutationId?: string | null;
+  result?: boolean | null;
+}
 export interface ProvisionNewUserPayload {
   clientMutationId?: string | null;
   result?: string | null;
@@ -1700,21 +2042,45 @@ export interface ResetPasswordPayload {
   clientMutationId?: string | null;
   result?: boolean | null;
 }
+export interface ResetPasswordSmsPayload {
+  clientMutationId?: string | null;
+  result?: boolean | null;
+}
 export interface CreateOrgPrincipalPayload {
   clientMutationId?: string | null;
   result?: string | null;
+}
+export interface RefreshAccessTokenPayload {
+  clientMutationId?: string | null;
+  result?: RefreshAccessTokenRecord | null;
 }
 export interface SignInCrossOriginPayload {
   clientMutationId?: string | null;
   result?: SignInCrossOriginRecord | null;
 }
-export interface SignUpSmsPayload {
+export interface SignInMagicLinkPayload {
   clientMutationId?: string | null;
-  result?: SignUpSmsRecord | null;
+  result?: SignInMagicLinkRecord | null;
+}
+export interface SignUpMagicLinkPayload {
+  clientMutationId?: string | null;
+  result?: SignUpMagicLinkRecord | null;
+}
+export interface SignInEmailOtpPayload {
+  clientMutationId?: string | null;
+  result?: SignInEmailOtpRecord | null;
 }
 export interface SignInSmsOtpPayload {
   clientMutationId?: string | null;
   result?: SignInSmsOtpRecord | null;
+}
+export interface SignUpSmsPayload {
+  clientMutationId?: string | null;
+  result?: SignUpSmsRecord | null;
+}
+export interface CompleteMfaChallengePayload {
+  clientMutationId?: string | null;
+  result?: CompleteMfaChallengeRecord | null;
 }
 export interface SignUpPayload {
   clientMutationId?: string | null;
@@ -1724,25 +2090,49 @@ export interface SignInPayload {
   clientMutationId?: string | null;
   result?: SignInRecord | null;
 }
+export interface SetPrincipalEntitiesPayload {
+  clientMutationId?: string | null;
+  result?: boolean | null;
+}
 export interface LinkIdentityPayload {
   clientMutationId?: string | null;
   result?: boolean | null;
+}
+export interface CreatePrincipalFromPresetPayload {
+  clientMutationId?: string | null;
+  result?: string | null;
 }
 export interface CreatePrincipalPayload {
   clientMutationId?: string | null;
   result?: string | null;
 }
+export interface UpdatePrincipalPayload {
+  clientMutationId?: string | null;
+  result?: boolean | null;
+}
 export interface ExtendTokenExpiresPayload {
   clientMutationId?: string | null;
   result?: ExtendTokenExpiresRecord[] | null;
+}
+export interface MintAccessTokenPayload {
+  clientMutationId?: string | null;
+  result?: MintAccessTokenRecord | null;
 }
 export interface CreateOrgApiKeyPayload {
   clientMutationId?: string | null;
   result?: CreateOrgApiKeyRecord | null;
 }
+export interface SetPrincipalScopePayload {
+  clientMutationId?: string | null;
+  result?: boolean | null;
+}
 export interface CreateApiKeyPayload {
   clientMutationId?: string | null;
   result?: CreateApiKeyRecord | null;
+}
+export interface CreateChildPrincipalPayload {
+  clientMutationId?: string | null;
+  result?: string | null;
 }
 export interface RequestCrossOriginTokenPayload {
   clientMutationId?: string | null;
@@ -1761,17 +2151,17 @@ export interface CreateRoleTypePayload {
   roleType?: RoleType | null;
   roleTypeEdge?: RoleTypeEdge | null;
 }
-export interface CreatePrincipalEntityPayload {
-  clientMutationId?: string | null;
-  /** The `PrincipalEntity` that was created by this mutation. */
-  principalEntity?: PrincipalEntity | null;
-  principalEntityEdge?: PrincipalEntityEdge | null;
-}
 export interface CreatePhoneNumberPayload {
   clientMutationId?: string | null;
   /** The `PhoneNumber` that was created by this mutation. */
   phoneNumber?: PhoneNumber | null;
   phoneNumberEdge?: PhoneNumberEdge | null;
+}
+export interface CreateUserSettingsSecurityPayload {
+  clientMutationId?: string | null;
+  /** The `UserSettingsSecurity` that was created by this mutation. */
+  userSettingsSecurity?: UserSettingsSecurity | null;
+  userSettingsSecurityEdge?: UserSettingsSecurityEdge | null;
 }
 export interface CreateAuditLogAuthPayload {
   clientMutationId?: string | null;
@@ -1803,17 +2193,17 @@ export interface UpdateRoleTypePayload {
   roleType?: RoleType | null;
   roleTypeEdge?: RoleTypeEdge | null;
 }
-export interface UpdatePrincipalEntityPayload {
-  clientMutationId?: string | null;
-  /** The `PrincipalEntity` that was updated by this mutation. */
-  principalEntity?: PrincipalEntity | null;
-  principalEntityEdge?: PrincipalEntityEdge | null;
-}
 export interface UpdatePhoneNumberPayload {
   clientMutationId?: string | null;
   /** The `PhoneNumber` that was updated by this mutation. */
   phoneNumber?: PhoneNumber | null;
   phoneNumberEdge?: PhoneNumberEdge | null;
+}
+export interface UpdateUserSettingsSecurityPayload {
+  clientMutationId?: string | null;
+  /** The `UserSettingsSecurity` that was updated by this mutation. */
+  userSettingsSecurity?: UserSettingsSecurity | null;
+  userSettingsSecurityEdge?: UserSettingsSecurityEdge | null;
 }
 export interface UpdateAuditLogAuthPayload {
   clientMutationId?: string | null;
@@ -1845,17 +2235,17 @@ export interface DeleteRoleTypePayload {
   roleType?: RoleType | null;
   roleTypeEdge?: RoleTypeEdge | null;
 }
-export interface DeletePrincipalEntityPayload {
-  clientMutationId?: string | null;
-  /** The `PrincipalEntity` that was deleted by this mutation. */
-  principalEntity?: PrincipalEntity | null;
-  principalEntityEdge?: PrincipalEntityEdge | null;
-}
 export interface DeletePhoneNumberPayload {
   clientMutationId?: string | null;
   /** The `PhoneNumber` that was deleted by this mutation. */
   phoneNumber?: PhoneNumber | null;
   phoneNumberEdge?: PhoneNumberEdge | null;
+}
+export interface DeleteUserSettingsSecurityPayload {
+  clientMutationId?: string | null;
+  /** The `UserSettingsSecurity` that was deleted by this mutation. */
+  userSettingsSecurity?: UserSettingsSecurity | null;
+  userSettingsSecurityEdge?: UserSettingsSecurityEdge | null;
 }
 export interface DeleteAuditLogAuthPayload {
   clientMutationId?: string | null;
@@ -1930,17 +2320,23 @@ export interface UserConnectedAccountEdge {
   /** The `UserConnectedAccount` at the end of the edge. */
   node?: UserConnectedAccount | null;
 }
-/** A `Principal` edge in the connection. */
-export interface PrincipalEdge {
+/** A `PrincipalScopeOverride` edge in the connection. */
+export interface PrincipalScopeOverrideEdge {
   cursor?: string | null;
-  /** The `Principal` at the end of the edge. */
-  node?: Principal | null;
+  /** The `PrincipalScopeOverride` at the end of the edge. */
+  node?: PrincipalScopeOverride | null;
 }
 /** A `PhoneNumber` edge in the connection. */
 export interface PhoneNumberEdge {
   cursor?: string | null;
   /** The `PhoneNumber` at the end of the edge. */
   node?: PhoneNumber | null;
+}
+/** A `UserSettingsSecurity` edge in the connection. */
+export interface UserSettingsSecurityEdge {
+  cursor?: string | null;
+  /** The `UserSettingsSecurity` at the end of the edge. */
+  node?: UserSettingsSecurity | null;
 }
 /** A `AuditLogAuth` edge in the connection. */
 export interface AuditLogAuthEdge {
@@ -1954,17 +2350,17 @@ export interface OrgApiKeyListEdge {
   /** The `OrgApiKeyList` at the end of the edge. */
   node?: OrgApiKeyList | null;
 }
-/** A `PrincipalScopeOverride` edge in the connection. */
-export interface PrincipalScopeOverrideEdge {
-  cursor?: string | null;
-  /** The `PrincipalScopeOverride` at the end of the edge. */
-  node?: PrincipalScopeOverride | null;
-}
 /** A `Email` edge in the connection. */
 export interface EmailEdge {
   cursor?: string | null;
   /** The `Email` at the end of the edge. */
   node?: Email | null;
+}
+/** A `Principal` edge in the connection. */
+export interface PrincipalEdge {
+  cursor?: string | null;
+  /** The `Principal` at the end of the edge. */
+  node?: Principal | null;
 }
 /** A `User` edge in the connection. */
 export interface UserEdge {
@@ -2005,6 +2401,14 @@ export interface MetaTable {
   /** Provisioning scope metadata (null if no @scope tag) */
   scope?: MetaScope | null;
 }
+export interface RefreshAccessTokenRecord {
+  accessToken?: string | null;
+  refreshToken?: string | null;
+  sessionId?: string | null;
+  principalUserId?: string | null;
+  accessExpiresAt?: string | null;
+  refreshExpiresAt?: string | null;
+}
 export interface SignInCrossOriginRecord {
   id?: string | null;
   userId?: string | null;
@@ -2013,16 +2417,45 @@ export interface SignInCrossOriginRecord {
   isVerified?: boolean | null;
   totpEnabled?: boolean | null;
 }
+export interface SignInMagicLinkRecord {
+  userId?: string | null;
+  accessToken?: string | null;
+  accessTokenExpiresAt?: string | null;
+  outDeviceToken?: string | null;
+  deviceApprovalRequired?: boolean | null;
+}
+export interface SignUpMagicLinkRecord {
+  userId?: string | null;
+  accessToken?: string | null;
+  accessTokenExpiresAt?: string | null;
+  outDeviceToken?: string | null;
+}
+export interface SignInEmailOtpRecord {
+  userId?: string | null;
+  accessToken?: string | null;
+  accessTokenExpiresAt?: string | null;
+  outDeviceToken?: string | null;
+  deviceApprovalRequired?: boolean | null;
+}
+export interface SignInSmsOtpRecord {
+  userId?: string | null;
+  accessToken?: string | null;
+  accessTokenExpiresAt?: string | null;
+  outDeviceToken?: string | null;
+  deviceApprovalRequired?: boolean | null;
+}
 export interface SignUpSmsRecord {
   userId?: string | null;
   accessToken?: string | null;
   accessTokenExpiresAt?: string | null;
   outDeviceToken?: string | null;
 }
-export interface SignInSmsOtpRecord {
-  userId?: string | null;
+export interface CompleteMfaChallengeRecord {
+  id?: string | null;
+  outUserId?: string | null;
   accessToken?: string | null;
   accessTokenExpiresAt?: string | null;
+  isVerified?: boolean | null;
   outDeviceToken?: string | null;
   deviceApprovalRequired?: boolean | null;
 }
@@ -2051,6 +2484,14 @@ export interface ExtendTokenExpiresRecord {
   id?: string | null;
   sessionId?: string | null;
   expiresAt?: string | null;
+}
+export interface MintAccessTokenRecord {
+  accessToken?: string | null;
+  refreshToken?: string | null;
+  sessionId?: string | null;
+  principalUserId?: string | null;
+  accessExpiresAt?: string | null;
+  refreshExpiresAt?: string | null;
 }
 export interface CreateOrgApiKeyRecord {
   apiKey?: string | null;

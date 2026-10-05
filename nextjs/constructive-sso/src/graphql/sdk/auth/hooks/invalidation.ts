@@ -25,6 +25,7 @@ import {
   identityProviderKeys,
   roleTypeKeys,
   userConnectedAccountKeys,
+  userSettingsSecurityKeys,
   orgApiKeyListKeys,
   userKeys,
 } from './query-keys';
@@ -212,6 +213,23 @@ export const invalidate = {
         queryKey: userConnectedAccountKeys.detail(id),
       }),
   },
+  /** Invalidate userSettingsSecurity queries */ userSettingsSecurity: {
+    /** Invalidate all userSettingsSecurity queries */ all: (queryClient: QueryClient) =>
+      queryClient.invalidateQueries({
+        queryKey: userSettingsSecurityKeys.all,
+      }),
+    /** Invalidate userSettingsSecurity list queries */ lists: (queryClient: QueryClient) =>
+      queryClient.invalidateQueries({
+        queryKey: userSettingsSecurityKeys.lists(),
+      }),
+    /** Invalidate a specific userSettingsSecurity */ detail: (
+      queryClient: QueryClient,
+      id: string | number
+    ) =>
+      queryClient.invalidateQueries({
+        queryKey: userSettingsSecurityKeys.detail(id),
+      }),
+  },
   /** Invalidate orgApiKeyList queries */ orgApiKeyList: {
     /** Invalidate all orgApiKeyList queries */ all: (queryClient: QueryClient) =>
       queryClient.invalidateQueries({
@@ -325,6 +343,14 @@ export const remove = {
   ) => {
     queryClient.removeQueries({
       queryKey: userConnectedAccountKeys.detail(id),
+    });
+  },
+  /** Remove userSettingsSecurity from cache */ userSettingsSecurity: (
+    queryClient: QueryClient,
+    id: string | number
+  ) => {
+    queryClient.removeQueries({
+      queryKey: userSettingsSecurityKeys.detail(id),
     });
   },
   /** Remove orgApiKeyList from cache */ orgApiKeyList: (

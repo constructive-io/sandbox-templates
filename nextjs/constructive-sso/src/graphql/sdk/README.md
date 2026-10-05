@@ -31,6 +31,8 @@ import { useBoardsQuery } from '@sdk/app';
    pnpm codegen
    ```
 
+   `pnpm run local:bringup` runs this automatically before starting the app.
+
 ## Important Notes
 
 - **User APIs are in `@sdk/auth`**, not `@sdk/admin`

@@ -1,8 +1,6 @@
 'use client';
 
 import React from 'react';
-import { redirect } from 'next/navigation';
-import type { Route } from 'next';
 import { Rocket } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { getDbName, getSSOGatewayOrigin } from '@/app-config';
@@ -30,22 +28,33 @@ export default function HomePage() {
 		// DB name not configured yet
 	}
 
-	// Show loading until client-side auth state is resolved
-	if (!mounted || isAuthLoading) {
-		return (
-			<div className='bg-background flex h-dvh w-dvw items-center justify-center'>
-				<div className='border-primary/20 h-10 w-10 animate-spin rounded-full border-2 border-t-transparent' />
-			</div>
-		);
-	}
-
 	// Sign-in is owned by the platform's mantra page set — unauthenticated
 	// visitors go STRAIGHT to the gateway's sign-in page. `next` is the gateway
 	// root '/': the app-origin redirect row there (ensure-site step 7) turns the
 	// post-auth landing into an instant 302 back into this app — password submit
 	// ends up in myapp with no intermediate click.
-	if (!isAuthenticated) {
-		redirect(`${getSSOGatewayOrigin()}/login?next=%2F` as Route);
+	//
+	// The trip is a hard navigation fired from an effect, NOT redirect():
+	// next/navigation's redirect is for routes THIS app owns, and a cross-origin
+	// URL cast to Route makes the client router render the not-found boundary —
+	// the post-SSO landing 404'd until the user refreshed. While the state is
+	// unresolved (or resolved-unauthenticated, one frame before the browser
+	// leaves) the loading shell below is what renders.
+	React.useEffect(() => {
+		if (!mounted || isAuthLoading) return;
+		if (!isAuthenticated) {
+			window.location.replace(`${getSSOGatewayOrigin()}/login?next=%2F`);
+		}
+	}, [mounted, isAuthLoading, isAuthenticated]);
+
+	// Show loading until client-side auth state is resolved (and for the one
+	// frame an unauthenticated visitor waits out the navigation above).
+	if (!mounted || isAuthLoading || !isAuthenticated) {
+		return (
+			<div className='bg-background flex h-dvh w-dvw items-center justify-center'>
+				<div className='border-primary/20 h-10 w-10 animate-spin rounded-full border-2 border-t-transparent' />
+			</div>
+		);
 	}
 
 	// =========================================================================

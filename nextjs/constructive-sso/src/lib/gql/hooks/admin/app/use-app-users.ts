@@ -150,7 +150,10 @@ export function useAppUsers(options: UseAppUsersOptions = {}): UseAppUsersResult
 						isBanned: true,
 						isDisabled: true,
 						isVerified: true,
-						permissions: true,
+						// The platform renamed the membership's aggregated bitmask
+						// from `permissions` to `capabilities`; AppUser keeps the
+						// field name its consumers read.
+						capabilities: true,
 						granted: true,
 					},
 					first,
@@ -211,7 +214,7 @@ export function useAppUsers(options: UseAppUsersOptions = {}): UseAppUsersResult
 				isBanned: m.isBanned ?? false,
 				isDisabled: m.isDisabled ?? false,
 				isVerified: m.isVerified ?? false,
-				permissions: m.permissions ?? null,
+				permissions: m.capabilities ?? null,
 				granted: m.granted ?? null,
 				actor: m.actorId ? actorMap.get(m.actorId) ?? null : null,
 			}));

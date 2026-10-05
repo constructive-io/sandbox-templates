@@ -6,32 +6,21 @@
 import { OrmClient } from '../client';
 import { QueryBuilder, buildCustomDocument } from '../query-builder';
 import type { InferSelectResult, StrictSelect } from '../select-types';
-import type { User, UserSelect } from '../input-types';
+import type {
+  GetMfaStatusRecord,
+  User,
+  GetMfaStatusRecordSelect,
+  UserSelect,
+} from '../input-types';
 import { connectionFieldsMap } from '../input-types';
+export interface IsVerificationExemptVariables {
+  userId?: string;
+}
 export interface RequireStepUpVariables {
   stepUpType?: string;
 }
 export function createQueryOperations(client: OrmClient) {
   return {
-    currentUserAgent: (options?: { select?: Record<string, unknown> }) =>
-      new QueryBuilder<{
-        currentUserAgent: string | null;
-      }>({
-        client,
-        operation: 'query',
-        operationName: 'CurrentUserAgent',
-        fieldName: 'currentUserAgent',
-        ...buildCustomDocument(
-          'query',
-          'CurrentUserAgent',
-          'currentUserAgent',
-          options?.select,
-          undefined,
-          [],
-          connectionFieldsMap,
-          undefined
-        ),
-      }),
     currentUserId: (options?: { select?: Record<string, unknown> }) =>
       new QueryBuilder<{
         currentUserId: string | null;
@@ -44,6 +33,25 @@ export function createQueryOperations(client: OrmClient) {
           'query',
           'CurrentUserId',
           'currentUserId',
+          options?.select,
+          undefined,
+          [],
+          connectionFieldsMap,
+          undefined
+        ),
+      }),
+    currentUserAgent: (options?: { select?: Record<string, unknown> }) =>
+      new QueryBuilder<{
+        currentUserAgent: string | null;
+      }>({
+        client,
+        operation: 'query',
+        operationName: 'CurrentUserAgent',
+        fieldName: 'currentUserAgent',
+        ...buildCustomDocument(
+          'query',
+          'CurrentUserAgent',
+          'currentUserAgent',
           options?.select,
           undefined,
           [],
@@ -66,6 +74,35 @@ export function createQueryOperations(client: OrmClient) {
           options?.select,
           undefined,
           [],
+          connectionFieldsMap,
+          undefined
+        ),
+      }),
+    isVerificationExempt: (
+      args: IsVerificationExemptVariables,
+      options?: {
+        select?: Record<string, unknown>;
+      }
+    ) =>
+      new QueryBuilder<{
+        isVerificationExempt: boolean | null;
+      }>({
+        client,
+        operation: 'query',
+        operationName: 'IsVerificationExempt',
+        fieldName: 'isVerificationExempt',
+        ...buildCustomDocument(
+          'query',
+          'IsVerificationExempt',
+          'isVerificationExempt',
+          options?.select,
+          args,
+          [
+            {
+              name: 'userId',
+              type: 'UUID',
+            },
+          ],
           connectionFieldsMap,
           undefined
         ),
@@ -97,6 +134,29 @@ export function createQueryOperations(client: OrmClient) {
           ],
           connectionFieldsMap,
           undefined
+        ),
+      }),
+    getMfaStatus: <S extends GetMfaStatusRecordSelect>(
+      options: {
+        select: S;
+      } & StrictSelect<S, GetMfaStatusRecordSelect>
+    ) =>
+      new QueryBuilder<{
+        getMfaStatus: InferSelectResult<GetMfaStatusRecord, S> | null;
+      }>({
+        client,
+        operation: 'query',
+        operationName: 'GetMfaStatus',
+        fieldName: 'getMfaStatus',
+        ...buildCustomDocument(
+          'query',
+          'GetMfaStatus',
+          'getMfaStatus',
+          options.select,
+          undefined,
+          [],
+          connectionFieldsMap,
+          'GetMfaStatusRecord'
         ),
       }),
     currentUser: <S extends UserSelect>(

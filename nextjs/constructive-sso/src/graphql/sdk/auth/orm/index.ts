@@ -15,6 +15,7 @@ import { AuditLogAuthModel } from './models/auditLogAuth';
 import { IdentityProviderModel } from './models/identityProvider';
 import { RoleTypeModel } from './models/roleType';
 import { UserConnectedAccountModel } from './models/userConnectedAccount';
+import { UserSettingsSecurityModel } from './models/userSettingsSecurity';
 import { OrgApiKeyListModel } from './models/orgApiKeyList';
 import { UserModel } from './models/user';
 import { createQueryOperations } from './query';
@@ -62,6 +63,7 @@ export function createClient(config: OrmClientConfig) {
     identityProvider: new IdentityProviderModel(client),
     roleType: new RoleTypeModel(client),
     userConnectedAccount: new UserConnectedAccountModel(client),
+    userSettingsSecurity: new UserSettingsSecurityModel(client),
     orgApiKeyList: new OrgApiKeyListModel(client),
     user: new UserModel(client),
     query: createQueryOperations(client),
