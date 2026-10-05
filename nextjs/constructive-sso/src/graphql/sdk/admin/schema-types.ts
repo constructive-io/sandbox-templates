@@ -6,23 +6,30 @@
 
 import type {
   AppAdminGrant,
+  AppCapability,
+  AppCapabilityDefault,
+  AppCapabilityDefaultCapability,
+  AppCapabilityDefaultGrant,
   AppClaimedInvite,
   AppGrant,
   AppInvite,
   AppMembership,
   AppMembershipDefault,
+  AppMembershipProfile,
   AppOwnerGrant,
-  AppPermission,
-  AppPermissionDefault,
-  AppPermissionDefaultGrant,
-  AppPermissionDefaultPermission,
   AppProfile,
+  AppProfileCapability,
   AppProfileDefinitionGrant,
   AppProfileGrant,
-  AppProfilePermission,
   AppProfileTemplate,
   MembershipType,
+  MyPendingAppInvitesRecord,
+  MyPendingOrgInvitesRecord,
   OrgAdminGrant,
+  OrgCapability,
+  OrgCapabilityDefault,
+  OrgCapabilityDefaultCapability,
+  OrgCapabilityDefaultGrant,
   OrgChartEdge,
   OrgChartEdgeGrant,
   OrgClaimedInvite,
@@ -34,16 +41,13 @@ import type {
   OrgMemberProfile,
   OrgMembership,
   OrgMembershipDefault,
+  OrgMembershipProfile,
   OrgMembershipSetting,
   OrgOwnerGrant,
-  OrgPermission,
-  OrgPermissionDefault,
-  OrgPermissionDefaultGrant,
-  OrgPermissionDefaultPermission,
   OrgProfile,
+  OrgProfileCapability,
   OrgProfileDefinitionGrant,
   OrgProfileGrant,
-  OrgProfilePermission,
   OrgProfileTemplate,
   BigFloatFilter,
   BigIntFilter,
@@ -65,15 +69,15 @@ import type {
 } from './types';
 export type ConstructiveInternalTypeEmail = unknown;
 export type ConstructiveInternalTypeImage = unknown;
-/** Methods to use when ordering `AppPermissionDefaultGrant`. */
-export type AppPermissionDefaultGrantOrderBy =
+/** Methods to use when ordering `AppCapabilityDefaultGrant`. */
+export type AppCapabilityDefaultGrantOrderBy =
   | 'NATURAL'
   | 'PRIMARY_KEY_ASC'
   | 'PRIMARY_KEY_DESC'
   | 'ID_ASC'
   | 'ID_DESC'
-  | 'PERMISSION_ID_ASC'
-  | 'PERMISSION_ID_DESC'
+  | 'CAPABILITY_ID_ASC'
+  | 'CAPABILITY_ID_DESC'
   | 'IS_GRANT_ASC'
   | 'IS_GRANT_DESC'
   | 'GRANTOR_ID_ASC'
@@ -101,6 +105,23 @@ export type AppProfileGrantOrderBy =
   | 'CREATED_AT_DESC'
   | 'UPDATED_AT_ASC'
   | 'UPDATED_AT_DESC';
+/** Methods to use when ordering `AppMembershipProfile`. */
+export type AppMembershipProfileOrderBy =
+  | 'NATURAL'
+  | 'PRIMARY_KEY_ASC'
+  | 'PRIMARY_KEY_DESC'
+  | 'ID_ASC'
+  | 'ID_DESC'
+  | 'MEMBERSHIP_ID_ASC'
+  | 'MEMBERSHIP_ID_DESC'
+  | 'PROFILE_ID_ASC'
+  | 'PROFILE_ID_DESC'
+  | 'ACTOR_ID_ASC'
+  | 'ACTOR_ID_DESC'
+  | 'CREATED_AT_ASC'
+  | 'CREATED_AT_DESC'
+  | 'UPDATED_AT_ASC'
+  | 'UPDATED_AT_DESC';
 /** Methods to use when ordering `AppMembership`. */
 export type AppMembershipOrderBy =
   | 'NATURAL'
@@ -116,6 +137,10 @@ export type AppMembershipOrderBy =
   | 'CREATED_BY_DESC'
   | 'UPDATED_BY_ASC'
   | 'UPDATED_BY_DESC'
+  | 'CREATED_BY_PRINCIPAL_ASC'
+  | 'CREATED_BY_PRINCIPAL_DESC'
+  | 'UPDATED_BY_PRINCIPAL_ASC'
+  | 'UPDATED_BY_PRINCIPAL_DESC'
   | 'IS_APPROVED_ASC'
   | 'IS_APPROVED_DESC'
   | 'IS_BANNED_ASC'
@@ -130,16 +155,16 @@ export type AppMembershipOrderBy =
   | 'IS_OWNER_DESC'
   | 'IS_ADMIN_ASC'
   | 'IS_ADMIN_DESC'
-  | 'PERMISSIONS_ASC'
-  | 'PERMISSIONS_DESC'
+  | 'CAPABILITIES_ASC'
+  | 'CAPABILITIES_DESC'
   | 'GRANTED_ASC'
   | 'GRANTED_DESC'
   | 'ACTOR_ID_ASC'
   | 'ACTOR_ID_DESC'
   | 'PROFILE_ID_ASC'
   | 'PROFILE_ID_DESC';
-/** Methods to use when ordering `AppProfilePermission`. */
-export type AppProfilePermissionOrderBy =
+/** Methods to use when ordering `AppProfileCapability`. */
+export type AppProfileCapabilityOrderBy =
   | 'NATURAL'
   | 'PRIMARY_KEY_ASC'
   | 'PRIMARY_KEY_DESC'
@@ -147,8 +172,8 @@ export type AppProfilePermissionOrderBy =
   | 'ID_DESC'
   | 'PROFILE_ID_ASC'
   | 'PROFILE_ID_DESC'
-  | 'PERMISSION_ID_ASC'
-  | 'PERMISSION_ID_DESC'
+  | 'CAPABILITY_ID_ASC'
+  | 'CAPABILITY_ID_DESC'
   | 'CREATED_AT_ASC'
   | 'CREATED_AT_DESC'
   | 'UPDATED_AT_ASC'
@@ -162,8 +187,8 @@ export type AppProfileDefinitionGrantOrderBy =
   | 'ID_DESC'
   | 'PROFILE_ID_ASC'
   | 'PROFILE_ID_DESC'
-  | 'PERMISSION_ID_ASC'
-  | 'PERMISSION_ID_DESC'
+  | 'CAPABILITY_ID_ASC'
+  | 'CAPABILITY_ID_DESC'
   | 'GRANTOR_ID_ASC'
   | 'GRANTOR_ID_DESC'
   | 'IS_GRANT_ASC'
@@ -207,30 +232,30 @@ export type AppInviteOrderBy =
   | 'CREATED_AT_DESC'
   | 'UPDATED_AT_ASC'
   | 'UPDATED_AT_DESC';
-/** Methods to use when ordering `OrgPermissionDefaultPermission`. */
-export type OrgPermissionDefaultPermissionOrderBy =
+/** Methods to use when ordering `OrgCapabilityDefaultCapability`. */
+export type OrgCapabilityDefaultCapabilityOrderBy =
   | 'NATURAL'
   | 'PRIMARY_KEY_ASC'
   | 'PRIMARY_KEY_DESC'
   | 'ID_ASC'
   | 'ID_DESC'
-  | 'PERMISSION_ID_ASC'
-  | 'PERMISSION_ID_DESC'
+  | 'CAPABILITY_ID_ASC'
+  | 'CAPABILITY_ID_DESC'
   | 'ENTITY_ID_ASC'
   | 'ENTITY_ID_DESC'
   | 'CREATED_AT_ASC'
   | 'CREATED_AT_DESC'
   | 'UPDATED_AT_ASC'
   | 'UPDATED_AT_DESC';
-/** Methods to use when ordering `OrgPermissionDefaultGrant`. */
-export type OrgPermissionDefaultGrantOrderBy =
+/** Methods to use when ordering `OrgCapabilityDefaultGrant`. */
+export type OrgCapabilityDefaultGrantOrderBy =
   | 'NATURAL'
   | 'PRIMARY_KEY_ASC'
   | 'PRIMARY_KEY_DESC'
   | 'ID_ASC'
   | 'ID_DESC'
-  | 'PERMISSION_ID_ASC'
-  | 'PERMISSION_ID_DESC'
+  | 'CAPABILITY_ID_ASC'
+  | 'CAPABILITY_ID_DESC'
   | 'IS_GRANT_ASC'
   | 'IS_GRANT_DESC'
   | 'GRANTOR_ID_ASC'
@@ -262,6 +287,23 @@ export type OrgProfileGrantOrderBy =
   | 'CREATED_AT_DESC'
   | 'UPDATED_AT_ASC'
   | 'UPDATED_AT_DESC';
+/** Methods to use when ordering `OrgMembershipProfile`. */
+export type OrgMembershipProfileOrderBy =
+  | 'NATURAL'
+  | 'PRIMARY_KEY_ASC'
+  | 'PRIMARY_KEY_DESC'
+  | 'ID_ASC'
+  | 'ID_DESC'
+  | 'MEMBERSHIP_ID_ASC'
+  | 'MEMBERSHIP_ID_DESC'
+  | 'PROFILE_ID_ASC'
+  | 'PROFILE_ID_DESC'
+  | 'ACTOR_ID_ASC'
+  | 'ACTOR_ID_DESC'
+  | 'CREATED_AT_ASC'
+  | 'CREATED_AT_DESC'
+  | 'UPDATED_AT_ASC'
+  | 'UPDATED_AT_DESC';
 /** Methods to use when ordering `OrgMembership`. */
 export type OrgMembershipOrderBy =
   | 'NATURAL'
@@ -277,6 +319,10 @@ export type OrgMembershipOrderBy =
   | 'CREATED_BY_DESC'
   | 'UPDATED_BY_ASC'
   | 'UPDATED_BY_DESC'
+  | 'CREATED_BY_PRINCIPAL_ASC'
+  | 'CREATED_BY_PRINCIPAL_DESC'
+  | 'UPDATED_BY_PRINCIPAL_ASC'
+  | 'UPDATED_BY_PRINCIPAL_DESC'
   | 'IS_APPROVED_ASC'
   | 'IS_APPROVED_DESC'
   | 'IS_BANNED_ASC'
@@ -291,8 +337,8 @@ export type OrgMembershipOrderBy =
   | 'IS_OWNER_DESC'
   | 'IS_ADMIN_ASC'
   | 'IS_ADMIN_DESC'
-  | 'PERMISSIONS_ASC'
-  | 'PERMISSIONS_DESC'
+  | 'CAPABILITIES_ASC'
+  | 'CAPABILITIES_DESC'
   | 'GRANTED_ASC'
   | 'GRANTED_DESC'
   | 'ACTOR_ID_ASC'
@@ -303,8 +349,8 @@ export type OrgMembershipOrderBy =
   | 'IS_READ_ONLY_DESC'
   | 'PROFILE_ID_ASC'
   | 'PROFILE_ID_DESC';
-/** Methods to use when ordering `OrgProfilePermission`. */
-export type OrgProfilePermissionOrderBy =
+/** Methods to use when ordering `OrgProfileCapability`. */
+export type OrgProfileCapabilityOrderBy =
   | 'NATURAL'
   | 'PRIMARY_KEY_ASC'
   | 'PRIMARY_KEY_DESC'
@@ -312,8 +358,8 @@ export type OrgProfilePermissionOrderBy =
   | 'ID_DESC'
   | 'PROFILE_ID_ASC'
   | 'PROFILE_ID_DESC'
-  | 'PERMISSION_ID_ASC'
-  | 'PERMISSION_ID_DESC'
+  | 'CAPABILITY_ID_ASC'
+  | 'CAPABILITY_ID_DESC'
   | 'CREATED_AT_ASC'
   | 'CREATED_AT_DESC'
   | 'UPDATED_AT_ASC'
@@ -327,8 +373,8 @@ export type OrgProfileDefinitionGrantOrderBy =
   | 'ID_DESC'
   | 'PROFILE_ID_ASC'
   | 'PROFILE_ID_DESC'
-  | 'PERMISSION_ID_ASC'
-  | 'PERMISSION_ID_DESC'
+  | 'CAPABILITY_ID_ASC'
+  | 'CAPABILITY_ID_DESC'
   | 'GRANTOR_ID_ASC'
   | 'GRANTOR_ID_DESC'
   | 'IS_GRANT_ASC'
@@ -391,35 +437,35 @@ export type OrgMemberOrderBy =
   | 'ACTOR_ID_DESC'
   | 'ENTITY_ID_ASC'
   | 'ENTITY_ID_DESC';
-/** Methods to use when ordering `AppPermissionDefault`. */
-export type AppPermissionDefaultOrderBy =
+/** Methods to use when ordering `AppCapabilityDefault`. */
+export type AppCapabilityDefaultOrderBy =
   | 'NATURAL'
   | 'PRIMARY_KEY_ASC'
   | 'PRIMARY_KEY_DESC'
   | 'ID_ASC'
   | 'ID_DESC'
-  | 'PERMISSIONS_ASC'
-  | 'PERMISSIONS_DESC';
-/** Methods to use when ordering `OrgPermissionDefault`. */
-export type OrgPermissionDefaultOrderBy =
+  | 'CAPABILITIES_ASC'
+  | 'CAPABILITIES_DESC';
+/** Methods to use when ordering `OrgCapabilityDefault`. */
+export type OrgCapabilityDefaultOrderBy =
   | 'NATURAL'
   | 'PRIMARY_KEY_ASC'
   | 'PRIMARY_KEY_DESC'
   | 'ID_ASC'
   | 'ID_DESC'
-  | 'PERMISSIONS_ASC'
-  | 'PERMISSIONS_DESC'
+  | 'CAPABILITIES_ASC'
+  | 'CAPABILITIES_DESC'
   | 'ENTITY_ID_ASC'
   | 'ENTITY_ID_DESC';
-/** Methods to use when ordering `AppPermissionDefaultPermission`. */
-export type AppPermissionDefaultPermissionOrderBy =
+/** Methods to use when ordering `AppCapabilityDefaultCapability`. */
+export type AppCapabilityDefaultCapabilityOrderBy =
   | 'NATURAL'
   | 'PRIMARY_KEY_ASC'
   | 'PRIMARY_KEY_DESC'
   | 'ID_ASC'
   | 'ID_DESC'
-  | 'PERMISSION_ID_ASC'
-  | 'PERMISSION_ID_DESC'
+  | 'CAPABILITY_ID_ASC'
+  | 'CAPABILITY_ID_DESC'
   | 'CREATED_AT_ASC'
   | 'CREATED_AT_DESC'
   | 'UPDATED_AT_ASC'
@@ -496,36 +542,6 @@ export type OrgOwnerGrantOrderBy =
   | 'CREATED_AT_DESC'
   | 'UPDATED_AT_ASC'
   | 'UPDATED_AT_DESC';
-/** Methods to use when ordering `AppPermission`. */
-export type AppPermissionOrderBy =
-  | 'NATURAL'
-  | 'PRIMARY_KEY_ASC'
-  | 'PRIMARY_KEY_DESC'
-  | 'ID_ASC'
-  | 'ID_DESC'
-  | 'NAME_ASC'
-  | 'NAME_DESC'
-  | 'BITNUM_ASC'
-  | 'BITNUM_DESC'
-  | 'BITSTR_ASC'
-  | 'BITSTR_DESC'
-  | 'DESCRIPTION_ASC'
-  | 'DESCRIPTION_DESC';
-/** Methods to use when ordering `OrgPermission`. */
-export type OrgPermissionOrderBy =
-  | 'NATURAL'
-  | 'PRIMARY_KEY_ASC'
-  | 'PRIMARY_KEY_DESC'
-  | 'ID_ASC'
-  | 'ID_DESC'
-  | 'NAME_ASC'
-  | 'NAME_DESC'
-  | 'BITNUM_ASC'
-  | 'BITNUM_DESC'
-  | 'BITSTR_ASC'
-  | 'BITSTR_DESC'
-  | 'DESCRIPTION_ASC'
-  | 'DESCRIPTION_DESC';
 /** Methods to use when ordering `OrgChartEdgeGrant`. */
 export type OrgChartEdgeGrantOrderBy =
   | 'NATURAL'
@@ -566,6 +582,40 @@ export type AppClaimedInviteOrderBy =
   | 'CREATED_AT_DESC'
   | 'UPDATED_AT_ASC'
   | 'UPDATED_AT_DESC';
+/** Methods to use when ordering `AppCapability`. */
+export type AppCapabilityOrderBy =
+  | 'NATURAL'
+  | 'PRIMARY_KEY_ASC'
+  | 'PRIMARY_KEY_DESC'
+  | 'ID_ASC'
+  | 'ID_DESC'
+  | 'NAME_ASC'
+  | 'NAME_DESC'
+  | 'BITNUM_ASC'
+  | 'BITNUM_DESC'
+  | 'BITSTR_ASC'
+  | 'BITSTR_DESC'
+  | 'DESCRIPTION_ASC'
+  | 'DESCRIPTION_DESC'
+  | 'KIND_ASC'
+  | 'KIND_DESC';
+/** Methods to use when ordering `OrgCapability`. */
+export type OrgCapabilityOrderBy =
+  | 'NATURAL'
+  | 'PRIMARY_KEY_ASC'
+  | 'PRIMARY_KEY_DESC'
+  | 'ID_ASC'
+  | 'ID_DESC'
+  | 'NAME_ASC'
+  | 'NAME_DESC'
+  | 'BITNUM_ASC'
+  | 'BITNUM_DESC'
+  | 'BITSTR_ASC'
+  | 'BITSTR_DESC'
+  | 'DESCRIPTION_ASC'
+  | 'DESCRIPTION_DESC'
+  | 'KIND_ASC'
+  | 'KIND_DESC';
 /** Methods to use when ordering `MembershipType`. */
 export type MembershipTypeOrderBy =
   | 'NATURAL'
@@ -590,8 +640,8 @@ export type AppGrantOrderBy =
   | 'PRIMARY_KEY_DESC'
   | 'ID_ASC'
   | 'ID_DESC'
-  | 'PERMISSIONS_ASC'
-  | 'PERMISSIONS_DESC'
+  | 'CAPABILITIES_ASC'
+  | 'CAPABILITIES_DESC'
   | 'IS_GRANT_ASC'
   | 'IS_GRANT_DESC'
   | 'ACTOR_ID_ASC'
@@ -602,44 +652,6 @@ export type AppGrantOrderBy =
   | 'CREATED_AT_DESC'
   | 'UPDATED_AT_ASC'
   | 'UPDATED_AT_DESC';
-/** Methods to use when ordering `AppMembershipDefault`. */
-export type AppMembershipDefaultOrderBy =
-  | 'NATURAL'
-  | 'PRIMARY_KEY_ASC'
-  | 'PRIMARY_KEY_DESC'
-  | 'ID_ASC'
-  | 'ID_DESC'
-  | 'CREATED_AT_ASC'
-  | 'CREATED_AT_DESC'
-  | 'UPDATED_AT_ASC'
-  | 'UPDATED_AT_DESC'
-  | 'CREATED_BY_ASC'
-  | 'CREATED_BY_DESC'
-  | 'UPDATED_BY_ASC'
-  | 'UPDATED_BY_DESC'
-  | 'IS_APPROVED_ASC'
-  | 'IS_APPROVED_DESC'
-  | 'IS_VERIFIED_ASC'
-  | 'IS_VERIFIED_DESC';
-/** Methods to use when ordering `OrgMembershipDefault`. */
-export type OrgMembershipDefaultOrderBy =
-  | 'NATURAL'
-  | 'PRIMARY_KEY_ASC'
-  | 'PRIMARY_KEY_DESC'
-  | 'ID_ASC'
-  | 'ID_DESC'
-  | 'CREATED_AT_ASC'
-  | 'CREATED_AT_DESC'
-  | 'UPDATED_AT_ASC'
-  | 'UPDATED_AT_DESC'
-  | 'CREATED_BY_ASC'
-  | 'CREATED_BY_DESC'
-  | 'UPDATED_BY_ASC'
-  | 'UPDATED_BY_DESC'
-  | 'IS_APPROVED_ASC'
-  | 'IS_APPROVED_DESC'
-  | 'ENTITY_ID_ASC'
-  | 'ENTITY_ID_DESC';
 /** Methods to use when ordering `OrgClaimedInvite`. */
 export type OrgClaimedInviteOrderBy =
   | 'NATURAL'
@@ -666,8 +678,8 @@ export type OrgGrantOrderBy =
   | 'PRIMARY_KEY_DESC'
   | 'ID_ASC'
   | 'ID_DESC'
-  | 'PERMISSIONS_ASC'
-  | 'PERMISSIONS_DESC'
+  | 'CAPABILITIES_ASC'
+  | 'CAPABILITIES_DESC'
   | 'IS_GRANT_ASC'
   | 'IS_GRANT_DESC'
   | 'ACTOR_ID_ASC'
@@ -714,8 +726,8 @@ export type AppProfileTemplateOrderBy =
   | 'SLUG_DESC'
   | 'DESCRIPTION_ASC'
   | 'DESCRIPTION_DESC'
-  | 'PERMISSIONS_ASC'
-  | 'PERMISSIONS_DESC'
+  | 'CAPABILITIES_ASC'
+  | 'CAPABILITIES_DESC'
   | 'IS_DEFAULT_ASC'
   | 'IS_DEFAULT_DESC'
   | 'CREATED_AT_ASC'
@@ -735,14 +747,60 @@ export type OrgProfileTemplateOrderBy =
   | 'SLUG_DESC'
   | 'DESCRIPTION_ASC'
   | 'DESCRIPTION_DESC'
-  | 'PERMISSIONS_ASC'
-  | 'PERMISSIONS_DESC'
+  | 'CAPABILITIES_ASC'
+  | 'CAPABILITIES_DESC'
   | 'IS_DEFAULT_ASC'
   | 'IS_DEFAULT_DESC'
   | 'CREATED_AT_ASC'
   | 'CREATED_AT_DESC'
   | 'UPDATED_AT_ASC'
   | 'UPDATED_AT_DESC';
+/** Methods to use when ordering `AppMembershipDefault`. */
+export type AppMembershipDefaultOrderBy =
+  | 'NATURAL'
+  | 'PRIMARY_KEY_ASC'
+  | 'PRIMARY_KEY_DESC'
+  | 'ID_ASC'
+  | 'ID_DESC'
+  | 'CREATED_AT_ASC'
+  | 'CREATED_AT_DESC'
+  | 'UPDATED_AT_ASC'
+  | 'UPDATED_AT_DESC'
+  | 'CREATED_BY_ASC'
+  | 'CREATED_BY_DESC'
+  | 'UPDATED_BY_ASC'
+  | 'UPDATED_BY_DESC'
+  | 'CREATED_BY_PRINCIPAL_ASC'
+  | 'CREATED_BY_PRINCIPAL_DESC'
+  | 'UPDATED_BY_PRINCIPAL_ASC'
+  | 'UPDATED_BY_PRINCIPAL_DESC'
+  | 'IS_APPROVED_ASC'
+  | 'IS_APPROVED_DESC'
+  | 'IS_VERIFIED_ASC'
+  | 'IS_VERIFIED_DESC';
+/** Methods to use when ordering `OrgMembershipDefault`. */
+export type OrgMembershipDefaultOrderBy =
+  | 'NATURAL'
+  | 'PRIMARY_KEY_ASC'
+  | 'PRIMARY_KEY_DESC'
+  | 'ID_ASC'
+  | 'ID_DESC'
+  | 'CREATED_AT_ASC'
+  | 'CREATED_AT_DESC'
+  | 'UPDATED_AT_ASC'
+  | 'UPDATED_AT_DESC'
+  | 'CREATED_BY_ASC'
+  | 'CREATED_BY_DESC'
+  | 'UPDATED_BY_ASC'
+  | 'UPDATED_BY_DESC'
+  | 'CREATED_BY_PRINCIPAL_ASC'
+  | 'CREATED_BY_PRINCIPAL_DESC'
+  | 'UPDATED_BY_PRINCIPAL_ASC'
+  | 'UPDATED_BY_PRINCIPAL_DESC'
+  | 'IS_APPROVED_ASC'
+  | 'IS_APPROVED_DESC'
+  | 'ENTITY_ID_ASC'
+  | 'ENTITY_ID_DESC';
 /** Methods to use when ordering `AppProfile`. */
 export type AppProfileOrderBy =
   | 'NATURAL'
@@ -756,8 +814,8 @@ export type AppProfileOrderBy =
   | 'SLUG_DESC'
   | 'DESCRIPTION_ASC'
   | 'DESCRIPTION_DESC'
-  | 'PERMISSIONS_ASC'
-  | 'PERMISSIONS_DESC'
+  | 'CAPABILITIES_ASC'
+  | 'CAPABILITIES_DESC'
   | 'IS_SYSTEM_ASC'
   | 'IS_SYSTEM_DESC'
   | 'IS_DEFAULT_ASC'
@@ -779,8 +837,8 @@ export type OrgProfileOrderBy =
   | 'SLUG_DESC'
   | 'DESCRIPTION_ASC'
   | 'DESCRIPTION_DESC'
-  | 'PERMISSIONS_ASC'
-  | 'PERMISSIONS_DESC'
+  | 'CAPABILITIES_ASC'
+  | 'CAPABILITIES_DESC'
   | 'IS_SYSTEM_ASC'
   | 'IS_SYSTEM_DESC'
   | 'IS_DEFAULT_ASC'
@@ -791,39 +849,6 @@ export type OrgProfileOrderBy =
   | 'UPDATED_AT_DESC'
   | 'ENTITY_ID_ASC'
   | 'ENTITY_ID_DESC';
-/** Methods to use when ordering `OrgMembershipSetting`. */
-export type OrgMembershipSettingOrderBy =
-  | 'NATURAL'
-  | 'PRIMARY_KEY_ASC'
-  | 'PRIMARY_KEY_DESC'
-  | 'ID_ASC'
-  | 'ID_DESC'
-  | 'CREATED_AT_ASC'
-  | 'CREATED_AT_DESC'
-  | 'UPDATED_AT_ASC'
-  | 'UPDATED_AT_DESC'
-  | 'CREATED_BY_ASC'
-  | 'CREATED_BY_DESC'
-  | 'UPDATED_BY_ASC'
-  | 'UPDATED_BY_DESC'
-  | 'ENTITY_ID_ASC'
-  | 'ENTITY_ID_DESC'
-  | 'DELETE_MEMBER_CASCADE_CHILDREN_ASC'
-  | 'DELETE_MEMBER_CASCADE_CHILDREN_DESC'
-  | 'CREATE_CHILD_CASCADE_OWNERS_ASC'
-  | 'CREATE_CHILD_CASCADE_OWNERS_DESC'
-  | 'CREATE_CHILD_CASCADE_ADMINS_ASC'
-  | 'CREATE_CHILD_CASCADE_ADMINS_DESC'
-  | 'CREATE_CHILD_CASCADE_MEMBERS_ASC'
-  | 'CREATE_CHILD_CASCADE_MEMBERS_DESC'
-  | 'ALLOW_EXTERNAL_MEMBERS_ASC'
-  | 'ALLOW_EXTERNAL_MEMBERS_DESC'
-  | 'INVITE_PROFILE_ASSIGNMENT_MODE_ASC'
-  | 'INVITE_PROFILE_ASSIGNMENT_MODE_DESC'
-  | 'POPULATE_MEMBER_EMAIL_ASC'
-  | 'POPULATE_MEMBER_EMAIL_DESC'
-  | 'LIMIT_ALLOCATION_MODE_ASC'
-  | 'LIMIT_ALLOCATION_MODE_DESC';
 /** Methods to use when ordering `OrgMemberProfile`. */
 export type OrgMemberProfileOrderBy =
   | 'NATURAL'
@@ -851,12 +876,53 @@ export type OrgMemberProfileOrderBy =
   | 'BIO_DESC'
   | 'PROFILE_PICTURE_ASC'
   | 'PROFILE_PICTURE_DESC';
-/** A filter to be used against `AppPermissionDefaultGrant` object types. All fields are combined with a logical ‘and.’ */
-export interface AppPermissionDefaultGrantFilter {
+/** Methods to use when ordering `OrgMembershipSetting`. */
+export type OrgMembershipSettingOrderBy =
+  | 'NATURAL'
+  | 'PRIMARY_KEY_ASC'
+  | 'PRIMARY_KEY_DESC'
+  | 'ID_ASC'
+  | 'ID_DESC'
+  | 'CREATED_AT_ASC'
+  | 'CREATED_AT_DESC'
+  | 'UPDATED_AT_ASC'
+  | 'UPDATED_AT_DESC'
+  | 'CREATED_BY_ASC'
+  | 'CREATED_BY_DESC'
+  | 'UPDATED_BY_ASC'
+  | 'UPDATED_BY_DESC'
+  | 'CREATED_BY_PRINCIPAL_ASC'
+  | 'CREATED_BY_PRINCIPAL_DESC'
+  | 'UPDATED_BY_PRINCIPAL_ASC'
+  | 'UPDATED_BY_PRINCIPAL_DESC'
+  | 'ENTITY_ID_ASC'
+  | 'ENTITY_ID_DESC'
+  | 'DELETE_MEMBER_CASCADE_CHILDREN_ASC'
+  | 'DELETE_MEMBER_CASCADE_CHILDREN_DESC'
+  | 'CREATE_CHILD_CASCADE_OWNERS_ASC'
+  | 'CREATE_CHILD_CASCADE_OWNERS_DESC'
+  | 'CREATE_CHILD_CASCADE_ADMINS_ASC'
+  | 'CREATE_CHILD_CASCADE_ADMINS_DESC'
+  | 'CREATE_CHILD_CASCADE_MEMBERS_ASC'
+  | 'CREATE_CHILD_CASCADE_MEMBERS_DESC'
+  | 'ALLOW_EXTERNAL_MEMBERS_ASC'
+  | 'ALLOW_EXTERNAL_MEMBERS_DESC'
+  | 'ALLOW_PRINCIPAL_OWNED_API_KEYS_ASC'
+  | 'ALLOW_PRINCIPAL_OWNED_API_KEYS_DESC'
+  | 'API_KEY_MAX_DURATION_ASC'
+  | 'API_KEY_MAX_DURATION_DESC'
+  | 'INVITE_PROFILE_ASSIGNMENT_MODE_ASC'
+  | 'INVITE_PROFILE_ASSIGNMENT_MODE_DESC'
+  | 'POPULATE_MEMBER_EMAIL_ASC'
+  | 'POPULATE_MEMBER_EMAIL_DESC'
+  | 'LIMIT_ALLOCATION_MODE_ASC'
+  | 'LIMIT_ALLOCATION_MODE_DESC';
+/** A filter to be used against `AppCapabilityDefaultGrant` object types. All fields are combined with a logical ‘and.’ */
+export interface AppCapabilityDefaultGrantFilter {
   /** Filter by the object’s `id` field. */
   id?: UUIDFilter;
-  /** Filter by the object’s `permissionId` field. */
-  permissionId?: UUIDFilter;
+  /** Filter by the object’s `capabilityId` field. */
+  capabilityId?: UUIDFilter;
   /** Filter by the object’s `isGrant` field. */
   isGrant?: BooleanFilter;
   /** Filter by the object’s `grantorId` field. */
@@ -866,16 +932,16 @@ export interface AppPermissionDefaultGrantFilter {
   /** Filter by the object’s `updatedAt` field. */
   updatedAt?: DatetimeFilter;
   /** Checks for all expressions in this list. */
-  and?: AppPermissionDefaultGrantFilter[];
+  and?: AppCapabilityDefaultGrantFilter[];
   /** Checks for any expressions in this list. */
-  or?: AppPermissionDefaultGrantFilter[];
+  or?: AppCapabilityDefaultGrantFilter[];
   /** Negates the expression. */
-  not?: AppPermissionDefaultGrantFilter;
-  /** Filter by the object’s `permission` relation. */
-  permission?: AppPermissionFilter;
+  not?: AppCapabilityDefaultGrantFilter;
+  /** Filter by the object’s `capability` relation. */
+  capability?: AppCapabilityFilter;
 }
-/** A filter to be used against `AppPermission` object types. All fields are combined with a logical ‘and.’ */
-export interface AppPermissionFilter {
+/** A filter to be used against `AppCapability` object types. All fields are combined with a logical ‘and.’ */
+export interface AppCapabilityFilter {
   /** Filter by the object’s `id` field. */
   id?: UUIDFilter;
   /** Filter by the object’s `name` field. */
@@ -886,86 +952,88 @@ export interface AppPermissionFilter {
   bitstr?: BitStringFilter;
   /** Filter by the object’s `description` field. */
   description?: StringFilter;
+  /** Filter by the object’s `kind` field. */
+  kind?: StringFilter;
   /** Checks for all expressions in this list. */
-  and?: AppPermissionFilter[];
+  and?: AppCapabilityFilter[];
   /** Checks for any expressions in this list. */
-  or?: AppPermissionFilter[];
+  or?: AppCapabilityFilter[];
   /** Negates the expression. */
-  not?: AppPermissionFilter;
-  /** Filter by the object’s `appPermissionDefaultPermissionByPermissionId` relation. */
-  appPermissionDefaultPermissionByPermissionId?: AppPermissionDefaultPermissionFilter;
-  /** A related `appPermissionDefaultPermissionByPermissionId` exists. */
-  appPermissionDefaultPermissionByPermissionIdExists?: boolean;
-  /** Filter by the object’s `appPermissionDefaultGrantsByPermissionId` relation. */
-  appPermissionDefaultGrantsByPermissionId?: AppPermissionToManyAppPermissionDefaultGrantFilter;
-  /** `appPermissionDefaultGrantsByPermissionId` exist. */
-  appPermissionDefaultGrantsByPermissionIdExist?: boolean;
-  /** Filter by the object’s `appProfilePermissionsByPermissionId` relation. */
-  appProfilePermissionsByPermissionId?: AppPermissionToManyAppProfilePermissionFilter;
-  /** `appProfilePermissionsByPermissionId` exist. */
-  appProfilePermissionsByPermissionIdExist?: boolean;
-  /** Filter by the object’s `appProfileDefinitionGrantsByPermissionId` relation. */
-  appProfileDefinitionGrantsByPermissionId?: AppPermissionToManyAppProfileDefinitionGrantFilter;
-  /** `appProfileDefinitionGrantsByPermissionId` exist. */
-  appProfileDefinitionGrantsByPermissionIdExist?: boolean;
+  not?: AppCapabilityFilter;
+  /** Filter by the object’s `appCapabilityDefaultCapabilityByCapabilityId` relation. */
+  appCapabilityDefaultCapabilityByCapabilityId?: AppCapabilityDefaultCapabilityFilter;
+  /** A related `appCapabilityDefaultCapabilityByCapabilityId` exists. */
+  appCapabilityDefaultCapabilityByCapabilityIdExists?: boolean;
+  /** Filter by the object’s `appCapabilityDefaultGrantsByCapabilityId` relation. */
+  appCapabilityDefaultGrantsByCapabilityId?: AppCapabilityToManyAppCapabilityDefaultGrantFilter;
+  /** `appCapabilityDefaultGrantsByCapabilityId` exist. */
+  appCapabilityDefaultGrantsByCapabilityIdExist?: boolean;
+  /** Filter by the object’s `appProfileCapabilitiesByCapabilityId` relation. */
+  appProfileCapabilitiesByCapabilityId?: AppCapabilityToManyAppProfileCapabilityFilter;
+  /** `appProfileCapabilitiesByCapabilityId` exist. */
+  appProfileCapabilitiesByCapabilityIdExist?: boolean;
+  /** Filter by the object’s `appProfileDefinitionGrantsByCapabilityId` relation. */
+  appProfileDefinitionGrantsByCapabilityId?: AppCapabilityToManyAppProfileDefinitionGrantFilter;
+  /** `appProfileDefinitionGrantsByCapabilityId` exist. */
+  appProfileDefinitionGrantsByCapabilityIdExist?: boolean;
 }
-/** A filter to be used against `AppPermissionDefaultPermission` object types. All fields are combined with a logical ‘and.’ */
-export interface AppPermissionDefaultPermissionFilter {
+/** A filter to be used against `AppCapabilityDefaultCapability` object types. All fields are combined with a logical ‘and.’ */
+export interface AppCapabilityDefaultCapabilityFilter {
   /** Filter by the object’s `id` field. */
   id?: UUIDFilter;
-  /** Filter by the object’s `permissionId` field. */
-  permissionId?: UUIDFilter;
+  /** Filter by the object’s `capabilityId` field. */
+  capabilityId?: UUIDFilter;
   /** Filter by the object’s `createdAt` field. */
   createdAt?: DatetimeFilter;
   /** Filter by the object’s `updatedAt` field. */
   updatedAt?: DatetimeFilter;
   /** Checks for all expressions in this list. */
-  and?: AppPermissionDefaultPermissionFilter[];
+  and?: AppCapabilityDefaultCapabilityFilter[];
   /** Checks for any expressions in this list. */
-  or?: AppPermissionDefaultPermissionFilter[];
+  or?: AppCapabilityDefaultCapabilityFilter[];
   /** Negates the expression. */
-  not?: AppPermissionDefaultPermissionFilter;
-  /** Filter by the object’s `permission` relation. */
-  permission?: AppPermissionFilter;
+  not?: AppCapabilityDefaultCapabilityFilter;
+  /** Filter by the object’s `capability` relation. */
+  capability?: AppCapabilityFilter;
 }
-/** A filter to be used against many `AppPermissionDefaultGrant` object types. All fields are combined with a logical ‘and.’ */
-export interface AppPermissionToManyAppPermissionDefaultGrantFilter {
+/** A filter to be used against many `AppCapabilityDefaultGrant` object types. All fields are combined with a logical ‘and.’ */
+export interface AppCapabilityToManyAppCapabilityDefaultGrantFilter {
   /** Filters to entities where at least one related entity matches. */
-  some?: AppPermissionDefaultGrantFilter;
+  some?: AppCapabilityDefaultGrantFilter;
   /** Filters to entities where every related entity matches. */
-  every?: AppPermissionDefaultGrantFilter;
+  every?: AppCapabilityDefaultGrantFilter;
   /** Filters to entities where no related entity matches. */
-  none?: AppPermissionDefaultGrantFilter;
+  none?: AppCapabilityDefaultGrantFilter;
 }
-/** A filter to be used against many `AppProfilePermission` object types. All fields are combined with a logical ‘and.’ */
-export interface AppPermissionToManyAppProfilePermissionFilter {
+/** A filter to be used against many `AppProfileCapability` object types. All fields are combined with a logical ‘and.’ */
+export interface AppCapabilityToManyAppProfileCapabilityFilter {
   /** Filters to entities where at least one related entity matches. */
-  some?: AppProfilePermissionFilter;
+  some?: AppProfileCapabilityFilter;
   /** Filters to entities where every related entity matches. */
-  every?: AppProfilePermissionFilter;
+  every?: AppProfileCapabilityFilter;
   /** Filters to entities where no related entity matches. */
-  none?: AppProfilePermissionFilter;
+  none?: AppProfileCapabilityFilter;
 }
-/** A filter to be used against `AppProfilePermission` object types. All fields are combined with a logical ‘and.’ */
-export interface AppProfilePermissionFilter {
+/** A filter to be used against `AppProfileCapability` object types. All fields are combined with a logical ‘and.’ */
+export interface AppProfileCapabilityFilter {
   /** Filter by the object’s `id` field. */
   id?: UUIDFilter;
   /** Filter by the object’s `profileId` field. */
   profileId?: UUIDFilter;
-  /** Filter by the object’s `permissionId` field. */
-  permissionId?: UUIDFilter;
+  /** Filter by the object’s `capabilityId` field. */
+  capabilityId?: UUIDFilter;
   /** Filter by the object’s `createdAt` field. */
   createdAt?: DatetimeFilter;
   /** Filter by the object’s `updatedAt` field. */
   updatedAt?: DatetimeFilter;
   /** Checks for all expressions in this list. */
-  and?: AppProfilePermissionFilter[];
+  and?: AppProfileCapabilityFilter[];
   /** Checks for any expressions in this list. */
-  or?: AppProfilePermissionFilter[];
+  or?: AppProfileCapabilityFilter[];
   /** Negates the expression. */
-  not?: AppProfilePermissionFilter;
-  /** Filter by the object’s `permission` relation. */
-  permission?: AppPermissionFilter;
+  not?: AppProfileCapabilityFilter;
+  /** Filter by the object’s `capability` relation. */
+  capability?: AppCapabilityFilter;
   /** Filter by the object’s `profile` relation. */
   profile?: AppProfileFilter;
 }
@@ -979,8 +1047,8 @@ export interface AppProfileFilter {
   slug?: StringFilter;
   /** Filter by the object’s `description` field. */
   description?: StringFilter;
-  /** Filter by the object’s `permissions` field. */
-  permissions?: BitStringFilter;
+  /** Filter by the object’s `capabilities` field. */
+  capabilities?: BitStringFilter;
   /** Filter by the object’s `isSystem` field. */
   isSystem?: BooleanFilter;
   /** Filter by the object’s `isDefault` field. */
@@ -999,10 +1067,10 @@ export interface AppProfileFilter {
   appMembershipsByProfileId?: AppProfileToManyAppMembershipFilter;
   /** `appMembershipsByProfileId` exist. */
   appMembershipsByProfileIdExist?: boolean;
-  /** Filter by the object’s `appProfilePermissionsByProfileId` relation. */
-  appProfilePermissionsByProfileId?: AppProfileToManyAppProfilePermissionFilter;
-  /** `appProfilePermissionsByProfileId` exist. */
-  appProfilePermissionsByProfileIdExist?: boolean;
+  /** Filter by the object’s `appProfileCapabilitiesByProfileId` relation. */
+  appProfileCapabilitiesByProfileId?: AppProfileToManyAppProfileCapabilityFilter;
+  /** `appProfileCapabilitiesByProfileId` exist. */
+  appProfileCapabilitiesByProfileIdExist?: boolean;
   /** Filter by the object’s `appProfileGrantsByProfileId` relation. */
   appProfileGrantsByProfileId?: AppProfileToManyAppProfileGrantFilter;
   /** `appProfileGrantsByProfileId` exist. */
@@ -1011,6 +1079,10 @@ export interface AppProfileFilter {
   appProfileDefinitionGrantsByProfileId?: AppProfileToManyAppProfileDefinitionGrantFilter;
   /** `appProfileDefinitionGrantsByProfileId` exist. */
   appProfileDefinitionGrantsByProfileIdExist?: boolean;
+  /** Filter by the object’s `appMembershipProfilesByProfileId` relation. */
+  appMembershipProfilesByProfileId?: AppProfileToManyAppMembershipProfileFilter;
+  /** `appMembershipProfilesByProfileId` exist. */
+  appMembershipProfilesByProfileIdExist?: boolean;
   /** Filter by the object’s `appInvitesByProfileId` relation. */
   appInvitesByProfileId?: AppProfileToManyAppInviteFilter;
   /** `appInvitesByProfileId` exist. */
@@ -1037,6 +1109,10 @@ export interface AppMembershipFilter {
   createdBy?: UUIDFilter;
   /** Filter by the object’s `updatedBy` field. */
   updatedBy?: UUIDFilter;
+  /** Filter by the object’s `createdByPrincipal` field. */
+  createdByPrincipal?: UUIDFilter;
+  /** Filter by the object’s `updatedByPrincipal` field. */
+  updatedByPrincipal?: UUIDFilter;
   /** Filter by the object’s `isApproved` field. */
   isApproved?: BooleanFilter;
   /** Filter by the object’s `isBanned` field. */
@@ -1051,8 +1127,8 @@ export interface AppMembershipFilter {
   isOwner?: BooleanFilter;
   /** Filter by the object’s `isAdmin` field. */
   isAdmin?: BooleanFilter;
-  /** Filter by the object’s `permissions` field. */
-  permissions?: BitStringFilter;
+  /** Filter by the object’s `capabilities` field. */
+  capabilities?: BitStringFilter;
   /** Filter by the object’s `granted` field. */
   granted?: BitStringFilter;
   /** Filter by the object’s `actorId` field. */
@@ -1073,6 +1149,10 @@ export interface AppMembershipFilter {
   appProfileGrantsByMembershipId?: AppMembershipToManyAppProfileGrantFilter;
   /** `appProfileGrantsByMembershipId` exist. */
   appProfileGrantsByMembershipIdExist?: boolean;
+  /** Filter by the object’s `appMembershipProfilesByMembershipId` relation. */
+  appMembershipProfilesByMembershipId?: AppMembershipToManyAppMembershipProfileFilter;
+  /** `appMembershipProfilesByMembershipId` exist. */
+  appMembershipProfilesByMembershipIdExist?: boolean;
 }
 /** A filter to be used against many `AppProfileGrant` object types. All fields are combined with a logical ‘and.’ */
 export interface AppMembershipToManyAppProfileGrantFilter {
@@ -1114,14 +1194,48 @@ export interface AppProfileGrantFilter {
   /** A related `profile` exists. */
   profileExists?: boolean;
 }
-/** A filter to be used against many `AppProfilePermission` object types. All fields are combined with a logical ‘and.’ */
-export interface AppProfileToManyAppProfilePermissionFilter {
+/** A filter to be used against many `AppMembershipProfile` object types. All fields are combined with a logical ‘and.’ */
+export interface AppMembershipToManyAppMembershipProfileFilter {
   /** Filters to entities where at least one related entity matches. */
-  some?: AppProfilePermissionFilter;
+  some?: AppMembershipProfileFilter;
   /** Filters to entities where every related entity matches. */
-  every?: AppProfilePermissionFilter;
+  every?: AppMembershipProfileFilter;
   /** Filters to entities where no related entity matches. */
-  none?: AppProfilePermissionFilter;
+  none?: AppMembershipProfileFilter;
+}
+/** A filter to be used against `AppMembershipProfile` object types. All fields are combined with a logical ‘and.’ */
+export interface AppMembershipProfileFilter {
+  /** Filter by the object’s `id` field. */
+  id?: UUIDFilter;
+  /** Filter by the object’s `membershipId` field. */
+  membershipId?: UUIDFilter;
+  /** Filter by the object’s `profileId` field. */
+  profileId?: UUIDFilter;
+  /** Filter by the object’s `actorId` field. */
+  actorId?: UUIDFilter;
+  /** Filter by the object’s `createdAt` field. */
+  createdAt?: DatetimeFilter;
+  /** Filter by the object’s `updatedAt` field. */
+  updatedAt?: DatetimeFilter;
+  /** Checks for all expressions in this list. */
+  and?: AppMembershipProfileFilter[];
+  /** Checks for any expressions in this list. */
+  or?: AppMembershipProfileFilter[];
+  /** Negates the expression. */
+  not?: AppMembershipProfileFilter;
+  /** Filter by the object’s `membership` relation. */
+  membership?: AppMembershipFilter;
+  /** Filter by the object’s `profile` relation. */
+  profile?: AppProfileFilter;
+}
+/** A filter to be used against many `AppProfileCapability` object types. All fields are combined with a logical ‘and.’ */
+export interface AppProfileToManyAppProfileCapabilityFilter {
+  /** Filters to entities where at least one related entity matches. */
+  some?: AppProfileCapabilityFilter;
+  /** Filters to entities where every related entity matches. */
+  every?: AppProfileCapabilityFilter;
+  /** Filters to entities where no related entity matches. */
+  none?: AppProfileCapabilityFilter;
 }
 /** A filter to be used against many `AppProfileGrant` object types. All fields are combined with a logical ‘and.’ */
 export interface AppProfileToManyAppProfileGrantFilter {
@@ -1147,8 +1261,8 @@ export interface AppProfileDefinitionGrantFilter {
   id?: UUIDFilter;
   /** Filter by the object’s `profileId` field. */
   profileId?: UUIDFilter;
-  /** Filter by the object’s `permissionId` field. */
-  permissionId?: UUIDFilter;
+  /** Filter by the object’s `capabilityId` field. */
+  capabilityId?: UUIDFilter;
   /** Filter by the object’s `grantorId` field. */
   grantorId?: UUIDFilter;
   /** Filter by the object’s `isGrant` field. */
@@ -1163,14 +1277,23 @@ export interface AppProfileDefinitionGrantFilter {
   or?: AppProfileDefinitionGrantFilter[];
   /** Negates the expression. */
   not?: AppProfileDefinitionGrantFilter;
-  /** Filter by the object’s `permission` relation. */
-  permission?: AppPermissionFilter;
-  /** A related `permission` exists. */
-  permissionExists?: boolean;
+  /** Filter by the object’s `capability` relation. */
+  capability?: AppCapabilityFilter;
+  /** A related `capability` exists. */
+  capabilityExists?: boolean;
   /** Filter by the object’s `profile` relation. */
   profile?: AppProfileFilter;
   /** A related `profile` exists. */
   profileExists?: boolean;
+}
+/** A filter to be used against many `AppMembershipProfile` object types. All fields are combined with a logical ‘and.’ */
+export interface AppProfileToManyAppMembershipProfileFilter {
+  /** Filters to entities where at least one related entity matches. */
+  some?: AppMembershipProfileFilter;
+  /** Filters to entities where every related entity matches. */
+  every?: AppMembershipProfileFilter;
+  /** Filters to entities where no related entity matches. */
+  none?: AppMembershipProfileFilter;
 }
 /** A filter to be used against many `AppInvite` object types. All fields are combined with a logical ‘and.’ */
 export interface AppProfileToManyAppInviteFilter {
@@ -1300,7 +1423,7 @@ export interface ConstructiveInternalTypeEmailFilter {
   greaterThanOrEqualToInsensitive?: ConstructiveInternalTypeEmail;
 }
 /** A filter to be used against many `AppProfileDefinitionGrant` object types. All fields are combined with a logical ‘and.’ */
-export interface AppPermissionToManyAppProfileDefinitionGrantFilter {
+export interface AppCapabilityToManyAppProfileDefinitionGrantFilter {
   /** Filters to entities where at least one related entity matches. */
   some?: AppProfileDefinitionGrantFilter;
   /** Filters to entities where every related entity matches. */
@@ -1308,12 +1431,12 @@ export interface AppPermissionToManyAppProfileDefinitionGrantFilter {
   /** Filters to entities where no related entity matches. */
   none?: AppProfileDefinitionGrantFilter;
 }
-/** A filter to be used against `OrgPermissionDefaultPermission` object types. All fields are combined with a logical ‘and.’ */
-export interface OrgPermissionDefaultPermissionFilter {
+/** A filter to be used against `OrgCapabilityDefaultCapability` object types. All fields are combined with a logical ‘and.’ */
+export interface OrgCapabilityDefaultCapabilityFilter {
   /** Filter by the object’s `id` field. */
   id?: UUIDFilter;
-  /** Filter by the object’s `permissionId` field. */
-  permissionId?: UUIDFilter;
+  /** Filter by the object’s `capabilityId` field. */
+  capabilityId?: UUIDFilter;
   /** Filter by the object’s `entityId` field. */
   entityId?: UUIDFilter;
   /** Filter by the object’s `createdAt` field. */
@@ -1321,16 +1444,16 @@ export interface OrgPermissionDefaultPermissionFilter {
   /** Filter by the object’s `updatedAt` field. */
   updatedAt?: DatetimeFilter;
   /** Checks for all expressions in this list. */
-  and?: OrgPermissionDefaultPermissionFilter[];
+  and?: OrgCapabilityDefaultCapabilityFilter[];
   /** Checks for any expressions in this list. */
-  or?: OrgPermissionDefaultPermissionFilter[];
+  or?: OrgCapabilityDefaultCapabilityFilter[];
   /** Negates the expression. */
-  not?: OrgPermissionDefaultPermissionFilter;
-  /** Filter by the object’s `permission` relation. */
-  permission?: OrgPermissionFilter;
+  not?: OrgCapabilityDefaultCapabilityFilter;
+  /** Filter by the object’s `capability` relation. */
+  capability?: OrgCapabilityFilter;
 }
-/** A filter to be used against `OrgPermission` object types. All fields are combined with a logical ‘and.’ */
-export interface OrgPermissionFilter {
+/** A filter to be used against `OrgCapability` object types. All fields are combined with a logical ‘and.’ */
+export interface OrgCapabilityFilter {
   /** Filter by the object’s `id` field. */
   id?: UUIDFilter;
   /** Filter by the object’s `name` field. */
@@ -1341,53 +1464,55 @@ export interface OrgPermissionFilter {
   bitstr?: BitStringFilter;
   /** Filter by the object’s `description` field. */
   description?: StringFilter;
+  /** Filter by the object’s `kind` field. */
+  kind?: StringFilter;
   /** Checks for all expressions in this list. */
-  and?: OrgPermissionFilter[];
+  and?: OrgCapabilityFilter[];
   /** Checks for any expressions in this list. */
-  or?: OrgPermissionFilter[];
+  or?: OrgCapabilityFilter[];
   /** Negates the expression. */
-  not?: OrgPermissionFilter;
-  /** Filter by the object’s `orgPermissionDefaultPermissionsByPermissionId` relation. */
-  orgPermissionDefaultPermissionsByPermissionId?: OrgPermissionToManyOrgPermissionDefaultPermissionFilter;
-  /** `orgPermissionDefaultPermissionsByPermissionId` exist. */
-  orgPermissionDefaultPermissionsByPermissionIdExist?: boolean;
-  /** Filter by the object’s `orgPermissionDefaultGrantsByPermissionId` relation. */
-  orgPermissionDefaultGrantsByPermissionId?: OrgPermissionToManyOrgPermissionDefaultGrantFilter;
-  /** `orgPermissionDefaultGrantsByPermissionId` exist. */
-  orgPermissionDefaultGrantsByPermissionIdExist?: boolean;
-  /** Filter by the object’s `orgProfilePermissionsByPermissionId` relation. */
-  orgProfilePermissionsByPermissionId?: OrgPermissionToManyOrgProfilePermissionFilter;
-  /** `orgProfilePermissionsByPermissionId` exist. */
-  orgProfilePermissionsByPermissionIdExist?: boolean;
-  /** Filter by the object’s `orgProfileDefinitionGrantsByPermissionId` relation. */
-  orgProfileDefinitionGrantsByPermissionId?: OrgPermissionToManyOrgProfileDefinitionGrantFilter;
-  /** `orgProfileDefinitionGrantsByPermissionId` exist. */
-  orgProfileDefinitionGrantsByPermissionIdExist?: boolean;
+  not?: OrgCapabilityFilter;
+  /** Filter by the object’s `orgCapabilityDefaultCapabilitiesByCapabilityId` relation. */
+  orgCapabilityDefaultCapabilitiesByCapabilityId?: OrgCapabilityToManyOrgCapabilityDefaultCapabilityFilter;
+  /** `orgCapabilityDefaultCapabilitiesByCapabilityId` exist. */
+  orgCapabilityDefaultCapabilitiesByCapabilityIdExist?: boolean;
+  /** Filter by the object’s `orgCapabilityDefaultGrantsByCapabilityId` relation. */
+  orgCapabilityDefaultGrantsByCapabilityId?: OrgCapabilityToManyOrgCapabilityDefaultGrantFilter;
+  /** `orgCapabilityDefaultGrantsByCapabilityId` exist. */
+  orgCapabilityDefaultGrantsByCapabilityIdExist?: boolean;
+  /** Filter by the object’s `orgProfileCapabilitiesByCapabilityId` relation. */
+  orgProfileCapabilitiesByCapabilityId?: OrgCapabilityToManyOrgProfileCapabilityFilter;
+  /** `orgProfileCapabilitiesByCapabilityId` exist. */
+  orgProfileCapabilitiesByCapabilityIdExist?: boolean;
+  /** Filter by the object’s `orgProfileDefinitionGrantsByCapabilityId` relation. */
+  orgProfileDefinitionGrantsByCapabilityId?: OrgCapabilityToManyOrgProfileDefinitionGrantFilter;
+  /** `orgProfileDefinitionGrantsByCapabilityId` exist. */
+  orgProfileDefinitionGrantsByCapabilityIdExist?: boolean;
 }
-/** A filter to be used against many `OrgPermissionDefaultPermission` object types. All fields are combined with a logical ‘and.’ */
-export interface OrgPermissionToManyOrgPermissionDefaultPermissionFilter {
+/** A filter to be used against many `OrgCapabilityDefaultCapability` object types. All fields are combined with a logical ‘and.’ */
+export interface OrgCapabilityToManyOrgCapabilityDefaultCapabilityFilter {
   /** Filters to entities where at least one related entity matches. */
-  some?: OrgPermissionDefaultPermissionFilter;
+  some?: OrgCapabilityDefaultCapabilityFilter;
   /** Filters to entities where every related entity matches. */
-  every?: OrgPermissionDefaultPermissionFilter;
+  every?: OrgCapabilityDefaultCapabilityFilter;
   /** Filters to entities where no related entity matches. */
-  none?: OrgPermissionDefaultPermissionFilter;
+  none?: OrgCapabilityDefaultCapabilityFilter;
 }
-/** A filter to be used against many `OrgPermissionDefaultGrant` object types. All fields are combined with a logical ‘and.’ */
-export interface OrgPermissionToManyOrgPermissionDefaultGrantFilter {
+/** A filter to be used against many `OrgCapabilityDefaultGrant` object types. All fields are combined with a logical ‘and.’ */
+export interface OrgCapabilityToManyOrgCapabilityDefaultGrantFilter {
   /** Filters to entities where at least one related entity matches. */
-  some?: OrgPermissionDefaultGrantFilter;
+  some?: OrgCapabilityDefaultGrantFilter;
   /** Filters to entities where every related entity matches. */
-  every?: OrgPermissionDefaultGrantFilter;
+  every?: OrgCapabilityDefaultGrantFilter;
   /** Filters to entities where no related entity matches. */
-  none?: OrgPermissionDefaultGrantFilter;
+  none?: OrgCapabilityDefaultGrantFilter;
 }
-/** A filter to be used against `OrgPermissionDefaultGrant` object types. All fields are combined with a logical ‘and.’ */
-export interface OrgPermissionDefaultGrantFilter {
+/** A filter to be used against `OrgCapabilityDefaultGrant` object types. All fields are combined with a logical ‘and.’ */
+export interface OrgCapabilityDefaultGrantFilter {
   /** Filter by the object’s `id` field. */
   id?: UUIDFilter;
-  /** Filter by the object’s `permissionId` field. */
-  permissionId?: UUIDFilter;
+  /** Filter by the object’s `capabilityId` field. */
+  capabilityId?: UUIDFilter;
   /** Filter by the object’s `isGrant` field. */
   isGrant?: BooleanFilter;
   /** Filter by the object’s `grantorId` field. */
@@ -1399,43 +1524,43 @@ export interface OrgPermissionDefaultGrantFilter {
   /** Filter by the object’s `updatedAt` field. */
   updatedAt?: DatetimeFilter;
   /** Checks for all expressions in this list. */
-  and?: OrgPermissionDefaultGrantFilter[];
+  and?: OrgCapabilityDefaultGrantFilter[];
   /** Checks for any expressions in this list. */
-  or?: OrgPermissionDefaultGrantFilter[];
+  or?: OrgCapabilityDefaultGrantFilter[];
   /** Negates the expression. */
-  not?: OrgPermissionDefaultGrantFilter;
-  /** Filter by the object’s `permission` relation. */
-  permission?: OrgPermissionFilter;
+  not?: OrgCapabilityDefaultGrantFilter;
+  /** Filter by the object’s `capability` relation. */
+  capability?: OrgCapabilityFilter;
 }
-/** A filter to be used against many `OrgProfilePermission` object types. All fields are combined with a logical ‘and.’ */
-export interface OrgPermissionToManyOrgProfilePermissionFilter {
+/** A filter to be used against many `OrgProfileCapability` object types. All fields are combined with a logical ‘and.’ */
+export interface OrgCapabilityToManyOrgProfileCapabilityFilter {
   /** Filters to entities where at least one related entity matches. */
-  some?: OrgProfilePermissionFilter;
+  some?: OrgProfileCapabilityFilter;
   /** Filters to entities where every related entity matches. */
-  every?: OrgProfilePermissionFilter;
+  every?: OrgProfileCapabilityFilter;
   /** Filters to entities where no related entity matches. */
-  none?: OrgProfilePermissionFilter;
+  none?: OrgProfileCapabilityFilter;
 }
-/** A filter to be used against `OrgProfilePermission` object types. All fields are combined with a logical ‘and.’ */
-export interface OrgProfilePermissionFilter {
+/** A filter to be used against `OrgProfileCapability` object types. All fields are combined with a logical ‘and.’ */
+export interface OrgProfileCapabilityFilter {
   /** Filter by the object’s `id` field. */
   id?: UUIDFilter;
   /** Filter by the object’s `profileId` field. */
   profileId?: UUIDFilter;
-  /** Filter by the object’s `permissionId` field. */
-  permissionId?: UUIDFilter;
+  /** Filter by the object’s `capabilityId` field. */
+  capabilityId?: UUIDFilter;
   /** Filter by the object’s `createdAt` field. */
   createdAt?: DatetimeFilter;
   /** Filter by the object’s `updatedAt` field. */
   updatedAt?: DatetimeFilter;
   /** Checks for all expressions in this list. */
-  and?: OrgProfilePermissionFilter[];
+  and?: OrgProfileCapabilityFilter[];
   /** Checks for any expressions in this list. */
-  or?: OrgProfilePermissionFilter[];
+  or?: OrgProfileCapabilityFilter[];
   /** Negates the expression. */
-  not?: OrgProfilePermissionFilter;
-  /** Filter by the object’s `permission` relation. */
-  permission?: OrgPermissionFilter;
+  not?: OrgProfileCapabilityFilter;
+  /** Filter by the object’s `capability` relation. */
+  capability?: OrgCapabilityFilter;
   /** Filter by the object’s `profile` relation. */
   profile?: OrgProfileFilter;
 }
@@ -1449,8 +1574,8 @@ export interface OrgProfileFilter {
   slug?: StringFilter;
   /** Filter by the object’s `description` field. */
   description?: StringFilter;
-  /** Filter by the object’s `permissions` field. */
-  permissions?: BitStringFilter;
+  /** Filter by the object’s `capabilities` field. */
+  capabilities?: BitStringFilter;
   /** Filter by the object’s `isSystem` field. */
   isSystem?: BooleanFilter;
   /** Filter by the object’s `isDefault` field. */
@@ -1471,10 +1596,10 @@ export interface OrgProfileFilter {
   orgMembershipsByProfileId?: OrgProfileToManyOrgMembershipFilter;
   /** `orgMembershipsByProfileId` exist. */
   orgMembershipsByProfileIdExist?: boolean;
-  /** Filter by the object’s `orgProfilePermissionsByProfileId` relation. */
-  orgProfilePermissionsByProfileId?: OrgProfileToManyOrgProfilePermissionFilter;
-  /** `orgProfilePermissionsByProfileId` exist. */
-  orgProfilePermissionsByProfileIdExist?: boolean;
+  /** Filter by the object’s `orgProfileCapabilitiesByProfileId` relation. */
+  orgProfileCapabilitiesByProfileId?: OrgProfileToManyOrgProfileCapabilityFilter;
+  /** `orgProfileCapabilitiesByProfileId` exist. */
+  orgProfileCapabilitiesByProfileIdExist?: boolean;
   /** Filter by the object’s `orgProfileGrantsByProfileId` relation. */
   orgProfileGrantsByProfileId?: OrgProfileToManyOrgProfileGrantFilter;
   /** `orgProfileGrantsByProfileId` exist. */
@@ -1483,6 +1608,10 @@ export interface OrgProfileFilter {
   orgProfileDefinitionGrantsByProfileId?: OrgProfileToManyOrgProfileDefinitionGrantFilter;
   /** `orgProfileDefinitionGrantsByProfileId` exist. */
   orgProfileDefinitionGrantsByProfileIdExist?: boolean;
+  /** Filter by the object’s `orgMembershipProfilesByProfileId` relation. */
+  orgMembershipProfilesByProfileId?: OrgProfileToManyOrgMembershipProfileFilter;
+  /** `orgMembershipProfilesByProfileId` exist. */
+  orgMembershipProfilesByProfileIdExist?: boolean;
   /** Filter by the object’s `orgInvitesByProfileId` relation. */
   orgInvitesByProfileId?: OrgProfileToManyOrgInviteFilter;
   /** `orgInvitesByProfileId` exist. */
@@ -1509,6 +1638,10 @@ export interface OrgMembershipFilter {
   createdBy?: UUIDFilter;
   /** Filter by the object’s `updatedBy` field. */
   updatedBy?: UUIDFilter;
+  /** Filter by the object’s `createdByPrincipal` field. */
+  createdByPrincipal?: UUIDFilter;
+  /** Filter by the object’s `updatedByPrincipal` field. */
+  updatedByPrincipal?: UUIDFilter;
   /** Filter by the object’s `isApproved` field. */
   isApproved?: BooleanFilter;
   /** Filter by the object’s `isBanned` field. */
@@ -1523,8 +1656,8 @@ export interface OrgMembershipFilter {
   isOwner?: BooleanFilter;
   /** Filter by the object’s `isAdmin` field. */
   isAdmin?: BooleanFilter;
-  /** Filter by the object’s `permissions` field. */
-  permissions?: BitStringFilter;
+  /** Filter by the object’s `capabilities` field. */
+  capabilities?: BitStringFilter;
   /** Filter by the object’s `granted` field. */
   granted?: BitStringFilter;
   /** Filter by the object’s `actorId` field. */
@@ -1553,6 +1686,10 @@ export interface OrgMembershipFilter {
   orgProfileGrantsByMembershipId?: OrgMembershipToManyOrgProfileGrantFilter;
   /** `orgProfileGrantsByMembershipId` exist. */
   orgProfileGrantsByMembershipIdExist?: boolean;
+  /** Filter by the object’s `orgMembershipProfilesByMembershipId` relation. */
+  orgMembershipProfilesByMembershipId?: OrgMembershipToManyOrgMembershipProfileFilter;
+  /** `orgMembershipProfilesByMembershipId` exist. */
+  orgMembershipProfilesByMembershipIdExist?: boolean;
 }
 /** A filter to be used against `OrgMemberProfile` object types. All fields are combined with a logical ‘and.’ */
 export interface OrgMemberProfileFilter {
@@ -1664,14 +1801,48 @@ export interface OrgProfileGrantFilter {
   /** A related `profile` exists. */
   profileExists?: boolean;
 }
-/** A filter to be used against many `OrgProfilePermission` object types. All fields are combined with a logical ‘and.’ */
-export interface OrgProfileToManyOrgProfilePermissionFilter {
+/** A filter to be used against many `OrgMembershipProfile` object types. All fields are combined with a logical ‘and.’ */
+export interface OrgMembershipToManyOrgMembershipProfileFilter {
   /** Filters to entities where at least one related entity matches. */
-  some?: OrgProfilePermissionFilter;
+  some?: OrgMembershipProfileFilter;
   /** Filters to entities where every related entity matches. */
-  every?: OrgProfilePermissionFilter;
+  every?: OrgMembershipProfileFilter;
   /** Filters to entities where no related entity matches. */
-  none?: OrgProfilePermissionFilter;
+  none?: OrgMembershipProfileFilter;
+}
+/** A filter to be used against `OrgMembershipProfile` object types. All fields are combined with a logical ‘and.’ */
+export interface OrgMembershipProfileFilter {
+  /** Filter by the object’s `id` field. */
+  id?: UUIDFilter;
+  /** Filter by the object’s `membershipId` field. */
+  membershipId?: UUIDFilter;
+  /** Filter by the object’s `profileId` field. */
+  profileId?: UUIDFilter;
+  /** Filter by the object’s `actorId` field. */
+  actorId?: UUIDFilter;
+  /** Filter by the object’s `createdAt` field. */
+  createdAt?: DatetimeFilter;
+  /** Filter by the object’s `updatedAt` field. */
+  updatedAt?: DatetimeFilter;
+  /** Checks for all expressions in this list. */
+  and?: OrgMembershipProfileFilter[];
+  /** Checks for any expressions in this list. */
+  or?: OrgMembershipProfileFilter[];
+  /** Negates the expression. */
+  not?: OrgMembershipProfileFilter;
+  /** Filter by the object’s `membership` relation. */
+  membership?: OrgMembershipFilter;
+  /** Filter by the object’s `profile` relation. */
+  profile?: OrgProfileFilter;
+}
+/** A filter to be used against many `OrgProfileCapability` object types. All fields are combined with a logical ‘and.’ */
+export interface OrgProfileToManyOrgProfileCapabilityFilter {
+  /** Filters to entities where at least one related entity matches. */
+  some?: OrgProfileCapabilityFilter;
+  /** Filters to entities where every related entity matches. */
+  every?: OrgProfileCapabilityFilter;
+  /** Filters to entities where no related entity matches. */
+  none?: OrgProfileCapabilityFilter;
 }
 /** A filter to be used against many `OrgProfileGrant` object types. All fields are combined with a logical ‘and.’ */
 export interface OrgProfileToManyOrgProfileGrantFilter {
@@ -1697,8 +1868,8 @@ export interface OrgProfileDefinitionGrantFilter {
   id?: UUIDFilter;
   /** Filter by the object’s `profileId` field. */
   profileId?: UUIDFilter;
-  /** Filter by the object’s `permissionId` field. */
-  permissionId?: UUIDFilter;
+  /** Filter by the object’s `capabilityId` field. */
+  capabilityId?: UUIDFilter;
   /** Filter by the object’s `grantorId` field. */
   grantorId?: UUIDFilter;
   /** Filter by the object’s `isGrant` field. */
@@ -1713,14 +1884,23 @@ export interface OrgProfileDefinitionGrantFilter {
   or?: OrgProfileDefinitionGrantFilter[];
   /** Negates the expression. */
   not?: OrgProfileDefinitionGrantFilter;
-  /** Filter by the object’s `permission` relation. */
-  permission?: OrgPermissionFilter;
-  /** A related `permission` exists. */
-  permissionExists?: boolean;
+  /** Filter by the object’s `capability` relation. */
+  capability?: OrgCapabilityFilter;
+  /** A related `capability` exists. */
+  capabilityExists?: boolean;
   /** Filter by the object’s `profile` relation. */
   profile?: OrgProfileFilter;
   /** A related `profile` exists. */
   profileExists?: boolean;
+}
+/** A filter to be used against many `OrgMembershipProfile` object types. All fields are combined with a logical ‘and.’ */
+export interface OrgProfileToManyOrgMembershipProfileFilter {
+  /** Filters to entities where at least one related entity matches. */
+  some?: OrgMembershipProfileFilter;
+  /** Filters to entities where every related entity matches. */
+  every?: OrgMembershipProfileFilter;
+  /** Filters to entities where no related entity matches. */
+  none?: OrgMembershipProfileFilter;
 }
 /** A filter to be used against many `OrgInvite` object types. All fields are combined with a logical ‘and.’ */
 export interface OrgProfileToManyOrgInviteFilter {
@@ -1779,7 +1959,7 @@ export interface OrgInviteFilter {
   profileExists?: boolean;
 }
 /** A filter to be used against many `OrgProfileDefinitionGrant` object types. All fields are combined with a logical ‘and.’ */
-export interface OrgPermissionToManyOrgProfileDefinitionGrantFilter {
+export interface OrgCapabilityToManyOrgProfileDefinitionGrantFilter {
   /** Filters to entities where at least one related entity matches. */
   some?: OrgProfileDefinitionGrantFilter;
   /** Filters to entities where every related entity matches. */
@@ -1804,33 +1984,33 @@ export interface OrgMemberFilter {
   /** Negates the expression. */
   not?: OrgMemberFilter;
 }
-/** A filter to be used against `AppPermissionDefault` object types. All fields are combined with a logical ‘and.’ */
-export interface AppPermissionDefaultFilter {
+/** A filter to be used against `AppCapabilityDefault` object types. All fields are combined with a logical ‘and.’ */
+export interface AppCapabilityDefaultFilter {
   /** Filter by the object’s `id` field. */
   id?: UUIDFilter;
-  /** Filter by the object’s `permissions` field. */
-  permissions?: BitStringFilter;
+  /** Filter by the object’s `capabilities` field. */
+  capabilities?: BitStringFilter;
   /** Checks for all expressions in this list. */
-  and?: AppPermissionDefaultFilter[];
+  and?: AppCapabilityDefaultFilter[];
   /** Checks for any expressions in this list. */
-  or?: AppPermissionDefaultFilter[];
+  or?: AppCapabilityDefaultFilter[];
   /** Negates the expression. */
-  not?: AppPermissionDefaultFilter;
+  not?: AppCapabilityDefaultFilter;
 }
-/** A filter to be used against `OrgPermissionDefault` object types. All fields are combined with a logical ‘and.’ */
-export interface OrgPermissionDefaultFilter {
+/** A filter to be used against `OrgCapabilityDefault` object types. All fields are combined with a logical ‘and.’ */
+export interface OrgCapabilityDefaultFilter {
   /** Filter by the object’s `id` field. */
   id?: UUIDFilter;
-  /** Filter by the object’s `permissions` field. */
-  permissions?: BitStringFilter;
+  /** Filter by the object’s `capabilities` field. */
+  capabilities?: BitStringFilter;
   /** Filter by the object’s `entityId` field. */
   entityId?: UUIDFilter;
   /** Checks for all expressions in this list. */
-  and?: OrgPermissionDefaultFilter[];
+  and?: OrgCapabilityDefaultFilter[];
   /** Checks for any expressions in this list. */
-  or?: OrgPermissionDefaultFilter[];
+  or?: OrgCapabilityDefaultFilter[];
   /** Negates the expression. */
-  not?: OrgPermissionDefaultFilter;
+  not?: OrgCapabilityDefaultFilter;
 }
 /** A filter to be used against `AppAdminGrant` object types. All fields are combined with a logical ‘and.’ */
 export interface AppAdminGrantFilter {
@@ -1991,8 +2171,8 @@ export interface MembershipTypeFilter {
 export interface AppGrantFilter {
   /** Filter by the object’s `id` field. */
   id?: UUIDFilter;
-  /** Filter by the object’s `permissions` field. */
-  permissions?: BitStringFilter;
+  /** Filter by the object’s `capabilities` field. */
+  capabilities?: BitStringFilter;
   /** Filter by the object’s `isGrant` field. */
   isGrant?: BooleanFilter;
   /** Filter by the object’s `actorId` field. */
@@ -2009,52 +2189,6 @@ export interface AppGrantFilter {
   or?: AppGrantFilter[];
   /** Negates the expression. */
   not?: AppGrantFilter;
-}
-/** A filter to be used against `AppMembershipDefault` object types. All fields are combined with a logical ‘and.’ */
-export interface AppMembershipDefaultFilter {
-  /** Filter by the object’s `id` field. */
-  id?: UUIDFilter;
-  /** Filter by the object’s `createdAt` field. */
-  createdAt?: DatetimeFilter;
-  /** Filter by the object’s `updatedAt` field. */
-  updatedAt?: DatetimeFilter;
-  /** Filter by the object’s `createdBy` field. */
-  createdBy?: UUIDFilter;
-  /** Filter by the object’s `updatedBy` field. */
-  updatedBy?: UUIDFilter;
-  /** Filter by the object’s `isApproved` field. */
-  isApproved?: BooleanFilter;
-  /** Filter by the object’s `isVerified` field. */
-  isVerified?: BooleanFilter;
-  /** Checks for all expressions in this list. */
-  and?: AppMembershipDefaultFilter[];
-  /** Checks for any expressions in this list. */
-  or?: AppMembershipDefaultFilter[];
-  /** Negates the expression. */
-  not?: AppMembershipDefaultFilter;
-}
-/** A filter to be used against `OrgMembershipDefault` object types. All fields are combined with a logical ‘and.’ */
-export interface OrgMembershipDefaultFilter {
-  /** Filter by the object’s `id` field. */
-  id?: UUIDFilter;
-  /** Filter by the object’s `createdAt` field. */
-  createdAt?: DatetimeFilter;
-  /** Filter by the object’s `updatedAt` field. */
-  updatedAt?: DatetimeFilter;
-  /** Filter by the object’s `createdBy` field. */
-  createdBy?: UUIDFilter;
-  /** Filter by the object’s `updatedBy` field. */
-  updatedBy?: UUIDFilter;
-  /** Filter by the object’s `isApproved` field. */
-  isApproved?: BooleanFilter;
-  /** Filter by the object’s `entityId` field. */
-  entityId?: UUIDFilter;
-  /** Checks for all expressions in this list. */
-  and?: OrgMembershipDefaultFilter[];
-  /** Checks for any expressions in this list. */
-  or?: OrgMembershipDefaultFilter[];
-  /** Negates the expression. */
-  not?: OrgMembershipDefaultFilter;
 }
 /** A filter to be used against `OrgClaimedInvite` object types. All fields are combined with a logical ‘and.’ */
 export interface OrgClaimedInviteFilter {
@@ -2081,8 +2215,8 @@ export interface OrgClaimedInviteFilter {
 export interface OrgGrantFilter {
   /** Filter by the object’s `id` field. */
   id?: UUIDFilter;
-  /** Filter by the object’s `permissions` field. */
-  permissions?: BitStringFilter;
+  /** Filter by the object’s `capabilities` field. */
+  capabilities?: BitStringFilter;
   /** Filter by the object’s `isGrant` field. */
   isGrant?: BooleanFilter;
   /** Filter by the object’s `actorId` field. */
@@ -2137,8 +2271,8 @@ export interface AppProfileTemplateFilter {
   slug?: StringFilter;
   /** Filter by the object’s `description` field. */
   description?: StringFilter;
-  /** Filter by the object’s `permissions` field. */
-  permissions?: BitStringFilter;
+  /** Filter by the object’s `capabilities` field. */
+  capabilities?: BitStringFilter;
   /** Filter by the object’s `isDefault` field. */
   isDefault?: BooleanFilter;
   /** Filter by the object’s `createdAt` field. */
@@ -2162,8 +2296,8 @@ export interface OrgProfileTemplateFilter {
   slug?: StringFilter;
   /** Filter by the object’s `description` field. */
   description?: StringFilter;
-  /** Filter by the object’s `permissions` field. */
-  permissions?: BitStringFilter;
+  /** Filter by the object’s `capabilities` field. */
+  capabilities?: BitStringFilter;
   /** Filter by the object’s `isDefault` field. */
   isDefault?: BooleanFilter;
   /** Filter by the object’s `createdAt` field. */
@@ -2177,6 +2311,60 @@ export interface OrgProfileTemplateFilter {
   /** Negates the expression. */
   not?: OrgProfileTemplateFilter;
 }
+/** A filter to be used against `AppMembershipDefault` object types. All fields are combined with a logical ‘and.’ */
+export interface AppMembershipDefaultFilter {
+  /** Filter by the object’s `id` field. */
+  id?: UUIDFilter;
+  /** Filter by the object’s `createdAt` field. */
+  createdAt?: DatetimeFilter;
+  /** Filter by the object’s `updatedAt` field. */
+  updatedAt?: DatetimeFilter;
+  /** Filter by the object’s `createdBy` field. */
+  createdBy?: UUIDFilter;
+  /** Filter by the object’s `updatedBy` field. */
+  updatedBy?: UUIDFilter;
+  /** Filter by the object’s `createdByPrincipal` field. */
+  createdByPrincipal?: UUIDFilter;
+  /** Filter by the object’s `updatedByPrincipal` field. */
+  updatedByPrincipal?: UUIDFilter;
+  /** Filter by the object’s `isApproved` field. */
+  isApproved?: BooleanFilter;
+  /** Filter by the object’s `isVerified` field. */
+  isVerified?: BooleanFilter;
+  /** Checks for all expressions in this list. */
+  and?: AppMembershipDefaultFilter[];
+  /** Checks for any expressions in this list. */
+  or?: AppMembershipDefaultFilter[];
+  /** Negates the expression. */
+  not?: AppMembershipDefaultFilter;
+}
+/** A filter to be used against `OrgMembershipDefault` object types. All fields are combined with a logical ‘and.’ */
+export interface OrgMembershipDefaultFilter {
+  /** Filter by the object’s `id` field. */
+  id?: UUIDFilter;
+  /** Filter by the object’s `createdAt` field. */
+  createdAt?: DatetimeFilter;
+  /** Filter by the object’s `updatedAt` field. */
+  updatedAt?: DatetimeFilter;
+  /** Filter by the object’s `createdBy` field. */
+  createdBy?: UUIDFilter;
+  /** Filter by the object’s `updatedBy` field. */
+  updatedBy?: UUIDFilter;
+  /** Filter by the object’s `createdByPrincipal` field. */
+  createdByPrincipal?: UUIDFilter;
+  /** Filter by the object’s `updatedByPrincipal` field. */
+  updatedByPrincipal?: UUIDFilter;
+  /** Filter by the object’s `isApproved` field. */
+  isApproved?: BooleanFilter;
+  /** Filter by the object’s `entityId` field. */
+  entityId?: UUIDFilter;
+  /** Checks for all expressions in this list. */
+  and?: OrgMembershipDefaultFilter[];
+  /** Checks for any expressions in this list. */
+  or?: OrgMembershipDefaultFilter[];
+  /** Negates the expression. */
+  not?: OrgMembershipDefaultFilter;
+}
 /** A filter to be used against `OrgMembershipSetting` object types. All fields are combined with a logical ‘and.’ */
 export interface OrgMembershipSettingFilter {
   /** Filter by the object’s `id` field. */
@@ -2189,6 +2377,10 @@ export interface OrgMembershipSettingFilter {
   createdBy?: UUIDFilter;
   /** Filter by the object’s `updatedBy` field. */
   updatedBy?: UUIDFilter;
+  /** Filter by the object’s `createdByPrincipal` field. */
+  createdByPrincipal?: UUIDFilter;
+  /** Filter by the object’s `updatedByPrincipal` field. */
+  updatedByPrincipal?: UUIDFilter;
   /** Filter by the object’s `entityId` field. */
   entityId?: UUIDFilter;
   /** Filter by the object’s `deleteMemberCascadeChildren` field. */
@@ -2201,6 +2393,10 @@ export interface OrgMembershipSettingFilter {
   createChildCascadeMembers?: BooleanFilter;
   /** Filter by the object’s `allowExternalMembers` field. */
   allowExternalMembers?: BooleanFilter;
+  /** Filter by the object’s `allowPrincipalOwnedApiKeys` field. */
+  allowPrincipalOwnedApiKeys?: BooleanFilter;
+  /** Filter by the object’s `apiKeyMaxDuration` field. */
+  apiKeyMaxDuration?: IntervalFilter;
   /** Filter by the object’s `inviteProfileAssignmentMode` field. */
   inviteProfileAssignmentMode?: StringFilter;
   /** Filter by the object’s `populateMemberEmail` field. */
@@ -2214,6 +2410,58 @@ export interface OrgMembershipSettingFilter {
   /** Negates the expression. */
   not?: OrgMembershipSettingFilter;
 }
+/** A filter to be used against Interval fields. All fields are combined with a logical ‘and.’ */
+export interface IntervalFilter {
+  /** Is null (if `true` is specified) or is not null (if `false` is specified). */
+  isNull?: boolean;
+  /** Equal to the specified value. */
+  equalTo?: IntervalInput;
+  /** Not equal to the specified value. */
+  notEqualTo?: IntervalInput;
+  /** Not equal to the specified value, treating null like an ordinary value. */
+  distinctFrom?: IntervalInput;
+  /** Equal to the specified value, treating null like an ordinary value. */
+  notDistinctFrom?: IntervalInput;
+  /** Included in the specified list. */
+  in?: IntervalInput[];
+  /** Not included in the specified list. */
+  notIn?: IntervalInput[];
+  /** Less than the specified value. */
+  lessThan?: IntervalInput;
+  /** Less than or equal to the specified value. */
+  lessThanOrEqualTo?: IntervalInput;
+  /** Greater than the specified value. */
+  greaterThan?: IntervalInput;
+  /** Greater than or equal to the specified value. */
+  greaterThanOrEqualTo?: IntervalInput;
+}
+/** An interval of time that has passed where the smallest distinct unit is a second. */
+export interface IntervalInput {
+  /**
+   * A quantity of seconds. This is the only non-integer field, as all the other
+   * fields will dump their overflow into a smaller unit of time. Intervals don’t
+   * have a smaller unit than seconds.
+   */
+  seconds?: number;
+  /** A quantity of minutes. */
+  minutes?: number;
+  /** A quantity of hours. */
+  hours?: number;
+  /** A quantity of days. */
+  days?: number;
+  /** A quantity of months. */
+  months?: number;
+  /** A quantity of years. */
+  years?: number;
+}
+export interface AcceptAppInviteInput {
+  clientMutationId?: string;
+  inviteId?: string;
+}
+export interface AcceptOrgInviteInput {
+  clientMutationId?: string;
+  inviteId?: string;
+}
 export interface SubmitAppInviteCodeInput {
   clientMutationId?: string;
   token?: string;
@@ -2221,6 +2469,29 @@ export interface SubmitAppInviteCodeInput {
 export interface SubmitOrgInviteCodeInput {
   clientMutationId?: string;
   token?: string;
+}
+export interface ProvisionAppUserInput {
+  clientMutationId?: string;
+  email?: string;
+  phone?: string;
+  profileId?: string;
+}
+export interface ProvisionOrgUserInput {
+  clientMutationId?: string;
+  entityId?: string;
+  email?: string;
+  phone?: string;
+  profileId?: string;
+  isReadOnly?: boolean;
+}
+export interface ProvisionAppUsersBulkInput {
+  clientMutationId?: string;
+  users?: unknown;
+}
+export interface ProvisionOrgUsersBulkInput {
+  clientMutationId?: string;
+  entityId?: string;
+  users?: unknown;
 }
 export interface CreateOrgMemberInput {
   clientMutationId?: string;
@@ -2237,85 +2508,85 @@ export interface OrgMemberInput {
   /** References the entity (org or group) this member belongs to */
   entityId: string;
 }
-export interface CreateAppPermissionDefaultInput {
+export interface CreateAppCapabilityDefaultInput {
   clientMutationId?: string;
-  /** The `AppPermissionDefault` to be created by this mutation. */
-  appPermissionDefault: AppPermissionDefaultInput;
+  /** The `AppCapabilityDefault` to be created by this mutation. */
+  appCapabilityDefault: AppCapabilityDefaultInput;
 }
-/** An input for mutations affecting `AppPermissionDefault` */
-export interface AppPermissionDefaultInput {
+/** An input for mutations affecting `AppCapabilityDefault` */
+export interface AppCapabilityDefaultInput {
   id?: string;
-  /** Default permission bitmask applied to new members */
-  permissions?: string;
+  /** Default capability bitmask applied to new members */
+  capabilities?: string;
 }
-export interface CreateOrgPermissionDefaultInput {
+export interface CreateOrgCapabilityDefaultInput {
   clientMutationId?: string;
-  /** The `OrgPermissionDefault` to be created by this mutation. */
-  orgPermissionDefault: OrgPermissionDefaultInput;
+  /** The `OrgCapabilityDefault` to be created by this mutation. */
+  orgCapabilityDefault: OrgCapabilityDefaultInput;
 }
-/** An input for mutations affecting `OrgPermissionDefault` */
-export interface OrgPermissionDefaultInput {
+/** An input for mutations affecting `OrgCapabilityDefault` */
+export interface OrgCapabilityDefaultInput {
   id?: string;
-  /** Default permission bitmask applied to new members */
-  permissions?: string;
-  /** References the entity these default permissions apply to */
+  /** Default capability bitmask applied to new members */
+  capabilities?: string;
+  /** References the entity these default capabilities apply to */
   entityId: string;
 }
-export interface CreateAppPermissionDefaultPermissionInput {
+export interface CreateAppCapabilityDefaultCapabilityInput {
   clientMutationId?: string;
-  /** The `AppPermissionDefaultPermission` to be created by this mutation. */
-  appPermissionDefaultPermission: AppPermissionDefaultPermissionInput;
+  /** The `AppCapabilityDefaultCapability` to be created by this mutation. */
+  appCapabilityDefaultCapability: AppCapabilityDefaultCapabilityInput;
 }
-/** An input for mutations affecting `AppPermissionDefaultPermission` */
-export interface AppPermissionDefaultPermissionInput {
+/** An input for mutations affecting `AppCapabilityDefaultCapability` */
+export interface AppCapabilityDefaultCapabilityInput {
   id?: string;
-  /** References the permission included in the defaults bundle */
-  permissionId: string;
+  /** References the capability included in the defaults bundle */
+  capabilityId: string;
   createdAt?: string;
   updatedAt?: string;
 }
-export interface CreateOrgPermissionDefaultPermissionInput {
+export interface CreateOrgCapabilityDefaultCapabilityInput {
   clientMutationId?: string;
-  /** The `OrgPermissionDefaultPermission` to be created by this mutation. */
-  orgPermissionDefaultPermission: OrgPermissionDefaultPermissionInput;
+  /** The `OrgCapabilityDefaultCapability` to be created by this mutation. */
+  orgCapabilityDefaultCapability: OrgCapabilityDefaultCapabilityInput;
 }
-/** An input for mutations affecting `OrgPermissionDefaultPermission` */
-export interface OrgPermissionDefaultPermissionInput {
+/** An input for mutations affecting `OrgCapabilityDefaultCapability` */
+export interface OrgCapabilityDefaultCapabilityInput {
   id?: string;
-  /** References the permission included in the defaults bundle */
-  permissionId: string;
-  /** Scopes this default permission to a specific entity */
+  /** References the capability included in the defaults bundle */
+  capabilityId: string;
+  /** Scopes this default capability to a specific entity */
   entityId: string;
   createdAt?: string;
   updatedAt?: string;
 }
-export interface CreateAppProfilePermissionInput {
+export interface CreateAppProfileCapabilityInput {
   clientMutationId?: string;
-  /** The `AppProfilePermission` to be created by this mutation. */
-  appProfilePermission: AppProfilePermissionInput;
+  /** The `AppProfileCapability` to be created by this mutation. */
+  appProfileCapability: AppProfileCapabilityInput;
 }
-/** An input for mutations affecting `AppProfilePermission` */
-export interface AppProfilePermissionInput {
+/** An input for mutations affecting `AppProfileCapability` */
+export interface AppProfileCapabilityInput {
   id?: string;
-  /** References the profile this permission belongs to */
+  /** References the profile this capability belongs to */
   profileId: string;
-  /** References the permission included in this profile */
-  permissionId: string;
+  /** References the capability included in this profile */
+  capabilityId: string;
   createdAt?: string;
   updatedAt?: string;
 }
-export interface CreateOrgProfilePermissionInput {
+export interface CreateOrgProfileCapabilityInput {
   clientMutationId?: string;
-  /** The `OrgProfilePermission` to be created by this mutation. */
-  orgProfilePermission: OrgProfilePermissionInput;
+  /** The `OrgProfileCapability` to be created by this mutation. */
+  orgProfileCapability: OrgProfileCapabilityInput;
 }
-/** An input for mutations affecting `OrgProfilePermission` */
-export interface OrgProfilePermissionInput {
+/** An input for mutations affecting `OrgProfileCapability` */
+export interface OrgProfileCapabilityInput {
   id?: string;
-  /** References the profile this permission belongs to */
+  /** References the profile this capability belongs to */
   profileId: string;
-  /** References the permission included in this profile */
-  permissionId: string;
+  /** References the capability included in this profile */
+  capabilityId: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -2331,6 +2602,22 @@ export interface AppAdminGrantInput {
   isGrant?: boolean;
   /** The member receiving or losing the admin grant; NULL if user was deleted */
   actorId?: string;
+  grantorId?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+export interface CreateAppCapabilityDefaultGrantInput {
+  clientMutationId?: string;
+  /** The `AppCapabilityDefaultGrant` to be created by this mutation. */
+  appCapabilityDefaultGrant: AppCapabilityDefaultGrantInput;
+}
+/** An input for mutations affecting `AppCapabilityDefaultGrant` */
+export interface AppCapabilityDefaultGrantInput {
+  id?: string;
+  /** References the capability being added to or removed from defaults */
+  capabilityId: string;
+  /** True to add the capability to defaults, false to remove it */
+  isGrant?: boolean;
   grantorId?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -2351,19 +2638,37 @@ export interface AppOwnerGrantInput {
   createdAt?: string;
   updatedAt?: string;
 }
-export interface CreateAppPermissionDefaultGrantInput {
+export interface CreateAppMembershipProfileInput {
   clientMutationId?: string;
-  /** The `AppPermissionDefaultGrant` to be created by this mutation. */
-  appPermissionDefaultGrant: AppPermissionDefaultGrantInput;
+  /** The `AppMembershipProfile` to be created by this mutation. */
+  appMembershipProfile: AppMembershipProfileInput;
 }
-/** An input for mutations affecting `AppPermissionDefaultGrant` */
-export interface AppPermissionDefaultGrantInput {
+/** An input for mutations affecting `AppMembershipProfile` */
+export interface AppMembershipProfileInput {
   id?: string;
-  /** References the permission being added to or removed from defaults */
-  permissionId: string;
-  /** True to add the permission to defaults, false to remove it */
-  isGrant?: boolean;
-  grantorId?: string;
+  /** References the membership holding the profile */
+  membershipId: string;
+  /** References the held profile */
+  profileId: string;
+  /** References the user holding the profile, denormalised from the membership */
+  actorId: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+export interface CreateOrgMembershipProfileInput {
+  clientMutationId?: string;
+  /** The `OrgMembershipProfile` to be created by this mutation. */
+  orgMembershipProfile: OrgMembershipProfileInput;
+}
+/** An input for mutations affecting `OrgMembershipProfile` */
+export interface OrgMembershipProfileInput {
+  id?: string;
+  /** References the membership holding the profile */
+  membershipId: string;
+  /** References the held profile */
+  profileId: string;
+  /** References the user holding the profile, denormalised from the membership */
+  actorId: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -2385,6 +2690,24 @@ export interface OrgAdminGrantInput {
   createdAt?: string;
   updatedAt?: string;
 }
+export interface CreateOrgCapabilityDefaultGrantInput {
+  clientMutationId?: string;
+  /** The `OrgCapabilityDefaultGrant` to be created by this mutation. */
+  orgCapabilityDefaultGrant: OrgCapabilityDefaultGrantInput;
+}
+/** An input for mutations affecting `OrgCapabilityDefaultGrant` */
+export interface OrgCapabilityDefaultGrantInput {
+  id?: string;
+  /** References the capability being added to or removed from defaults */
+  capabilityId: string;
+  /** True to add the capability to defaults, false to remove it */
+  isGrant?: boolean;
+  grantorId?: string;
+  /** Scopes this audit entry to a specific entity */
+  entityId: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
 export interface CreateOrgOwnerGrantInput {
   clientMutationId?: string;
   /** The `OrgOwnerGrant` to be created by this mutation. */
@@ -2403,24 +2726,6 @@ export interface OrgOwnerGrantInput {
   createdAt?: string;
   updatedAt?: string;
 }
-export interface CreateOrgPermissionDefaultGrantInput {
-  clientMutationId?: string;
-  /** The `OrgPermissionDefaultGrant` to be created by this mutation. */
-  orgPermissionDefaultGrant: OrgPermissionDefaultGrantInput;
-}
-/** An input for mutations affecting `OrgPermissionDefaultGrant` */
-export interface OrgPermissionDefaultGrantInput {
-  id?: string;
-  /** References the permission being added to or removed from defaults */
-  permissionId: string;
-  /** True to add the permission to defaults, false to remove it */
-  isGrant?: boolean;
-  grantorId?: string;
-  /** Scopes this audit entry to a specific entity */
-  entityId: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
 export interface CreateAppProfileDefinitionGrantInput {
   clientMutationId?: string;
   /** The `AppProfileDefinitionGrant` to be created by this mutation. */
@@ -2431,10 +2736,10 @@ export interface AppProfileDefinitionGrantInput {
   id?: string;
   /** References the profile whose definition was modified; NULL if profile was deleted */
   profileId?: string;
-  /** References the permission that was added to or removed from the profile; NULL if permission was deleted */
-  permissionId?: string;
+  /** References the capability that was added to or removed from the profile; NULL if capability was deleted */
+  capabilityId?: string;
   grantorId?: string;
-  /** True to add the permission to the profile, false to remove it */
+  /** True to add the capability to the profile, false to remove it */
   isGrant?: boolean;
   createdAt?: string;
   updatedAt?: string;
@@ -2467,10 +2772,10 @@ export interface OrgProfileDefinitionGrantInput {
   id?: string;
   /** References the profile whose definition was modified; NULL if profile was deleted */
   profileId?: string;
-  /** References the permission that was added to or removed from the profile; NULL if permission was deleted */
-  permissionId?: string;
+  /** References the capability that was added to or removed from the profile; NULL if capability was deleted */
+  capabilityId?: string;
   grantorId?: string;
-  /** True to add the permission to the profile, false to remove it */
+  /** True to add the capability to the profile, false to remove it */
   isGrant?: boolean;
   createdAt?: string;
   updatedAt?: string;
@@ -2494,40 +2799,6 @@ export interface OrgProfileGrantInput {
   isGrant?: boolean;
   createdAt?: string;
   updatedAt?: string;
-}
-export interface CreateAppPermissionInput {
-  clientMutationId?: string;
-  /** The `AppPermission` to be created by this mutation. */
-  appPermission: AppPermissionInput;
-}
-/** An input for mutations affecting `AppPermission` */
-export interface AppPermissionInput {
-  id?: string;
-  /** Human-readable permission name (e.g. read, write, manage) */
-  name?: string;
-  /** Position of this permission in the bitmask (1-indexed), must be unique per permission set */
-  bitnum?: number;
-  /** Pre-computed bitmask with only this permission bit set, used for bitwise OR/AND operations */
-  bitstr?: string;
-  /** Human-readable description of what this permission allows */
-  description?: string;
-}
-export interface CreateOrgPermissionInput {
-  clientMutationId?: string;
-  /** The `OrgPermission` to be created by this mutation. */
-  orgPermission: OrgPermissionInput;
-}
-/** An input for mutations affecting `OrgPermission` */
-export interface OrgPermissionInput {
-  id?: string;
-  /** Human-readable permission name (e.g. read, write, manage) */
-  name?: string;
-  /** Position of this permission in the bitmask (1-indexed), must be unique per permission set */
-  bitnum?: number;
-  /** Pre-computed bitmask with only this permission bit set, used for bitwise OR/AND operations */
-  bitstr?: string;
-  /** Human-readable description of what this permission allows */
-  description?: string;
 }
 export interface CreateOrgChartEdgeGrantInput {
   clientMutationId?: string;
@@ -2571,6 +2842,44 @@ export interface AppClaimedInviteInput {
   createdAt?: string;
   updatedAt?: string;
 }
+export interface CreateAppCapabilityInput {
+  clientMutationId?: string;
+  /** The `AppCapability` to be created by this mutation. */
+  appCapability: AppCapabilityInput;
+}
+/** An input for mutations affecting `AppCapability` */
+export interface AppCapabilityInput {
+  id?: string;
+  /** Human-readable capability name (e.g. read, write, manage) */
+  name?: string;
+  /** Position of this capability in the bitmask (1-indexed), must be unique per capability set */
+  bitnum?: number;
+  /** Pre-computed bitmask with only this capability bit set, used for bitwise OR/AND operations */
+  bitstr?: string;
+  /** Human-readable description of what this capability allows */
+  description?: string;
+  /** Kind of catalog entry: capability (capability) or level (achievement level) */
+  kind?: string;
+}
+export interface CreateOrgCapabilityInput {
+  clientMutationId?: string;
+  /** The `OrgCapability` to be created by this mutation. */
+  orgCapability: OrgCapabilityInput;
+}
+/** An input for mutations affecting `OrgCapability` */
+export interface OrgCapabilityInput {
+  id?: string;
+  /** Human-readable capability name (e.g. read, write, manage) */
+  name?: string;
+  /** Position of this capability in the bitmask (1-indexed), must be unique per capability set */
+  bitnum?: number;
+  /** Pre-computed bitmask with only this capability bit set, used for bitwise OR/AND operations */
+  bitstr?: string;
+  /** Human-readable description of what this capability allows */
+  description?: string;
+  /** Kind of catalog entry: capability (capability) or level (achievement level) */
+  kind?: string;
+}
 export interface CreateMembershipTypeInput {
   clientMutationId?: string;
   /** The `MembershipType` to be created by this mutation. */
@@ -2599,49 +2908,15 @@ export interface CreateAppGrantInput {
 /** An input for mutations affecting `AppGrant` */
 export interface AppGrantInput {
   id?: string;
-  /** Bitmask of permissions being granted or revoked */
-  permissions?: string;
-  /** True to grant the permissions, false to revoke them */
+  /** Bitmask of capabilities being granted or revoked */
+  capabilities?: string;
+  /** True to grant the capabilities, false to revoke them */
   isGrant?: boolean;
-  /** The member receiving or losing the permission grant; NULL if user was deleted */
+  /** The member receiving or losing the capability grant; NULL if user was deleted */
   actorId?: string;
   grantorId?: string;
   createdAt?: string;
   updatedAt?: string;
-}
-export interface CreateAppMembershipDefaultInput {
-  clientMutationId?: string;
-  /** The `AppMembershipDefault` to be created by this mutation. */
-  appMembershipDefault: AppMembershipDefaultInput;
-}
-/** An input for mutations affecting `AppMembershipDefault` */
-export interface AppMembershipDefaultInput {
-  id?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  createdBy?: string;
-  updatedBy?: string;
-  /** Whether new members are automatically approved upon joining */
-  isApproved?: boolean;
-  /** Whether new members are automatically verified upon joining */
-  isVerified?: boolean;
-}
-export interface CreateOrgMembershipDefaultInput {
-  clientMutationId?: string;
-  /** The `OrgMembershipDefault` to be created by this mutation. */
-  orgMembershipDefault: OrgMembershipDefaultInput;
-}
-/** An input for mutations affecting `OrgMembershipDefault` */
-export interface OrgMembershipDefaultInput {
-  id?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  createdBy?: string;
-  updatedBy?: string;
-  /** Whether new members are automatically approved upon joining */
-  isApproved?: boolean;
-  /** References the entity these membership defaults apply to */
-  entityId: string;
 }
 export interface CreateOrgClaimedInviteInput {
   clientMutationId?: string;
@@ -2669,13 +2944,13 @@ export interface CreateOrgGrantInput {
 /** An input for mutations affecting `OrgGrant` */
 export interface OrgGrantInput {
   id?: string;
-  /** Bitmask of permissions being granted or revoked */
-  permissions?: string;
-  /** True to grant the permissions, false to revoke them */
+  /** Bitmask of capabilities being granted or revoked */
+  capabilities?: string;
+  /** True to grant the capabilities, false to revoke them */
   isGrant?: boolean;
-  /** The member receiving or losing the permission grant; NULL if user was deleted */
+  /** The member receiving or losing the capability grant; NULL if user was deleted */
   actorId?: string;
-  /** The entity (org or group) this permission grant applies to */
+  /** The entity (org or group) this capability grant applies to */
   entityId: string;
   grantorId?: string;
   createdAt?: string;
@@ -2716,8 +2991,8 @@ export interface AppProfileTemplateInput {
   slug: string;
   /** Human-readable description of this template profile */
   description?: string;
-  /** Pre-computed permission bitmask for the seeded profile */
-  permissions?: string;
+  /** Pre-computed capability bitmask for the seeded profile */
+  capabilities?: string;
   /** Whether the seeded profile should be the default for new members */
   isDefault?: boolean;
   createdAt?: string;
@@ -2737,12 +3012,50 @@ export interface OrgProfileTemplateInput {
   slug: string;
   /** Human-readable description of this template profile */
   description?: string;
-  /** Pre-computed permission bitmask for the seeded profile */
-  permissions?: string;
+  /** Pre-computed capability bitmask for the seeded profile */
+  capabilities?: string;
   /** Whether the seeded profile should be the default for new members */
   isDefault?: boolean;
   createdAt?: string;
   updatedAt?: string;
+}
+export interface CreateAppMembershipDefaultInput {
+  clientMutationId?: string;
+  /** The `AppMembershipDefault` to be created by this mutation. */
+  appMembershipDefault: AppMembershipDefaultInput;
+}
+/** An input for mutations affecting `AppMembershipDefault` */
+export interface AppMembershipDefaultInput {
+  id?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  createdBy?: string;
+  updatedBy?: string;
+  createdByPrincipal?: string;
+  updatedByPrincipal?: string;
+  /** Whether new members are automatically approved upon joining */
+  isApproved?: boolean;
+  /** Whether new members are automatically verified upon joining */
+  isVerified?: boolean;
+}
+export interface CreateOrgMembershipDefaultInput {
+  clientMutationId?: string;
+  /** The `OrgMembershipDefault` to be created by this mutation. */
+  orgMembershipDefault: OrgMembershipDefaultInput;
+}
+/** An input for mutations affecting `OrgMembershipDefault` */
+export interface OrgMembershipDefaultInput {
+  id?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  createdBy?: string;
+  updatedBy?: string;
+  createdByPrincipal?: string;
+  updatedByPrincipal?: string;
+  /** Whether new members are automatically approved upon joining */
+  isApproved?: boolean;
+  /** References the entity these membership defaults apply to */
+  entityId: string;
 }
 export interface CreateAppProfileInput {
   clientMutationId?: string;
@@ -2758,8 +3071,8 @@ export interface AppProfileInput {
   slug: string;
   /** Human-readable description of this profile and its intended use */
   description?: string;
-  /** Pre-computed permission bitmask aggregating all permissions in this profile */
-  permissions?: string;
+  /** Pre-computed capability bitmask aggregating all capabilities in this profile */
+  capabilities?: string;
   /** System profiles are built-in and cannot be deleted or renamed by users */
   isSystem?: boolean;
   /** The default profile is automatically assigned to new members when they join */
@@ -2781,8 +3094,8 @@ export interface OrgProfileInput {
   slug: string;
   /** Human-readable description of this profile and its intended use */
   description?: string;
-  /** Pre-computed permission bitmask aggregating all permissions in this profile */
-  permissions?: string;
+  /** Pre-computed capability bitmask aggregating all capabilities in this profile */
+  capabilities?: string;
   /** System profiles are built-in and cannot be deleted or renamed by users */
   isSystem?: boolean;
   /** The default profile is automatically assigned to new members when they join */
@@ -2791,109 +3104,6 @@ export interface OrgProfileInput {
   updatedAt?: string;
   /** Scopes this profile to a specific entity; NULL means it is a global profile */
   entityId?: string;
-}
-export interface CreateOrgMembershipSettingInput {
-  clientMutationId?: string;
-  /** The `OrgMembershipSetting` to be created by this mutation. */
-  orgMembershipSetting: OrgMembershipSettingInput;
-}
-/** An input for mutations affecting `OrgMembershipSetting` */
-export interface OrgMembershipSettingInput {
-  id?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  createdBy?: string;
-  updatedBy?: string;
-  /** References the entity these settings apply to */
-  entityId: string;
-  /** When a member is deleted, whether to cascade-remove their descendant-entity memberships */
-  deleteMemberCascadeChildren?: boolean;
-  /** When a child entity is created, whether to auto-add existing org-level owners as child-entity owners */
-  createChildCascadeOwners?: boolean;
-  /** When a child entity is created, whether to auto-add existing org-level admins as child-entity admins */
-  createChildCascadeAdmins?: boolean;
-  /** When a child entity is created, whether to auto-add existing org-level members (non-admin, non-owner) as child-entity members */
-  createChildCascadeMembers?: boolean;
-  /** Whether descendants of this org may admit members who are not already org members (outside-collaborators toggle) */
-  allowExternalMembers?: boolean;
-  /** Controls how profile assignment on invites is validated: strict (permission + subset check), permission_only (permission only), or subset_only (subset check only) */
-  inviteProfileAssignmentMode?: string;
-  /** Whether member_profiles.email is snapshot on join and kept synced with the user's primary email. When FALSE, the email field is left blank and never synced from the user's primary email. */
-  populateMemberEmail?: boolean;
-  /** Allocation mode for sub-entity limits: pooled (shared parent cap, no per-entity budgets) or budgeted (explicit per-entity allocations, transfer enabled) */
-  limitAllocationMode?: string;
-}
-export interface CreateAppMembershipInput {
-  clientMutationId?: string;
-  /** The `AppMembership` to be created by this mutation. */
-  appMembership: AppMembershipInput;
-}
-/** An input for mutations affecting `AppMembership` */
-export interface AppMembershipInput {
-  id?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  createdBy?: string;
-  updatedBy?: string;
-  /** Whether this membership has been approved by an admin */
-  isApproved?: boolean;
-  /** Whether this member has been banned from the entity */
-  isBanned?: boolean;
-  /** Whether this membership is temporarily disabled */
-  isDisabled?: boolean;
-  /** Whether this member has been verified (e.g. email confirmation) */
-  isVerified?: boolean;
-  /** Computed field indicating the membership is approved, verified, not banned, and not disabled */
-  isActive?: boolean;
-  /** Whether the actor is the owner of this entity */
-  isOwner?: boolean;
-  /** Whether the actor has admin privileges on this entity */
-  isAdmin?: boolean;
-  /** Aggregated permission bitmask combining profile-based and directly granted permissions */
-  permissions?: string;
-  /** Bitmask of permissions directly granted to this member (not from profiles) */
-  granted?: string;
-  /** References the user who holds this membership */
-  actorId: string;
-  profileId?: string;
-}
-export interface CreateOrgMembershipInput {
-  clientMutationId?: string;
-  /** The `OrgMembership` to be created by this mutation. */
-  orgMembership: OrgMembershipInput;
-}
-/** An input for mutations affecting `OrgMembership` */
-export interface OrgMembershipInput {
-  id?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  createdBy?: string;
-  updatedBy?: string;
-  /** Whether this membership has been approved by an admin */
-  isApproved?: boolean;
-  /** Whether this member has been banned from the entity */
-  isBanned?: boolean;
-  /** Whether this membership is temporarily disabled */
-  isDisabled?: boolean;
-  /** Computed field indicating the membership is approved, verified, not banned, and not disabled */
-  isActive?: boolean;
-  /** Whether this member is external (not a member of the parent scope). External members may have restricted permissions. */
-  isExternal?: boolean;
-  /** Whether the actor is the owner of this entity */
-  isOwner?: boolean;
-  /** Whether the actor has admin privileges on this entity */
-  isAdmin?: boolean;
-  /** Aggregated permission bitmask combining profile-based and directly granted permissions */
-  permissions?: string;
-  /** Bitmask of permissions directly granted to this member (not from profiles) */
-  granted?: string;
-  /** References the user who holds this membership */
-  actorId: string;
-  /** References the entity (org or group) this membership belongs to */
-  entityId: string;
-  /** Whether this member has read-only access (blocks mutations when true) */
-  isReadOnly?: boolean;
-  profileId?: string;
 }
 export interface CreateOrgMemberProfileInput {
   clientMutationId?: string;
@@ -2921,6 +3131,42 @@ export interface OrgMemberProfileInput {
   bio?: string;
   /** Profile picture visible to other entity members */
   profilePicture?: ConstructiveInternalTypeImage;
+}
+export interface CreateAppMembershipInput {
+  clientMutationId?: string;
+  /** The `AppMembership` to be created by this mutation. */
+  appMembership: AppMembershipInput;
+}
+/** An input for mutations affecting `AppMembership` */
+export interface AppMembershipInput {
+  id?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  createdBy?: string;
+  updatedBy?: string;
+  createdByPrincipal?: string;
+  updatedByPrincipal?: string;
+  /** Whether this membership has been approved by an admin */
+  isApproved?: boolean;
+  /** Whether this member has been banned from the entity */
+  isBanned?: boolean;
+  /** Whether this membership is temporarily disabled */
+  isDisabled?: boolean;
+  /** Whether this member has been verified (e.g. email confirmation) */
+  isVerified?: boolean;
+  /** Computed field indicating the membership is approved, verified, not banned, and not disabled */
+  isActive?: boolean;
+  /** Whether the actor is the owner of this entity */
+  isOwner?: boolean;
+  /** Whether the actor has admin privileges on this entity */
+  isAdmin?: boolean;
+  /** Aggregated capability bitmask combining profile-based and directly granted capabilities */
+  capabilities?: string;
+  /** Bitmask of capabilities directly granted to this member (not from profiles) */
+  granted?: string;
+  /** References the user who holds this membership */
+  actorId: string;
+  profileId?: string;
 }
 export interface CreateAppInviteInput {
   clientMutationId?: string;
@@ -2956,6 +3202,46 @@ export interface AppInviteInput {
   expiresAt?: string;
   createdAt?: string;
   updatedAt?: string;
+}
+export interface CreateOrgMembershipInput {
+  clientMutationId?: string;
+  /** The `OrgMembership` to be created by this mutation. */
+  orgMembership: OrgMembershipInput;
+}
+/** An input for mutations affecting `OrgMembership` */
+export interface OrgMembershipInput {
+  id?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  createdBy?: string;
+  updatedBy?: string;
+  createdByPrincipal?: string;
+  updatedByPrincipal?: string;
+  /** Whether this membership has been approved by an admin */
+  isApproved?: boolean;
+  /** Whether this member has been banned from the entity */
+  isBanned?: boolean;
+  /** Whether this membership is temporarily disabled */
+  isDisabled?: boolean;
+  /** Computed field indicating the membership is approved, verified, not banned, and not disabled */
+  isActive?: boolean;
+  /** Whether this member is external (not a member of the parent scope). External members may have restricted capabilities. */
+  isExternal?: boolean;
+  /** Whether the actor is the owner of this entity */
+  isOwner?: boolean;
+  /** Whether the actor has admin privileges on this entity */
+  isAdmin?: boolean;
+  /** Aggregated capability bitmask combining profile-based and directly granted capabilities */
+  capabilities?: string;
+  /** Bitmask of capabilities directly granted to this member (not from profiles) */
+  granted?: string;
+  /** References the user who holds this membership */
+  actorId: string;
+  /** References the entity (org or group) this membership belongs to */
+  entityId: string;
+  /** Whether this member has read-only access (blocks mutations when true) */
+  isReadOnly?: boolean;
+  profileId?: string;
 }
 export interface CreateOrgInviteInput {
   clientMutationId?: string;
@@ -2997,6 +3283,43 @@ export interface OrgInviteInput {
   updatedAt?: string;
   entityId: string;
 }
+export interface CreateOrgMembershipSettingInput {
+  clientMutationId?: string;
+  /** The `OrgMembershipSetting` to be created by this mutation. */
+  orgMembershipSetting: OrgMembershipSettingInput;
+}
+/** An input for mutations affecting `OrgMembershipSetting` */
+export interface OrgMembershipSettingInput {
+  id?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  createdBy?: string;
+  updatedBy?: string;
+  createdByPrincipal?: string;
+  updatedByPrincipal?: string;
+  /** References the entity these settings apply to */
+  entityId: string;
+  /** When a member is deleted, whether to cascade-remove their descendant-entity memberships */
+  deleteMemberCascadeChildren?: boolean;
+  /** When a child entity is created, whether to auto-add existing org-level owners as child-entity owners */
+  createChildCascadeOwners?: boolean;
+  /** When a child entity is created, whether to auto-add existing org-level admins as child-entity admins */
+  createChildCascadeAdmins?: boolean;
+  /** When a child entity is created, whether to auto-add existing org-level members (non-admin, non-owner) as child-entity members */
+  createChildCascadeMembers?: boolean;
+  /** Whether descendants of this org may admit members who are not already org members (outside-collaborators toggle) */
+  allowExternalMembers?: boolean;
+  /** Whether principals (agents, API-key identities) may mint API keys and child sessions for this org; requires auth_settings.allow_principal_delegation too */
+  allowPrincipalOwnedApiKeys?: boolean;
+  /** Upper bound on the lifetime of API keys minted for this org's principals; clamps expires_in below auth_settings.api_key_max_duration. NULL means no additional cap */
+  apiKeyMaxDuration?: IntervalInput;
+  /** Controls how profile assignment on invites is validated: strict (capability + subset check), capability_only (capability only), or subset_only (subset check only) */
+  inviteProfileAssignmentMode?: string;
+  /** Whether member_profiles.email is snapshot on join and kept synced with the user's primary email. When FALSE, the email field is left blank and never synced from the user's primary email. */
+  populateMemberEmail?: boolean;
+  /** Allocation mode for sub-entity limits: pooled (shared parent cap, no per-entity budgets) or budgeted (explicit per-entity allocations, transfer enabled) */
+  limitAllocationMode?: string;
+}
 export interface UpdateOrgMemberInput {
   clientMutationId?: string;
   id: string;
@@ -3013,91 +3336,91 @@ export interface OrgMemberPatch {
   /** References the entity (org or group) this member belongs to */
   entityId?: string;
 }
-export interface UpdateAppPermissionDefaultInput {
+export interface UpdateAppCapabilityDefaultInput {
   clientMutationId?: string;
   id: string;
-  /** An object where the defined keys will be set on the `AppPermissionDefault` being updated. */
-  appPermissionDefaultPatch: AppPermissionDefaultPatch;
+  /** An object where the defined keys will be set on the `AppCapabilityDefault` being updated. */
+  appCapabilityDefaultPatch: AppCapabilityDefaultPatch;
 }
-/** Represents an update to a `AppPermissionDefault`. Fields that are set will be updated. */
-export interface AppPermissionDefaultPatch {
+/** Represents an update to a `AppCapabilityDefault`. Fields that are set will be updated. */
+export interface AppCapabilityDefaultPatch {
   id?: string;
-  /** Default permission bitmask applied to new members */
-  permissions?: string;
+  /** Default capability bitmask applied to new members */
+  capabilities?: string;
 }
-export interface UpdateOrgPermissionDefaultInput {
+export interface UpdateOrgCapabilityDefaultInput {
   clientMutationId?: string;
   id: string;
-  /** An object where the defined keys will be set on the `OrgPermissionDefault` being updated. */
-  orgPermissionDefaultPatch: OrgPermissionDefaultPatch;
+  /** An object where the defined keys will be set on the `OrgCapabilityDefault` being updated. */
+  orgCapabilityDefaultPatch: OrgCapabilityDefaultPatch;
 }
-/** Represents an update to a `OrgPermissionDefault`. Fields that are set will be updated. */
-export interface OrgPermissionDefaultPatch {
+/** Represents an update to a `OrgCapabilityDefault`. Fields that are set will be updated. */
+export interface OrgCapabilityDefaultPatch {
   id?: string;
-  /** Default permission bitmask applied to new members */
-  permissions?: string;
-  /** References the entity these default permissions apply to */
+  /** Default capability bitmask applied to new members */
+  capabilities?: string;
+  /** References the entity these default capabilities apply to */
   entityId?: string;
 }
-export interface UpdateAppPermissionDefaultPermissionInput {
+export interface UpdateAppCapabilityDefaultCapabilityInput {
   clientMutationId?: string;
   id: string;
-  /** An object where the defined keys will be set on the `AppPermissionDefaultPermission` being updated. */
-  appPermissionDefaultPermissionPatch: AppPermissionDefaultPermissionPatch;
+  /** An object where the defined keys will be set on the `AppCapabilityDefaultCapability` being updated. */
+  appCapabilityDefaultCapabilityPatch: AppCapabilityDefaultCapabilityPatch;
 }
-/** Represents an update to a `AppPermissionDefaultPermission`. Fields that are set will be updated. */
-export interface AppPermissionDefaultPermissionPatch {
+/** Represents an update to a `AppCapabilityDefaultCapability`. Fields that are set will be updated. */
+export interface AppCapabilityDefaultCapabilityPatch {
   id?: string;
-  /** References the permission included in the defaults bundle */
-  permissionId?: string;
+  /** References the capability included in the defaults bundle */
+  capabilityId?: string;
   createdAt?: string;
   updatedAt?: string;
 }
-export interface UpdateOrgPermissionDefaultPermissionInput {
+export interface UpdateOrgCapabilityDefaultCapabilityInput {
   clientMutationId?: string;
   id: string;
-  /** An object where the defined keys will be set on the `OrgPermissionDefaultPermission` being updated. */
-  orgPermissionDefaultPermissionPatch: OrgPermissionDefaultPermissionPatch;
+  /** An object where the defined keys will be set on the `OrgCapabilityDefaultCapability` being updated. */
+  orgCapabilityDefaultCapabilityPatch: OrgCapabilityDefaultCapabilityPatch;
 }
-/** Represents an update to a `OrgPermissionDefaultPermission`. Fields that are set will be updated. */
-export interface OrgPermissionDefaultPermissionPatch {
+/** Represents an update to a `OrgCapabilityDefaultCapability`. Fields that are set will be updated. */
+export interface OrgCapabilityDefaultCapabilityPatch {
   id?: string;
-  /** References the permission included in the defaults bundle */
-  permissionId?: string;
-  /** Scopes this default permission to a specific entity */
+  /** References the capability included in the defaults bundle */
+  capabilityId?: string;
+  /** Scopes this default capability to a specific entity */
   entityId?: string;
   createdAt?: string;
   updatedAt?: string;
 }
-export interface UpdateAppProfilePermissionInput {
+export interface UpdateAppProfileCapabilityInput {
   clientMutationId?: string;
   id: string;
-  /** An object where the defined keys will be set on the `AppProfilePermission` being updated. */
-  appProfilePermissionPatch: AppProfilePermissionPatch;
+  /** An object where the defined keys will be set on the `AppProfileCapability` being updated. */
+  appProfileCapabilityPatch: AppProfileCapabilityPatch;
 }
-/** Represents an update to a `AppProfilePermission`. Fields that are set will be updated. */
-export interface AppProfilePermissionPatch {
+/** Represents an update to a `AppProfileCapability`. Fields that are set will be updated. */
+export interface AppProfileCapabilityPatch {
   id?: string;
-  /** References the profile this permission belongs to */
+  /** References the profile this capability belongs to */
   profileId?: string;
-  /** References the permission included in this profile */
-  permissionId?: string;
+  /** References the capability included in this profile */
+  capabilityId?: string;
   createdAt?: string;
   updatedAt?: string;
 }
-export interface UpdateOrgProfilePermissionInput {
+export interface UpdateOrgProfileCapabilityInput {
   clientMutationId?: string;
   id: string;
-  /** An object where the defined keys will be set on the `OrgProfilePermission` being updated. */
-  orgProfilePermissionPatch: OrgProfilePermissionPatch;
+  /** An object where the defined keys will be set on the `OrgProfileCapability` being updated. */
+  orgProfileCapabilityPatch: OrgProfileCapabilityPatch;
 }
-/** Represents an update to a `OrgProfilePermission`. Fields that are set will be updated. */
-export interface OrgProfilePermissionPatch {
+/** Represents an update to a `OrgProfileCapability`. Fields that are set will be updated. */
+export interface OrgProfileCapabilityPatch {
   id?: string;
-  /** References the profile this permission belongs to */
+  /** References the profile this capability belongs to */
   profileId?: string;
-  /** References the permission included in this profile */
-  permissionId?: string;
+  /** References the capability included in this profile */
+  capabilityId?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -3114,6 +3437,23 @@ export interface AppAdminGrantPatch {
   isGrant?: boolean;
   /** The member receiving or losing the admin grant; NULL if user was deleted */
   actorId?: string;
+  grantorId?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+export interface UpdateAppCapabilityDefaultGrantInput {
+  clientMutationId?: string;
+  id: string;
+  /** An object where the defined keys will be set on the `AppCapabilityDefaultGrant` being updated. */
+  appCapabilityDefaultGrantPatch: AppCapabilityDefaultGrantPatch;
+}
+/** Represents an update to a `AppCapabilityDefaultGrant`. Fields that are set will be updated. */
+export interface AppCapabilityDefaultGrantPatch {
+  id?: string;
+  /** References the capability being added to or removed from defaults */
+  capabilityId?: string;
+  /** True to add the capability to defaults, false to remove it */
+  isGrant?: boolean;
   grantorId?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -3135,20 +3475,39 @@ export interface AppOwnerGrantPatch {
   createdAt?: string;
   updatedAt?: string;
 }
-export interface UpdateAppPermissionDefaultGrantInput {
+export interface UpdateAppMembershipProfileInput {
   clientMutationId?: string;
   id: string;
-  /** An object where the defined keys will be set on the `AppPermissionDefaultGrant` being updated. */
-  appPermissionDefaultGrantPatch: AppPermissionDefaultGrantPatch;
+  /** An object where the defined keys will be set on the `AppMembershipProfile` being updated. */
+  appMembershipProfilePatch: AppMembershipProfilePatch;
 }
-/** Represents an update to a `AppPermissionDefaultGrant`. Fields that are set will be updated. */
-export interface AppPermissionDefaultGrantPatch {
+/** Represents an update to a `AppMembershipProfile`. Fields that are set will be updated. */
+export interface AppMembershipProfilePatch {
   id?: string;
-  /** References the permission being added to or removed from defaults */
-  permissionId?: string;
-  /** True to add the permission to defaults, false to remove it */
-  isGrant?: boolean;
-  grantorId?: string;
+  /** References the membership holding the profile */
+  membershipId?: string;
+  /** References the held profile */
+  profileId?: string;
+  /** References the user holding the profile, denormalised from the membership */
+  actorId?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+export interface UpdateOrgMembershipProfileInput {
+  clientMutationId?: string;
+  id: string;
+  /** An object where the defined keys will be set on the `OrgMembershipProfile` being updated. */
+  orgMembershipProfilePatch: OrgMembershipProfilePatch;
+}
+/** Represents an update to a `OrgMembershipProfile`. Fields that are set will be updated. */
+export interface OrgMembershipProfilePatch {
+  id?: string;
+  /** References the membership holding the profile */
+  membershipId?: string;
+  /** References the held profile */
+  profileId?: string;
+  /** References the user holding the profile, denormalised from the membership */
+  actorId?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -3171,6 +3530,25 @@ export interface OrgAdminGrantPatch {
   createdAt?: string;
   updatedAt?: string;
 }
+export interface UpdateOrgCapabilityDefaultGrantInput {
+  clientMutationId?: string;
+  id: string;
+  /** An object where the defined keys will be set on the `OrgCapabilityDefaultGrant` being updated. */
+  orgCapabilityDefaultGrantPatch: OrgCapabilityDefaultGrantPatch;
+}
+/** Represents an update to a `OrgCapabilityDefaultGrant`. Fields that are set will be updated. */
+export interface OrgCapabilityDefaultGrantPatch {
+  id?: string;
+  /** References the capability being added to or removed from defaults */
+  capabilityId?: string;
+  /** True to add the capability to defaults, false to remove it */
+  isGrant?: boolean;
+  grantorId?: string;
+  /** Scopes this audit entry to a specific entity */
+  entityId?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
 export interface UpdateOrgOwnerGrantInput {
   clientMutationId?: string;
   id: string;
@@ -3190,25 +3568,6 @@ export interface OrgOwnerGrantPatch {
   createdAt?: string;
   updatedAt?: string;
 }
-export interface UpdateOrgPermissionDefaultGrantInput {
-  clientMutationId?: string;
-  id: string;
-  /** An object where the defined keys will be set on the `OrgPermissionDefaultGrant` being updated. */
-  orgPermissionDefaultGrantPatch: OrgPermissionDefaultGrantPatch;
-}
-/** Represents an update to a `OrgPermissionDefaultGrant`. Fields that are set will be updated. */
-export interface OrgPermissionDefaultGrantPatch {
-  id?: string;
-  /** References the permission being added to or removed from defaults */
-  permissionId?: string;
-  /** True to add the permission to defaults, false to remove it */
-  isGrant?: boolean;
-  grantorId?: string;
-  /** Scopes this audit entry to a specific entity */
-  entityId?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
 export interface UpdateAppProfileDefinitionGrantInput {
   clientMutationId?: string;
   id: string;
@@ -3220,10 +3579,10 @@ export interface AppProfileDefinitionGrantPatch {
   id?: string;
   /** References the profile whose definition was modified; NULL if profile was deleted */
   profileId?: string;
-  /** References the permission that was added to or removed from the profile; NULL if permission was deleted */
-  permissionId?: string;
+  /** References the capability that was added to or removed from the profile; NULL if capability was deleted */
+  capabilityId?: string;
   grantorId?: string;
-  /** True to add the permission to the profile, false to remove it */
+  /** True to add the capability to the profile, false to remove it */
   isGrant?: boolean;
   createdAt?: string;
   updatedAt?: string;
@@ -3258,10 +3617,10 @@ export interface OrgProfileDefinitionGrantPatch {
   id?: string;
   /** References the profile whose definition was modified; NULL if profile was deleted */
   profileId?: string;
-  /** References the permission that was added to or removed from the profile; NULL if permission was deleted */
-  permissionId?: string;
+  /** References the capability that was added to or removed from the profile; NULL if capability was deleted */
+  capabilityId?: string;
   grantorId?: string;
-  /** True to add the permission to the profile, false to remove it */
+  /** True to add the capability to the profile, false to remove it */
   isGrant?: boolean;
   createdAt?: string;
   updatedAt?: string;
@@ -3286,42 +3645,6 @@ export interface OrgProfileGrantPatch {
   isGrant?: boolean;
   createdAt?: string;
   updatedAt?: string;
-}
-export interface UpdateAppPermissionInput {
-  clientMutationId?: string;
-  id: string;
-  /** An object where the defined keys will be set on the `AppPermission` being updated. */
-  appPermissionPatch: AppPermissionPatch;
-}
-/** Represents an update to a `AppPermission`. Fields that are set will be updated. */
-export interface AppPermissionPatch {
-  id?: string;
-  /** Human-readable permission name (e.g. read, write, manage) */
-  name?: string;
-  /** Position of this permission in the bitmask (1-indexed), must be unique per permission set */
-  bitnum?: number;
-  /** Pre-computed bitmask with only this permission bit set, used for bitwise OR/AND operations */
-  bitstr?: string;
-  /** Human-readable description of what this permission allows */
-  description?: string;
-}
-export interface UpdateOrgPermissionInput {
-  clientMutationId?: string;
-  id: string;
-  /** An object where the defined keys will be set on the `OrgPermission` being updated. */
-  orgPermissionPatch: OrgPermissionPatch;
-}
-/** Represents an update to a `OrgPermission`. Fields that are set will be updated. */
-export interface OrgPermissionPatch {
-  id?: string;
-  /** Human-readable permission name (e.g. read, write, manage) */
-  name?: string;
-  /** Position of this permission in the bitmask (1-indexed), must be unique per permission set */
-  bitnum?: number;
-  /** Pre-computed bitmask with only this permission bit set, used for bitwise OR/AND operations */
-  bitstr?: string;
-  /** Human-readable description of what this permission allows */
-  description?: string;
 }
 export interface UpdateOrgChartEdgeGrantInput {
   clientMutationId?: string;
@@ -3367,6 +3690,46 @@ export interface AppClaimedInvitePatch {
   createdAt?: string;
   updatedAt?: string;
 }
+export interface UpdateAppCapabilityInput {
+  clientMutationId?: string;
+  id: string;
+  /** An object where the defined keys will be set on the `AppCapability` being updated. */
+  appCapabilityPatch: AppCapabilityPatch;
+}
+/** Represents an update to a `AppCapability`. Fields that are set will be updated. */
+export interface AppCapabilityPatch {
+  id?: string;
+  /** Human-readable capability name (e.g. read, write, manage) */
+  name?: string;
+  /** Position of this capability in the bitmask (1-indexed), must be unique per capability set */
+  bitnum?: number;
+  /** Pre-computed bitmask with only this capability bit set, used for bitwise OR/AND operations */
+  bitstr?: string;
+  /** Human-readable description of what this capability allows */
+  description?: string;
+  /** Kind of catalog entry: capability (capability) or level (achievement level) */
+  kind?: string;
+}
+export interface UpdateOrgCapabilityInput {
+  clientMutationId?: string;
+  id: string;
+  /** An object where the defined keys will be set on the `OrgCapability` being updated. */
+  orgCapabilityPatch: OrgCapabilityPatch;
+}
+/** Represents an update to a `OrgCapability`. Fields that are set will be updated. */
+export interface OrgCapabilityPatch {
+  id?: string;
+  /** Human-readable capability name (e.g. read, write, manage) */
+  name?: string;
+  /** Position of this capability in the bitmask (1-indexed), must be unique per capability set */
+  bitnum?: number;
+  /** Pre-computed bitmask with only this capability bit set, used for bitwise OR/AND operations */
+  bitstr?: string;
+  /** Human-readable description of what this capability allows */
+  description?: string;
+  /** Kind of catalog entry: capability (capability) or level (achievement level) */
+  kind?: string;
+}
 export interface UpdateMembershipTypeInput {
   clientMutationId?: string;
   /** Integer identifier for the membership type (1=App, 2=Organization, 3=Group) */
@@ -3398,51 +3761,15 @@ export interface UpdateAppGrantInput {
 /** Represents an update to a `AppGrant`. Fields that are set will be updated. */
 export interface AppGrantPatch {
   id?: string;
-  /** Bitmask of permissions being granted or revoked */
-  permissions?: string;
-  /** True to grant the permissions, false to revoke them */
+  /** Bitmask of capabilities being granted or revoked */
+  capabilities?: string;
+  /** True to grant the capabilities, false to revoke them */
   isGrant?: boolean;
-  /** The member receiving or losing the permission grant; NULL if user was deleted */
+  /** The member receiving or losing the capability grant; NULL if user was deleted */
   actorId?: string;
   grantorId?: string;
   createdAt?: string;
   updatedAt?: string;
-}
-export interface UpdateAppMembershipDefaultInput {
-  clientMutationId?: string;
-  id: string;
-  /** An object where the defined keys will be set on the `AppMembershipDefault` being updated. */
-  appMembershipDefaultPatch: AppMembershipDefaultPatch;
-}
-/** Represents an update to a `AppMembershipDefault`. Fields that are set will be updated. */
-export interface AppMembershipDefaultPatch {
-  id?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  createdBy?: string;
-  updatedBy?: string;
-  /** Whether new members are automatically approved upon joining */
-  isApproved?: boolean;
-  /** Whether new members are automatically verified upon joining */
-  isVerified?: boolean;
-}
-export interface UpdateOrgMembershipDefaultInput {
-  clientMutationId?: string;
-  id: string;
-  /** An object where the defined keys will be set on the `OrgMembershipDefault` being updated. */
-  orgMembershipDefaultPatch: OrgMembershipDefaultPatch;
-}
-/** Represents an update to a `OrgMembershipDefault`. Fields that are set will be updated. */
-export interface OrgMembershipDefaultPatch {
-  id?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  createdBy?: string;
-  updatedBy?: string;
-  /** Whether new members are automatically approved upon joining */
-  isApproved?: boolean;
-  /** References the entity these membership defaults apply to */
-  entityId?: string;
 }
 export interface UpdateOrgClaimedInviteInput {
   clientMutationId?: string;
@@ -3472,13 +3799,13 @@ export interface UpdateOrgGrantInput {
 /** Represents an update to a `OrgGrant`. Fields that are set will be updated. */
 export interface OrgGrantPatch {
   id?: string;
-  /** Bitmask of permissions being granted or revoked */
-  permissions?: string;
-  /** True to grant the permissions, false to revoke them */
+  /** Bitmask of capabilities being granted or revoked */
+  capabilities?: string;
+  /** True to grant the capabilities, false to revoke them */
   isGrant?: boolean;
-  /** The member receiving or losing the permission grant; NULL if user was deleted */
+  /** The member receiving or losing the capability grant; NULL if user was deleted */
   actorId?: string;
-  /** The entity (org or group) this permission grant applies to */
+  /** The entity (org or group) this capability grant applies to */
   entityId?: string;
   grantorId?: string;
   createdAt?: string;
@@ -3521,8 +3848,8 @@ export interface AppProfileTemplatePatch {
   slug?: string;
   /** Human-readable description of this template profile */
   description?: string;
-  /** Pre-computed permission bitmask for the seeded profile */
-  permissions?: string;
+  /** Pre-computed capability bitmask for the seeded profile */
+  capabilities?: string;
   /** Whether the seeded profile should be the default for new members */
   isDefault?: boolean;
   createdAt?: string;
@@ -3543,12 +3870,52 @@ export interface OrgProfileTemplatePatch {
   slug?: string;
   /** Human-readable description of this template profile */
   description?: string;
-  /** Pre-computed permission bitmask for the seeded profile */
-  permissions?: string;
+  /** Pre-computed capability bitmask for the seeded profile */
+  capabilities?: string;
   /** Whether the seeded profile should be the default for new members */
   isDefault?: boolean;
   createdAt?: string;
   updatedAt?: string;
+}
+export interface UpdateAppMembershipDefaultInput {
+  clientMutationId?: string;
+  id: string;
+  /** An object where the defined keys will be set on the `AppMembershipDefault` being updated. */
+  appMembershipDefaultPatch: AppMembershipDefaultPatch;
+}
+/** Represents an update to a `AppMembershipDefault`. Fields that are set will be updated. */
+export interface AppMembershipDefaultPatch {
+  id?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  createdBy?: string;
+  updatedBy?: string;
+  createdByPrincipal?: string;
+  updatedByPrincipal?: string;
+  /** Whether new members are automatically approved upon joining */
+  isApproved?: boolean;
+  /** Whether new members are automatically verified upon joining */
+  isVerified?: boolean;
+}
+export interface UpdateOrgMembershipDefaultInput {
+  clientMutationId?: string;
+  id: string;
+  /** An object where the defined keys will be set on the `OrgMembershipDefault` being updated. */
+  orgMembershipDefaultPatch: OrgMembershipDefaultPatch;
+}
+/** Represents an update to a `OrgMembershipDefault`. Fields that are set will be updated. */
+export interface OrgMembershipDefaultPatch {
+  id?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  createdBy?: string;
+  updatedBy?: string;
+  createdByPrincipal?: string;
+  updatedByPrincipal?: string;
+  /** Whether new members are automatically approved upon joining */
+  isApproved?: boolean;
+  /** References the entity these membership defaults apply to */
+  entityId?: string;
 }
 export interface UpdateAppProfileInput {
   clientMutationId?: string;
@@ -3565,8 +3932,8 @@ export interface AppProfilePatch {
   slug?: string;
   /** Human-readable description of this profile and its intended use */
   description?: string;
-  /** Pre-computed permission bitmask aggregating all permissions in this profile */
-  permissions?: string;
+  /** Pre-computed capability bitmask aggregating all capabilities in this profile */
+  capabilities?: string;
   /** System profiles are built-in and cannot be deleted or renamed by users */
   isSystem?: boolean;
   /** The default profile is automatically assigned to new members when they join */
@@ -3589,8 +3956,8 @@ export interface OrgProfilePatch {
   slug?: string;
   /** Human-readable description of this profile and its intended use */
   description?: string;
-  /** Pre-computed permission bitmask aggregating all permissions in this profile */
-  permissions?: string;
+  /** Pre-computed capability bitmask aggregating all capabilities in this profile */
+  capabilities?: string;
   /** System profiles are built-in and cannot be deleted or renamed by users */
   isSystem?: boolean;
   /** The default profile is automatically assigned to new members when they join */
@@ -3599,112 +3966,6 @@ export interface OrgProfilePatch {
   updatedAt?: string;
   /** Scopes this profile to a specific entity; NULL means it is a global profile */
   entityId?: string;
-}
-export interface UpdateOrgMembershipSettingInput {
-  clientMutationId?: string;
-  id: string;
-  /** An object where the defined keys will be set on the `OrgMembershipSetting` being updated. */
-  orgMembershipSettingPatch: OrgMembershipSettingPatch;
-}
-/** Represents an update to a `OrgMembershipSetting`. Fields that are set will be updated. */
-export interface OrgMembershipSettingPatch {
-  id?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  createdBy?: string;
-  updatedBy?: string;
-  /** References the entity these settings apply to */
-  entityId?: string;
-  /** When a member is deleted, whether to cascade-remove their descendant-entity memberships */
-  deleteMemberCascadeChildren?: boolean;
-  /** When a child entity is created, whether to auto-add existing org-level owners as child-entity owners */
-  createChildCascadeOwners?: boolean;
-  /** When a child entity is created, whether to auto-add existing org-level admins as child-entity admins */
-  createChildCascadeAdmins?: boolean;
-  /** When a child entity is created, whether to auto-add existing org-level members (non-admin, non-owner) as child-entity members */
-  createChildCascadeMembers?: boolean;
-  /** Whether descendants of this org may admit members who are not already org members (outside-collaborators toggle) */
-  allowExternalMembers?: boolean;
-  /** Controls how profile assignment on invites is validated: strict (permission + subset check), permission_only (permission only), or subset_only (subset check only) */
-  inviteProfileAssignmentMode?: string;
-  /** Whether member_profiles.email is snapshot on join and kept synced with the user's primary email. When FALSE, the email field is left blank and never synced from the user's primary email. */
-  populateMemberEmail?: boolean;
-  /** Allocation mode for sub-entity limits: pooled (shared parent cap, no per-entity budgets) or budgeted (explicit per-entity allocations, transfer enabled) */
-  limitAllocationMode?: string;
-}
-export interface UpdateAppMembershipInput {
-  clientMutationId?: string;
-  id: string;
-  /** An object where the defined keys will be set on the `AppMembership` being updated. */
-  appMembershipPatch: AppMembershipPatch;
-}
-/** Represents an update to a `AppMembership`. Fields that are set will be updated. */
-export interface AppMembershipPatch {
-  id?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  createdBy?: string;
-  updatedBy?: string;
-  /** Whether this membership has been approved by an admin */
-  isApproved?: boolean;
-  /** Whether this member has been banned from the entity */
-  isBanned?: boolean;
-  /** Whether this membership is temporarily disabled */
-  isDisabled?: boolean;
-  /** Whether this member has been verified (e.g. email confirmation) */
-  isVerified?: boolean;
-  /** Computed field indicating the membership is approved, verified, not banned, and not disabled */
-  isActive?: boolean;
-  /** Whether the actor is the owner of this entity */
-  isOwner?: boolean;
-  /** Whether the actor has admin privileges on this entity */
-  isAdmin?: boolean;
-  /** Aggregated permission bitmask combining profile-based and directly granted permissions */
-  permissions?: string;
-  /** Bitmask of permissions directly granted to this member (not from profiles) */
-  granted?: string;
-  /** References the user who holds this membership */
-  actorId?: string;
-  profileId?: string;
-}
-export interface UpdateOrgMembershipInput {
-  clientMutationId?: string;
-  id: string;
-  /** An object where the defined keys will be set on the `OrgMembership` being updated. */
-  orgMembershipPatch: OrgMembershipPatch;
-}
-/** Represents an update to a `OrgMembership`. Fields that are set will be updated. */
-export interface OrgMembershipPatch {
-  id?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  createdBy?: string;
-  updatedBy?: string;
-  /** Whether this membership has been approved by an admin */
-  isApproved?: boolean;
-  /** Whether this member has been banned from the entity */
-  isBanned?: boolean;
-  /** Whether this membership is temporarily disabled */
-  isDisabled?: boolean;
-  /** Computed field indicating the membership is approved, verified, not banned, and not disabled */
-  isActive?: boolean;
-  /** Whether this member is external (not a member of the parent scope). External members may have restricted permissions. */
-  isExternal?: boolean;
-  /** Whether the actor is the owner of this entity */
-  isOwner?: boolean;
-  /** Whether the actor has admin privileges on this entity */
-  isAdmin?: boolean;
-  /** Aggregated permission bitmask combining profile-based and directly granted permissions */
-  permissions?: string;
-  /** Bitmask of permissions directly granted to this member (not from profiles) */
-  granted?: string;
-  /** References the user who holds this membership */
-  actorId?: string;
-  /** References the entity (org or group) this membership belongs to */
-  entityId?: string;
-  /** Whether this member has read-only access (blocks mutations when true) */
-  isReadOnly?: boolean;
-  profileId?: string;
 }
 export interface UpdateOrgMemberProfileInput {
   clientMutationId?: string;
@@ -3735,6 +3996,43 @@ export interface OrgMemberProfilePatch {
   profilePicture?: ConstructiveInternalTypeImage;
   /** Upload for Profile picture visible to other entity members */
   profilePictureUpload?: File;
+}
+export interface UpdateAppMembershipInput {
+  clientMutationId?: string;
+  id: string;
+  /** An object where the defined keys will be set on the `AppMembership` being updated. */
+  appMembershipPatch: AppMembershipPatch;
+}
+/** Represents an update to a `AppMembership`. Fields that are set will be updated. */
+export interface AppMembershipPatch {
+  id?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  createdBy?: string;
+  updatedBy?: string;
+  createdByPrincipal?: string;
+  updatedByPrincipal?: string;
+  /** Whether this membership has been approved by an admin */
+  isApproved?: boolean;
+  /** Whether this member has been banned from the entity */
+  isBanned?: boolean;
+  /** Whether this membership is temporarily disabled */
+  isDisabled?: boolean;
+  /** Whether this member has been verified (e.g. email confirmation) */
+  isVerified?: boolean;
+  /** Computed field indicating the membership is approved, verified, not banned, and not disabled */
+  isActive?: boolean;
+  /** Whether the actor is the owner of this entity */
+  isOwner?: boolean;
+  /** Whether the actor has admin privileges on this entity */
+  isAdmin?: boolean;
+  /** Aggregated capability bitmask combining profile-based and directly granted capabilities */
+  capabilities?: string;
+  /** Bitmask of capabilities directly granted to this member (not from profiles) */
+  granted?: string;
+  /** References the user who holds this membership */
+  actorId?: string;
+  profileId?: string;
 }
 export interface UpdateAppInviteInput {
   clientMutationId?: string;
@@ -3771,6 +4069,47 @@ export interface AppInvitePatch {
   expiresAt?: string;
   createdAt?: string;
   updatedAt?: string;
+}
+export interface UpdateOrgMembershipInput {
+  clientMutationId?: string;
+  id: string;
+  /** An object where the defined keys will be set on the `OrgMembership` being updated. */
+  orgMembershipPatch: OrgMembershipPatch;
+}
+/** Represents an update to a `OrgMembership`. Fields that are set will be updated. */
+export interface OrgMembershipPatch {
+  id?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  createdBy?: string;
+  updatedBy?: string;
+  createdByPrincipal?: string;
+  updatedByPrincipal?: string;
+  /** Whether this membership has been approved by an admin */
+  isApproved?: boolean;
+  /** Whether this member has been banned from the entity */
+  isBanned?: boolean;
+  /** Whether this membership is temporarily disabled */
+  isDisabled?: boolean;
+  /** Computed field indicating the membership is approved, verified, not banned, and not disabled */
+  isActive?: boolean;
+  /** Whether this member is external (not a member of the parent scope). External members may have restricted capabilities. */
+  isExternal?: boolean;
+  /** Whether the actor is the owner of this entity */
+  isOwner?: boolean;
+  /** Whether the actor has admin privileges on this entity */
+  isAdmin?: boolean;
+  /** Aggregated capability bitmask combining profile-based and directly granted capabilities */
+  capabilities?: string;
+  /** Bitmask of capabilities directly granted to this member (not from profiles) */
+  granted?: string;
+  /** References the user who holds this membership */
+  actorId?: string;
+  /** References the entity (org or group) this membership belongs to */
+  entityId?: string;
+  /** Whether this member has read-only access (blocks mutations when true) */
+  isReadOnly?: boolean;
+  profileId?: string;
 }
 export interface UpdateOrgInviteInput {
   clientMutationId?: string;
@@ -3813,31 +4152,69 @@ export interface OrgInvitePatch {
   updatedAt?: string;
   entityId?: string;
 }
+export interface UpdateOrgMembershipSettingInput {
+  clientMutationId?: string;
+  id: string;
+  /** An object where the defined keys will be set on the `OrgMembershipSetting` being updated. */
+  orgMembershipSettingPatch: OrgMembershipSettingPatch;
+}
+/** Represents an update to a `OrgMembershipSetting`. Fields that are set will be updated. */
+export interface OrgMembershipSettingPatch {
+  id?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  createdBy?: string;
+  updatedBy?: string;
+  createdByPrincipal?: string;
+  updatedByPrincipal?: string;
+  /** References the entity these settings apply to */
+  entityId?: string;
+  /** When a member is deleted, whether to cascade-remove their descendant-entity memberships */
+  deleteMemberCascadeChildren?: boolean;
+  /** When a child entity is created, whether to auto-add existing org-level owners as child-entity owners */
+  createChildCascadeOwners?: boolean;
+  /** When a child entity is created, whether to auto-add existing org-level admins as child-entity admins */
+  createChildCascadeAdmins?: boolean;
+  /** When a child entity is created, whether to auto-add existing org-level members (non-admin, non-owner) as child-entity members */
+  createChildCascadeMembers?: boolean;
+  /** Whether descendants of this org may admit members who are not already org members (outside-collaborators toggle) */
+  allowExternalMembers?: boolean;
+  /** Whether principals (agents, API-key identities) may mint API keys and child sessions for this org; requires auth_settings.allow_principal_delegation too */
+  allowPrincipalOwnedApiKeys?: boolean;
+  /** Upper bound on the lifetime of API keys minted for this org's principals; clamps expires_in below auth_settings.api_key_max_duration. NULL means no additional cap */
+  apiKeyMaxDuration?: IntervalInput;
+  /** Controls how profile assignment on invites is validated: strict (capability + subset check), capability_only (capability only), or subset_only (subset check only) */
+  inviteProfileAssignmentMode?: string;
+  /** Whether member_profiles.email is snapshot on join and kept synced with the user's primary email. When FALSE, the email field is left blank and never synced from the user's primary email. */
+  populateMemberEmail?: boolean;
+  /** Allocation mode for sub-entity limits: pooled (shared parent cap, no per-entity budgets) or budgeted (explicit per-entity allocations, transfer enabled) */
+  limitAllocationMode?: string;
+}
 export interface DeleteOrgMemberInput {
   clientMutationId?: string;
   id: string;
 }
-export interface DeleteAppPermissionDefaultInput {
+export interface DeleteAppCapabilityDefaultInput {
   clientMutationId?: string;
   id: string;
 }
-export interface DeleteOrgPermissionDefaultInput {
+export interface DeleteOrgCapabilityDefaultInput {
   clientMutationId?: string;
   id: string;
 }
-export interface DeleteAppPermissionDefaultPermissionInput {
+export interface DeleteAppCapabilityDefaultCapabilityInput {
   clientMutationId?: string;
   id: string;
 }
-export interface DeleteOrgPermissionDefaultPermissionInput {
+export interface DeleteOrgCapabilityDefaultCapabilityInput {
   clientMutationId?: string;
   id: string;
 }
-export interface DeleteAppProfilePermissionInput {
+export interface DeleteAppProfileCapabilityInput {
   clientMutationId?: string;
   id: string;
 }
-export interface DeleteOrgProfilePermissionInput {
+export interface DeleteOrgProfileCapabilityInput {
   clientMutationId?: string;
   id: string;
 }
@@ -3845,11 +4222,19 @@ export interface DeleteAppAdminGrantInput {
   clientMutationId?: string;
   id: string;
 }
+export interface DeleteAppCapabilityDefaultGrantInput {
+  clientMutationId?: string;
+  id: string;
+}
 export interface DeleteAppOwnerGrantInput {
   clientMutationId?: string;
   id: string;
 }
-export interface DeleteAppPermissionDefaultGrantInput {
+export interface DeleteAppMembershipProfileInput {
+  clientMutationId?: string;
+  id: string;
+}
+export interface DeleteOrgMembershipProfileInput {
   clientMutationId?: string;
   id: string;
 }
@@ -3857,11 +4242,11 @@ export interface DeleteOrgAdminGrantInput {
   clientMutationId?: string;
   id: string;
 }
-export interface DeleteOrgOwnerGrantInput {
+export interface DeleteOrgCapabilityDefaultGrantInput {
   clientMutationId?: string;
   id: string;
 }
-export interface DeleteOrgPermissionDefaultGrantInput {
+export interface DeleteOrgOwnerGrantInput {
   clientMutationId?: string;
   id: string;
 }
@@ -3881,19 +4266,19 @@ export interface DeleteOrgProfileGrantInput {
   clientMutationId?: string;
   id: string;
 }
-export interface DeleteAppPermissionInput {
-  clientMutationId?: string;
-  id: string;
-}
-export interface DeleteOrgPermissionInput {
-  clientMutationId?: string;
-  id: string;
-}
 export interface DeleteOrgChartEdgeGrantInput {
   clientMutationId?: string;
   id: string;
 }
 export interface DeleteAppClaimedInviteInput {
+  clientMutationId?: string;
+  id: string;
+}
+export interface DeleteAppCapabilityInput {
+  clientMutationId?: string;
+  id: string;
+}
+export interface DeleteOrgCapabilityInput {
   clientMutationId?: string;
   id: string;
 }
@@ -3903,14 +4288,6 @@ export interface DeleteMembershipTypeInput {
   id: number;
 }
 export interface DeleteAppGrantInput {
-  clientMutationId?: string;
-  id: string;
-}
-export interface DeleteAppMembershipDefaultInput {
-  clientMutationId?: string;
-  id: string;
-}
-export interface DeleteOrgMembershipDefaultInput {
   clientMutationId?: string;
   id: string;
 }
@@ -3934,6 +4311,14 @@ export interface DeleteOrgProfileTemplateInput {
   clientMutationId?: string;
   id: string;
 }
+export interface DeleteAppMembershipDefaultInput {
+  clientMutationId?: string;
+  id: string;
+}
+export interface DeleteOrgMembershipDefaultInput {
+  clientMutationId?: string;
+  id: string;
+}
 export interface DeleteAppProfileInput {
   clientMutationId?: string;
   id: string;
@@ -3942,7 +4327,7 @@ export interface DeleteOrgProfileInput {
   clientMutationId?: string;
   id: string;
 }
-export interface DeleteOrgMembershipSettingInput {
+export interface DeleteOrgMemberProfileInput {
   clientMutationId?: string;
   id: string;
 }
@@ -3950,19 +4335,19 @@ export interface DeleteAppMembershipInput {
   clientMutationId?: string;
   id: string;
 }
-export interface DeleteOrgMembershipInput {
-  clientMutationId?: string;
-  id: string;
-}
-export interface DeleteOrgMemberProfileInput {
-  clientMutationId?: string;
-  id: string;
-}
 export interface DeleteAppInviteInput {
   clientMutationId?: string;
   id: string;
 }
+export interface DeleteOrgMembershipInput {
+  clientMutationId?: string;
+  id: string;
+}
 export interface DeleteOrgInviteInput {
+  clientMutationId?: string;
+  id: string;
+}
+export interface DeleteOrgMembershipSettingInput {
   clientMutationId?: string;
   id: string;
 }
@@ -3989,17 +4374,31 @@ export interface OrgGetSubordinatesConnection {
   pageInfo: PageInfo;
   totalCount: number;
 }
-/** A connection to a list of `AppPermission` values. */
-export interface AppPermissionConnection {
-  nodes: AppPermission[];
-  edges: AppPermissionEdge[];
+/** A connection to a list of `MyPendingAppInvitesRecord` values. */
+export interface MyPendingAppInvitesConnection {
+  nodes: MyPendingAppInvitesRecord[];
+  edges: MyPendingAppInvitesEdge[];
   pageInfo: PageInfo;
   totalCount: number;
 }
-/** A connection to a list of `OrgPermission` values. */
-export interface OrgPermissionConnection {
-  nodes: OrgPermission[];
-  edges: OrgPermissionEdge[];
+/** A connection to a list of `MyPendingOrgInvitesRecord` values. */
+export interface MyPendingOrgInvitesConnection {
+  nodes: MyPendingOrgInvitesRecord[];
+  edges: MyPendingOrgInvitesEdge[];
+  pageInfo: PageInfo;
+  totalCount: number;
+}
+/** A connection to a list of `AppCapability` values. */
+export interface AppCapabilityConnection {
+  nodes: AppCapability[];
+  edges: AppCapabilityEdge[];
+  pageInfo: PageInfo;
+  totalCount: number;
+}
+/** A connection to a list of `OrgCapability` values. */
+export interface OrgCapabilityConnection {
+  nodes: OrgCapability[];
+  edges: OrgCapabilityEdge[];
   pageInfo: PageInfo;
   totalCount: number;
 }
@@ -4010,45 +4409,45 @@ export interface OrgMemberConnection {
   pageInfo: PageInfo;
   totalCount: number;
 }
-/** A connection to a list of `AppPermissionDefault` values. */
-export interface AppPermissionDefaultConnection {
-  nodes: AppPermissionDefault[];
-  edges: AppPermissionDefaultEdge[];
+/** A connection to a list of `AppCapabilityDefault` values. */
+export interface AppCapabilityDefaultConnection {
+  nodes: AppCapabilityDefault[];
+  edges: AppCapabilityDefaultEdge[];
   pageInfo: PageInfo;
   totalCount: number;
 }
-/** A connection to a list of `OrgPermissionDefault` values. */
-export interface OrgPermissionDefaultConnection {
-  nodes: OrgPermissionDefault[];
-  edges: OrgPermissionDefaultEdge[];
+/** A connection to a list of `OrgCapabilityDefault` values. */
+export interface OrgCapabilityDefaultConnection {
+  nodes: OrgCapabilityDefault[];
+  edges: OrgCapabilityDefaultEdge[];
   pageInfo: PageInfo;
   totalCount: number;
 }
-/** A connection to a list of `AppPermissionDefaultPermission` values. */
-export interface AppPermissionDefaultPermissionConnection {
-  nodes: AppPermissionDefaultPermission[];
-  edges: AppPermissionDefaultPermissionEdge[];
+/** A connection to a list of `AppCapabilityDefaultCapability` values. */
+export interface AppCapabilityDefaultCapabilityConnection {
+  nodes: AppCapabilityDefaultCapability[];
+  edges: AppCapabilityDefaultCapabilityEdge[];
   pageInfo: PageInfo;
   totalCount: number;
 }
-/** A connection to a list of `OrgPermissionDefaultPermission` values. */
-export interface OrgPermissionDefaultPermissionConnection {
-  nodes: OrgPermissionDefaultPermission[];
-  edges: OrgPermissionDefaultPermissionEdge[];
+/** A connection to a list of `OrgCapabilityDefaultCapability` values. */
+export interface OrgCapabilityDefaultCapabilityConnection {
+  nodes: OrgCapabilityDefaultCapability[];
+  edges: OrgCapabilityDefaultCapabilityEdge[];
   pageInfo: PageInfo;
   totalCount: number;
 }
-/** A connection to a list of `AppProfilePermission` values. */
-export interface AppProfilePermissionConnection {
-  nodes: AppProfilePermission[];
-  edges: AppProfilePermissionEdge[];
+/** A connection to a list of `AppProfileCapability` values. */
+export interface AppProfileCapabilityConnection {
+  nodes: AppProfileCapability[];
+  edges: AppProfileCapabilityEdge[];
   pageInfo: PageInfo;
   totalCount: number;
 }
-/** A connection to a list of `OrgProfilePermission` values. */
-export interface OrgProfilePermissionConnection {
-  nodes: OrgProfilePermission[];
-  edges: OrgProfilePermissionEdge[];
+/** A connection to a list of `OrgProfileCapability` values. */
+export interface OrgProfileCapabilityConnection {
+  nodes: OrgProfileCapability[];
+  edges: OrgProfileCapabilityEdge[];
   pageInfo: PageInfo;
   totalCount: number;
 }
@@ -4059,6 +4458,13 @@ export interface AppAdminGrantConnection {
   pageInfo: PageInfo;
   totalCount: number;
 }
+/** A connection to a list of `AppCapabilityDefaultGrant` values. */
+export interface AppCapabilityDefaultGrantConnection {
+  nodes: AppCapabilityDefaultGrant[];
+  edges: AppCapabilityDefaultGrantEdge[];
+  pageInfo: PageInfo;
+  totalCount: number;
+}
 /** A connection to a list of `AppOwnerGrant` values. */
 export interface AppOwnerGrantConnection {
   nodes: AppOwnerGrant[];
@@ -4066,10 +4472,17 @@ export interface AppOwnerGrantConnection {
   pageInfo: PageInfo;
   totalCount: number;
 }
-/** A connection to a list of `AppPermissionDefaultGrant` values. */
-export interface AppPermissionDefaultGrantConnection {
-  nodes: AppPermissionDefaultGrant[];
-  edges: AppPermissionDefaultGrantEdge[];
+/** A connection to a list of `AppMembershipProfile` values. */
+export interface AppMembershipProfileConnection {
+  nodes: AppMembershipProfile[];
+  edges: AppMembershipProfileEdge[];
+  pageInfo: PageInfo;
+  totalCount: number;
+}
+/** A connection to a list of `OrgMembershipProfile` values. */
+export interface OrgMembershipProfileConnection {
+  nodes: OrgMembershipProfile[];
+  edges: OrgMembershipProfileEdge[];
   pageInfo: PageInfo;
   totalCount: number;
 }
@@ -4080,17 +4493,17 @@ export interface OrgAdminGrantConnection {
   pageInfo: PageInfo;
   totalCount: number;
 }
+/** A connection to a list of `OrgCapabilityDefaultGrant` values. */
+export interface OrgCapabilityDefaultGrantConnection {
+  nodes: OrgCapabilityDefaultGrant[];
+  edges: OrgCapabilityDefaultGrantEdge[];
+  pageInfo: PageInfo;
+  totalCount: number;
+}
 /** A connection to a list of `OrgOwnerGrant` values. */
 export interface OrgOwnerGrantConnection {
   nodes: OrgOwnerGrant[];
   edges: OrgOwnerGrantEdge[];
-  pageInfo: PageInfo;
-  totalCount: number;
-}
-/** A connection to a list of `OrgPermissionDefaultGrant` values. */
-export interface OrgPermissionDefaultGrantConnection {
-  nodes: OrgPermissionDefaultGrant[];
-  edges: OrgPermissionDefaultGrantEdge[];
   pageInfo: PageInfo;
   totalCount: number;
 }
@@ -4150,20 +4563,6 @@ export interface AppGrantConnection {
   pageInfo: PageInfo;
   totalCount: number;
 }
-/** A connection to a list of `AppMembershipDefault` values. */
-export interface AppMembershipDefaultConnection {
-  nodes: AppMembershipDefault[];
-  edges: AppMembershipDefaultEdge[];
-  pageInfo: PageInfo;
-  totalCount: number;
-}
-/** A connection to a list of `OrgMembershipDefault` values. */
-export interface OrgMembershipDefaultConnection {
-  nodes: OrgMembershipDefault[];
-  edges: OrgMembershipDefaultEdge[];
-  pageInfo: PageInfo;
-  totalCount: number;
-}
 /** A connection to a list of `OrgClaimedInvite` values. */
 export interface OrgClaimedInviteConnection {
   nodes: OrgClaimedInvite[];
@@ -4199,6 +4598,20 @@ export interface OrgProfileTemplateConnection {
   pageInfo: PageInfo;
   totalCount: number;
 }
+/** A connection to a list of `AppMembershipDefault` values. */
+export interface AppMembershipDefaultConnection {
+  nodes: AppMembershipDefault[];
+  edges: AppMembershipDefaultEdge[];
+  pageInfo: PageInfo;
+  totalCount: number;
+}
+/** A connection to a list of `OrgMembershipDefault` values. */
+export interface OrgMembershipDefaultConnection {
+  nodes: OrgMembershipDefault[];
+  edges: OrgMembershipDefaultEdge[];
+  pageInfo: PageInfo;
+  totalCount: number;
+}
 /** A connection to a list of `AppProfile` values. */
 export interface AppProfileConnection {
   nodes: AppProfile[];
@@ -4213,10 +4626,10 @@ export interface OrgProfileConnection {
   pageInfo: PageInfo;
   totalCount: number;
 }
-/** A connection to a list of `OrgMembershipSetting` values. */
-export interface OrgMembershipSettingConnection {
-  nodes: OrgMembershipSetting[];
-  edges: OrgMembershipSettingEdge[];
+/** A connection to a list of `OrgMemberProfile` values. */
+export interface OrgMemberProfileConnection {
+  nodes: OrgMemberProfile[];
+  edges: OrgMemberProfileEdge[];
   pageInfo: PageInfo;
   totalCount: number;
 }
@@ -4227,24 +4640,17 @@ export interface AppMembershipConnection {
   pageInfo: PageInfo;
   totalCount: number;
 }
-/** A connection to a list of `OrgMembership` values. */
-export interface OrgMembershipConnection {
-  nodes: OrgMembership[];
-  edges: OrgMembershipEdge[];
-  pageInfo: PageInfo;
-  totalCount: number;
-}
-/** A connection to a list of `OrgMemberProfile` values. */
-export interface OrgMemberProfileConnection {
-  nodes: OrgMemberProfile[];
-  edges: OrgMemberProfileEdge[];
-  pageInfo: PageInfo;
-  totalCount: number;
-}
 /** A connection to a list of `AppInvite` values. */
 export interface AppInviteConnection {
   nodes: AppInvite[];
   edges: AppInviteEdge[];
+  pageInfo: PageInfo;
+  totalCount: number;
+}
+/** A connection to a list of `OrgMembership` values. */
+export interface OrgMembershipConnection {
+  nodes: OrgMembership[];
+  edges: OrgMembershipEdge[];
   pageInfo: PageInfo;
   totalCount: number;
 }
@@ -4255,9 +4661,24 @@ export interface OrgInviteConnection {
   pageInfo: PageInfo;
   totalCount: number;
 }
+/** A connection to a list of `OrgMembershipSetting` values. */
+export interface OrgMembershipSettingConnection {
+  nodes: OrgMembershipSetting[];
+  edges: OrgMembershipSettingEdge[];
+  pageInfo: PageInfo;
+  totalCount: number;
+}
 /** Root meta schema type */
 export interface MetaSchema {
   tables: MetaTable[];
+}
+export interface AcceptAppInvitePayload {
+  clientMutationId?: string | null;
+  result?: boolean | null;
+}
+export interface AcceptOrgInvitePayload {
+  clientMutationId?: string | null;
+  result?: boolean | null;
 }
 export interface SubmitAppInviteCodePayload {
   clientMutationId?: string | null;
@@ -4267,47 +4688,63 @@ export interface SubmitOrgInviteCodePayload {
   clientMutationId?: string | null;
   result?: boolean | null;
 }
+export interface ProvisionAppUserPayload {
+  clientMutationId?: string | null;
+  result?: ProvisionAppUserRecord | null;
+}
+export interface ProvisionOrgUserPayload {
+  clientMutationId?: string | null;
+  result?: ProvisionOrgUserRecord | null;
+}
+export interface ProvisionAppUsersBulkPayload {
+  clientMutationId?: string | null;
+  result?: ProvisionAppUsersBulkRecord[] | null;
+}
+export interface ProvisionOrgUsersBulkPayload {
+  clientMutationId?: string | null;
+  result?: ProvisionOrgUsersBulkRecord[] | null;
+}
 export interface CreateOrgMemberPayload {
   clientMutationId?: string | null;
   /** The `OrgMember` that was created by this mutation. */
   orgMember?: OrgMember | null;
   orgMemberEdge?: OrgMemberEdge | null;
 }
-export interface CreateAppPermissionDefaultPayload {
+export interface CreateAppCapabilityDefaultPayload {
   clientMutationId?: string | null;
-  /** The `AppPermissionDefault` that was created by this mutation. */
-  appPermissionDefault?: AppPermissionDefault | null;
-  appPermissionDefaultEdge?: AppPermissionDefaultEdge | null;
+  /** The `AppCapabilityDefault` that was created by this mutation. */
+  appCapabilityDefault?: AppCapabilityDefault | null;
+  appCapabilityDefaultEdge?: AppCapabilityDefaultEdge | null;
 }
-export interface CreateOrgPermissionDefaultPayload {
+export interface CreateOrgCapabilityDefaultPayload {
   clientMutationId?: string | null;
-  /** The `OrgPermissionDefault` that was created by this mutation. */
-  orgPermissionDefault?: OrgPermissionDefault | null;
-  orgPermissionDefaultEdge?: OrgPermissionDefaultEdge | null;
+  /** The `OrgCapabilityDefault` that was created by this mutation. */
+  orgCapabilityDefault?: OrgCapabilityDefault | null;
+  orgCapabilityDefaultEdge?: OrgCapabilityDefaultEdge | null;
 }
-export interface CreateAppPermissionDefaultPermissionPayload {
+export interface CreateAppCapabilityDefaultCapabilityPayload {
   clientMutationId?: string | null;
-  /** The `AppPermissionDefaultPermission` that was created by this mutation. */
-  appPermissionDefaultPermission?: AppPermissionDefaultPermission | null;
-  appPermissionDefaultPermissionEdge?: AppPermissionDefaultPermissionEdge | null;
+  /** The `AppCapabilityDefaultCapability` that was created by this mutation. */
+  appCapabilityDefaultCapability?: AppCapabilityDefaultCapability | null;
+  appCapabilityDefaultCapabilityEdge?: AppCapabilityDefaultCapabilityEdge | null;
 }
-export interface CreateOrgPermissionDefaultPermissionPayload {
+export interface CreateOrgCapabilityDefaultCapabilityPayload {
   clientMutationId?: string | null;
-  /** The `OrgPermissionDefaultPermission` that was created by this mutation. */
-  orgPermissionDefaultPermission?: OrgPermissionDefaultPermission | null;
-  orgPermissionDefaultPermissionEdge?: OrgPermissionDefaultPermissionEdge | null;
+  /** The `OrgCapabilityDefaultCapability` that was created by this mutation. */
+  orgCapabilityDefaultCapability?: OrgCapabilityDefaultCapability | null;
+  orgCapabilityDefaultCapabilityEdge?: OrgCapabilityDefaultCapabilityEdge | null;
 }
-export interface CreateAppProfilePermissionPayload {
+export interface CreateAppProfileCapabilityPayload {
   clientMutationId?: string | null;
-  /** The `AppProfilePermission` that was created by this mutation. */
-  appProfilePermission?: AppProfilePermission | null;
-  appProfilePermissionEdge?: AppProfilePermissionEdge | null;
+  /** The `AppProfileCapability` that was created by this mutation. */
+  appProfileCapability?: AppProfileCapability | null;
+  appProfileCapabilityEdge?: AppProfileCapabilityEdge | null;
 }
-export interface CreateOrgProfilePermissionPayload {
+export interface CreateOrgProfileCapabilityPayload {
   clientMutationId?: string | null;
-  /** The `OrgProfilePermission` that was created by this mutation. */
-  orgProfilePermission?: OrgProfilePermission | null;
-  orgProfilePermissionEdge?: OrgProfilePermissionEdge | null;
+  /** The `OrgProfileCapability` that was created by this mutation. */
+  orgProfileCapability?: OrgProfileCapability | null;
+  orgProfileCapabilityEdge?: OrgProfileCapabilityEdge | null;
 }
 export interface CreateAppAdminGrantPayload {
   clientMutationId?: string | null;
@@ -4315,17 +4752,29 @@ export interface CreateAppAdminGrantPayload {
   appAdminGrant?: AppAdminGrant | null;
   appAdminGrantEdge?: AppAdminGrantEdge | null;
 }
+export interface CreateAppCapabilityDefaultGrantPayload {
+  clientMutationId?: string | null;
+  /** The `AppCapabilityDefaultGrant` that was created by this mutation. */
+  appCapabilityDefaultGrant?: AppCapabilityDefaultGrant | null;
+  appCapabilityDefaultGrantEdge?: AppCapabilityDefaultGrantEdge | null;
+}
 export interface CreateAppOwnerGrantPayload {
   clientMutationId?: string | null;
   /** The `AppOwnerGrant` that was created by this mutation. */
   appOwnerGrant?: AppOwnerGrant | null;
   appOwnerGrantEdge?: AppOwnerGrantEdge | null;
 }
-export interface CreateAppPermissionDefaultGrantPayload {
+export interface CreateAppMembershipProfilePayload {
   clientMutationId?: string | null;
-  /** The `AppPermissionDefaultGrant` that was created by this mutation. */
-  appPermissionDefaultGrant?: AppPermissionDefaultGrant | null;
-  appPermissionDefaultGrantEdge?: AppPermissionDefaultGrantEdge | null;
+  /** The `AppMembershipProfile` that was created by this mutation. */
+  appMembershipProfile?: AppMembershipProfile | null;
+  appMembershipProfileEdge?: AppMembershipProfileEdge | null;
+}
+export interface CreateOrgMembershipProfilePayload {
+  clientMutationId?: string | null;
+  /** The `OrgMembershipProfile` that was created by this mutation. */
+  orgMembershipProfile?: OrgMembershipProfile | null;
+  orgMembershipProfileEdge?: OrgMembershipProfileEdge | null;
 }
 export interface CreateOrgAdminGrantPayload {
   clientMutationId?: string | null;
@@ -4333,17 +4782,17 @@ export interface CreateOrgAdminGrantPayload {
   orgAdminGrant?: OrgAdminGrant | null;
   orgAdminGrantEdge?: OrgAdminGrantEdge | null;
 }
+export interface CreateOrgCapabilityDefaultGrantPayload {
+  clientMutationId?: string | null;
+  /** The `OrgCapabilityDefaultGrant` that was created by this mutation. */
+  orgCapabilityDefaultGrant?: OrgCapabilityDefaultGrant | null;
+  orgCapabilityDefaultGrantEdge?: OrgCapabilityDefaultGrantEdge | null;
+}
 export interface CreateOrgOwnerGrantPayload {
   clientMutationId?: string | null;
   /** The `OrgOwnerGrant` that was created by this mutation. */
   orgOwnerGrant?: OrgOwnerGrant | null;
   orgOwnerGrantEdge?: OrgOwnerGrantEdge | null;
-}
-export interface CreateOrgPermissionDefaultGrantPayload {
-  clientMutationId?: string | null;
-  /** The `OrgPermissionDefaultGrant` that was created by this mutation. */
-  orgPermissionDefaultGrant?: OrgPermissionDefaultGrant | null;
-  orgPermissionDefaultGrantEdge?: OrgPermissionDefaultGrantEdge | null;
 }
 export interface CreateAppProfileDefinitionGrantPayload {
   clientMutationId?: string | null;
@@ -4369,18 +4818,6 @@ export interface CreateOrgProfileGrantPayload {
   orgProfileGrant?: OrgProfileGrant | null;
   orgProfileGrantEdge?: OrgProfileGrantEdge | null;
 }
-export interface CreateAppPermissionPayload {
-  clientMutationId?: string | null;
-  /** The `AppPermission` that was created by this mutation. */
-  appPermission?: AppPermission | null;
-  appPermissionEdge?: AppPermissionEdge | null;
-}
-export interface CreateOrgPermissionPayload {
-  clientMutationId?: string | null;
-  /** The `OrgPermission` that was created by this mutation. */
-  orgPermission?: OrgPermission | null;
-  orgPermissionEdge?: OrgPermissionEdge | null;
-}
 export interface CreateOrgChartEdgeGrantPayload {
   clientMutationId?: string | null;
   /** The `OrgChartEdgeGrant` that was created by this mutation. */
@@ -4393,6 +4830,18 @@ export interface CreateAppClaimedInvitePayload {
   appClaimedInvite?: AppClaimedInvite | null;
   appClaimedInviteEdge?: AppClaimedInviteEdge | null;
 }
+export interface CreateAppCapabilityPayload {
+  clientMutationId?: string | null;
+  /** The `AppCapability` that was created by this mutation. */
+  appCapability?: AppCapability | null;
+  appCapabilityEdge?: AppCapabilityEdge | null;
+}
+export interface CreateOrgCapabilityPayload {
+  clientMutationId?: string | null;
+  /** The `OrgCapability` that was created by this mutation. */
+  orgCapability?: OrgCapability | null;
+  orgCapabilityEdge?: OrgCapabilityEdge | null;
+}
 export interface CreateMembershipTypePayload {
   clientMutationId?: string | null;
   /** The `MembershipType` that was created by this mutation. */
@@ -4404,18 +4853,6 @@ export interface CreateAppGrantPayload {
   /** The `AppGrant` that was created by this mutation. */
   appGrant?: AppGrant | null;
   appGrantEdge?: AppGrantEdge | null;
-}
-export interface CreateAppMembershipDefaultPayload {
-  clientMutationId?: string | null;
-  /** The `AppMembershipDefault` that was created by this mutation. */
-  appMembershipDefault?: AppMembershipDefault | null;
-  appMembershipDefaultEdge?: AppMembershipDefaultEdge | null;
-}
-export interface CreateOrgMembershipDefaultPayload {
-  clientMutationId?: string | null;
-  /** The `OrgMembershipDefault` that was created by this mutation. */
-  orgMembershipDefault?: OrgMembershipDefault | null;
-  orgMembershipDefaultEdge?: OrgMembershipDefaultEdge | null;
 }
 export interface CreateOrgClaimedInvitePayload {
   clientMutationId?: string | null;
@@ -4447,6 +4884,18 @@ export interface CreateOrgProfileTemplatePayload {
   orgProfileTemplate?: OrgProfileTemplate | null;
   orgProfileTemplateEdge?: OrgProfileTemplateEdge | null;
 }
+export interface CreateAppMembershipDefaultPayload {
+  clientMutationId?: string | null;
+  /** The `AppMembershipDefault` that was created by this mutation. */
+  appMembershipDefault?: AppMembershipDefault | null;
+  appMembershipDefaultEdge?: AppMembershipDefaultEdge | null;
+}
+export interface CreateOrgMembershipDefaultPayload {
+  clientMutationId?: string | null;
+  /** The `OrgMembershipDefault` that was created by this mutation. */
+  orgMembershipDefault?: OrgMembershipDefault | null;
+  orgMembershipDefaultEdge?: OrgMembershipDefaultEdge | null;
+}
 export interface CreateAppProfilePayload {
   clientMutationId?: string | null;
   /** The `AppProfile` that was created by this mutation. */
@@ -4459,11 +4908,11 @@ export interface CreateOrgProfilePayload {
   orgProfile?: OrgProfile | null;
   orgProfileEdge?: OrgProfileEdge | null;
 }
-export interface CreateOrgMembershipSettingPayload {
+export interface CreateOrgMemberProfilePayload {
   clientMutationId?: string | null;
-  /** The `OrgMembershipSetting` that was created by this mutation. */
-  orgMembershipSetting?: OrgMembershipSetting | null;
-  orgMembershipSettingEdge?: OrgMembershipSettingEdge | null;
+  /** The `OrgMemberProfile` that was created by this mutation. */
+  orgMemberProfile?: OrgMemberProfile | null;
+  orgMemberProfileEdge?: OrgMemberProfileEdge | null;
 }
 export interface CreateAppMembershipPayload {
   clientMutationId?: string | null;
@@ -4471,23 +4920,17 @@ export interface CreateAppMembershipPayload {
   appMembership?: AppMembership | null;
   appMembershipEdge?: AppMembershipEdge | null;
 }
-export interface CreateOrgMembershipPayload {
-  clientMutationId?: string | null;
-  /** The `OrgMembership` that was created by this mutation. */
-  orgMembership?: OrgMembership | null;
-  orgMembershipEdge?: OrgMembershipEdge | null;
-}
-export interface CreateOrgMemberProfilePayload {
-  clientMutationId?: string | null;
-  /** The `OrgMemberProfile` that was created by this mutation. */
-  orgMemberProfile?: OrgMemberProfile | null;
-  orgMemberProfileEdge?: OrgMemberProfileEdge | null;
-}
 export interface CreateAppInvitePayload {
   clientMutationId?: string | null;
   /** The `AppInvite` that was created by this mutation. */
   appInvite?: AppInvite | null;
   appInviteEdge?: AppInviteEdge | null;
+}
+export interface CreateOrgMembershipPayload {
+  clientMutationId?: string | null;
+  /** The `OrgMembership` that was created by this mutation. */
+  orgMembership?: OrgMembership | null;
+  orgMembershipEdge?: OrgMembershipEdge | null;
 }
 export interface CreateOrgInvitePayload {
   clientMutationId?: string | null;
@@ -4495,47 +4938,53 @@ export interface CreateOrgInvitePayload {
   orgInvite?: OrgInvite | null;
   orgInviteEdge?: OrgInviteEdge | null;
 }
+export interface CreateOrgMembershipSettingPayload {
+  clientMutationId?: string | null;
+  /** The `OrgMembershipSetting` that was created by this mutation. */
+  orgMembershipSetting?: OrgMembershipSetting | null;
+  orgMembershipSettingEdge?: OrgMembershipSettingEdge | null;
+}
 export interface UpdateOrgMemberPayload {
   clientMutationId?: string | null;
   /** The `OrgMember` that was updated by this mutation. */
   orgMember?: OrgMember | null;
   orgMemberEdge?: OrgMemberEdge | null;
 }
-export interface UpdateAppPermissionDefaultPayload {
+export interface UpdateAppCapabilityDefaultPayload {
   clientMutationId?: string | null;
-  /** The `AppPermissionDefault` that was updated by this mutation. */
-  appPermissionDefault?: AppPermissionDefault | null;
-  appPermissionDefaultEdge?: AppPermissionDefaultEdge | null;
+  /** The `AppCapabilityDefault` that was updated by this mutation. */
+  appCapabilityDefault?: AppCapabilityDefault | null;
+  appCapabilityDefaultEdge?: AppCapabilityDefaultEdge | null;
 }
-export interface UpdateOrgPermissionDefaultPayload {
+export interface UpdateOrgCapabilityDefaultPayload {
   clientMutationId?: string | null;
-  /** The `OrgPermissionDefault` that was updated by this mutation. */
-  orgPermissionDefault?: OrgPermissionDefault | null;
-  orgPermissionDefaultEdge?: OrgPermissionDefaultEdge | null;
+  /** The `OrgCapabilityDefault` that was updated by this mutation. */
+  orgCapabilityDefault?: OrgCapabilityDefault | null;
+  orgCapabilityDefaultEdge?: OrgCapabilityDefaultEdge | null;
 }
-export interface UpdateAppPermissionDefaultPermissionPayload {
+export interface UpdateAppCapabilityDefaultCapabilityPayload {
   clientMutationId?: string | null;
-  /** The `AppPermissionDefaultPermission` that was updated by this mutation. */
-  appPermissionDefaultPermission?: AppPermissionDefaultPermission | null;
-  appPermissionDefaultPermissionEdge?: AppPermissionDefaultPermissionEdge | null;
+  /** The `AppCapabilityDefaultCapability` that was updated by this mutation. */
+  appCapabilityDefaultCapability?: AppCapabilityDefaultCapability | null;
+  appCapabilityDefaultCapabilityEdge?: AppCapabilityDefaultCapabilityEdge | null;
 }
-export interface UpdateOrgPermissionDefaultPermissionPayload {
+export interface UpdateOrgCapabilityDefaultCapabilityPayload {
   clientMutationId?: string | null;
-  /** The `OrgPermissionDefaultPermission` that was updated by this mutation. */
-  orgPermissionDefaultPermission?: OrgPermissionDefaultPermission | null;
-  orgPermissionDefaultPermissionEdge?: OrgPermissionDefaultPermissionEdge | null;
+  /** The `OrgCapabilityDefaultCapability` that was updated by this mutation. */
+  orgCapabilityDefaultCapability?: OrgCapabilityDefaultCapability | null;
+  orgCapabilityDefaultCapabilityEdge?: OrgCapabilityDefaultCapabilityEdge | null;
 }
-export interface UpdateAppProfilePermissionPayload {
+export interface UpdateAppProfileCapabilityPayload {
   clientMutationId?: string | null;
-  /** The `AppProfilePermission` that was updated by this mutation. */
-  appProfilePermission?: AppProfilePermission | null;
-  appProfilePermissionEdge?: AppProfilePermissionEdge | null;
+  /** The `AppProfileCapability` that was updated by this mutation. */
+  appProfileCapability?: AppProfileCapability | null;
+  appProfileCapabilityEdge?: AppProfileCapabilityEdge | null;
 }
-export interface UpdateOrgProfilePermissionPayload {
+export interface UpdateOrgProfileCapabilityPayload {
   clientMutationId?: string | null;
-  /** The `OrgProfilePermission` that was updated by this mutation. */
-  orgProfilePermission?: OrgProfilePermission | null;
-  orgProfilePermissionEdge?: OrgProfilePermissionEdge | null;
+  /** The `OrgProfileCapability` that was updated by this mutation. */
+  orgProfileCapability?: OrgProfileCapability | null;
+  orgProfileCapabilityEdge?: OrgProfileCapabilityEdge | null;
 }
 export interface UpdateAppAdminGrantPayload {
   clientMutationId?: string | null;
@@ -4543,17 +4992,29 @@ export interface UpdateAppAdminGrantPayload {
   appAdminGrant?: AppAdminGrant | null;
   appAdminGrantEdge?: AppAdminGrantEdge | null;
 }
+export interface UpdateAppCapabilityDefaultGrantPayload {
+  clientMutationId?: string | null;
+  /** The `AppCapabilityDefaultGrant` that was updated by this mutation. */
+  appCapabilityDefaultGrant?: AppCapabilityDefaultGrant | null;
+  appCapabilityDefaultGrantEdge?: AppCapabilityDefaultGrantEdge | null;
+}
 export interface UpdateAppOwnerGrantPayload {
   clientMutationId?: string | null;
   /** The `AppOwnerGrant` that was updated by this mutation. */
   appOwnerGrant?: AppOwnerGrant | null;
   appOwnerGrantEdge?: AppOwnerGrantEdge | null;
 }
-export interface UpdateAppPermissionDefaultGrantPayload {
+export interface UpdateAppMembershipProfilePayload {
   clientMutationId?: string | null;
-  /** The `AppPermissionDefaultGrant` that was updated by this mutation. */
-  appPermissionDefaultGrant?: AppPermissionDefaultGrant | null;
-  appPermissionDefaultGrantEdge?: AppPermissionDefaultGrantEdge | null;
+  /** The `AppMembershipProfile` that was updated by this mutation. */
+  appMembershipProfile?: AppMembershipProfile | null;
+  appMembershipProfileEdge?: AppMembershipProfileEdge | null;
+}
+export interface UpdateOrgMembershipProfilePayload {
+  clientMutationId?: string | null;
+  /** The `OrgMembershipProfile` that was updated by this mutation. */
+  orgMembershipProfile?: OrgMembershipProfile | null;
+  orgMembershipProfileEdge?: OrgMembershipProfileEdge | null;
 }
 export interface UpdateOrgAdminGrantPayload {
   clientMutationId?: string | null;
@@ -4561,17 +5022,17 @@ export interface UpdateOrgAdminGrantPayload {
   orgAdminGrant?: OrgAdminGrant | null;
   orgAdminGrantEdge?: OrgAdminGrantEdge | null;
 }
+export interface UpdateOrgCapabilityDefaultGrantPayload {
+  clientMutationId?: string | null;
+  /** The `OrgCapabilityDefaultGrant` that was updated by this mutation. */
+  orgCapabilityDefaultGrant?: OrgCapabilityDefaultGrant | null;
+  orgCapabilityDefaultGrantEdge?: OrgCapabilityDefaultGrantEdge | null;
+}
 export interface UpdateOrgOwnerGrantPayload {
   clientMutationId?: string | null;
   /** The `OrgOwnerGrant` that was updated by this mutation. */
   orgOwnerGrant?: OrgOwnerGrant | null;
   orgOwnerGrantEdge?: OrgOwnerGrantEdge | null;
-}
-export interface UpdateOrgPermissionDefaultGrantPayload {
-  clientMutationId?: string | null;
-  /** The `OrgPermissionDefaultGrant` that was updated by this mutation. */
-  orgPermissionDefaultGrant?: OrgPermissionDefaultGrant | null;
-  orgPermissionDefaultGrantEdge?: OrgPermissionDefaultGrantEdge | null;
 }
 export interface UpdateAppProfileDefinitionGrantPayload {
   clientMutationId?: string | null;
@@ -4597,18 +5058,6 @@ export interface UpdateOrgProfileGrantPayload {
   orgProfileGrant?: OrgProfileGrant | null;
   orgProfileGrantEdge?: OrgProfileGrantEdge | null;
 }
-export interface UpdateAppPermissionPayload {
-  clientMutationId?: string | null;
-  /** The `AppPermission` that was updated by this mutation. */
-  appPermission?: AppPermission | null;
-  appPermissionEdge?: AppPermissionEdge | null;
-}
-export interface UpdateOrgPermissionPayload {
-  clientMutationId?: string | null;
-  /** The `OrgPermission` that was updated by this mutation. */
-  orgPermission?: OrgPermission | null;
-  orgPermissionEdge?: OrgPermissionEdge | null;
-}
 export interface UpdateOrgChartEdgeGrantPayload {
   clientMutationId?: string | null;
   /** The `OrgChartEdgeGrant` that was updated by this mutation. */
@@ -4621,6 +5070,18 @@ export interface UpdateAppClaimedInvitePayload {
   appClaimedInvite?: AppClaimedInvite | null;
   appClaimedInviteEdge?: AppClaimedInviteEdge | null;
 }
+export interface UpdateAppCapabilityPayload {
+  clientMutationId?: string | null;
+  /** The `AppCapability` that was updated by this mutation. */
+  appCapability?: AppCapability | null;
+  appCapabilityEdge?: AppCapabilityEdge | null;
+}
+export interface UpdateOrgCapabilityPayload {
+  clientMutationId?: string | null;
+  /** The `OrgCapability` that was updated by this mutation. */
+  orgCapability?: OrgCapability | null;
+  orgCapabilityEdge?: OrgCapabilityEdge | null;
+}
 export interface UpdateMembershipTypePayload {
   clientMutationId?: string | null;
   /** The `MembershipType` that was updated by this mutation. */
@@ -4632,18 +5093,6 @@ export interface UpdateAppGrantPayload {
   /** The `AppGrant` that was updated by this mutation. */
   appGrant?: AppGrant | null;
   appGrantEdge?: AppGrantEdge | null;
-}
-export interface UpdateAppMembershipDefaultPayload {
-  clientMutationId?: string | null;
-  /** The `AppMembershipDefault` that was updated by this mutation. */
-  appMembershipDefault?: AppMembershipDefault | null;
-  appMembershipDefaultEdge?: AppMembershipDefaultEdge | null;
-}
-export interface UpdateOrgMembershipDefaultPayload {
-  clientMutationId?: string | null;
-  /** The `OrgMembershipDefault` that was updated by this mutation. */
-  orgMembershipDefault?: OrgMembershipDefault | null;
-  orgMembershipDefaultEdge?: OrgMembershipDefaultEdge | null;
 }
 export interface UpdateOrgClaimedInvitePayload {
   clientMutationId?: string | null;
@@ -4675,6 +5124,18 @@ export interface UpdateOrgProfileTemplatePayload {
   orgProfileTemplate?: OrgProfileTemplate | null;
   orgProfileTemplateEdge?: OrgProfileTemplateEdge | null;
 }
+export interface UpdateAppMembershipDefaultPayload {
+  clientMutationId?: string | null;
+  /** The `AppMembershipDefault` that was updated by this mutation. */
+  appMembershipDefault?: AppMembershipDefault | null;
+  appMembershipDefaultEdge?: AppMembershipDefaultEdge | null;
+}
+export interface UpdateOrgMembershipDefaultPayload {
+  clientMutationId?: string | null;
+  /** The `OrgMembershipDefault` that was updated by this mutation. */
+  orgMembershipDefault?: OrgMembershipDefault | null;
+  orgMembershipDefaultEdge?: OrgMembershipDefaultEdge | null;
+}
 export interface UpdateAppProfilePayload {
   clientMutationId?: string | null;
   /** The `AppProfile` that was updated by this mutation. */
@@ -4687,11 +5148,11 @@ export interface UpdateOrgProfilePayload {
   orgProfile?: OrgProfile | null;
   orgProfileEdge?: OrgProfileEdge | null;
 }
-export interface UpdateOrgMembershipSettingPayload {
+export interface UpdateOrgMemberProfilePayload {
   clientMutationId?: string | null;
-  /** The `OrgMembershipSetting` that was updated by this mutation. */
-  orgMembershipSetting?: OrgMembershipSetting | null;
-  orgMembershipSettingEdge?: OrgMembershipSettingEdge | null;
+  /** The `OrgMemberProfile` that was updated by this mutation. */
+  orgMemberProfile?: OrgMemberProfile | null;
+  orgMemberProfileEdge?: OrgMemberProfileEdge | null;
 }
 export interface UpdateAppMembershipPayload {
   clientMutationId?: string | null;
@@ -4699,23 +5160,17 @@ export interface UpdateAppMembershipPayload {
   appMembership?: AppMembership | null;
   appMembershipEdge?: AppMembershipEdge | null;
 }
-export interface UpdateOrgMembershipPayload {
-  clientMutationId?: string | null;
-  /** The `OrgMembership` that was updated by this mutation. */
-  orgMembership?: OrgMembership | null;
-  orgMembershipEdge?: OrgMembershipEdge | null;
-}
-export interface UpdateOrgMemberProfilePayload {
-  clientMutationId?: string | null;
-  /** The `OrgMemberProfile` that was updated by this mutation. */
-  orgMemberProfile?: OrgMemberProfile | null;
-  orgMemberProfileEdge?: OrgMemberProfileEdge | null;
-}
 export interface UpdateAppInvitePayload {
   clientMutationId?: string | null;
   /** The `AppInvite` that was updated by this mutation. */
   appInvite?: AppInvite | null;
   appInviteEdge?: AppInviteEdge | null;
+}
+export interface UpdateOrgMembershipPayload {
+  clientMutationId?: string | null;
+  /** The `OrgMembership` that was updated by this mutation. */
+  orgMembership?: OrgMembership | null;
+  orgMembershipEdge?: OrgMembershipEdge | null;
 }
 export interface UpdateOrgInvitePayload {
   clientMutationId?: string | null;
@@ -4723,47 +5178,53 @@ export interface UpdateOrgInvitePayload {
   orgInvite?: OrgInvite | null;
   orgInviteEdge?: OrgInviteEdge | null;
 }
+export interface UpdateOrgMembershipSettingPayload {
+  clientMutationId?: string | null;
+  /** The `OrgMembershipSetting` that was updated by this mutation. */
+  orgMembershipSetting?: OrgMembershipSetting | null;
+  orgMembershipSettingEdge?: OrgMembershipSettingEdge | null;
+}
 export interface DeleteOrgMemberPayload {
   clientMutationId?: string | null;
   /** The `OrgMember` that was deleted by this mutation. */
   orgMember?: OrgMember | null;
   orgMemberEdge?: OrgMemberEdge | null;
 }
-export interface DeleteAppPermissionDefaultPayload {
+export interface DeleteAppCapabilityDefaultPayload {
   clientMutationId?: string | null;
-  /** The `AppPermissionDefault` that was deleted by this mutation. */
-  appPermissionDefault?: AppPermissionDefault | null;
-  appPermissionDefaultEdge?: AppPermissionDefaultEdge | null;
+  /** The `AppCapabilityDefault` that was deleted by this mutation. */
+  appCapabilityDefault?: AppCapabilityDefault | null;
+  appCapabilityDefaultEdge?: AppCapabilityDefaultEdge | null;
 }
-export interface DeleteOrgPermissionDefaultPayload {
+export interface DeleteOrgCapabilityDefaultPayload {
   clientMutationId?: string | null;
-  /** The `OrgPermissionDefault` that was deleted by this mutation. */
-  orgPermissionDefault?: OrgPermissionDefault | null;
-  orgPermissionDefaultEdge?: OrgPermissionDefaultEdge | null;
+  /** The `OrgCapabilityDefault` that was deleted by this mutation. */
+  orgCapabilityDefault?: OrgCapabilityDefault | null;
+  orgCapabilityDefaultEdge?: OrgCapabilityDefaultEdge | null;
 }
-export interface DeleteAppPermissionDefaultPermissionPayload {
+export interface DeleteAppCapabilityDefaultCapabilityPayload {
   clientMutationId?: string | null;
-  /** The `AppPermissionDefaultPermission` that was deleted by this mutation. */
-  appPermissionDefaultPermission?: AppPermissionDefaultPermission | null;
-  appPermissionDefaultPermissionEdge?: AppPermissionDefaultPermissionEdge | null;
+  /** The `AppCapabilityDefaultCapability` that was deleted by this mutation. */
+  appCapabilityDefaultCapability?: AppCapabilityDefaultCapability | null;
+  appCapabilityDefaultCapabilityEdge?: AppCapabilityDefaultCapabilityEdge | null;
 }
-export interface DeleteOrgPermissionDefaultPermissionPayload {
+export interface DeleteOrgCapabilityDefaultCapabilityPayload {
   clientMutationId?: string | null;
-  /** The `OrgPermissionDefaultPermission` that was deleted by this mutation. */
-  orgPermissionDefaultPermission?: OrgPermissionDefaultPermission | null;
-  orgPermissionDefaultPermissionEdge?: OrgPermissionDefaultPermissionEdge | null;
+  /** The `OrgCapabilityDefaultCapability` that was deleted by this mutation. */
+  orgCapabilityDefaultCapability?: OrgCapabilityDefaultCapability | null;
+  orgCapabilityDefaultCapabilityEdge?: OrgCapabilityDefaultCapabilityEdge | null;
 }
-export interface DeleteAppProfilePermissionPayload {
+export interface DeleteAppProfileCapabilityPayload {
   clientMutationId?: string | null;
-  /** The `AppProfilePermission` that was deleted by this mutation. */
-  appProfilePermission?: AppProfilePermission | null;
-  appProfilePermissionEdge?: AppProfilePermissionEdge | null;
+  /** The `AppProfileCapability` that was deleted by this mutation. */
+  appProfileCapability?: AppProfileCapability | null;
+  appProfileCapabilityEdge?: AppProfileCapabilityEdge | null;
 }
-export interface DeleteOrgProfilePermissionPayload {
+export interface DeleteOrgProfileCapabilityPayload {
   clientMutationId?: string | null;
-  /** The `OrgProfilePermission` that was deleted by this mutation. */
-  orgProfilePermission?: OrgProfilePermission | null;
-  orgProfilePermissionEdge?: OrgProfilePermissionEdge | null;
+  /** The `OrgProfileCapability` that was deleted by this mutation. */
+  orgProfileCapability?: OrgProfileCapability | null;
+  orgProfileCapabilityEdge?: OrgProfileCapabilityEdge | null;
 }
 export interface DeleteAppAdminGrantPayload {
   clientMutationId?: string | null;
@@ -4771,17 +5232,29 @@ export interface DeleteAppAdminGrantPayload {
   appAdminGrant?: AppAdminGrant | null;
   appAdminGrantEdge?: AppAdminGrantEdge | null;
 }
+export interface DeleteAppCapabilityDefaultGrantPayload {
+  clientMutationId?: string | null;
+  /** The `AppCapabilityDefaultGrant` that was deleted by this mutation. */
+  appCapabilityDefaultGrant?: AppCapabilityDefaultGrant | null;
+  appCapabilityDefaultGrantEdge?: AppCapabilityDefaultGrantEdge | null;
+}
 export interface DeleteAppOwnerGrantPayload {
   clientMutationId?: string | null;
   /** The `AppOwnerGrant` that was deleted by this mutation. */
   appOwnerGrant?: AppOwnerGrant | null;
   appOwnerGrantEdge?: AppOwnerGrantEdge | null;
 }
-export interface DeleteAppPermissionDefaultGrantPayload {
+export interface DeleteAppMembershipProfilePayload {
   clientMutationId?: string | null;
-  /** The `AppPermissionDefaultGrant` that was deleted by this mutation. */
-  appPermissionDefaultGrant?: AppPermissionDefaultGrant | null;
-  appPermissionDefaultGrantEdge?: AppPermissionDefaultGrantEdge | null;
+  /** The `AppMembershipProfile` that was deleted by this mutation. */
+  appMembershipProfile?: AppMembershipProfile | null;
+  appMembershipProfileEdge?: AppMembershipProfileEdge | null;
+}
+export interface DeleteOrgMembershipProfilePayload {
+  clientMutationId?: string | null;
+  /** The `OrgMembershipProfile` that was deleted by this mutation. */
+  orgMembershipProfile?: OrgMembershipProfile | null;
+  orgMembershipProfileEdge?: OrgMembershipProfileEdge | null;
 }
 export interface DeleteOrgAdminGrantPayload {
   clientMutationId?: string | null;
@@ -4789,17 +5262,17 @@ export interface DeleteOrgAdminGrantPayload {
   orgAdminGrant?: OrgAdminGrant | null;
   orgAdminGrantEdge?: OrgAdminGrantEdge | null;
 }
+export interface DeleteOrgCapabilityDefaultGrantPayload {
+  clientMutationId?: string | null;
+  /** The `OrgCapabilityDefaultGrant` that was deleted by this mutation. */
+  orgCapabilityDefaultGrant?: OrgCapabilityDefaultGrant | null;
+  orgCapabilityDefaultGrantEdge?: OrgCapabilityDefaultGrantEdge | null;
+}
 export interface DeleteOrgOwnerGrantPayload {
   clientMutationId?: string | null;
   /** The `OrgOwnerGrant` that was deleted by this mutation. */
   orgOwnerGrant?: OrgOwnerGrant | null;
   orgOwnerGrantEdge?: OrgOwnerGrantEdge | null;
-}
-export interface DeleteOrgPermissionDefaultGrantPayload {
-  clientMutationId?: string | null;
-  /** The `OrgPermissionDefaultGrant` that was deleted by this mutation. */
-  orgPermissionDefaultGrant?: OrgPermissionDefaultGrant | null;
-  orgPermissionDefaultGrantEdge?: OrgPermissionDefaultGrantEdge | null;
 }
 export interface DeleteAppProfileDefinitionGrantPayload {
   clientMutationId?: string | null;
@@ -4825,18 +5298,6 @@ export interface DeleteOrgProfileGrantPayload {
   orgProfileGrant?: OrgProfileGrant | null;
   orgProfileGrantEdge?: OrgProfileGrantEdge | null;
 }
-export interface DeleteAppPermissionPayload {
-  clientMutationId?: string | null;
-  /** The `AppPermission` that was deleted by this mutation. */
-  appPermission?: AppPermission | null;
-  appPermissionEdge?: AppPermissionEdge | null;
-}
-export interface DeleteOrgPermissionPayload {
-  clientMutationId?: string | null;
-  /** The `OrgPermission` that was deleted by this mutation. */
-  orgPermission?: OrgPermission | null;
-  orgPermissionEdge?: OrgPermissionEdge | null;
-}
 export interface DeleteOrgChartEdgeGrantPayload {
   clientMutationId?: string | null;
   /** The `OrgChartEdgeGrant` that was deleted by this mutation. */
@@ -4849,6 +5310,18 @@ export interface DeleteAppClaimedInvitePayload {
   appClaimedInvite?: AppClaimedInvite | null;
   appClaimedInviteEdge?: AppClaimedInviteEdge | null;
 }
+export interface DeleteAppCapabilityPayload {
+  clientMutationId?: string | null;
+  /** The `AppCapability` that was deleted by this mutation. */
+  appCapability?: AppCapability | null;
+  appCapabilityEdge?: AppCapabilityEdge | null;
+}
+export interface DeleteOrgCapabilityPayload {
+  clientMutationId?: string | null;
+  /** The `OrgCapability` that was deleted by this mutation. */
+  orgCapability?: OrgCapability | null;
+  orgCapabilityEdge?: OrgCapabilityEdge | null;
+}
 export interface DeleteMembershipTypePayload {
   clientMutationId?: string | null;
   /** The `MembershipType` that was deleted by this mutation. */
@@ -4860,18 +5333,6 @@ export interface DeleteAppGrantPayload {
   /** The `AppGrant` that was deleted by this mutation. */
   appGrant?: AppGrant | null;
   appGrantEdge?: AppGrantEdge | null;
-}
-export interface DeleteAppMembershipDefaultPayload {
-  clientMutationId?: string | null;
-  /** The `AppMembershipDefault` that was deleted by this mutation. */
-  appMembershipDefault?: AppMembershipDefault | null;
-  appMembershipDefaultEdge?: AppMembershipDefaultEdge | null;
-}
-export interface DeleteOrgMembershipDefaultPayload {
-  clientMutationId?: string | null;
-  /** The `OrgMembershipDefault` that was deleted by this mutation. */
-  orgMembershipDefault?: OrgMembershipDefault | null;
-  orgMembershipDefaultEdge?: OrgMembershipDefaultEdge | null;
 }
 export interface DeleteOrgClaimedInvitePayload {
   clientMutationId?: string | null;
@@ -4903,6 +5364,18 @@ export interface DeleteOrgProfileTemplatePayload {
   orgProfileTemplate?: OrgProfileTemplate | null;
   orgProfileTemplateEdge?: OrgProfileTemplateEdge | null;
 }
+export interface DeleteAppMembershipDefaultPayload {
+  clientMutationId?: string | null;
+  /** The `AppMembershipDefault` that was deleted by this mutation. */
+  appMembershipDefault?: AppMembershipDefault | null;
+  appMembershipDefaultEdge?: AppMembershipDefaultEdge | null;
+}
+export interface DeleteOrgMembershipDefaultPayload {
+  clientMutationId?: string | null;
+  /** The `OrgMembershipDefault` that was deleted by this mutation. */
+  orgMembershipDefault?: OrgMembershipDefault | null;
+  orgMembershipDefaultEdge?: OrgMembershipDefaultEdge | null;
+}
 export interface DeleteAppProfilePayload {
   clientMutationId?: string | null;
   /** The `AppProfile` that was deleted by this mutation. */
@@ -4915,11 +5388,11 @@ export interface DeleteOrgProfilePayload {
   orgProfile?: OrgProfile | null;
   orgProfileEdge?: OrgProfileEdge | null;
 }
-export interface DeleteOrgMembershipSettingPayload {
+export interface DeleteOrgMemberProfilePayload {
   clientMutationId?: string | null;
-  /** The `OrgMembershipSetting` that was deleted by this mutation. */
-  orgMembershipSetting?: OrgMembershipSetting | null;
-  orgMembershipSettingEdge?: OrgMembershipSettingEdge | null;
+  /** The `OrgMemberProfile` that was deleted by this mutation. */
+  orgMemberProfile?: OrgMemberProfile | null;
+  orgMemberProfileEdge?: OrgMemberProfileEdge | null;
 }
 export interface DeleteAppMembershipPayload {
   clientMutationId?: string | null;
@@ -4927,29 +5400,29 @@ export interface DeleteAppMembershipPayload {
   appMembership?: AppMembership | null;
   appMembershipEdge?: AppMembershipEdge | null;
 }
-export interface DeleteOrgMembershipPayload {
-  clientMutationId?: string | null;
-  /** The `OrgMembership` that was deleted by this mutation. */
-  orgMembership?: OrgMembership | null;
-  orgMembershipEdge?: OrgMembershipEdge | null;
-}
-export interface DeleteOrgMemberProfilePayload {
-  clientMutationId?: string | null;
-  /** The `OrgMemberProfile` that was deleted by this mutation. */
-  orgMemberProfile?: OrgMemberProfile | null;
-  orgMemberProfileEdge?: OrgMemberProfileEdge | null;
-}
 export interface DeleteAppInvitePayload {
   clientMutationId?: string | null;
   /** The `AppInvite` that was deleted by this mutation. */
   appInvite?: AppInvite | null;
   appInviteEdge?: AppInviteEdge | null;
 }
+export interface DeleteOrgMembershipPayload {
+  clientMutationId?: string | null;
+  /** The `OrgMembership` that was deleted by this mutation. */
+  orgMembership?: OrgMembership | null;
+  orgMembershipEdge?: OrgMembershipEdge | null;
+}
 export interface DeleteOrgInvitePayload {
   clientMutationId?: string | null;
   /** The `OrgInvite` that was deleted by this mutation. */
   orgInvite?: OrgInvite | null;
   orgInviteEdge?: OrgInviteEdge | null;
+}
+export interface DeleteOrgMembershipSettingPayload {
+  clientMutationId?: string | null;
+  /** The `OrgMembershipSetting` that was deleted by this mutation. */
+  orgMembershipSetting?: OrgMembershipSetting | null;
+  orgMembershipSettingEdge?: OrgMembershipSettingEdge | null;
 }
 export interface ProvisionBucketPayload {
   /** Whether provisioning succeeded */
@@ -4988,17 +5461,29 @@ export interface OrgGetSubordinatesEdge {
   /** The `OrgGetSubordinatesRecord` at the end of the edge. */
   node?: OrgGetSubordinatesRecord | null;
 }
-/** A `AppPermission` edge in the connection. */
-export interface AppPermissionEdge {
+/** A `MyPendingAppInvitesRecord` edge in the connection. */
+export interface MyPendingAppInvitesEdge {
   cursor?: string | null;
-  /** The `AppPermission` at the end of the edge. */
-  node?: AppPermission | null;
+  /** The `MyPendingAppInvitesRecord` at the end of the edge. */
+  node?: MyPendingAppInvitesRecord | null;
 }
-/** A `OrgPermission` edge in the connection. */
-export interface OrgPermissionEdge {
+/** A `MyPendingOrgInvitesRecord` edge in the connection. */
+export interface MyPendingOrgInvitesEdge {
   cursor?: string | null;
-  /** The `OrgPermission` at the end of the edge. */
-  node?: OrgPermission | null;
+  /** The `MyPendingOrgInvitesRecord` at the end of the edge. */
+  node?: MyPendingOrgInvitesRecord | null;
+}
+/** A `AppCapability` edge in the connection. */
+export interface AppCapabilityEdge {
+  cursor?: string | null;
+  /** The `AppCapability` at the end of the edge. */
+  node?: AppCapability | null;
+}
+/** A `OrgCapability` edge in the connection. */
+export interface OrgCapabilityEdge {
+  cursor?: string | null;
+  /** The `OrgCapability` at the end of the edge. */
+  node?: OrgCapability | null;
 }
 /** A `OrgMember` edge in the connection. */
 export interface OrgMemberEdge {
@@ -5006,41 +5491,41 @@ export interface OrgMemberEdge {
   /** The `OrgMember` at the end of the edge. */
   node?: OrgMember | null;
 }
-/** A `AppPermissionDefault` edge in the connection. */
-export interface AppPermissionDefaultEdge {
+/** A `AppCapabilityDefault` edge in the connection. */
+export interface AppCapabilityDefaultEdge {
   cursor?: string | null;
-  /** The `AppPermissionDefault` at the end of the edge. */
-  node?: AppPermissionDefault | null;
+  /** The `AppCapabilityDefault` at the end of the edge. */
+  node?: AppCapabilityDefault | null;
 }
-/** A `OrgPermissionDefault` edge in the connection. */
-export interface OrgPermissionDefaultEdge {
+/** A `OrgCapabilityDefault` edge in the connection. */
+export interface OrgCapabilityDefaultEdge {
   cursor?: string | null;
-  /** The `OrgPermissionDefault` at the end of the edge. */
-  node?: OrgPermissionDefault | null;
+  /** The `OrgCapabilityDefault` at the end of the edge. */
+  node?: OrgCapabilityDefault | null;
 }
-/** A `AppPermissionDefaultPermission` edge in the connection. */
-export interface AppPermissionDefaultPermissionEdge {
+/** A `AppCapabilityDefaultCapability` edge in the connection. */
+export interface AppCapabilityDefaultCapabilityEdge {
   cursor?: string | null;
-  /** The `AppPermissionDefaultPermission` at the end of the edge. */
-  node?: AppPermissionDefaultPermission | null;
+  /** The `AppCapabilityDefaultCapability` at the end of the edge. */
+  node?: AppCapabilityDefaultCapability | null;
 }
-/** A `OrgPermissionDefaultPermission` edge in the connection. */
-export interface OrgPermissionDefaultPermissionEdge {
+/** A `OrgCapabilityDefaultCapability` edge in the connection. */
+export interface OrgCapabilityDefaultCapabilityEdge {
   cursor?: string | null;
-  /** The `OrgPermissionDefaultPermission` at the end of the edge. */
-  node?: OrgPermissionDefaultPermission | null;
+  /** The `OrgCapabilityDefaultCapability` at the end of the edge. */
+  node?: OrgCapabilityDefaultCapability | null;
 }
-/** A `AppProfilePermission` edge in the connection. */
-export interface AppProfilePermissionEdge {
+/** A `AppProfileCapability` edge in the connection. */
+export interface AppProfileCapabilityEdge {
   cursor?: string | null;
-  /** The `AppProfilePermission` at the end of the edge. */
-  node?: AppProfilePermission | null;
+  /** The `AppProfileCapability` at the end of the edge. */
+  node?: AppProfileCapability | null;
 }
-/** A `OrgProfilePermission` edge in the connection. */
-export interface OrgProfilePermissionEdge {
+/** A `OrgProfileCapability` edge in the connection. */
+export interface OrgProfileCapabilityEdge {
   cursor?: string | null;
-  /** The `OrgProfilePermission` at the end of the edge. */
-  node?: OrgProfilePermission | null;
+  /** The `OrgProfileCapability` at the end of the edge. */
+  node?: OrgProfileCapability | null;
 }
 /** A `AppAdminGrant` edge in the connection. */
 export interface AppAdminGrantEdge {
@@ -5048,17 +5533,29 @@ export interface AppAdminGrantEdge {
   /** The `AppAdminGrant` at the end of the edge. */
   node?: AppAdminGrant | null;
 }
+/** A `AppCapabilityDefaultGrant` edge in the connection. */
+export interface AppCapabilityDefaultGrantEdge {
+  cursor?: string | null;
+  /** The `AppCapabilityDefaultGrant` at the end of the edge. */
+  node?: AppCapabilityDefaultGrant | null;
+}
 /** A `AppOwnerGrant` edge in the connection. */
 export interface AppOwnerGrantEdge {
   cursor?: string | null;
   /** The `AppOwnerGrant` at the end of the edge. */
   node?: AppOwnerGrant | null;
 }
-/** A `AppPermissionDefaultGrant` edge in the connection. */
-export interface AppPermissionDefaultGrantEdge {
+/** A `AppMembershipProfile` edge in the connection. */
+export interface AppMembershipProfileEdge {
   cursor?: string | null;
-  /** The `AppPermissionDefaultGrant` at the end of the edge. */
-  node?: AppPermissionDefaultGrant | null;
+  /** The `AppMembershipProfile` at the end of the edge. */
+  node?: AppMembershipProfile | null;
+}
+/** A `OrgMembershipProfile` edge in the connection. */
+export interface OrgMembershipProfileEdge {
+  cursor?: string | null;
+  /** The `OrgMembershipProfile` at the end of the edge. */
+  node?: OrgMembershipProfile | null;
 }
 /** A `OrgAdminGrant` edge in the connection. */
 export interface OrgAdminGrantEdge {
@@ -5066,17 +5563,17 @@ export interface OrgAdminGrantEdge {
   /** The `OrgAdminGrant` at the end of the edge. */
   node?: OrgAdminGrant | null;
 }
+/** A `OrgCapabilityDefaultGrant` edge in the connection. */
+export interface OrgCapabilityDefaultGrantEdge {
+  cursor?: string | null;
+  /** The `OrgCapabilityDefaultGrant` at the end of the edge. */
+  node?: OrgCapabilityDefaultGrant | null;
+}
 /** A `OrgOwnerGrant` edge in the connection. */
 export interface OrgOwnerGrantEdge {
   cursor?: string | null;
   /** The `OrgOwnerGrant` at the end of the edge. */
   node?: OrgOwnerGrant | null;
-}
-/** A `OrgPermissionDefaultGrant` edge in the connection. */
-export interface OrgPermissionDefaultGrantEdge {
-  cursor?: string | null;
-  /** The `OrgPermissionDefaultGrant` at the end of the edge. */
-  node?: OrgPermissionDefaultGrant | null;
 }
 /** A `AppProfileDefinitionGrant` edge in the connection. */
 export interface AppProfileDefinitionGrantEdge {
@@ -5126,18 +5623,6 @@ export interface AppGrantEdge {
   /** The `AppGrant` at the end of the edge. */
   node?: AppGrant | null;
 }
-/** A `AppMembershipDefault` edge in the connection. */
-export interface AppMembershipDefaultEdge {
-  cursor?: string | null;
-  /** The `AppMembershipDefault` at the end of the edge. */
-  node?: AppMembershipDefault | null;
-}
-/** A `OrgMembershipDefault` edge in the connection. */
-export interface OrgMembershipDefaultEdge {
-  cursor?: string | null;
-  /** The `OrgMembershipDefault` at the end of the edge. */
-  node?: OrgMembershipDefault | null;
-}
 /** A `OrgClaimedInvite` edge in the connection. */
 export interface OrgClaimedInviteEdge {
   cursor?: string | null;
@@ -5168,6 +5653,18 @@ export interface OrgProfileTemplateEdge {
   /** The `OrgProfileTemplate` at the end of the edge. */
   node?: OrgProfileTemplate | null;
 }
+/** A `AppMembershipDefault` edge in the connection. */
+export interface AppMembershipDefaultEdge {
+  cursor?: string | null;
+  /** The `AppMembershipDefault` at the end of the edge. */
+  node?: AppMembershipDefault | null;
+}
+/** A `OrgMembershipDefault` edge in the connection. */
+export interface OrgMembershipDefaultEdge {
+  cursor?: string | null;
+  /** The `OrgMembershipDefault` at the end of the edge. */
+  node?: OrgMembershipDefault | null;
+}
 /** A `AppProfile` edge in the connection. */
 export interface AppProfileEdge {
   cursor?: string | null;
@@ -5180,11 +5677,11 @@ export interface OrgProfileEdge {
   /** The `OrgProfile` at the end of the edge. */
   node?: OrgProfile | null;
 }
-/** A `OrgMembershipSetting` edge in the connection. */
-export interface OrgMembershipSettingEdge {
+/** A `OrgMemberProfile` edge in the connection. */
+export interface OrgMemberProfileEdge {
   cursor?: string | null;
-  /** The `OrgMembershipSetting` at the end of the edge. */
-  node?: OrgMembershipSetting | null;
+  /** The `OrgMemberProfile` at the end of the edge. */
+  node?: OrgMemberProfile | null;
 }
 /** A `AppMembership` edge in the connection. */
 export interface AppMembershipEdge {
@@ -5192,29 +5689,29 @@ export interface AppMembershipEdge {
   /** The `AppMembership` at the end of the edge. */
   node?: AppMembership | null;
 }
-/** A `OrgMembership` edge in the connection. */
-export interface OrgMembershipEdge {
-  cursor?: string | null;
-  /** The `OrgMembership` at the end of the edge. */
-  node?: OrgMembership | null;
-}
-/** A `OrgMemberProfile` edge in the connection. */
-export interface OrgMemberProfileEdge {
-  cursor?: string | null;
-  /** The `OrgMemberProfile` at the end of the edge. */
-  node?: OrgMemberProfile | null;
-}
 /** A `AppInvite` edge in the connection. */
 export interface AppInviteEdge {
   cursor?: string | null;
   /** The `AppInvite` at the end of the edge. */
   node?: AppInvite | null;
 }
+/** A `OrgMembership` edge in the connection. */
+export interface OrgMembershipEdge {
+  cursor?: string | null;
+  /** The `OrgMembership` at the end of the edge. */
+  node?: OrgMembership | null;
+}
 /** A `OrgInvite` edge in the connection. */
 export interface OrgInviteEdge {
   cursor?: string | null;
   /** The `OrgInvite` at the end of the edge. */
   node?: OrgInvite | null;
+}
+/** A `OrgMembershipSetting` edge in the connection. */
+export interface OrgMembershipSettingEdge {
+  cursor?: string | null;
+  /** The `OrgMembershipSetting` at the end of the edge. */
+  node?: OrgMembershipSetting | null;
 }
 /** Information about a database table */
 export interface MetaTable {
@@ -5242,6 +5739,34 @@ export interface MetaTable {
   realtime?: MetaRealtime | null;
   /** Provisioning scope metadata (null if no @scope tag) */
   scope?: MetaScope | null;
+}
+export interface ProvisionAppUserRecord {
+  userId?: string | null;
+  inviteId?: string | null;
+  created?: boolean | null;
+}
+export interface ProvisionOrgUserRecord {
+  userId?: string | null;
+  inviteId?: string | null;
+  created?: boolean | null;
+}
+export interface ProvisionAppUsersBulkRecord {
+  idx?: number | null;
+  email?: string | null;
+  phone?: string | null;
+  userId?: string | null;
+  inviteId?: string | null;
+  created?: boolean | null;
+  errorCode?: string | null;
+}
+export interface ProvisionOrgUsersBulkRecord {
+  idx?: number | null;
+  email?: string | null;
+  phone?: string | null;
+  userId?: string | null;
+  inviteId?: string | null;
+  created?: boolean | null;
+  errorCode?: string | null;
 }
 /** Information about a table field/column */
 export interface MetaField {

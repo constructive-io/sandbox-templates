@@ -198,7 +198,8 @@ export class AppProfileDefinitionGrantModel {
       'UpdateAppProfileDefinitionGrantInput',
       'id',
       'appProfileDefinitionGrantPatch',
-      connectionFieldsMap
+      connectionFieldsMap,
+      undefined
     );
     return new QueryBuilder({
       client: this.client,

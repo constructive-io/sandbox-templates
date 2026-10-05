@@ -109,6 +109,15 @@ export const userConnectedAccountKeys = {
   /** Detail query key for specific item */ detail: (id: string | number) =>
     [...userConnectedAccountKeys.details(), id] as const,
 } as const;
+export const userSettingsSecurityKeys = {
+  /** All userSettingsSecurity queries */ all: ['usersettingssecurity'] as const,
+  /** List query keys */ lists: () => [...userSettingsSecurityKeys.all, 'list'] as const,
+  /** List query key with variables */ list: (variables?: object) =>
+    [...userSettingsSecurityKeys.lists(), variables] as const,
+  /** Detail query keys */ details: () => [...userSettingsSecurityKeys.all, 'detail'] as const,
+  /** Detail query key for specific item */ detail: (id: string | number) =>
+    [...userSettingsSecurityKeys.details(), id] as const,
+} as const;
 export const orgApiKeyListKeys = {
   /** All orgApiKeyList queries */ all: ['orgapikeylist'] as const,
   /** List query keys */ lists: () => [...orgApiKeyListKeys.all, 'list'] as const,
@@ -133,11 +142,14 @@ export const userKeys = {
 // ============================================================================
 
 export const customQueryKeys = {
-  /** Query key for currentUserAgent */ currentUserAgent: () => ['currentUserAgent'] as const,
   /** Query key for currentUserId */ currentUserId: () => ['currentUserId'] as const,
+  /** Query key for currentUserAgent */ currentUserAgent: () => ['currentUserAgent'] as const,
   /** Query key for currentIpAddress */ currentIpAddress: () => ['currentIpAddress'] as const,
+  /** Query key for isVerificationExempt */ isVerificationExempt: (variables?: object) =>
+    ['isVerificationExempt', variables] as const,
   /** Query key for requireStepUp */ requireStepUp: (variables?: object) =>
     ['requireStepUp', variables] as const,
+  /** Query key for getMfaStatus */ getMfaStatus: () => ['getMfaStatus'] as const,
   /** Query key for currentUser */ currentUser: () => ['currentUser'] as const,
 } as const;
 /**
@@ -173,6 +185,7 @@ export const queryKeys = {
   identityProvider: identityProviderKeys,
   roleType: roleTypeKeys,
   userConnectedAccount: userConnectedAccountKeys,
+  userSettingsSecurity: userSettingsSecurityKeys,
   orgApiKeyList: orgApiKeyListKeys,
   user: userKeys,
   custom: customQueryKeys,

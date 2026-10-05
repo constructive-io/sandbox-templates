@@ -198,7 +198,8 @@ export class OrgProfileDefinitionGrantModel {
       'UpdateOrgProfileDefinitionGrantInput',
       'id',
       'orgProfileDefinitionGrantPatch',
-      connectionFieldsMap
+      connectionFieldsMap,
+      undefined
     );
     return new QueryBuilder({
       client: this.client,

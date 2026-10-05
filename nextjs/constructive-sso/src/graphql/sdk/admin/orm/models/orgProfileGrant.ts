@@ -196,7 +196,8 @@ export class OrgProfileGrantModel {
       'UpdateOrgProfileGrantInput',
       'id',
       'orgProfileGrantPatch',
-      connectionFieldsMap
+      connectionFieldsMap,
+      undefined
     );
     return new QueryBuilder({
       client: this.client,

@@ -6,12 +6,12 @@
 import { OrmClient } from '../client';
 import { QueryBuilder, buildCustomDocument } from '../query-builder';
 import type { InferSelectResult, StrictSelect } from '../select-types';
-import type { AppPermissionConnection, OrgPermissionConnection } from '../input-types';
+import type { AppCapabilityConnection, OrgCapabilityConnection } from '../input-types';
 import { connectionFieldsMap } from '../input-types';
-export interface AppPermissionsGetPaddedMaskVariables {
+export interface AppCapabilitiesGetPaddedMaskVariables {
   mask?: string;
 }
-export interface OrgPermissionsGetPaddedMaskVariables {
+export interface OrgCapabilitiesGetPaddedMaskVariables {
   mask?: string;
 }
 export interface OrgIsManagerOfVariables {
@@ -20,19 +20,23 @@ export interface OrgIsManagerOfVariables {
   userId?: string;
   maxDepth?: number;
 }
-export interface AppPermissionsGetMaskVariables {
+export interface AppCapabilitiesGetMaskVariables {
   ids?: string[];
 }
-export interface OrgPermissionsGetMaskVariables {
+export interface OrgCapabilitiesGetMaskVariables {
   ids?: string[];
 }
-export interface AppPermissionsGetMaskByNamesVariables {
+export interface GetOrganizationIdVariables {
+  entityType?: string;
+  entityId?: string;
+}
+export interface AppCapabilitiesGetMaskByNamesVariables {
   names?: string[];
 }
-export interface OrgPermissionsGetMaskByNamesVariables {
+export interface OrgCapabilitiesGetMaskByNamesVariables {
   names?: string[];
 }
-export interface AppPermissionsGetByMaskVariables {
+export interface AppCapabilitiesGetByMaskVariables {
   mask?: string;
   /** Only read the first `n` values of the set. */
   first?: number;
@@ -44,7 +48,7 @@ export interface AppPermissionsGetByMaskVariables {
   /** Read all values in the set after (below) this cursor. */
   after?: string;
 }
-export interface OrgPermissionsGetByMaskVariables {
+export interface OrgCapabilitiesGetByMaskVariables {
   mask?: string;
   /** Only read the first `n` values of the set. */
   first?: number;
@@ -58,23 +62,23 @@ export interface OrgPermissionsGetByMaskVariables {
 }
 export function createQueryOperations(client: OrmClient) {
   return {
-    appPermissionsGetPaddedMask: (
-      args: AppPermissionsGetPaddedMaskVariables,
+    appCapabilitiesGetPaddedMask: (
+      args: AppCapabilitiesGetPaddedMaskVariables,
       options?: {
         select?: Record<string, unknown>;
       }
     ) =>
       new QueryBuilder<{
-        appPermissionsGetPaddedMask: string | null;
+        appCapabilitiesGetPaddedMask: string | null;
       }>({
         client,
         operation: 'query',
-        operationName: 'AppPermissionsGetPaddedMask',
-        fieldName: 'appPermissionsGetPaddedMask',
+        operationName: 'AppCapabilitiesGetPaddedMask',
+        fieldName: 'appCapabilitiesGetPaddedMask',
         ...buildCustomDocument(
           'query',
-          'AppPermissionsGetPaddedMask',
-          'appPermissionsGetPaddedMask',
+          'AppCapabilitiesGetPaddedMask',
+          'appCapabilitiesGetPaddedMask',
           options?.select,
           args,
           [
@@ -87,23 +91,23 @@ export function createQueryOperations(client: OrmClient) {
           undefined
         ),
       }),
-    orgPermissionsGetPaddedMask: (
-      args: OrgPermissionsGetPaddedMaskVariables,
+    orgCapabilitiesGetPaddedMask: (
+      args: OrgCapabilitiesGetPaddedMaskVariables,
       options?: {
         select?: Record<string, unknown>;
       }
     ) =>
       new QueryBuilder<{
-        orgPermissionsGetPaddedMask: string | null;
+        orgCapabilitiesGetPaddedMask: string | null;
       }>({
         client,
         operation: 'query',
-        operationName: 'OrgPermissionsGetPaddedMask',
-        fieldName: 'orgPermissionsGetPaddedMask',
+        operationName: 'OrgCapabilitiesGetPaddedMask',
+        fieldName: 'orgCapabilitiesGetPaddedMask',
         ...buildCustomDocument(
           'query',
-          'OrgPermissionsGetPaddedMask',
-          'orgPermissionsGetPaddedMask',
+          'OrgCapabilitiesGetPaddedMask',
+          'orgCapabilitiesGetPaddedMask',
           options?.select,
           args,
           [
@@ -157,23 +161,23 @@ export function createQueryOperations(client: OrmClient) {
           undefined
         ),
       }),
-    appPermissionsGetMask: (
-      args: AppPermissionsGetMaskVariables,
+    appCapabilitiesGetMask: (
+      args: AppCapabilitiesGetMaskVariables,
       options?: {
         select?: Record<string, unknown>;
       }
     ) =>
       new QueryBuilder<{
-        appPermissionsGetMask: string | null;
+        appCapabilitiesGetMask: string | null;
       }>({
         client,
         operation: 'query',
-        operationName: 'AppPermissionsGetMask',
-        fieldName: 'appPermissionsGetMask',
+        operationName: 'AppCapabilitiesGetMask',
+        fieldName: 'appCapabilitiesGetMask',
         ...buildCustomDocument(
           'query',
-          'AppPermissionsGetMask',
-          'appPermissionsGetMask',
+          'AppCapabilitiesGetMask',
+          'appCapabilitiesGetMask',
           options?.select,
           args,
           [
@@ -186,23 +190,23 @@ export function createQueryOperations(client: OrmClient) {
           undefined
         ),
       }),
-    orgPermissionsGetMask: (
-      args: OrgPermissionsGetMaskVariables,
+    orgCapabilitiesGetMask: (
+      args: OrgCapabilitiesGetMaskVariables,
       options?: {
         select?: Record<string, unknown>;
       }
     ) =>
       new QueryBuilder<{
-        orgPermissionsGetMask: string | null;
+        orgCapabilitiesGetMask: string | null;
       }>({
         client,
         operation: 'query',
-        operationName: 'OrgPermissionsGetMask',
-        fieldName: 'orgPermissionsGetMask',
+        operationName: 'OrgCapabilitiesGetMask',
+        fieldName: 'orgCapabilitiesGetMask',
         ...buildCustomDocument(
           'query',
-          'OrgPermissionsGetMask',
-          'orgPermissionsGetMask',
+          'OrgCapabilitiesGetMask',
+          'orgCapabilitiesGetMask',
           options?.select,
           args,
           [
@@ -215,23 +219,56 @@ export function createQueryOperations(client: OrmClient) {
           undefined
         ),
       }),
-    appPermissionsGetMaskByNames: (
-      args: AppPermissionsGetMaskByNamesVariables,
+    getOrganizationId: (
+      args: GetOrganizationIdVariables,
       options?: {
         select?: Record<string, unknown>;
       }
     ) =>
       new QueryBuilder<{
-        appPermissionsGetMaskByNames: string | null;
+        getOrganizationId: string | null;
       }>({
         client,
         operation: 'query',
-        operationName: 'AppPermissionsGetMaskByNames',
-        fieldName: 'appPermissionsGetMaskByNames',
+        operationName: 'GetOrganizationId',
+        fieldName: 'getOrganizationId',
         ...buildCustomDocument(
           'query',
-          'AppPermissionsGetMaskByNames',
-          'appPermissionsGetMaskByNames',
+          'GetOrganizationId',
+          'getOrganizationId',
+          options?.select,
+          args,
+          [
+            {
+              name: 'entityType',
+              type: 'String',
+            },
+            {
+              name: 'entityId',
+              type: 'UUID',
+            },
+          ],
+          connectionFieldsMap,
+          undefined
+        ),
+      }),
+    appCapabilitiesGetMaskByNames: (
+      args: AppCapabilitiesGetMaskByNamesVariables,
+      options?: {
+        select?: Record<string, unknown>;
+      }
+    ) =>
+      new QueryBuilder<{
+        appCapabilitiesGetMaskByNames: string | null;
+      }>({
+        client,
+        operation: 'query',
+        operationName: 'AppCapabilitiesGetMaskByNames',
+        fieldName: 'appCapabilitiesGetMaskByNames',
+        ...buildCustomDocument(
+          'query',
+          'AppCapabilitiesGetMaskByNames',
+          'appCapabilitiesGetMaskByNames',
           options?.select,
           args,
           [
@@ -244,23 +281,23 @@ export function createQueryOperations(client: OrmClient) {
           undefined
         ),
       }),
-    orgPermissionsGetMaskByNames: (
-      args: OrgPermissionsGetMaskByNamesVariables,
+    orgCapabilitiesGetMaskByNames: (
+      args: OrgCapabilitiesGetMaskByNamesVariables,
       options?: {
         select?: Record<string, unknown>;
       }
     ) =>
       new QueryBuilder<{
-        orgPermissionsGetMaskByNames: string | null;
+        orgCapabilitiesGetMaskByNames: string | null;
       }>({
         client,
         operation: 'query',
-        operationName: 'OrgPermissionsGetMaskByNames',
-        fieldName: 'orgPermissionsGetMaskByNames',
+        operationName: 'OrgCapabilitiesGetMaskByNames',
+        fieldName: 'orgCapabilitiesGetMaskByNames',
         ...buildCustomDocument(
           'query',
-          'OrgPermissionsGetMaskByNames',
-          'orgPermissionsGetMaskByNames',
+          'OrgCapabilitiesGetMaskByNames',
+          'orgCapabilitiesGetMaskByNames',
           options?.select,
           args,
           [
@@ -273,23 +310,23 @@ export function createQueryOperations(client: OrmClient) {
           undefined
         ),
       }),
-    appPermissionsGetByMask: (
-      args: AppPermissionsGetByMaskVariables,
+    appCapabilitiesGetByMask: (
+      args: AppCapabilitiesGetByMaskVariables,
       options?: {
         select?: Record<string, unknown>;
       }
     ) =>
       new QueryBuilder<{
-        appPermissionsGetByMask: AppPermissionConnection | null;
+        appCapabilitiesGetByMask: AppCapabilityConnection | null;
       }>({
         client,
         operation: 'query',
-        operationName: 'AppPermissionsGetByMask',
-        fieldName: 'appPermissionsGetByMask',
+        operationName: 'AppCapabilitiesGetByMask',
+        fieldName: 'appCapabilitiesGetByMask',
         ...buildCustomDocument(
           'query',
-          'AppPermissionsGetByMask',
-          'appPermissionsGetByMask',
+          'AppCapabilitiesGetByMask',
+          'appCapabilitiesGetByMask',
           options?.select,
           args,
           [
@@ -314,23 +351,23 @@ export function createQueryOperations(client: OrmClient) {
           undefined
         ),
       }),
-    orgPermissionsGetByMask: (
-      args: OrgPermissionsGetByMaskVariables,
+    orgCapabilitiesGetByMask: (
+      args: OrgCapabilitiesGetByMaskVariables,
       options?: {
         select?: Record<string, unknown>;
       }
     ) =>
       new QueryBuilder<{
-        orgPermissionsGetByMask: OrgPermissionConnection | null;
+        orgCapabilitiesGetByMask: OrgCapabilityConnection | null;
       }>({
         client,
         operation: 'query',
-        operationName: 'OrgPermissionsGetByMask',
-        fieldName: 'orgPermissionsGetByMask',
+        operationName: 'OrgCapabilitiesGetByMask',
+        fieldName: 'orgCapabilitiesGetByMask',
         ...buildCustomDocument(
           'query',
-          'OrgPermissionsGetByMask',
-          'orgPermissionsGetByMask',
+          'OrgCapabilitiesGetByMask',
+          'orgCapabilitiesGetByMask',
           options?.select,
           args,
           [

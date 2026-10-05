@@ -42,11 +42,11 @@ function App() {
 | `useCreatePrincipalEntityMutation` | Mutation | Association table scoping principals to specific organizations |
 | `useUpdatePrincipalEntityMutation` | Mutation | Association table scoping principals to specific organizations |
 | `useDeletePrincipalEntityMutation` | Mutation | Association table scoping principals to specific organizations |
-| `usePrincipalScopeOverridesQuery` | Query | Per-scope permission overrides for principals. No row = full access; row exists = apply restrictions. |
-| `usePrincipalScopeOverrideQuery` | Query | Per-scope permission overrides for principals. No row = full access; row exists = apply restrictions. |
-| `useCreatePrincipalScopeOverrideMutation` | Mutation | Per-scope permission overrides for principals. No row = full access; row exists = apply restrictions. |
-| `useUpdatePrincipalScopeOverrideMutation` | Mutation | Per-scope permission overrides for principals. No row = full access; row exists = apply restrictions. |
-| `useDeletePrincipalScopeOverrideMutation` | Mutation | Per-scope permission overrides for principals. No row = full access; row exists = apply restrictions. |
+| `usePrincipalScopeOverridesQuery` | Query | Per-scope capability overrides for principals. No row = full access; row exists = apply restrictions. |
+| `usePrincipalScopeOverrideQuery` | Query | Per-scope capability overrides for principals. No row = full access; row exists = apply restrictions. |
+| `useCreatePrincipalScopeOverrideMutation` | Mutation | Per-scope capability overrides for principals. No row = full access; row exists = apply restrictions. |
+| `useUpdatePrincipalScopeOverrideMutation` | Mutation | Per-scope capability overrides for principals. No row = full access; row exists = apply restrictions. |
+| `useDeletePrincipalScopeOverrideMutation` | Mutation | Per-scope capability overrides for principals. No row = full access; row exists = apply restrictions. |
 | `useEmailsQuery` | Query | User email addresses with verification and primary-email management |
 | `useEmailQuery` | Query | User email addresses with verification and primary-email management |
 | `useCreateEmailMutation` | Mutation | User email addresses with verification and primary-email management |
@@ -79,6 +79,11 @@ function App() {
 | `useCreateUserConnectedAccountMutation` | Mutation | Create a userConnectedAccount |
 | `useUpdateUserConnectedAccountMutation` | Mutation | Update a userConnectedAccount |
 | `useDeleteUserConnectedAccountMutation` | Mutation | Delete a userConnectedAccount |
+| `useUserSettingsSecuritiesQuery` | Query | Per-user security settings for MFA configuration (separate from user_settings preferences) |
+| `useUserSettingsSecurityQuery` | Query | Per-user security settings for MFA configuration (separate from user_settings preferences) |
+| `useCreateUserSettingsSecurityMutation` | Mutation | Per-user security settings for MFA configuration (separate from user_settings preferences) |
+| `useUpdateUserSettingsSecurityMutation` | Mutation | Per-user security settings for MFA configuration (separate from user_settings preferences) |
+| `useDeleteUserSettingsSecurityMutation` | Mutation | Per-user security settings for MFA configuration (separate from user_settings preferences) |
 | `useOrgApiKeyListsQuery` | Query | List all orgApiKeyLists |
 | `useOrgApiKeyListQuery` | Query | Get one orgApiKeyList |
 | `useCreateOrgApiKeyListMutation` | Mutation | Create a orgApiKeyList |
@@ -89,18 +94,32 @@ function App() {
 | `useCreateUserMutation` | Mutation | Create a user |
 | `useUpdateUserMutation` | Mutation | Update a user |
 | `useDeleteUserMutation` | Mutation | Delete a user |
-| `useCurrentUserAgentQuery` | Query | currentUserAgent |
 | `useCurrentUserIdQuery` | Query | currentUserId |
+| `useCurrentUserAgentQuery` | Query | currentUserAgent |
 | `useCurrentIpAddressQuery` | Query | currentIpAddress |
+| `useIsVerificationExemptQuery` | Query | isVerificationExempt |
 | `useRequireStepUpQuery` | Query | requireStepUp |
+| `useGetMfaStatusQuery` | Query | getMfaStatus |
 | `useCurrentUserQuery` | Query | currentUser |
+| `useDisableEmailMfaMutation` | Mutation | disableEmailMfa |
+| `useDisableSmsMfaMutation` | Mutation | disableSmsMfa |
+| `useEnableEmailMfaMutation` | Mutation | enableEmailMfa |
+| `useEnableSmsMfaMutation` | Mutation | enableSmsMfa |
 | `useSendAccountDeletionEmailMutation` | Mutation | sendAccountDeletionEmail |
 | `useSignOutMutation` | Mutation | signOut |
+| `useEnableTotpMutation` | Mutation | enableTotp |
+| `useGenerateBackupCodesMutation` | Mutation | generateBackupCodes |
 | `useApproveDeviceMutation` | Mutation | approveDevice |
+| `useAttachPhoneNumberMutation` | Mutation | attachPhoneNumber |
+| `useConfirmTotpSetupMutation` | Mutation | confirmTotpSetup |
 | `useDeleteOrgPrincipalMutation` | Mutation | deleteOrgPrincipal |
+| `useDeletePrincipalMutation` | Mutation | deletePrincipal |
+| `useDisableTotpMutation` | Mutation | disableTotp |
 | `useDisconnectAccountMutation` | Mutation | disconnectAccount |
 | `useRevokeApiKeyMutation` | Mutation | revokeApiKey |
 | `useRevokeSessionMutation` | Mutation | revokeSession |
+| `useSendPhoneVerificationCodeMutation` | Mutation | sendPhoneVerificationCode |
+| `useSetPrimaryPhoneMutation` | Mutation | setPrimaryPhone |
 | `useVerifyPasswordMutation` | Mutation | verifyPassword |
 | `useVerifyTotpMutation` | Mutation | verifyTotp |
 | `useCheckPasswordMutation` | Mutation | checkPassword |
@@ -108,18 +127,31 @@ function App() {
 | `useRevokeOrgApiKeyMutation` | Mutation | revokeOrgApiKey |
 | `useSetPasswordMutation` | Mutation | setPassword |
 | `useVerifyEmailMutation` | Mutation | verifyEmail |
+| `useVerifyPhoneMutation` | Mutation | verifyPhone |
 | `useProvisionNewUserMutation` | Mutation | provisionNewUser |
 | `useResetPasswordMutation` | Mutation | resetPassword |
+| `useResetPasswordSmsMutation` | Mutation | resetPasswordSms |
 | `useCreateOrgPrincipalMutation` | Mutation | createOrgPrincipal |
+| `useRefreshAccessTokenMutation` | Mutation | refreshAccessToken |
 | `useSignInCrossOriginMutation` | Mutation | signInCrossOrigin |
-| `useSignUpSmsMutation` | Mutation | signUpSms |
+| `useSignInMagicLinkMutation` | Mutation | signInMagicLink |
+| `useSignUpMagicLinkMutation` | Mutation | signUpMagicLink |
+| `useSignInEmailOtpMutation` | Mutation | signInEmailOtp |
 | `useSignInSmsOtpMutation` | Mutation | signInSmsOtp |
+| `useSignUpSmsMutation` | Mutation | signUpSms |
+| `useCompleteMfaChallengeMutation` | Mutation | completeMfaChallenge |
 | `useSignUpMutation` | Mutation | signUp |
 | `useSignInMutation` | Mutation | signIn |
+| `useSetPrincipalEntitiesMutation` | Mutation | setPrincipalEntities |
 | `useLinkIdentityMutation` | Mutation | linkIdentity |
+| `useCreatePrincipalFromPresetMutation` | Mutation | createPrincipalFromPreset |
+| `useUpdatePrincipalMutation` | Mutation | updatePrincipal |
 | `useExtendTokenExpiresMutation` | Mutation | extendTokenExpires |
+| `useMintAccessTokenMutation` | Mutation | mintAccessToken |
 | `useCreateOrgApiKeyMutation` | Mutation | createOrgApiKey |
+| `useSetPrincipalScopeMutation` | Mutation | setPrincipalScope |
 | `useCreateApiKeyMutation` | Mutation | createApiKey |
+| `useCreateChildPrincipalMutation` | Mutation | createChildPrincipal |
 | `useRequestCrossOriginTokenMutation` | Mutation | requestCrossOriginToken |
 | `useSendVerificationEmailMutation` | Mutation | sendVerificationEmail |
 | `useForgotPasswordMutation` | Mutation | forgotPassword |
@@ -135,20 +167,20 @@ and lifecycle settings. |
 ```typescript
 // List all principals
 const { data, isLoading } = usePrincipalsQuery({
-  selection: { fields: { id: true, createdAt: true, updatedAt: true, ownerId: true, userId: true, name: true, useAdminOwner: true, isReadOnly: true, bypassStepUp: true } },
+  selection: { fields: { id: true, createdAt: true, updatedAt: true, ownerId: true, userId: true, name: true, useAdminOwner: true, isReadOnly: true, bypassStepUp: true, parentPrincipalId: true, depth: true, expiresAt: true, apiKeyMaxDuration: true, createdBySessionId: true } },
 });
 
 // Get one principal
 const { data: item } = usePrincipalQuery({
   principalId: '<UUID>',
-  selection: { fields: { id: true, createdAt: true, updatedAt: true, ownerId: true, userId: true, name: true, useAdminOwner: true, isReadOnly: true, bypassStepUp: true } },
+  selection: { fields: { id: true, createdAt: true, updatedAt: true, ownerId: true, userId: true, name: true, useAdminOwner: true, isReadOnly: true, bypassStepUp: true, parentPrincipalId: true, depth: true, expiresAt: true, apiKeyMaxDuration: true, createdBySessionId: true } },
 });
 
 // Create a principal
 const { mutate: create } = useCreatePrincipalMutation({
   selection: { fields: { principalId: true } },
 });
-create({ id: '<UUID>', ownerId: '<UUID>', userId: '<UUID>', name: '<String>', useAdminOwner: '<Boolean>', isReadOnly: '<Boolean>', bypassStepUp: '<Boolean>' });
+create({ id: '<UUID>', ownerId: '<UUID>', userId: '<UUID>', name: '<String>', useAdminOwner: '<Boolean>', isReadOnly: '<Boolean>', bypassStepUp: '<Boolean>', parentPrincipalId: '<UUID>', depth: '<Int>', expiresAt: '<Datetime>', apiKeyMaxDuration: '<Interval>', createdBySessionId: '<UUID>' });
 ```
 
 ### PrincipalEntity
@@ -261,20 +293,20 @@ create({ ownerId: '<UUID>', credentialId: '<String>', publicKey: '<Base64Encoded
 ```typescript
 // List all auditLogAuths
 const { data, isLoading } = useAuditLogAuthsQuery({
-  selection: { fields: { createdAt: true, id: true, event: true, actorId: true, origin: true, userAgent: true, ipAddress: true, success: true } },
+  selection: { fields: { createdAt: true, id: true, event: true, actorId: true, origin: true, userAgent: true, ipAddress: true, success: true, details: true } },
 });
 
 // Get one auditLogAuth
 const { data: item } = useAuditLogAuthQuery({
   id: '<UUID>',
-  selection: { fields: { createdAt: true, id: true, event: true, actorId: true, origin: true, userAgent: true, ipAddress: true, success: true } },
+  selection: { fields: { createdAt: true, id: true, event: true, actorId: true, origin: true, userAgent: true, ipAddress: true, success: true, details: true } },
 });
 
 // Create a auditLogAuth
 const { mutate: create } = useCreateAuditLogAuthMutation({
   selection: { fields: { id: true } },
 });
-create({ event: '<String>', actorId: '<UUID>', origin: '<Origin>', userAgent: '<String>', ipAddress: '<InternetAddress>', success: '<Boolean>' });
+create({ event: '<String>', actorId: '<UUID>', origin: '<Origin>', userAgent: '<String>', ipAddress: '<InternetAddress>', success: '<Boolean>', details: '<JSON>' });
 ```
 
 ### IdentityProvider
@@ -334,6 +366,27 @@ const { mutate: create } = useCreateUserConnectedAccountMutation({
 create({ ownerId: '<UUID>', service: '<String>', identifier: '<String>', details: '<JSON>', isVerified: '<Boolean>' });
 ```
 
+### UserSettingsSecurity
+
+```typescript
+// List all userSettingsSecurities
+const { data, isLoading } = useUserSettingsSecuritiesQuery({
+  selection: { fields: { id: true, ownerId: true, totpEnabled: true, emailMfaEnabled: true, smsMfaEnabled: true, backupCodesCount: true, mfaEnrolledAt: true, mfaLastUsedAt: true, createdAt: true, updatedAt: true } },
+});
+
+// Get one userSettingsSecurity
+const { data: item } = useUserSettingsSecurityQuery({
+  id: '<UUID>',
+  selection: { fields: { id: true, ownerId: true, totpEnabled: true, emailMfaEnabled: true, smsMfaEnabled: true, backupCodesCount: true, mfaEnrolledAt: true, mfaLastUsedAt: true, createdAt: true, updatedAt: true } },
+});
+
+// Create a userSettingsSecurity
+const { mutate: create } = useCreateUserSettingsSecurityMutation({
+  selection: { fields: { id: true } },
+});
+create({ ownerId: '<UUID>', totpEnabled: '<Boolean>', emailMfaEnabled: '<Boolean>', smsMfaEnabled: '<Boolean>', backupCodesCount: '<Int>', mfaEnrolledAt: '<Datetime>', mfaLastUsedAt: '<Datetime>' });
+```
+
 ### OrgApiKeyList
 
 ```typescript
@@ -378,16 +431,16 @@ create({ username: '<String>', displayName: '<String>', profilePicture: '<Image>
 
 ## Custom Operation Hooks
 
-### `useCurrentUserAgentQuery`
+### `useCurrentUserIdQuery`
 
-currentUserAgent
+currentUserId
 
 - **Type:** query
 - **Arguments:** none
 
-### `useCurrentUserIdQuery`
+### `useCurrentUserAgentQuery`
 
-currentUserId
+currentUserAgent
 
 - **Type:** query
 - **Arguments:** none
@@ -398,6 +451,17 @@ currentIpAddress
 
 - **Type:** query
 - **Arguments:** none
+
+### `useIsVerificationExemptQuery`
+
+isVerificationExempt
+
+- **Type:** query
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `userId` | UUID |
 
 ### `useRequireStepUpQuery`
 
@@ -410,12 +474,63 @@ requireStepUp
   |----------|------|
   | `stepUpType` | String |
 
+### `useGetMfaStatusQuery`
+
+getMfaStatus
+
+- **Type:** query
+- **Arguments:** none
+
 ### `useCurrentUserQuery`
 
 currentUser
 
 - **Type:** query
 - **Arguments:** none
+
+### `useDisableEmailMfaMutation`
+
+disableEmailMfa
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | DisableEmailMfaInput (required) |
+
+### `useDisableSmsMfaMutation`
+
+disableSmsMfa
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | DisableSmsMfaInput (required) |
+
+### `useEnableEmailMfaMutation`
+
+enableEmailMfa
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | EnableEmailMfaInput (required) |
+
+### `useEnableSmsMfaMutation`
+
+enableSmsMfa
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | EnableSmsMfaInput (required) |
 
 ### `useSendAccountDeletionEmailMutation`
 
@@ -439,6 +554,28 @@ signOut
   |----------|------|
   | `input` | SignOutInput (required) |
 
+### `useEnableTotpMutation`
+
+enableTotp
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | EnableTotpInput (required) |
+
+### `useGenerateBackupCodesMutation`
+
+generateBackupCodes
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | GenerateBackupCodesInput (required) |
+
 ### `useApproveDeviceMutation`
 
 approveDevice
@@ -450,6 +587,28 @@ approveDevice
   |----------|------|
   | `input` | ApproveDeviceInput (required) |
 
+### `useAttachPhoneNumberMutation`
+
+attachPhoneNumber
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | AttachPhoneNumberInput (required) |
+
+### `useConfirmTotpSetupMutation`
+
+confirmTotpSetup
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | ConfirmTotpSetupInput (required) |
+
 ### `useDeleteOrgPrincipalMutation`
 
 deleteOrgPrincipal
@@ -460,6 +619,28 @@ deleteOrgPrincipal
   | Argument | Type |
   |----------|------|
   | `input` | DeleteOrgPrincipalInput (required) |
+
+### `useDeletePrincipalMutation`
+
+deletePrincipal
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | DeletePrincipalInput (required) |
+
+### `useDisableTotpMutation`
+
+disableTotp
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | DisableTotpInput (required) |
 
 ### `useDisconnectAccountMutation`
 
@@ -493,6 +674,28 @@ revokeSession
   | Argument | Type |
   |----------|------|
   | `input` | RevokeSessionInput (required) |
+
+### `useSendPhoneVerificationCodeMutation`
+
+sendPhoneVerificationCode
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | SendPhoneVerificationCodeInput (required) |
+
+### `useSetPrimaryPhoneMutation`
+
+setPrimaryPhone
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | SetPrimaryPhoneInput (required) |
 
 ### `useVerifyPasswordMutation`
 
@@ -571,6 +774,17 @@ verifyEmail
   |----------|------|
   | `input` | VerifyEmailInput (required) |
 
+### `useVerifyPhoneMutation`
+
+verifyPhone
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | VerifyPhoneInput (required) |
+
 ### `useProvisionNewUserMutation`
 
 provisionNewUser
@@ -593,6 +807,17 @@ resetPassword
   |----------|------|
   | `input` | ResetPasswordInput (required) |
 
+### `useResetPasswordSmsMutation`
+
+resetPasswordSms
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | ResetPasswordSmsInput (required) |
+
 ### `useCreateOrgPrincipalMutation`
 
 createOrgPrincipal
@@ -603,6 +828,17 @@ createOrgPrincipal
   | Argument | Type |
   |----------|------|
   | `input` | CreateOrgPrincipalInput (required) |
+
+### `useRefreshAccessTokenMutation`
+
+refreshAccessToken
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | RefreshAccessTokenInput (required) |
 
 ### `useSignInCrossOriginMutation`
 
@@ -615,16 +851,38 @@ signInCrossOrigin
   |----------|------|
   | `input` | SignInCrossOriginInput (required) |
 
-### `useSignUpSmsMutation`
+### `useSignInMagicLinkMutation`
 
-signUpSms
+signInMagicLink
 
 - **Type:** mutation
 - **Arguments:**
 
   | Argument | Type |
   |----------|------|
-  | `input` | SignUpSmsInput (required) |
+  | `input` | SignInMagicLinkInput (required) |
+
+### `useSignUpMagicLinkMutation`
+
+signUpMagicLink
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | SignUpMagicLinkInput (required) |
+
+### `useSignInEmailOtpMutation`
+
+signInEmailOtp
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | SignInEmailOtpInput (required) |
 
 ### `useSignInSmsOtpMutation`
 
@@ -636,6 +894,28 @@ signInSmsOtp
   | Argument | Type |
   |----------|------|
   | `input` | SignInSmsOtpInput (required) |
+
+### `useSignUpSmsMutation`
+
+signUpSms
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | SignUpSmsInput (required) |
+
+### `useCompleteMfaChallengeMutation`
+
+completeMfaChallenge
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | CompleteMfaChallengeInput (required) |
 
 ### `useSignUpMutation`
 
@@ -659,6 +939,17 @@ signIn
   |----------|------|
   | `input` | SignInInput (required) |
 
+### `useSetPrincipalEntitiesMutation`
+
+setPrincipalEntities
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | SetPrincipalEntitiesInput (required) |
+
 ### `useLinkIdentityMutation`
 
 linkIdentity
@@ -669,6 +960,28 @@ linkIdentity
   | Argument | Type |
   |----------|------|
   | `input` | LinkIdentityInput (required) |
+
+### `useCreatePrincipalFromPresetMutation`
+
+createPrincipalFromPreset
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | CreatePrincipalFromPresetInput (required) |
+
+### `useUpdatePrincipalMutation`
+
+updatePrincipal
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | UpdatePrincipalInput (required) |
 
 ### `useExtendTokenExpiresMutation`
 
@@ -681,6 +994,17 @@ extendTokenExpires
   |----------|------|
   | `input` | ExtendTokenExpiresInput (required) |
 
+### `useMintAccessTokenMutation`
+
+mintAccessToken
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | MintAccessTokenInput (required) |
+
 ### `useCreateOrgApiKeyMutation`
 
 createOrgApiKey
@@ -692,6 +1016,17 @@ createOrgApiKey
   |----------|------|
   | `input` | CreateOrgApiKeyInput (required) |
 
+### `useSetPrincipalScopeMutation`
+
+setPrincipalScope
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | SetPrincipalScopeInput (required) |
+
 ### `useCreateApiKeyMutation`
 
 createApiKey
@@ -702,6 +1037,17 @@ createApiKey
   | Argument | Type |
   |----------|------|
   | `input` | CreateApiKeyInput (required) |
+
+### `useCreateChildPrincipalMutation`
+
+createChildPrincipal
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | CreateChildPrincipalInput (required) |
 
 ### `useRequestCrossOriginTokenMutation`
 

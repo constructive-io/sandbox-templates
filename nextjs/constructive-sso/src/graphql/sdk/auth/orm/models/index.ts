@@ -13,5 +13,6 @@ export { AuditLogAuthModel } from './auditLogAuth';
 export { IdentityProviderModel } from './identityProvider';
 export { RoleTypeModel } from './roleType';
 export { UserConnectedAccountModel } from './userConnectedAccount';
+export { UserSettingsSecurityModel } from './userSettingsSecurity';
 export { OrgApiKeyListModel } from './orgApiKeyList';
 export { UserModel } from './user';

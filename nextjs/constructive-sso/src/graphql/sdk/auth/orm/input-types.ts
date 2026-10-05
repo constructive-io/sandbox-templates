@@ -253,6 +253,16 @@ export interface Principal {
   isReadOnly?: boolean | null;
   /** Whether this principal bypasses MFA step-up requirements */
   bypassStepUp?: boolean | null;
+  /** Principal this child principal derives its authority from; NULL for principals that derive from owner_id */
+  parentPrincipalId?: string | null;
+  /** Depth of this principal below its owner-derived root (0 for standing principals), bounded by auth_settings.max_principal_depth */
+  depth?: number | null;
+  /** When this ephemeral child principal expires; NULL for standing principals */
+  expiresAt?: string | null;
+  /** Upper bound on the lifetime of API keys minted for this principal; clamps expires_in below auth_settings.api_key_max_duration. NULL means no additional cap */
+  apiKeyMaxDuration?: string | null;
+  /** Session that minted this child principal; NULL for principals created outside a session chain */
+  createdBySessionId?: string | null;
 }
 /** Association table scoping principals to specific organizations */
 export interface PrincipalEntity {
@@ -266,7 +276,7 @@ export interface PrincipalEntity {
   /** Denormalized owner_id from principals table for RLS */
   ownerId?: string | null;
 }
-/** Per-scope permission overrides for principals. No row = full access; row exists = apply restrictions. */
+/** Per-scope capability overrides for principals. No row = full access; row exists = apply restrictions. */
 export interface PrincipalScopeOverride {
   id: string;
   createdAt?: string | null;
@@ -275,7 +285,7 @@ export interface PrincipalScopeOverride {
   principalId?: string | null;
   /** The scope level (membership_type) this override restricts */
   membershipType?: number | null;
-  /** Optional permission mask; AND-masked with parent permissions during cascade. NULL means no extra mask. */
+  /** Optional capability mask; AND-masked with parent capabilities during cascade. NULL means no extra mask. */
   allowedMask?: string | null;
   /** Whether this principal inherits admin/owner at this scope (default true = inherit from parent) */
   useAdminOwner?: boolean | null;
@@ -303,9 +313,9 @@ export interface Email {
 export interface PhoneNumber {
   id: string;
   ownerId?: string | null;
-  /** Country calling code (e.g. +1, +44) */
+  /** Country calling code the number was entered under (e.g. +1, +44). Display only: `number` already carries it, and sign-in matches `number`. */
   cc?: string | null;
-  /** The phone number without country code */
+  /** The full number in E.164 form, country calling code included (e.g. +15551234567). This is the value SMS sign-in and MFA match, so it is unique across the table and constrained to that shape. */
   number?: string | null;
   /** Whether the phone number has been verified via SMS code */
   isVerified?: boolean | null;
@@ -360,6 +370,8 @@ export interface AuditLogAuth {
   ipAddress?: string | null;
   /** Whether the authentication attempt succeeded */
   success?: boolean | null;
+  /** Event-specific structured payload (e.g. preset slug and catalog commit id for create_principal_from_preset) */
+  details?: Record<string, unknown> | null;
 }
 export interface IdentityProvider {
   slug?: string | null;
@@ -378,6 +390,25 @@ export interface UserConnectedAccount {
   identifier?: string | null;
   details?: Record<string, unknown> | null;
   isVerified?: boolean | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+}
+/** Per-user security settings for MFA configuration (separate from user_settings preferences) */
+export interface UserSettingsSecurity {
+  id: string;
+  ownerId?: string | null;
+  /** Whether TOTP (authenticator app) MFA is active for this user */
+  totpEnabled?: boolean | null;
+  /** Whether email-based MFA codes are active for this user */
+  emailMfaEnabled?: boolean | null;
+  /** Whether SMS-based MFA codes are active for this user */
+  smsMfaEnabled?: boolean | null;
+  /** Number of remaining unused backup codes */
+  backupCodesCount?: number | null;
+  /** When the first MFA method was enabled */
+  mfaEnrolledAt?: string | null;
+  /** When MFA was last successfully verified */
+  mfaLastUsedAt?: string | null;
   createdAt?: string | null;
   updatedAt?: string | null;
 }
@@ -426,7 +457,9 @@ export interface PageInfo {
 // ============ Entity Relation Types ============
 export interface PrincipalRelations {
   owner?: User | null;
+  parentPrincipal?: Principal | null;
   user?: User | null;
+  child_principals?: ConnectionResult<Principal>;
   principalEntities?: ConnectionResult<PrincipalEntity>;
   principalScopeOverrides?: ConnectionResult<PrincipalScopeOverride>;
 }
@@ -453,9 +486,13 @@ export interface AuditLogAuthRelations {
 export interface IdentityProviderRelations {}
 export interface RoleTypeRelations {}
 export interface UserConnectedAccountRelations {}
+export interface UserSettingsSecurityRelations {
+  owner?: User | null;
+}
 export interface OrgApiKeyListRelations {}
 export interface UserRelations {
   roleType?: RoleType | null;
+  ownedUserSettingsSecurity?: UserSettingsSecurity | null;
   principals?: ConnectionResult<Principal>;
   scopedPrincipals?: ConnectionResult<PrincipalEntity>;
   emails?: ConnectionResult<Email>;
@@ -476,6 +513,8 @@ export type IdentityProviderWithRelations = IdentityProvider & IdentityProviderR
 export type RoleTypeWithRelations = RoleType & RoleTypeRelations;
 export type UserConnectedAccountWithRelations = UserConnectedAccount &
   UserConnectedAccountRelations;
+export type UserSettingsSecurityWithRelations = UserSettingsSecurity &
+  UserSettingsSecurityRelations;
 export type OrgApiKeyListWithRelations = OrgApiKeyList & OrgApiKeyListRelations;
 export type UserWithRelations = User & UserRelations;
 // ============ Entity Select Types ============
@@ -489,11 +528,25 @@ export type PrincipalSelect = {
   useAdminOwner?: boolean;
   isReadOnly?: boolean;
   bypassStepUp?: boolean;
+  parentPrincipalId?: boolean;
+  depth?: boolean;
+  expiresAt?: boolean;
+  apiKeyMaxDuration?: boolean;
+  createdBySessionId?: boolean;
   owner?: {
     select: UserSelect;
   };
+  parentPrincipal?: {
+    select: PrincipalSelect;
+  };
   user?: {
     select: UserSelect;
+  };
+  child_principals?: {
+    select: PrincipalSelect;
+    first?: number;
+    filter?: PrincipalFilter;
+    orderBy?: PrincipalOrderBy[];
   };
   principalEntities?: {
     select: PrincipalEntitySelect;
@@ -594,6 +647,7 @@ export type AuditLogAuthSelect = {
   userAgent?: boolean;
   ipAddress?: boolean;
   success?: boolean;
+  details?: boolean;
   actor?: {
     select: UserSelect;
   };
@@ -617,6 +671,21 @@ export type UserConnectedAccountSelect = {
   isVerified?: boolean;
   createdAt?: boolean;
   updatedAt?: boolean;
+};
+export type UserSettingsSecuritySelect = {
+  id?: boolean;
+  ownerId?: boolean;
+  totpEnabled?: boolean;
+  emailMfaEnabled?: boolean;
+  smsMfaEnabled?: boolean;
+  backupCodesCount?: boolean;
+  mfaEnrolledAt?: boolean;
+  mfaLastUsedAt?: boolean;
+  createdAt?: boolean;
+  updatedAt?: boolean;
+  owner?: {
+    select: UserSelect;
+  };
 };
 export type OrgApiKeyListSelect = {
   id?: boolean;
@@ -646,6 +715,9 @@ export type UserSelect = {
   searchScore?: boolean;
   roleType?: {
     select: RoleTypeSelect;
+  };
+  ownedUserSettingsSecurity?: {
+    select: UserSettingsSecuritySelect;
   };
   principals?: {
     select: PrincipalSelect;
@@ -704,6 +776,16 @@ export interface PrincipalFilter {
   isReadOnly?: BooleanFilter;
   /** Filter by the object’s `bypassStepUp` field. */
   bypassStepUp?: BooleanFilter;
+  /** Filter by the object’s `parentPrincipalId` field. */
+  parentPrincipalId?: UUIDFilter;
+  /** Filter by the object’s `depth` field. */
+  depth?: IntFilter;
+  /** Filter by the object’s `expiresAt` field. */
+  expiresAt?: DatetimeFilter;
+  /** Filter by the object’s `apiKeyMaxDuration` field. */
+  apiKeyMaxDuration?: IntervalFilter;
+  /** Filter by the object’s `createdBySessionId` field. */
+  createdBySessionId?: UUIDFilter;
   /** Checks for all expressions in this list. */
   and?: PrincipalFilter[];
   /** Checks for any expressions in this list. */
@@ -712,8 +794,16 @@ export interface PrincipalFilter {
   not?: PrincipalFilter;
   /** Filter by the object’s `owner` relation. */
   owner?: UserFilter;
+  /** Filter by the object’s `parentPrincipal` relation. */
+  parentPrincipal?: PrincipalFilter;
+  /** A related `parentPrincipal` exists. */
+  parentPrincipalExists?: boolean;
   /** Filter by the object’s `user` relation. */
   user?: UserFilter;
+  /** Filter by the object’s `child_principals` relation. */
+  child_principals?: PrincipalToManyPrincipalFilter;
+  /** `child_principals` exist. */
+  child_principalsExist?: boolean;
   /** Filter by the object’s `principalEntities` relation. */
   principalEntities?: PrincipalToManyPrincipalEntityFilter;
   /** `principalEntities` exist. */
@@ -886,6 +976,8 @@ export interface AuditLogAuthFilter {
   ipAddress?: InternetAddressFilter;
   /** Filter by the object’s `success` field. */
   success?: BooleanFilter;
+  /** Filter by the object’s `details` field. */
+  details?: JSONFilter;
   /** Checks for all expressions in this list. */
   and?: AuditLogAuthFilter[];
   /** Checks for any expressions in this list. */
@@ -949,6 +1041,36 @@ export interface UserConnectedAccountFilter {
   /** Negates the expression. */
   not?: UserConnectedAccountFilter;
 }
+export interface UserSettingsSecurityFilter {
+  /** Filter by the object’s `id` field. */
+  id?: UUIDFilter;
+  /** Filter by the object’s `ownerId` field. */
+  ownerId?: UUIDFilter;
+  /** Filter by the object’s `totpEnabled` field. */
+  totpEnabled?: BooleanFilter;
+  /** Filter by the object’s `emailMfaEnabled` field. */
+  emailMfaEnabled?: BooleanFilter;
+  /** Filter by the object’s `smsMfaEnabled` field. */
+  smsMfaEnabled?: BooleanFilter;
+  /** Filter by the object’s `backupCodesCount` field. */
+  backupCodesCount?: IntFilter;
+  /** Filter by the object’s `mfaEnrolledAt` field. */
+  mfaEnrolledAt?: DatetimeFilter;
+  /** Filter by the object’s `mfaLastUsedAt` field. */
+  mfaLastUsedAt?: DatetimeFilter;
+  /** Filter by the object’s `createdAt` field. */
+  createdAt?: DatetimeFilter;
+  /** Filter by the object’s `updatedAt` field. */
+  updatedAt?: DatetimeFilter;
+  /** Checks for all expressions in this list. */
+  and?: UserSettingsSecurityFilter[];
+  /** Checks for any expressions in this list. */
+  or?: UserSettingsSecurityFilter[];
+  /** Negates the expression. */
+  not?: UserSettingsSecurityFilter;
+  /** Filter by the object’s `owner` relation. */
+  owner?: UserFilter;
+}
 export interface OrgApiKeyListFilter {
   /** Filter by the object’s `id` field. */
   id?: UUIDFilter;
@@ -1006,6 +1128,10 @@ export interface UserFilter {
   not?: UserFilter;
   /** Filter by the object’s `roleType` relation. */
   roleType?: RoleTypeFilter;
+  /** Filter by the object’s `ownedUserSettingsSecurity` relation. */
+  ownedUserSettingsSecurity?: UserSettingsSecurityFilter;
+  /** A related `ownedUserSettingsSecurity` exists. */
+  ownedUserSettingsSecurityExists?: boolean;
   /** Filter by the object’s `principals` relation. */
   principals?: UserToManyPrincipalFilter;
   /** `principals` exist. */
@@ -1065,7 +1191,17 @@ export type PrincipalOrderBy =
   | 'IS_READ_ONLY_ASC'
   | 'IS_READ_ONLY_DESC'
   | 'BYPASS_STEP_UP_ASC'
-  | 'BYPASS_STEP_UP_DESC';
+  | 'BYPASS_STEP_UP_DESC'
+  | 'PARENT_PRINCIPAL_ID_ASC'
+  | 'PARENT_PRINCIPAL_ID_DESC'
+  | 'DEPTH_ASC'
+  | 'DEPTH_DESC'
+  | 'EXPIRES_AT_ASC'
+  | 'EXPIRES_AT_DESC'
+  | 'API_KEY_MAX_DURATION_ASC'
+  | 'API_KEY_MAX_DURATION_DESC'
+  | 'CREATED_BY_SESSION_ID_ASC'
+  | 'CREATED_BY_SESSION_ID_DESC';
 export type PrincipalEntityOrderBy =
   | 'NATURAL'
   | 'PRIMARY_KEY_ASC'
@@ -1197,7 +1333,9 @@ export type AuditLogAuthOrderBy =
   | 'IP_ADDRESS_ASC'
   | 'IP_ADDRESS_DESC'
   | 'SUCCESS_ASC'
-  | 'SUCCESS_DESC';
+  | 'SUCCESS_DESC'
+  | 'DETAILS_ASC'
+  | 'DETAILS_DESC';
 export type IdentityProviderOrderBy =
   | 'NATURAL'
   | 'SLUG_ASC'
@@ -1230,6 +1368,30 @@ export type UserConnectedAccountOrderBy =
   | 'DETAILS_DESC'
   | 'IS_VERIFIED_ASC'
   | 'IS_VERIFIED_DESC'
+  | 'CREATED_AT_ASC'
+  | 'CREATED_AT_DESC'
+  | 'UPDATED_AT_ASC'
+  | 'UPDATED_AT_DESC';
+export type UserSettingsSecurityOrderBy =
+  | 'NATURAL'
+  | 'PRIMARY_KEY_ASC'
+  | 'PRIMARY_KEY_DESC'
+  | 'ID_ASC'
+  | 'ID_DESC'
+  | 'OWNER_ID_ASC'
+  | 'OWNER_ID_DESC'
+  | 'TOTP_ENABLED_ASC'
+  | 'TOTP_ENABLED_DESC'
+  | 'EMAIL_MFA_ENABLED_ASC'
+  | 'EMAIL_MFA_ENABLED_DESC'
+  | 'SMS_MFA_ENABLED_ASC'
+  | 'SMS_MFA_ENABLED_DESC'
+  | 'BACKUP_CODES_COUNT_ASC'
+  | 'BACKUP_CODES_COUNT_DESC'
+  | 'MFA_ENROLLED_AT_ASC'
+  | 'MFA_ENROLLED_AT_DESC'
+  | 'MFA_LAST_USED_AT_ASC'
+  | 'MFA_LAST_USED_AT_DESC'
   | 'CREATED_AT_ASC'
   | 'CREATED_AT_DESC'
   | 'UPDATED_AT_ASC'
@@ -1296,6 +1458,11 @@ export interface CreatePrincipalInput {
     useAdminOwner?: boolean;
     isReadOnly?: boolean;
     bypassStepUp?: boolean;
+    parentPrincipalId: string;
+    depth?: number;
+    expiresAt?: string;
+    apiKeyMaxDuration?: string;
+    createdBySessionId: string;
   };
 }
 export interface PrincipalPatch {
@@ -1305,6 +1472,11 @@ export interface PrincipalPatch {
   useAdminOwner?: boolean | null;
   isReadOnly?: boolean | null;
   bypassStepUp?: boolean | null;
+  parentPrincipalId?: string | null;
+  depth?: number | null;
+  expiresAt?: string | null;
+  apiKeyMaxDuration?: string | null;
+  createdBySessionId?: string | null;
 }
 export interface UpdatePrincipalInput {
   clientMutationId?: string;
@@ -1466,6 +1638,7 @@ export interface CreateAuditLogAuthInput {
     userAgent?: string;
     ipAddress?: string;
     success: boolean;
+    details?: Record<string, unknown>;
   };
 }
 export interface AuditLogAuthPatch {
@@ -1475,6 +1648,7 @@ export interface AuditLogAuthPatch {
   userAgent?: string | null;
   ipAddress?: string | null;
   success?: boolean | null;
+  details?: Record<string, unknown> | null;
 }
 export interface UpdateAuditLogAuthInput {
   clientMutationId?: string;
@@ -1553,6 +1727,36 @@ export interface DeleteUserConnectedAccountInput {
   clientMutationId?: string;
   id: string;
 }
+export interface CreateUserSettingsSecurityInput {
+  clientMutationId?: string;
+  userSettingsSecurity: {
+    ownerId?: string;
+    totpEnabled?: boolean;
+    emailMfaEnabled?: boolean;
+    smsMfaEnabled?: boolean;
+    backupCodesCount?: number;
+    mfaEnrolledAt?: string;
+    mfaLastUsedAt?: string;
+  };
+}
+export interface UserSettingsSecurityPatch {
+  ownerId?: string | null;
+  totpEnabled?: boolean | null;
+  emailMfaEnabled?: boolean | null;
+  smsMfaEnabled?: boolean | null;
+  backupCodesCount?: number | null;
+  mfaEnrolledAt?: string | null;
+  mfaLastUsedAt?: string | null;
+}
+export interface UpdateUserSettingsSecurityInput {
+  clientMutationId?: string;
+  id: string;
+  userSettingsSecurityPatch: UserSettingsSecurityPatch;
+}
+export interface DeleteUserSettingsSecurityInput {
+  clientMutationId?: string;
+  id: string;
+}
 export interface CreateOrgApiKeyListInput {
   clientMutationId?: string;
   orgApiKeyList: {
@@ -1615,6 +1819,7 @@ export interface DeleteUserInput {
 // ============ Connection Fields Map ============
 export const connectionFieldsMap = {
   Principal: {
+    child_principals: 'Principal',
     principalEntities: 'PrincipalEntity',
     principalScopeOverrides: 'PrincipalScopeOverride',
   },
@@ -1628,19 +1833,49 @@ export const connectionFieldsMap = {
   },
 } as Record<string, Record<string, string>>;
 // ============ Custom Input Types (from schema) ============
+export interface DisableEmailMfaInput {
+  clientMutationId?: string;
+}
+export interface DisableSmsMfaInput {
+  clientMutationId?: string;
+}
+export interface EnableEmailMfaInput {
+  clientMutationId?: string;
+}
+export interface EnableSmsMfaInput {
+  clientMutationId?: string;
+}
 export interface SendAccountDeletionEmailInput {
   clientMutationId?: string;
 }
 export interface SignOutInput {
   clientMutationId?: string;
 }
+export interface EnableTotpInput {
+  clientMutationId?: string;
+}
+export interface GenerateBackupCodesInput {
+  clientMutationId?: string;
+}
 export interface ApproveDeviceInput {
   clientMutationId?: string;
   approvalToken: string;
 }
+export interface AttachPhoneNumberInput {
+  clientMutationId?: string;
+  phone?: string;
+}
+export interface ConfirmTotpSetupInput {
+  clientMutationId?: string;
+  totpValue: string;
+}
 export interface DeleteOrgPrincipalInput {
   clientMutationId?: string;
   principalId?: string;
+}
+export interface DisableTotpInput {
+  clientMutationId?: string;
+  totpValue: string;
 }
 export interface DisconnectAccountInput {
   clientMutationId?: string;
@@ -1653,6 +1888,14 @@ export interface RevokeApiKeyInput {
 export interface RevokeSessionInput {
   clientMutationId?: string;
   sessionId: string;
+}
+export interface SendPhoneVerificationCodeInput {
+  clientMutationId?: string;
+  phone?: string;
+}
+export interface SetPrimaryPhoneInput {
+  clientMutationId?: string;
+  phone?: string;
 }
 export interface VerifyPasswordInput {
   clientMutationId?: string;
@@ -1686,6 +1929,11 @@ export interface VerifyEmailInput {
   emailId?: string;
   token?: string;
 }
+export interface VerifyPhoneInput {
+  clientMutationId?: string;
+  phone?: string;
+  code?: string;
+}
 export interface ProvisionNewUserInput {
   clientMutationId?: string;
   email?: string;
@@ -1697,6 +1945,12 @@ export interface ResetPasswordInput {
   resetToken?: string;
   newPassword?: string;
 }
+export interface ResetPasswordSmsInput {
+  clientMutationId?: string;
+  phone?: string;
+  code?: string;
+  newPassword?: string;
+}
 export interface CreateOrgPrincipalInput {
   clientMutationId?: string;
   name?: string;
@@ -1705,14 +1959,33 @@ export interface CreateOrgPrincipalInput {
   isReadOnly?: boolean;
   bypassStepUp?: boolean;
 }
+export interface RefreshAccessTokenInput {
+  clientMutationId?: string;
+  token?: string;
+}
 export interface SignInCrossOriginInput {
   clientMutationId?: string;
   token?: string;
   credentialKind?: string;
 }
-export interface SignUpSmsInput {
+export interface SignInMagicLinkInput {
   clientMutationId?: string;
-  phone?: string;
+  token?: string;
+  credentialKind?: string;
+  rememberMe?: boolean;
+  deviceToken?: string;
+}
+export interface SignUpMagicLinkInput {
+  clientMutationId?: string;
+  token?: string;
+  credentialKind?: string;
+  rememberMe?: boolean;
+  deviceToken?: string;
+  inviteToken?: string;
+}
+export interface SignInEmailOtpInput {
+  clientMutationId?: string;
+  email?: string;
   code?: string;
   credentialKind?: string;
   rememberMe?: boolean;
@@ -1726,6 +1999,26 @@ export interface SignInSmsOtpInput {
   rememberMe?: boolean;
   deviceToken?: string;
 }
+export interface SignUpSmsInput {
+  clientMutationId?: string;
+  phone?: string;
+  code?: string;
+  credentialKind?: string;
+  rememberMe?: boolean;
+  deviceToken?: string;
+  inviteToken?: string;
+}
+export interface CompleteMfaChallengeInput {
+  clientMutationId?: string;
+  userId?: string;
+  mfaChallengeToken?: string;
+  totpCode?: string;
+  mfaMethod?: string;
+  credentialKind?: string;
+  rememberMe?: boolean;
+  trustDevice?: boolean;
+  deviceToken?: string;
+}
 export interface SignUpInput {
   clientMutationId?: string;
   email?: string;
@@ -1734,6 +2027,8 @@ export interface SignUpInput {
   credentialKind?: string;
   csrfToken?: string;
   deviceToken?: string;
+  inviteToken?: string;
+  code?: string;
 }
 export interface SignInInput {
   clientMutationId?: string;
@@ -1744,15 +2039,33 @@ export interface SignInInput {
   csrfToken?: string;
   deviceToken?: string;
 }
+export interface SetPrincipalEntitiesInput {
+  clientMutationId?: string;
+  principalId?: string;
+  entityIds?: string[];
+}
 export interface LinkIdentityInput {
   clientMutationId?: string;
   service: string;
   identifier: string;
   details?: Record<string, unknown>;
 }
+export interface CreatePrincipalFromPresetInput {
+  clientMutationId?: string;
+  slug?: string;
+  name?: string;
+  entityIds?: string[];
+  overrides?: Record<string, unknown>;
+}
 export interface ExtendTokenExpiresInput {
   clientMutationId?: string;
   amount?: IntervalInput;
+}
+export interface MintAccessTokenInput {
+  clientMutationId?: string;
+  principalId?: string;
+  intent?: string;
+  accessTtl?: IntervalInput;
 }
 export interface CreateOrgApiKeyInput {
   clientMutationId?: string;
@@ -1763,6 +2076,15 @@ export interface CreateOrgApiKeyInput {
   mfaLevel?: string;
   expiresIn?: IntervalInput;
 }
+export interface SetPrincipalScopeInput {
+  clientMutationId?: string;
+  principalId?: string;
+  membershipType?: number;
+  allowedMask?: string;
+  useAdminOwner?: boolean;
+  isActive?: boolean;
+  isReadOnly?: boolean;
+}
 export interface CreateApiKeyInput {
   clientMutationId?: string;
   keyName?: string;
@@ -1770,6 +2092,16 @@ export interface CreateApiKeyInput {
   mfaLevel?: string;
   expiresIn?: IntervalInput;
   principalId?: string;
+}
+export interface CreateChildPrincipalInput {
+  clientMutationId?: string;
+  parentPrincipalId?: string;
+  name?: string;
+  allowedMask?: string;
+  entityIds?: string[];
+  isReadOnly?: boolean;
+  expiresAt?: string;
+  intent?: string;
 }
 export interface RequestCrossOriginTokenInput {
   clientMutationId?: string;
@@ -1794,6 +2126,40 @@ export interface ProvisionBucketInput {
    * Omit for app-level (database-wide) storage.
    */
   ownerId?: string;
+}
+/** A filter to be used against Interval fields. All fields are combined with a logical ‘and.’ */
+export interface IntervalFilter {
+  /** Is null (if `true` is specified) or is not null (if `false` is specified). */
+  isNull?: boolean;
+  /** Equal to the specified value. */
+  equalTo?: IntervalInput;
+  /** Not equal to the specified value. */
+  notEqualTo?: IntervalInput;
+  /** Not equal to the specified value, treating null like an ordinary value. */
+  distinctFrom?: IntervalInput;
+  /** Equal to the specified value, treating null like an ordinary value. */
+  notDistinctFrom?: IntervalInput;
+  /** Included in the specified list. */
+  in?: IntervalInput[];
+  /** Not included in the specified list. */
+  notIn?: IntervalInput[];
+  /** Less than the specified value. */
+  lessThan?: IntervalInput;
+  /** Less than or equal to the specified value. */
+  lessThanOrEqualTo?: IntervalInput;
+  /** Greater than the specified value. */
+  greaterThan?: IntervalInput;
+  /** Greater than or equal to the specified value. */
+  greaterThanOrEqualTo?: IntervalInput;
+}
+/** A filter to be used against many `Principal` object types. All fields are combined with a logical ‘and.’ */
+export interface PrincipalToManyPrincipalFilter {
+  /** Filters to entities where at least one related entity matches. */
+  some?: PrincipalFilter;
+  /** Filters to entities where every related entity matches. */
+  every?: PrincipalFilter;
+  /** Filters to entities where no related entity matches. */
+  none?: PrincipalFilter;
 }
 /** A filter to be used against many `PrincipalEntity` object types. All fields are combined with a logical ‘and.’ */
 export interface PrincipalToManyPrincipalEntityFilter {
@@ -2161,6 +2527,119 @@ export interface TrgmSearchInput {
   /** Minimum similarity threshold (0.0 to 1.0). Higher = stricter matching. Default is 0.3. */
   threshold?: number;
 }
+/** An input for mutations affecting `Email` */
+export interface EmailInput {
+  id?: string;
+  ownerId?: string;
+  /** The email address */
+  email: ConstructiveInternalTypeEmail;
+  /** Whether the email address has been verified via confirmation link */
+  isVerified?: boolean;
+  /** Whether this is the user's primary email address */
+  isPrimary?: boolean;
+  /** Optional user-provided label for this email (e.g. "Work", "Personal"). */
+  name?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+/** An input for mutations affecting `PhoneNumber` */
+export interface PhoneNumberInput {
+  id?: string;
+  ownerId?: string;
+  /** Country calling code the number was entered under (e.g. +1, +44). Display only: `number` already carries it, and sign-in matches `number`. */
+  cc: string;
+  /** The full number in E.164 form, country calling code included (e.g. +15551234567). This is the value SMS sign-in and MFA match, so it is unique across the table and constrained to that shape. */
+  number: string;
+  /** Whether the phone number has been verified via SMS code */
+  isVerified?: boolean;
+  /** Whether this is the user's primary phone number */
+  isPrimary?: boolean;
+  /** Optional user-provided label for this phone number (e.g. "Mobile", "Work"). */
+  name?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+/** An input for mutations affecting `WebauthnCredential` */
+export interface WebauthnCredentialInput {
+  id?: string;
+  ownerId?: string;
+  /** Base64url-encoded credential ID returned by the authenticator. Globally unique per WebAuthn spec. */
+  credentialId: string;
+  /** COSE-encoded public key bytes from the authenticator attestation. */
+  publicKey: Base64EncodedBinary;
+  /** Monotonic signature counter. Strict-increase check during sign-in detects cloned credentials. 0 means the authenticator does not implement a counter. */
+  signCount?: string;
+  /** Random per-user handle sent to authenticators as user.id. Privacy-preserving; NOT the internal user UUID. */
+  webauthnUserId: string;
+  /** Authenticator transport hints (e.g. usb, nfc, ble, internal, hybrid). Used to hint browser UI during sign-in. */
+  transports?: string[];
+  /** Either 'singleDevice' (hardware-bound) or 'multiDevice' (synced passkey). Enforced by CHECK constraint below. */
+  credentialDeviceType: string;
+  /** Whether this credential is eligible for backup (syncing) per the authenticator's flags at registration. */
+  backupEligible?: boolean;
+  /** Current backup state; updated on each successful sign-in assertion. */
+  backupState?: boolean;
+  /** User-provided label for this credential (e.g. "YubiKey 5C", "iPhone 15"). Renamed via rename_passkey. */
+  name?: string;
+  /** Timestamp of the most recent successful sign-in assertion using this credential. */
+  lastUsedAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+/** An input for mutations affecting `AuditLogAuth` */
+export interface AuditLogAuthInput {
+  createdAt?: string;
+  /** Unique identifier for each audit event (uuidv7 provides temporal ordering) */
+  id?: string;
+  /** Type of authentication event (e.g. sign_in, sign_up, password_change, verify_email) */
+  event: string;
+  /** User who performed the authentication action; NULL if user was deleted */
+  actorId?: string;
+  /** Request origin (domain) where the auth event occurred */
+  origin?: ConstructiveInternalTypeOrigin;
+  /** Browser or client user-agent string from the request */
+  userAgent?: string;
+  /** IP address of the client that initiated the auth event */
+  ipAddress?: string;
+  /** Whether the authentication attempt succeeded */
+  success: boolean;
+  /** Event-specific structured payload (e.g. preset slug and catalog commit id for create_principal_from_preset) */
+  details?: Record<string, unknown>;
+}
+/** An input for mutations affecting `RoleType` */
+export interface RoleTypeInput {
+  id: number;
+  name: string;
+}
+/** An input for mutations affecting `UserSettingsSecurity` */
+export interface UserSettingsSecurityInput {
+  id?: string;
+  ownerId?: string;
+  /** Whether TOTP (authenticator app) MFA is active for this user */
+  totpEnabled?: boolean;
+  /** Whether email-based MFA codes are active for this user */
+  emailMfaEnabled?: boolean;
+  /** Whether SMS-based MFA codes are active for this user */
+  smsMfaEnabled?: boolean;
+  /** Number of remaining unused backup codes */
+  backupCodesCount?: number;
+  /** When the first MFA method was enabled */
+  mfaEnrolledAt?: string;
+  /** When MFA was last successfully verified */
+  mfaLastUsedAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+/** An input for mutations affecting `User` */
+export interface UserInput {
+  id?: string;
+  username?: string;
+  displayName?: string;
+  profilePicture?: ConstructiveInternalTypeImage;
+  type?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
 /** An interval of time that has passed where the smallest distinct unit is a second. */
 export interface IntervalInput {
   /**
@@ -2179,6 +2658,63 @@ export interface IntervalInput {
   months?: number;
   /** A quantity of years. */
   years?: number;
+}
+/** A filter to be used against `Principal` object types. All fields are combined with a logical ‘and.’ */
+export interface PrincipalFilter {
+  /** Filter by the object’s `id` field. */
+  id?: UUIDFilter;
+  /** Filter by the object’s `createdAt` field. */
+  createdAt?: DatetimeFilter;
+  /** Filter by the object’s `updatedAt` field. */
+  updatedAt?: DatetimeFilter;
+  /** Filter by the object’s `ownerId` field. */
+  ownerId?: UUIDFilter;
+  /** Filter by the object’s `userId` field. */
+  userId?: UUIDFilter;
+  /** Filter by the object’s `name` field. */
+  name?: StringFilter;
+  /** Filter by the object’s `useAdminOwner` field. */
+  useAdminOwner?: BooleanFilter;
+  /** Filter by the object’s `isReadOnly` field. */
+  isReadOnly?: BooleanFilter;
+  /** Filter by the object’s `bypassStepUp` field. */
+  bypassStepUp?: BooleanFilter;
+  /** Filter by the object’s `parentPrincipalId` field. */
+  parentPrincipalId?: UUIDFilter;
+  /** Filter by the object’s `depth` field. */
+  depth?: IntFilter;
+  /** Filter by the object’s `expiresAt` field. */
+  expiresAt?: DatetimeFilter;
+  /** Filter by the object’s `apiKeyMaxDuration` field. */
+  apiKeyMaxDuration?: IntervalFilter;
+  /** Filter by the object’s `createdBySessionId` field. */
+  createdBySessionId?: UUIDFilter;
+  /** Checks for all expressions in this list. */
+  and?: PrincipalFilter[];
+  /** Checks for any expressions in this list. */
+  or?: PrincipalFilter[];
+  /** Negates the expression. */
+  not?: PrincipalFilter;
+  /** Filter by the object’s `owner` relation. */
+  owner?: UserFilter;
+  /** Filter by the object’s `parentPrincipal` relation. */
+  parentPrincipal?: PrincipalFilter;
+  /** A related `parentPrincipal` exists. */
+  parentPrincipalExists?: boolean;
+  /** Filter by the object’s `user` relation. */
+  user?: UserFilter;
+  /** Filter by the object’s `child_principals` relation. */
+  child_principals?: PrincipalToManyPrincipalFilter;
+  /** `child_principals` exist. */
+  child_principalsExist?: boolean;
+  /** Filter by the object’s `principalEntities` relation. */
+  principalEntities?: PrincipalToManyPrincipalEntityFilter;
+  /** `principalEntities` exist. */
+  principalEntitiesExist?: boolean;
+  /** Filter by the object’s `principalScopeOverrides` relation. */
+  principalScopeOverrides?: PrincipalToManyPrincipalScopeOverrideFilter;
+  /** `principalScopeOverrides` exist. */
+  principalScopeOverridesExist?: boolean;
 }
 /** A filter to be used against `PrincipalEntity` object types. All fields are combined with a logical ‘and.’ */
 export interface PrincipalEntityFilter {
@@ -2235,45 +2771,6 @@ export interface PrincipalScopeOverrideFilter {
   not?: PrincipalScopeOverrideFilter;
   /** Filter by the object’s `principal` relation. */
   principal?: PrincipalFilter;
-}
-/** A filter to be used against `Principal` object types. All fields are combined with a logical ‘and.’ */
-export interface PrincipalFilter {
-  /** Filter by the object’s `id` field. */
-  id?: UUIDFilter;
-  /** Filter by the object’s `createdAt` field. */
-  createdAt?: DatetimeFilter;
-  /** Filter by the object’s `updatedAt` field. */
-  updatedAt?: DatetimeFilter;
-  /** Filter by the object’s `ownerId` field. */
-  ownerId?: UUIDFilter;
-  /** Filter by the object’s `userId` field. */
-  userId?: UUIDFilter;
-  /** Filter by the object’s `name` field. */
-  name?: StringFilter;
-  /** Filter by the object’s `useAdminOwner` field. */
-  useAdminOwner?: BooleanFilter;
-  /** Filter by the object’s `isReadOnly` field. */
-  isReadOnly?: BooleanFilter;
-  /** Filter by the object’s `bypassStepUp` field. */
-  bypassStepUp?: BooleanFilter;
-  /** Checks for all expressions in this list. */
-  and?: PrincipalFilter[];
-  /** Checks for any expressions in this list. */
-  or?: PrincipalFilter[];
-  /** Negates the expression. */
-  not?: PrincipalFilter;
-  /** Filter by the object’s `owner` relation. */
-  owner?: UserFilter;
-  /** Filter by the object’s `user` relation. */
-  user?: UserFilter;
-  /** Filter by the object’s `principalEntities` relation. */
-  principalEntities?: PrincipalToManyPrincipalEntityFilter;
-  /** `principalEntities` exist. */
-  principalEntitiesExist?: boolean;
-  /** Filter by the object’s `principalScopeOverrides` relation. */
-  principalScopeOverrides?: PrincipalToManyPrincipalScopeOverrideFilter;
-  /** `principalScopeOverrides` exist. */
-  principalScopeOverridesExist?: boolean;
 }
 /** A filter to be used against `Email` object types. All fields are combined with a logical ‘and.’ */
 export interface EmailFilter {
@@ -2388,6 +2885,8 @@ export interface AuditLogAuthFilter {
   ipAddress?: InternetAddressFilter;
   /** Filter by the object’s `success` field. */
   success?: BooleanFilter;
+  /** Filter by the object’s `details` field. */
+  details?: JSONFilter;
   /** Checks for all expressions in this list. */
   and?: AuditLogAuthFilter[];
   /** Checks for any expressions in this list. */
@@ -2448,144 +2947,6 @@ export interface DatetimeFilter {
   greaterThan?: string;
   /** Greater than or equal to the specified value. */
   greaterThanOrEqualTo?: string;
-}
-/** A filter to be used against `User` object types. All fields are combined with a logical ‘and.’ */
-export interface UserFilter {
-  /** Filter by the object’s `id` field. */
-  id?: UUIDFilter;
-  /** Filter by the object’s `username` field. */
-  username?: StringTrgmFilter;
-  /** Filter by the object’s `displayName` field. */
-  displayName?: StringTrgmFilter;
-  /** Filter by the object’s `profilePicture` field. */
-  profilePicture?: ConstructiveInternalTypeImageFilter;
-  /** Filter by the object’s `searchTsv` field. */
-  searchTsv?: FullTextFilter;
-  /** Filter by the object’s `type` field. */
-  type?: IntFilter;
-  /** Filter by the object’s `createdAt` field. */
-  createdAt?: DatetimeFilter;
-  /** Filter by the object’s `updatedAt` field. */
-  updatedAt?: DatetimeFilter;
-  /** Checks for all expressions in this list. */
-  and?: UserFilter[];
-  /** Checks for any expressions in this list. */
-  or?: UserFilter[];
-  /** Negates the expression. */
-  not?: UserFilter;
-  /** Filter by the object’s `roleType` relation. */
-  roleType?: RoleTypeFilter;
-  /** Filter by the object’s `principals` relation. */
-  principals?: UserToManyPrincipalFilter;
-  /** `principals` exist. */
-  principalsExist?: boolean;
-  /** Filter by the object’s `scopedPrincipals` relation. */
-  scopedPrincipals?: UserToManyPrincipalEntityFilter;
-  /** `scopedPrincipals` exist. */
-  scopedPrincipalsExist?: boolean;
-  /** Filter by the object’s `emails` relation. */
-  emails?: UserToManyEmailFilter;
-  /** `emails` exist. */
-  emailsExist?: boolean;
-  /** Filter by the object’s `phoneNumbers` relation. */
-  phoneNumbers?: UserToManyPhoneNumberFilter;
-  /** `phoneNumbers` exist. */
-  phoneNumbersExist?: boolean;
-  /** Filter by the object’s `webauthnCredentials` relation. */
-  webauthnCredentials?: UserToManyWebauthnCredentialFilter;
-  /** `webauthnCredentials` exist. */
-  webauthnCredentialsExist?: boolean;
-  /** Filter by the object’s `authAuditLog` relation. */
-  authAuditLog?: UserToManyAuditLogAuthFilter;
-  /** `authAuditLog` exist. */
-  authAuditLogExist?: boolean;
-  /** TSV search on the `search_tsv` column. */
-  tsvSearchTsv?: string;
-  /** TRGM search on the `display_name` column. */
-  trgmDisplayName?: TrgmSearchInput;
-  /**
-   * Composite unified search. Provide a search string and it will be dispatched to
-   * all text-compatible search algorithms (tsvector, BM25, pg_trgm)
-   * simultaneously. When the LLM plugin is active, pgvector also participates via
-   * auto-embedding. Rows matching ANY algorithm are returned. All matching score
-   * fields are populated.
-   */
-  unifiedSearch?: string;
-}
-/** A filter to be used against Int fields. All fields are combined with a logical ‘and.’ */
-export interface IntFilter {
-  /** Is null (if `true` is specified) or is not null (if `false` is specified). */
-  isNull?: boolean;
-  /** Equal to the specified value. */
-  equalTo?: number;
-  /** Not equal to the specified value. */
-  notEqualTo?: number;
-  /** Not equal to the specified value, treating null like an ordinary value. */
-  distinctFrom?: number;
-  /** Equal to the specified value, treating null like an ordinary value. */
-  notDistinctFrom?: number;
-  /** Included in the specified list. */
-  in?: number[];
-  /** Not included in the specified list. */
-  notIn?: number[];
-  /** Less than the specified value. */
-  lessThan?: number;
-  /** Less than or equal to the specified value. */
-  lessThanOrEqualTo?: number;
-  /** Greater than the specified value. */
-  greaterThan?: number;
-  /** Greater than or equal to the specified value. */
-  greaterThanOrEqualTo?: number;
-}
-/** A filter to be used against BitString fields. All fields are combined with a logical ‘and.’ */
-export interface BitStringFilter {
-  /** Is null (if `true` is specified) or is not null (if `false` is specified). */
-  isNull?: boolean;
-  /** Equal to the specified value. */
-  equalTo?: string;
-  /** Not equal to the specified value. */
-  notEqualTo?: string;
-  /** Not equal to the specified value, treating null like an ordinary value. */
-  distinctFrom?: string;
-  /** Equal to the specified value, treating null like an ordinary value. */
-  notDistinctFrom?: string;
-  /** Included in the specified list. */
-  in?: string[];
-  /** Not included in the specified list. */
-  notIn?: string[];
-  /** Less than the specified value. */
-  lessThan?: string;
-  /** Less than or equal to the specified value. */
-  lessThanOrEqualTo?: string;
-  /** Greater than the specified value. */
-  greaterThan?: string;
-  /** Greater than or equal to the specified value. */
-  greaterThanOrEqualTo?: string;
-}
-/** A filter to be used against Boolean fields. All fields are combined with a logical ‘and.’ */
-export interface BooleanFilter {
-  /** Is null (if `true` is specified) or is not null (if `false` is specified). */
-  isNull?: boolean;
-  /** Equal to the specified value. */
-  equalTo?: boolean;
-  /** Not equal to the specified value. */
-  notEqualTo?: boolean;
-  /** Not equal to the specified value, treating null like an ordinary value. */
-  distinctFrom?: boolean;
-  /** Equal to the specified value, treating null like an ordinary value. */
-  notDistinctFrom?: boolean;
-  /** Included in the specified list. */
-  in?: boolean[];
-  /** Not included in the specified list. */
-  notIn?: boolean[];
-  /** Less than the specified value. */
-  lessThan?: boolean;
-  /** Less than or equal to the specified value. */
-  lessThanOrEqualTo?: boolean;
-  /** Greater than the specified value. */
-  greaterThan?: boolean;
-  /** Greater than or equal to the specified value. */
-  greaterThanOrEqualTo?: boolean;
 }
 /** A filter to be used against String fields. All fields are combined with a logical ‘and.’ */
 export interface StringFilter {
@@ -2663,6 +3024,148 @@ export interface StringFilter {
   greaterThanInsensitive?: string;
   /** Greater than or equal to the specified value (case-insensitive). */
   greaterThanOrEqualToInsensitive?: string;
+}
+/** A filter to be used against Boolean fields. All fields are combined with a logical ‘and.’ */
+export interface BooleanFilter {
+  /** Is null (if `true` is specified) or is not null (if `false` is specified). */
+  isNull?: boolean;
+  /** Equal to the specified value. */
+  equalTo?: boolean;
+  /** Not equal to the specified value. */
+  notEqualTo?: boolean;
+  /** Not equal to the specified value, treating null like an ordinary value. */
+  distinctFrom?: boolean;
+  /** Equal to the specified value, treating null like an ordinary value. */
+  notDistinctFrom?: boolean;
+  /** Included in the specified list. */
+  in?: boolean[];
+  /** Not included in the specified list. */
+  notIn?: boolean[];
+  /** Less than the specified value. */
+  lessThan?: boolean;
+  /** Less than or equal to the specified value. */
+  lessThanOrEqualTo?: boolean;
+  /** Greater than the specified value. */
+  greaterThan?: boolean;
+  /** Greater than or equal to the specified value. */
+  greaterThanOrEqualTo?: boolean;
+}
+/** A filter to be used against Int fields. All fields are combined with a logical ‘and.’ */
+export interface IntFilter {
+  /** Is null (if `true` is specified) or is not null (if `false` is specified). */
+  isNull?: boolean;
+  /** Equal to the specified value. */
+  equalTo?: number;
+  /** Not equal to the specified value. */
+  notEqualTo?: number;
+  /** Not equal to the specified value, treating null like an ordinary value. */
+  distinctFrom?: number;
+  /** Equal to the specified value, treating null like an ordinary value. */
+  notDistinctFrom?: number;
+  /** Included in the specified list. */
+  in?: number[];
+  /** Not included in the specified list. */
+  notIn?: number[];
+  /** Less than the specified value. */
+  lessThan?: number;
+  /** Less than or equal to the specified value. */
+  lessThanOrEqualTo?: number;
+  /** Greater than the specified value. */
+  greaterThan?: number;
+  /** Greater than or equal to the specified value. */
+  greaterThanOrEqualTo?: number;
+}
+/** A filter to be used against `User` object types. All fields are combined with a logical ‘and.’ */
+export interface UserFilter {
+  /** Filter by the object’s `id` field. */
+  id?: UUIDFilter;
+  /** Filter by the object’s `username` field. */
+  username?: StringTrgmFilter;
+  /** Filter by the object’s `displayName` field. */
+  displayName?: StringTrgmFilter;
+  /** Filter by the object’s `profilePicture` field. */
+  profilePicture?: ConstructiveInternalTypeImageFilter;
+  /** Filter by the object’s `searchTsv` field. */
+  searchTsv?: FullTextFilter;
+  /** Filter by the object’s `type` field. */
+  type?: IntFilter;
+  /** Filter by the object’s `createdAt` field. */
+  createdAt?: DatetimeFilter;
+  /** Filter by the object’s `updatedAt` field. */
+  updatedAt?: DatetimeFilter;
+  /** Checks for all expressions in this list. */
+  and?: UserFilter[];
+  /** Checks for any expressions in this list. */
+  or?: UserFilter[];
+  /** Negates the expression. */
+  not?: UserFilter;
+  /** Filter by the object’s `roleType` relation. */
+  roleType?: RoleTypeFilter;
+  /** Filter by the object’s `ownedUserSettingsSecurity` relation. */
+  ownedUserSettingsSecurity?: UserSettingsSecurityFilter;
+  /** A related `ownedUserSettingsSecurity` exists. */
+  ownedUserSettingsSecurityExists?: boolean;
+  /** Filter by the object’s `principals` relation. */
+  principals?: UserToManyPrincipalFilter;
+  /** `principals` exist. */
+  principalsExist?: boolean;
+  /** Filter by the object’s `scopedPrincipals` relation. */
+  scopedPrincipals?: UserToManyPrincipalEntityFilter;
+  /** `scopedPrincipals` exist. */
+  scopedPrincipalsExist?: boolean;
+  /** Filter by the object’s `emails` relation. */
+  emails?: UserToManyEmailFilter;
+  /** `emails` exist. */
+  emailsExist?: boolean;
+  /** Filter by the object’s `phoneNumbers` relation. */
+  phoneNumbers?: UserToManyPhoneNumberFilter;
+  /** `phoneNumbers` exist. */
+  phoneNumbersExist?: boolean;
+  /** Filter by the object’s `webauthnCredentials` relation. */
+  webauthnCredentials?: UserToManyWebauthnCredentialFilter;
+  /** `webauthnCredentials` exist. */
+  webauthnCredentialsExist?: boolean;
+  /** Filter by the object’s `authAuditLog` relation. */
+  authAuditLog?: UserToManyAuditLogAuthFilter;
+  /** `authAuditLog` exist. */
+  authAuditLogExist?: boolean;
+  /** TSV search on the `search_tsv` column. */
+  tsvSearchTsv?: string;
+  /** TRGM search on the `display_name` column. */
+  trgmDisplayName?: TrgmSearchInput;
+  /**
+   * Composite unified search. Provide a search string and it will be dispatched to
+   * all text-compatible search algorithms (tsvector, BM25, pg_trgm)
+   * simultaneously. When the LLM plugin is active, pgvector also participates via
+   * auto-embedding. Rows matching ANY algorithm are returned. All matching score
+   * fields are populated.
+   */
+  unifiedSearch?: string;
+}
+/** A filter to be used against BitString fields. All fields are combined with a logical ‘and.’ */
+export interface BitStringFilter {
+  /** Is null (if `true` is specified) or is not null (if `false` is specified). */
+  isNull?: boolean;
+  /** Equal to the specified value. */
+  equalTo?: string;
+  /** Not equal to the specified value. */
+  notEqualTo?: string;
+  /** Not equal to the specified value, treating null like an ordinary value. */
+  distinctFrom?: string;
+  /** Equal to the specified value, treating null like an ordinary value. */
+  notDistinctFrom?: string;
+  /** Included in the specified list. */
+  in?: string[];
+  /** Not included in the specified list. */
+  notIn?: string[];
+  /** Less than the specified value. */
+  lessThan?: string;
+  /** Less than or equal to the specified value. */
+  lessThanOrEqualTo?: string;
+  /** Greater than the specified value. */
+  greaterThan?: string;
+  /** Greater than or equal to the specified value. */
+  greaterThanOrEqualTo?: string;
 }
 /** A filter to be used against BigInt fields. All fields are combined with a logical ‘and.’ */
 export interface BigIntFilter {
@@ -2763,6 +3266,41 @@ export interface InternetAddressFilter {
   /** Contains or contained by the specified internet address. */
   containsOrContainedBy?: string;
 }
+/** A filter to be used against JSON fields. All fields are combined with a logical ‘and.’ */
+export interface JSONFilter {
+  /** Is null (if `true` is specified) or is not null (if `false` is specified). */
+  isNull?: boolean;
+  /** Equal to the specified value. */
+  equalTo?: Record<string, unknown>;
+  /** Not equal to the specified value. */
+  notEqualTo?: Record<string, unknown>;
+  /** Not equal to the specified value, treating null like an ordinary value. */
+  distinctFrom?: Record<string, unknown>;
+  /** Equal to the specified value, treating null like an ordinary value. */
+  notDistinctFrom?: Record<string, unknown>;
+  /** Included in the specified list. */
+  in?: Record<string, unknown>[];
+  /** Not included in the specified list. */
+  notIn?: Record<string, unknown>[];
+  /** Less than the specified value. */
+  lessThan?: Record<string, unknown>;
+  /** Less than or equal to the specified value. */
+  lessThanOrEqualTo?: Record<string, unknown>;
+  /** Greater than the specified value. */
+  greaterThan?: Record<string, unknown>;
+  /** Greater than or equal to the specified value. */
+  greaterThanOrEqualTo?: Record<string, unknown>;
+  /** Contains the specified JSON. */
+  contains?: Record<string, unknown>;
+  /** Contains the specified key. */
+  containsKey?: string;
+  /** Contains all of the specified keys. */
+  containsAllKeys?: string[];
+  /** Contains any of the specified keys. */
+  containsAnyKeys?: string[];
+  /** Contained by the specified JSON. */
+  containedBy?: Record<string, unknown>;
+}
 /** A filter to be used against FullText fields. All fields are combined with a logical ‘and.’ */
 export interface FullTextFilter {
   /** Is null (if `true` is specified) or is not null (if `false` is specified). */
@@ -2795,7 +3333,82 @@ export interface RoleTypeFilter {
   /** Negates the expression. */
   not?: RoleTypeFilter;
 }
+/** A filter to be used against `UserSettingsSecurity` object types. All fields are combined with a logical ‘and.’ */
+export interface UserSettingsSecurityFilter {
+  /** Filter by the object’s `id` field. */
+  id?: UUIDFilter;
+  /** Filter by the object’s `ownerId` field. */
+  ownerId?: UUIDFilter;
+  /** Filter by the object’s `totpEnabled` field. */
+  totpEnabled?: BooleanFilter;
+  /** Filter by the object’s `emailMfaEnabled` field. */
+  emailMfaEnabled?: BooleanFilter;
+  /** Filter by the object’s `smsMfaEnabled` field. */
+  smsMfaEnabled?: BooleanFilter;
+  /** Filter by the object’s `backupCodesCount` field. */
+  backupCodesCount?: IntFilter;
+  /** Filter by the object’s `mfaEnrolledAt` field. */
+  mfaEnrolledAt?: DatetimeFilter;
+  /** Filter by the object’s `mfaLastUsedAt` field. */
+  mfaLastUsedAt?: DatetimeFilter;
+  /** Filter by the object’s `createdAt` field. */
+  createdAt?: DatetimeFilter;
+  /** Filter by the object’s `updatedAt` field. */
+  updatedAt?: DatetimeFilter;
+  /** Checks for all expressions in this list. */
+  and?: UserSettingsSecurityFilter[];
+  /** Checks for any expressions in this list. */
+  or?: UserSettingsSecurityFilter[];
+  /** Negates the expression. */
+  not?: UserSettingsSecurityFilter;
+  /** Filter by the object’s `owner` relation. */
+  owner?: UserFilter;
+}
 // ============ Payload/Return Types (for custom operations) ============
+export interface GetMfaStatusRecord {
+  totpEnabled?: boolean | null;
+  emailMfaEnabled?: boolean | null;
+  smsMfaEnabled?: boolean | null;
+  backupCodesCount?: number | null;
+}
+export type GetMfaStatusRecordSelect = {
+  totpEnabled?: boolean;
+  emailMfaEnabled?: boolean;
+  smsMfaEnabled?: boolean;
+  backupCodesCount?: boolean;
+};
+export interface DisableEmailMfaPayload {
+  clientMutationId?: string | null;
+  result?: boolean | null;
+}
+export type DisableEmailMfaPayloadSelect = {
+  clientMutationId?: boolean;
+  result?: boolean;
+};
+export interface DisableSmsMfaPayload {
+  clientMutationId?: string | null;
+  result?: boolean | null;
+}
+export type DisableSmsMfaPayloadSelect = {
+  clientMutationId?: boolean;
+  result?: boolean;
+};
+export interface EnableEmailMfaPayload {
+  clientMutationId?: string | null;
+  result?: boolean | null;
+}
+export type EnableEmailMfaPayloadSelect = {
+  clientMutationId?: boolean;
+  result?: boolean;
+};
+export interface EnableSmsMfaPayload {
+  clientMutationId?: string | null;
+  result?: boolean | null;
+}
+export type EnableSmsMfaPayloadSelect = {
+  clientMutationId?: boolean;
+  result?: boolean;
+};
 export interface SendAccountDeletionEmailPayload {
   clientMutationId?: string | null;
   result?: boolean | null;
@@ -2810,6 +3423,22 @@ export interface SignOutPayload {
 export type SignOutPayloadSelect = {
   clientMutationId?: boolean;
 };
+export interface EnableTotpPayload {
+  clientMutationId?: string | null;
+  result?: string | null;
+}
+export type EnableTotpPayloadSelect = {
+  clientMutationId?: boolean;
+  result?: boolean;
+};
+export interface GenerateBackupCodesPayload {
+  clientMutationId?: string | null;
+  result?: string | null;
+}
+export type GenerateBackupCodesPayloadSelect = {
+  clientMutationId?: boolean;
+  result?: boolean;
+};
 export interface ApproveDevicePayload {
   clientMutationId?: string | null;
   result?: boolean | null;
@@ -2818,11 +3447,43 @@ export type ApproveDevicePayloadSelect = {
   clientMutationId?: boolean;
   result?: boolean;
 };
+export interface AttachPhoneNumberPayload {
+  clientMutationId?: string | null;
+  result?: boolean | null;
+}
+export type AttachPhoneNumberPayloadSelect = {
+  clientMutationId?: boolean;
+  result?: boolean;
+};
+export interface ConfirmTotpSetupPayload {
+  clientMutationId?: string | null;
+  result?: boolean | null;
+}
+export type ConfirmTotpSetupPayloadSelect = {
+  clientMutationId?: boolean;
+  result?: boolean;
+};
 export interface DeleteOrgPrincipalPayload {
   clientMutationId?: string | null;
   result?: boolean | null;
 }
 export type DeleteOrgPrincipalPayloadSelect = {
+  clientMutationId?: boolean;
+  result?: boolean;
+};
+export interface DeletePrincipalPayload {
+  clientMutationId?: string | null;
+  result?: boolean | null;
+}
+export type DeletePrincipalPayloadSelect = {
+  clientMutationId?: boolean;
+  result?: boolean;
+};
+export interface DisableTotpPayload {
+  clientMutationId?: string | null;
+  result?: boolean | null;
+}
+export type DisableTotpPayloadSelect = {
   clientMutationId?: boolean;
   result?: boolean;
 };
@@ -2847,6 +3508,22 @@ export interface RevokeSessionPayload {
   result?: boolean | null;
 }
 export type RevokeSessionPayloadSelect = {
+  clientMutationId?: boolean;
+  result?: boolean;
+};
+export interface SendPhoneVerificationCodePayload {
+  clientMutationId?: string | null;
+  result?: boolean | null;
+}
+export type SendPhoneVerificationCodePayloadSelect = {
+  clientMutationId?: boolean;
+  result?: boolean;
+};
+export interface SetPrimaryPhonePayload {
+  clientMutationId?: string | null;
+  result?: boolean | null;
+}
+export type SetPrimaryPhonePayloadSelect = {
   clientMutationId?: boolean;
   result?: boolean;
 };
@@ -2904,6 +3581,14 @@ export type VerifyEmailPayloadSelect = {
   clientMutationId?: boolean;
   result?: boolean;
 };
+export interface VerifyPhonePayload {
+  clientMutationId?: string | null;
+  result?: boolean | null;
+}
+export type VerifyPhonePayloadSelect = {
+  clientMutationId?: boolean;
+  result?: boolean;
+};
 export interface ProvisionNewUserPayload {
   clientMutationId?: string | null;
   result?: string | null;
@@ -2920,6 +3605,14 @@ export type ResetPasswordPayloadSelect = {
   clientMutationId?: boolean;
   result?: boolean;
 };
+export interface ResetPasswordSmsPayload {
+  clientMutationId?: string | null;
+  result?: boolean | null;
+}
+export type ResetPasswordSmsPayloadSelect = {
+  clientMutationId?: boolean;
+  result?: boolean;
+};
 export interface CreateOrgPrincipalPayload {
   clientMutationId?: string | null;
   result?: string | null;
@@ -2927,6 +3620,16 @@ export interface CreateOrgPrincipalPayload {
 export type CreateOrgPrincipalPayloadSelect = {
   clientMutationId?: boolean;
   result?: boolean;
+};
+export interface RefreshAccessTokenPayload {
+  clientMutationId?: string | null;
+  result?: RefreshAccessTokenRecord | null;
+}
+export type RefreshAccessTokenPayloadSelect = {
+  clientMutationId?: boolean;
+  result?: {
+    select: RefreshAccessTokenRecordSelect;
+  };
 };
 export interface SignInCrossOriginPayload {
   clientMutationId?: string | null;
@@ -2936,6 +3639,46 @@ export type SignInCrossOriginPayloadSelect = {
   clientMutationId?: boolean;
   result?: {
     select: SignInCrossOriginRecordSelect;
+  };
+};
+export interface SignInMagicLinkPayload {
+  clientMutationId?: string | null;
+  result?: SignInMagicLinkRecord | null;
+}
+export type SignInMagicLinkPayloadSelect = {
+  clientMutationId?: boolean;
+  result?: {
+    select: SignInMagicLinkRecordSelect;
+  };
+};
+export interface SignUpMagicLinkPayload {
+  clientMutationId?: string | null;
+  result?: SignUpMagicLinkRecord | null;
+}
+export type SignUpMagicLinkPayloadSelect = {
+  clientMutationId?: boolean;
+  result?: {
+    select: SignUpMagicLinkRecordSelect;
+  };
+};
+export interface SignInEmailOtpPayload {
+  clientMutationId?: string | null;
+  result?: SignInEmailOtpRecord | null;
+}
+export type SignInEmailOtpPayloadSelect = {
+  clientMutationId?: boolean;
+  result?: {
+    select: SignInEmailOtpRecordSelect;
+  };
+};
+export interface SignInSmsOtpPayload {
+  clientMutationId?: string | null;
+  result?: SignInSmsOtpRecord | null;
+}
+export type SignInSmsOtpPayloadSelect = {
+  clientMutationId?: boolean;
+  result?: {
+    select: SignInSmsOtpRecordSelect;
   };
 };
 export interface SignUpSmsPayload {
@@ -2948,14 +3691,14 @@ export type SignUpSmsPayloadSelect = {
     select: SignUpSmsRecordSelect;
   };
 };
-export interface SignInSmsOtpPayload {
+export interface CompleteMfaChallengePayload {
   clientMutationId?: string | null;
-  result?: SignInSmsOtpRecord | null;
+  result?: CompleteMfaChallengeRecord | null;
 }
-export type SignInSmsOtpPayloadSelect = {
+export type CompleteMfaChallengePayloadSelect = {
   clientMutationId?: boolean;
   result?: {
-    select: SignInSmsOtpRecordSelect;
+    select: CompleteMfaChallengeRecordSelect;
   };
 };
 export interface SignUpPayload {
@@ -2978,11 +3721,35 @@ export type SignInPayloadSelect = {
     select: SignInRecordSelect;
   };
 };
+export interface SetPrincipalEntitiesPayload {
+  clientMutationId?: string | null;
+  result?: boolean | null;
+}
+export type SetPrincipalEntitiesPayloadSelect = {
+  clientMutationId?: boolean;
+  result?: boolean;
+};
 export interface LinkIdentityPayload {
   clientMutationId?: string | null;
   result?: boolean | null;
 }
 export type LinkIdentityPayloadSelect = {
+  clientMutationId?: boolean;
+  result?: boolean;
+};
+export interface CreatePrincipalFromPresetPayload {
+  clientMutationId?: string | null;
+  result?: string | null;
+}
+export type CreatePrincipalFromPresetPayloadSelect = {
+  clientMutationId?: boolean;
+  result?: boolean;
+};
+export interface UpdatePrincipalPayload {
+  clientMutationId?: string | null;
+  result?: boolean | null;
+}
+export type UpdatePrincipalPayloadSelect = {
   clientMutationId?: boolean;
   result?: boolean;
 };
@@ -2996,6 +3763,16 @@ export type ExtendTokenExpiresPayloadSelect = {
     select: ExtendTokenExpiresRecordSelect;
   };
 };
+export interface MintAccessTokenPayload {
+  clientMutationId?: string | null;
+  result?: MintAccessTokenRecord | null;
+}
+export type MintAccessTokenPayloadSelect = {
+  clientMutationId?: boolean;
+  result?: {
+    select: MintAccessTokenRecordSelect;
+  };
+};
 export interface CreateOrgApiKeyPayload {
   clientMutationId?: string | null;
   result?: CreateOrgApiKeyRecord | null;
@@ -3006,6 +3783,14 @@ export type CreateOrgApiKeyPayloadSelect = {
     select: CreateOrgApiKeyRecordSelect;
   };
 };
+export interface SetPrincipalScopePayload {
+  clientMutationId?: string | null;
+  result?: boolean | null;
+}
+export type SetPrincipalScopePayloadSelect = {
+  clientMutationId?: boolean;
+  result?: boolean;
+};
 export interface CreateApiKeyPayload {
   clientMutationId?: string | null;
   result?: CreateApiKeyRecord | null;
@@ -3015,6 +3800,14 @@ export type CreateApiKeyPayloadSelect = {
   result?: {
     select: CreateApiKeyRecordSelect;
   };
+};
+export interface CreateChildPrincipalPayload {
+  clientMutationId?: string | null;
+  result?: string | null;
+}
+export type CreateChildPrincipalPayloadSelect = {
+  clientMutationId?: boolean;
+  result?: boolean;
 };
 export interface RequestCrossOriginTokenPayload {
   clientMutationId?: string | null;
@@ -3067,59 +3860,6 @@ export interface CreatePrincipalPayload {
 export type CreatePrincipalPayloadSelect = {
   clientMutationId?: boolean;
   result?: boolean;
-};
-export interface DeletePrincipalPayload {
-  clientMutationId?: string | null;
-  result?: boolean | null;
-}
-export type DeletePrincipalPayloadSelect = {
-  clientMutationId?: boolean;
-  result?: boolean;
-};
-export interface CreatePrincipalEntityPayload {
-  clientMutationId?: string | null;
-  /** The `PrincipalEntity` that was created by this mutation. */
-  principalEntity?: PrincipalEntity | null;
-  principalEntityEdge?: PrincipalEntityEdge | null;
-}
-export type CreatePrincipalEntityPayloadSelect = {
-  clientMutationId?: boolean;
-  principalEntity?: {
-    select: PrincipalEntitySelect;
-  };
-  principalEntityEdge?: {
-    select: PrincipalEntityEdgeSelect;
-  };
-};
-export interface UpdatePrincipalEntityPayload {
-  clientMutationId?: string | null;
-  /** The `PrincipalEntity` that was updated by this mutation. */
-  principalEntity?: PrincipalEntity | null;
-  principalEntityEdge?: PrincipalEntityEdge | null;
-}
-export type UpdatePrincipalEntityPayloadSelect = {
-  clientMutationId?: boolean;
-  principalEntity?: {
-    select: PrincipalEntitySelect;
-  };
-  principalEntityEdge?: {
-    select: PrincipalEntityEdgeSelect;
-  };
-};
-export interface DeletePrincipalEntityPayload {
-  clientMutationId?: string | null;
-  /** The `PrincipalEntity` that was deleted by this mutation. */
-  principalEntity?: PrincipalEntity | null;
-  principalEntityEdge?: PrincipalEntityEdge | null;
-}
-export type DeletePrincipalEntityPayloadSelect = {
-  clientMutationId?: boolean;
-  principalEntity?: {
-    select: PrincipalEntitySelect;
-  };
-  principalEntityEdge?: {
-    select: PrincipalEntityEdgeSelect;
-  };
 };
 export interface CreateEmailPayload {
   clientMutationId?: string | null;
@@ -3346,6 +4086,51 @@ export type DeleteRoleTypePayloadSelect = {
     select: RoleTypeEdgeSelect;
   };
 };
+export interface CreateUserSettingsSecurityPayload {
+  clientMutationId?: string | null;
+  /** The `UserSettingsSecurity` that was created by this mutation. */
+  userSettingsSecurity?: UserSettingsSecurity | null;
+  userSettingsSecurityEdge?: UserSettingsSecurityEdge | null;
+}
+export type CreateUserSettingsSecurityPayloadSelect = {
+  clientMutationId?: boolean;
+  userSettingsSecurity?: {
+    select: UserSettingsSecuritySelect;
+  };
+  userSettingsSecurityEdge?: {
+    select: UserSettingsSecurityEdgeSelect;
+  };
+};
+export interface UpdateUserSettingsSecurityPayload {
+  clientMutationId?: string | null;
+  /** The `UserSettingsSecurity` that was updated by this mutation. */
+  userSettingsSecurity?: UserSettingsSecurity | null;
+  userSettingsSecurityEdge?: UserSettingsSecurityEdge | null;
+}
+export type UpdateUserSettingsSecurityPayloadSelect = {
+  clientMutationId?: boolean;
+  userSettingsSecurity?: {
+    select: UserSettingsSecuritySelect;
+  };
+  userSettingsSecurityEdge?: {
+    select: UserSettingsSecurityEdgeSelect;
+  };
+};
+export interface DeleteUserSettingsSecurityPayload {
+  clientMutationId?: string | null;
+  /** The `UserSettingsSecurity` that was deleted by this mutation. */
+  userSettingsSecurity?: UserSettingsSecurity | null;
+  userSettingsSecurityEdge?: UserSettingsSecurityEdge | null;
+}
+export type DeleteUserSettingsSecurityPayloadSelect = {
+  clientMutationId?: boolean;
+  userSettingsSecurity?: {
+    select: UserSettingsSecuritySelect;
+  };
+  userSettingsSecurityEdge?: {
+    select: UserSettingsSecurityEdgeSelect;
+  };
+};
 export interface CreateUserPayload {
   clientMutationId?: string | null;
   /** The `User` that was created by this mutation. */
@@ -3391,6 +4176,22 @@ export type DeleteUserPayloadSelect = {
     select: UserEdgeSelect;
   };
 };
+export interface RefreshAccessTokenRecord {
+  accessToken?: string | null;
+  refreshToken?: string | null;
+  sessionId?: string | null;
+  principalUserId?: string | null;
+  accessExpiresAt?: string | null;
+  refreshExpiresAt?: string | null;
+}
+export type RefreshAccessTokenRecordSelect = {
+  accessToken?: boolean;
+  refreshToken?: boolean;
+  sessionId?: boolean;
+  principalUserId?: boolean;
+  accessExpiresAt?: boolean;
+  refreshExpiresAt?: boolean;
+};
 export interface SignInCrossOriginRecord {
   id?: string | null;
   userId?: string | null;
@@ -3407,17 +4208,45 @@ export type SignInCrossOriginRecordSelect = {
   isVerified?: boolean;
   totpEnabled?: boolean;
 };
-export interface SignUpSmsRecord {
+export interface SignInMagicLinkRecord {
+  userId?: string | null;
+  accessToken?: string | null;
+  accessTokenExpiresAt?: string | null;
+  outDeviceToken?: string | null;
+  deviceApprovalRequired?: boolean | null;
+}
+export type SignInMagicLinkRecordSelect = {
+  userId?: boolean;
+  accessToken?: boolean;
+  accessTokenExpiresAt?: boolean;
+  outDeviceToken?: boolean;
+  deviceApprovalRequired?: boolean;
+};
+export interface SignUpMagicLinkRecord {
   userId?: string | null;
   accessToken?: string | null;
   accessTokenExpiresAt?: string | null;
   outDeviceToken?: string | null;
 }
-export type SignUpSmsRecordSelect = {
+export type SignUpMagicLinkRecordSelect = {
   userId?: boolean;
   accessToken?: boolean;
   accessTokenExpiresAt?: boolean;
   outDeviceToken?: boolean;
+};
+export interface SignInEmailOtpRecord {
+  userId?: string | null;
+  accessToken?: string | null;
+  accessTokenExpiresAt?: string | null;
+  outDeviceToken?: string | null;
+  deviceApprovalRequired?: boolean | null;
+}
+export type SignInEmailOtpRecordSelect = {
+  userId?: boolean;
+  accessToken?: boolean;
+  accessTokenExpiresAt?: boolean;
+  outDeviceToken?: boolean;
+  deviceApprovalRequired?: boolean;
 };
 export interface SignInSmsOtpRecord {
   userId?: string | null;
@@ -3430,6 +4259,36 @@ export type SignInSmsOtpRecordSelect = {
   userId?: boolean;
   accessToken?: boolean;
   accessTokenExpiresAt?: boolean;
+  outDeviceToken?: boolean;
+  deviceApprovalRequired?: boolean;
+};
+export interface SignUpSmsRecord {
+  userId?: string | null;
+  accessToken?: string | null;
+  accessTokenExpiresAt?: string | null;
+  outDeviceToken?: string | null;
+}
+export type SignUpSmsRecordSelect = {
+  userId?: boolean;
+  accessToken?: boolean;
+  accessTokenExpiresAt?: boolean;
+  outDeviceToken?: boolean;
+};
+export interface CompleteMfaChallengeRecord {
+  id?: string | null;
+  outUserId?: string | null;
+  accessToken?: string | null;
+  accessTokenExpiresAt?: string | null;
+  isVerified?: boolean | null;
+  outDeviceToken?: string | null;
+  deviceApprovalRequired?: boolean | null;
+}
+export type CompleteMfaChallengeRecordSelect = {
+  id?: boolean;
+  outUserId?: boolean;
+  accessToken?: boolean;
+  accessTokenExpiresAt?: boolean;
+  isVerified?: boolean;
   outDeviceToken?: boolean;
   deviceApprovalRequired?: boolean;
 };
@@ -3485,6 +4344,22 @@ export type ExtendTokenExpiresRecordSelect = {
   sessionId?: boolean;
   expiresAt?: boolean;
 };
+export interface MintAccessTokenRecord {
+  accessToken?: string | null;
+  refreshToken?: string | null;
+  sessionId?: string | null;
+  principalUserId?: string | null;
+  accessExpiresAt?: string | null;
+  refreshExpiresAt?: string | null;
+}
+export type MintAccessTokenRecordSelect = {
+  accessToken?: boolean;
+  refreshToken?: boolean;
+  sessionId?: boolean;
+  principalUserId?: boolean;
+  accessExpiresAt?: boolean;
+  refreshExpiresAt?: boolean;
+};
 export interface CreateOrgApiKeyRecord {
   apiKey?: string | null;
   keyId?: string | null;
@@ -3504,18 +4379,6 @@ export type CreateApiKeyRecordSelect = {
   apiKey?: boolean;
   keyId?: boolean;
   expiresAt?: boolean;
-};
-/** A `PrincipalEntity` edge in the connection. */
-export interface PrincipalEntityEdge {
-  cursor?: string | null;
-  /** The `PrincipalEntity` at the end of the edge. */
-  node?: PrincipalEntity | null;
-}
-export type PrincipalEntityEdgeSelect = {
-  cursor?: boolean;
-  node?: {
-    select: PrincipalEntitySelect;
-  };
 };
 /** A `Email` edge in the connection. */
 export interface EmailEdge {
@@ -3575,6 +4438,18 @@ export type RoleTypeEdgeSelect = {
   cursor?: boolean;
   node?: {
     select: RoleTypeSelect;
+  };
+};
+/** A `UserSettingsSecurity` edge in the connection. */
+export interface UserSettingsSecurityEdge {
+  cursor?: string | null;
+  /** The `UserSettingsSecurity` at the end of the edge. */
+  node?: UserSettingsSecurity | null;
+}
+export type UserSettingsSecurityEdgeSelect = {
+  cursor?: boolean;
+  node?: {
+    select: UserSettingsSecuritySelect;
   };
 };
 /** A `User` edge in the connection. */

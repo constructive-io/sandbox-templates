@@ -17,6 +17,11 @@ export interface Principal {
   useAdminOwner: boolean | null;
   isReadOnly: boolean | null;
   bypassStepUp: boolean | null;
+  parentPrincipalId: string | null;
+  depth: number | null;
+  expiresAt: string | null;
+  apiKeyMaxDuration: string | null;
+  createdBySessionId: string | null;
 }
 export interface PrincipalEntity {
   id: string | null;
@@ -83,6 +88,7 @@ export interface AuditLogAuth {
   userAgent: string | null;
   ipAddress: string | null;
   success: boolean | null;
+  details: unknown | null;
 }
 export interface IdentityProvider {
   slug: string | null;
@@ -101,6 +107,18 @@ export interface UserConnectedAccount {
   identifier: string | null;
   details: unknown | null;
   isVerified: boolean | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+export interface UserSettingsSecurity {
+  id: string | null;
+  ownerId: string | null;
+  totpEnabled: boolean | null;
+  emailMfaEnabled: boolean | null;
+  smsMfaEnabled: boolean | null;
+  backupCodesCount: number | null;
+  mfaEnrolledAt: string | null;
+  mfaLastUsedAt: string | null;
   createdAt: string | null;
   updatedAt: string | null;
 }
