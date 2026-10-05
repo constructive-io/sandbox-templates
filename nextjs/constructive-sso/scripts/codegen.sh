@@ -22,6 +22,10 @@
 # regeneration.
 #
 # Arguments are forwarded to every target's run (e.g. --dry-run, -v).
+#
+# The generated READMEs name the endpoint they were generated from, which
+# carries the tenant's slug; it is replaced with <tenant-slug> so regenerating
+# on a fresh tenant (every bring-up makes one) is not a diff.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -79,4 +83,13 @@ if ! "${GEN[@]}" -t app "$@" 2>&1 | tee "$APP_LOG"; then
     restore_all
     exit 1
   fi
+fi
+
+SLUG="${NEXT_PUBLIC_DB_NAME:-$(sed -n 's/^NEXT_PUBLIC_DB_NAME=//p' .env 2>/dev/null | tr -d '"' | tail -n 1)}"
+if [ -n "$SLUG" ]; then
+  for t in "${TARGETS[@]}"; do
+    if [ -f "$SDK/$t/README.md" ]; then
+      SLUG="$SLUG" perl -pi -e 's/\Q$ENV{SLUG}\E/<tenant-slug>/g' "$SDK/$t/README.md"
+    fi
+  done
 fi

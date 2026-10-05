@@ -14,7 +14,7 @@
 
 **Generators:** ORM, React Query
 
-**Endpoint:** `http://admin-e81-electronic-ivory-monkey.localhost/graphql`
+**Endpoint:** `http://admin-<tenant-slug>.localhost/graphql`
 
 ## Modules
 
