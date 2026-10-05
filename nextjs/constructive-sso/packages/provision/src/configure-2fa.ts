@@ -1,7 +1,19 @@
 /**
- * configure-2fa — the tenant's second-factor switch.
+ * configure-2fa — the tenant's verification policy: the second-factor switch,
+ * and code-first registration.
  *
- * One setting on `app_settings_auth`: `verification_policy.two_factor`.
+ * Both live in `app_settings_auth.verification_policy`:
+ *
+ *   two_factor          the switch below (TWO_FACTOR)
+ *   sign_up.verify      always 'code': email + password registration emails a
+ *                       6-digit code first, and the account is created only
+ *                       once that code is entered — already verified. An
+ *                       address that already has an account is told so on the
+ *                       sign-up page (with a link to reset the password) and
+ *                       is sent nothing. Phone registration verifies by its
+ *                       texted code either way.
+ *
+ * The switch:
  *
  *   on  (default)  every password sign-in is challenged with a code emailed to
  *                  the address the user signed in with (an enrolled
@@ -74,16 +86,17 @@ async function main(): Promise<void> {
   // The whole policy is replaced: an earlier version of this script wrote
   // {"sign_up":{"collect":["phone"]}}, which made email sign-up ask for a
   // phone and switched every new account's SMS factor on.
+  const policy = { two_factor: twoFactor, sign_up: { verify: 'code' } };
   execFileSync(
     'psql',
     ['-h', PGHOST, '-p', PGPORT, '-U', env.PGUSER ?? 'postgres', '-d', PGDATABASE,
      '-v', 'ON_ERROR_STOP=1', '-c',
      `UPDATE "${schema}".app_settings_auth
-         SET verification_policy = '${JSON.stringify({ two_factor: twoFactor })}'::jsonb`],
+         SET verification_policy = '${JSON.stringify(policy)}'::jsonb`],
     { stdio: ['ignore', 'inherit', 'inherit'] }
   );
   console.log(
-    `auth: verification_policy.two_factor = ${twoFactor} on ${schema}.app_settings_auth ` +
+    `auth: verification_policy = ${JSON.stringify(policy)} on ${schema}.app_settings_auth ` +
       '(setup window measured from owner bootstrap per #3765)'
   );
 }
