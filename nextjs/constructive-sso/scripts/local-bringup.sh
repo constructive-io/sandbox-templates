@@ -30,8 +30,8 @@
 #   6. Configure the SSO provider (real Google from OAUTH_* in .env) + the
 #      anonymous grants the sign-in lane needs.
 #   7. The per-tenant lanes a fresh cluster has none of, each idempotent:
-#      email (Mailpit sender), SMS (twilio verify), phone-2FA posture
-#      (sign-up collects a phone; allow_sms_mfa). Then Next.js on :3000.
+#      email (Mailpit sender), SMS (twilio verify), the two-factor switch
+#      (TWO_FACTOR=on|off, default on). Then Next.js on :3000.
 #
 # NOTE: the old "provision the rate-limiter stack" step is gone — the
 # b2b:storage preset ships plans/billing/rate_limit_meters since upstream
@@ -179,7 +179,7 @@ echo "[7/8] Configuring the email lane (smtp -> Mailpit)..."
 (cd "$ROOT_DIR/packages/provision" && pnpm run configure-email)
 echo "[7b/8] Configuring the SMS lane (twilio verify)..."
 (cd "$ROOT_DIR/packages/provision" && pnpm run configure-sms)
-echo "[7c/8] Configuring the phone-2FA posture (sign-up collects a phone)..."
+echo "[7c/8] Setting the two-factor switch (TWO_FACTOR=${TWO_FACTOR:-on})..."
 (cd "$ROOT_DIR/packages/provision" && pnpm run configure-2fa)
 echo "[7d/8] Opening org creation to every member..."
 (cd "$ROOT_DIR/packages/provision" && pnpm run configure-orgs)

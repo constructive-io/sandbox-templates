@@ -65,10 +65,20 @@ async function post<T>(path: string, body: unknown): Promise<T> {
 /** Which of the caller's verified identifiers the code goes to. */
 export type StepUpMethod = 'sms' | 'email';
 
-/** Send the signed-in caller a step-up code by text (default) or email. */
-export async function sendStepUpCode(method: StepUpMethod = 'sms'): Promise<void> {
-	const { sent } = await post<{ sent: boolean }>('/api/auth/step-up/send', { method });
-	if (!sent) throw new StepUpError('STEP_UP_CODE_NOT_SENT');
+/**
+ * Send the signed-in caller a step-up code — by the named factor, or, with
+ * none, by the account's own sign-in channel — and answer the factor it went
+ * through.
+ */
+export async function sendStepUpCode(method?: StepUpMethod): Promise<StepUpMethod> {
+	const result = await post<{ sent: boolean; method?: StepUpMethod }>(
+		'/api/auth/step-up/send',
+		method ? { method } : {}
+	);
+	if (!result.sent || (result.method !== 'sms' && result.method !== 'email')) {
+		throw new StepUpError('STEP_UP_CODE_NOT_SENT');
+	}
+	return result.method;
 }
 
 /** Spend the code; `false` is a wrong or lapsed code, never an error. */

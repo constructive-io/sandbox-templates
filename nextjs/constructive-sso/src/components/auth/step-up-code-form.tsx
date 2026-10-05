@@ -7,19 +7,19 @@ import { Button } from '@/components/ui/button';
 import { InputOtp } from '@/components/ui/input-otp';
 import { sendStepUpCode, StepUpError, type StepUpMethod, verifyStepUpCode } from '@/lib/auth/step-up';
 
-/** How each factor is named in a sentence. */
-const FACTOR: Record<StepUpMethod, { thing: string; sent: string; where: string }> = {
+/** How each factor is named in a sentence; null is "not known yet". */
+const FACTOR: Record<StepUpMethod | 'unknown', { thing: string; sent: string; where: string }> = {
 	sms: { thing: 'phone number', sent: 'texted', where: 'your phone' },
 	email: { thing: 'email address', sent: 'emailed', where: 'your email' },
+	unknown: { thing: 'phone number or email address', sent: 'sent', where: 'your phone or email' },
 };
 
-/** Refusals that mean this account has no usable identifier for the factor. */
-const NO_IDENTIFIER = new Set(['STEP_UP_CODE_NOT_SENT', 'MFA_IDENTIFIER_UNVERIFIED']);
+const factor = (method: StepUpMethod | null) => FACTOR[method ?? 'unknown'];
 
 /** The tenant's refusals, in words a person can act on. */
-const messageFor = (err: unknown, method: StepUpMethod): string => {
+const messageFor = (err: unknown, method: StepUpMethod | null): string => {
 	if (!(err instanceof StepUpError)) return 'Could not reach the app server — is the dev server running?';
-	const { thing, sent } = FACTOR[method];
+	const { thing, sent } = factor(method);
 	switch (err.code) {
 		case 'STEP_UP_CODE_NOT_SENT':
 			return `This account has no verified ${thing} to send a code to. Add one under Account settings.`;
@@ -53,11 +53,12 @@ interface StepUpCodeFormProps {
 
 /**
  * The second factor a sensitive action demands: sends the signed-in caller a
- * code as soon as it mounts — by text, or by email when the account has no
- * verified phone — takes the six digits, and on a correct code hands control
- * back so the caller can retry the action the tenant refused with
+ * code as soon as it mounts — the tenant picks the account's own sign-in
+ * channel (an email for an email account, a text for a phone sign-up) and
+ * says which — takes the six digits, and on a correct code hands control back
+ * so the caller can retry the action the tenant refused with
  * `STEP_UP_REQUIRED_MFA`. Either factor's code satisfies the demand, so the
- * caller can switch between them.
+ * caller can switch to the other one.
  */
 export function StepUpCodeForm({
 	onVerified,
@@ -65,7 +66,8 @@ export function StepUpCodeForm({
 	busy = false,
 	busyLabel = 'Continuing…',
 }: StepUpCodeFormProps) {
-	const [method, setMethod] = useState<StepUpMethod>('sms');
+	// Unknown until the first send answers which factor the tenant used.
+	const [method, setMethod] = useState<StepUpMethod | null>(null);
 	const [code, setCode] = useState('');
 	const [error, setError] = useState<string | null>(null);
 	const [notice, setNotice] = useState<string | null>(null);
@@ -74,28 +76,28 @@ export function StepUpCodeForm({
 	const [cooldown, setCooldown] = useState(0);
 	const sentOnMount = useRef(false);
 
-	/** Send by one factor; answers the refusal code, or null once a code is on its way. */
-	const send = useCallback(async (via: StepUpMethod, resend: boolean): Promise<string | null> => {
+	/** Send by a named factor, or (undefined) by the account's own channel. */
+	const send = useCallback(async (via: StepUpMethod | undefined, resend: boolean) => {
 		setSending(true);
 		setError(null);
 		setNotice(null);
-		setMethod(via);
-		const { sent, where } = FACTOR[via];
+		if (via) setMethod(via);
 		try {
-			await sendStepUpCode(via);
+			const used = await sendStepUpCode(via);
+			setMethod(used);
+			const { sent, where } = factor(used);
 			setNotice(resend ? `New code ${sent}. The latest code is the one to use.` : `We ${sent} a code to ${where}.`);
 			setCooldown(RESEND_SECONDS);
-			return null;
 		} catch (err) {
 			// Inside the resend window a code is already on its way and still
 			// valid, so the first send of a retried action is not a failure.
 			if (!resend && err instanceof StepUpError && err.code === 'TOO_MANY_REQUESTS') {
+				const { sent, where } = factor(via ?? null);
 				setNotice(`A code was ${sent} to ${where} in the last minute — enter it below.`);
 				setCooldown(RESEND_SECONDS);
-				return null;
+				return;
 			}
-			setError(messageFor(err, via));
-			return err instanceof StepUpError ? err.code : 'UNREACHABLE';
+			setError(messageFor(err, via ?? null));
 		} finally {
 			setSending(false);
 		}
@@ -110,14 +112,7 @@ export function StepUpCodeForm({
 	useEffect(() => {
 		if (sentOnMount.current) return;
 		sentOnMount.current = true;
-		void (async () => {
-			const refusal = await send('sms', false);
-			// No phone to text: the verified address is the other factor the
-			// demand accepts, so mail the code there instead.
-			if (refusal && NO_IDENTIFIER.has(refusal) && (await send('email', false)) === null) {
-				setNotice('This account has no verified phone, so we emailed the code instead.');
-			}
-		})();
+		void send(undefined, false);
 	}, [send]);
 
 	useEffect(() => {
@@ -132,7 +127,7 @@ export function StepUpCodeForm({
 		setError(null);
 		try {
 			if (!(await verifyStepUpCode(value))) {
-				setError(`That code didn’t match. Use the digits from the latest ${method === 'sms' ? 'text' : 'email'}.`);
+				setError(`That code didn’t match. Use the digits from the latest ${method === 'sms' ? 'text' : method === 'email' ? 'email' : 'code we sent'}.`);
 				setCode('');
 				return;
 			}
@@ -145,7 +140,9 @@ export function StepUpCodeForm({
 	};
 
 	const working = verifying || busy;
-	const other: StepUpMethod = method === 'sms' ? 'email' : 'sms';
+	// The factor(s) the caller can switch to: the other one, or both while
+	// the first send has not said which it used.
+	const others: StepUpMethod[] = method === null ? ['email', 'sms'] : [method === 'sms' ? 'email' : 'sms'];
 	const FactorIcon = method === 'sms' ? SmartphoneIcon : MailIcon;
 
 	return (
@@ -161,7 +158,7 @@ export function StepUpCodeForm({
 					<FactorIcon className='text-primary h-4 w-4' />
 				</div>
 				<p className='text-muted-foreground text-sm'>
-					This action needs a fresh second factor. Enter the six-digit code we sent to {FACTOR[method].where}.
+					This action needs a fresh second factor. Enter the six-digit code we sent to {factor(method).where}.
 				</p>
 			</div>
 
@@ -192,19 +189,22 @@ export function StepUpCodeForm({
 					variant='link'
 					className='h-auto self-start px-0 text-sm'
 					disabled={sending || cooldown > 0 || working}
-					onClick={() => void send(method, true)}
+					onClick={() => void send(method ?? undefined, true)}
 				>
 					{sending ? 'Sending…' : cooldown > 0 ? `Resend code (${cooldown}s)` : 'Resend code'}
 				</Button>
-				<Button
-					type='button'
-					variant='link'
-					className='h-auto self-start px-0 text-sm'
-					disabled={sending || working}
-					onClick={() => switchTo(other)}
-				>
-					{other === 'email' ? 'Email me a code instead' : 'Text me a code instead'}
-				</Button>
+				{others.map((other) => (
+					<Button
+						key={other}
+						type='button'
+						variant='link'
+						className='h-auto self-start px-0 text-sm'
+						disabled={sending || working}
+						onClick={() => switchTo(other)}
+					>
+						{other === 'email' ? 'Email me a code instead' : 'Text me a code instead'}
+					</Button>
+				))}
 			</div>
 
 			<div className='flex justify-end gap-2'>
