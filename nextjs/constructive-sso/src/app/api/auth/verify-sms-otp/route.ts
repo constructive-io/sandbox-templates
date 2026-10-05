@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { readJsonBody, sameOriginGuard } from '@/lib/bff/request-guard';
-import { APP_ORIGIN, SSO_GATEWAY_URL } from '@/lib/sso/gateway';
+import { gatewayLocation, SSO_GATEWAY_URL } from '@/lib/sso/gateway';
 
 interface VerifySmsOtpBody {
 	phone?: string;
@@ -43,10 +43,13 @@ export async function POST(req: Request): Promise<NextResponse> {
 
 	let res: Response;
 	try {
+		// `next` is a gateway-local path (the gateway refuses absolute targets
+		// and would fall back to /login): its root, whose app-origin redirect
+		// row brings the browser back into this app.
 		res = await fetch(`${SSO_GATEWAY_URL}/auth/sms-code`, {
 			method: 'POST',
 			headers: { 'content-type': 'application/x-www-form-urlencoded' },
-			body: new URLSearchParams({ phone, code, next: `${APP_ORIGIN}/` }),
+			body: new URLSearchParams({ phone, code, next: '/' }),
 			redirect: 'manual',
 			cache: 'no-store',
 			signal: AbortSignal.timeout(10_000),
@@ -58,7 +61,7 @@ export async function POST(req: Request): Promise<NextResponse> {
 	// Success is the gateway's redirect carrying the session cookie.
 	const sessionCookies = res.headers.getSetCookie();
 	if (res.status >= 300 && res.status < 400 && sessionCookies.length > 0) {
-		const next = res.headers.get('location') ?? '/';
+		const next = gatewayLocation(res.headers.get('location') ?? '/', `${SSO_GATEWAY_URL}/auth/sms-code`);
 		const response = NextResponse.json({ ok: true, next });
 		for (const cookie of sessionCookies) response.headers.append('set-cookie', cookie);
 		return response;

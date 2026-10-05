@@ -24,6 +24,18 @@ export const SSO_GATEWAY_URL = (process.env.SSO_GATEWAY_URL ?? 'http://localhost
 /** The app's own origin — where the provider's redirect lands (must be `localhost`). */
 export const APP_ORIGIN = process.env.APP_ORIGIN ?? 'http://localhost:3000';
 
+/**
+ * The gateway's `Location`, made absolute against the gateway URL that
+ * answered it. A relative `Location` is relative to the response that carried
+ * it, and that response came from the gateway: relayed verbatim from this
+ * origin, the browser would resolve `/setup-2fa` or `/2fa` against the app —
+ * which serves neither — and land on a 404. `/` becomes the gateway root,
+ * whose app-origin redirect row brings the browser back here.
+ */
+export function gatewayLocation(location: string, upstreamUrl: string): string {
+  return new URL(location, upstreamUrl).href;
+}
+
 /** A local path the callback may send the browser to — see ./local-path. */
 export { isLocalPath };
 
