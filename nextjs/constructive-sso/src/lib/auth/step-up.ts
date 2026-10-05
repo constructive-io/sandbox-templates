@@ -3,12 +3,12 @@
  *
  * A guarded write (an org delete, for one) is refused by the tenant with
  * `STEP_UP_REQUIRED_<KIND>` until the session proves itself again within the
- * tenant's step-up window. A texted code proves `mfa`, and `mfa` also
+ * tenant's step-up window. A texted or emailed code proves `mfa`, and `mfa` also
  * satisfies `password_or_mfa` and `fresh_auth`; `password` alone needs the
  * password re-entered, which this lane does not do.
  */
 
-/** The refusals a texted step-up code can answer. */
+/** The refusals a step-up code can answer. */
 const CODE_SATISFIES = new Set([
 	'STEP_UP_REQUIRED_MFA',
 	'STEP_UP_REQUIRED_PASSWORD_OR_MFA',
@@ -34,7 +34,7 @@ export function stepUpRefusalOf(error: unknown): string | null {
 	return typeof message === 'string' ? (STEP_UP_CODE.exec(message)?.[0] ?? null) : null;
 }
 
-/** Whether a texted step-up code can clear this error. */
+/** Whether a step-up code can clear this error. */
 export function isCodeStepUp(error: unknown): boolean {
 	const refusal = stepUpRefusalOf(error);
 	return refusal !== null && CODE_SATISFIES.has(refusal);
@@ -62,9 +62,12 @@ async function post<T>(path: string, body: unknown): Promise<T> {
 	return payload;
 }
 
-/** Text the signed-in caller a step-up code. */
-export async function sendStepUpCode(): Promise<void> {
-	const { sent } = await post<{ sent: boolean }>('/api/auth/step-up/send', {});
+/** Which of the caller's verified identifiers the code goes to. */
+export type StepUpMethod = 'sms' | 'email';
+
+/** Send the signed-in caller a step-up code by text (default) or email. */
+export async function sendStepUpCode(method: StepUpMethod = 'sms'): Promise<void> {
+	const { sent } = await post<{ sent: boolean }>('/api/auth/step-up/send', { method });
 	if (!sent) throw new StepUpError('STEP_UP_CODE_NOT_SENT');
 }
 
