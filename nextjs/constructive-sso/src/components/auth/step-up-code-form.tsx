@@ -10,8 +10,7 @@ import { sendStepUpCode, StepUpError, type StepUpMethod, verifyStepUpCode } from
 /** The hosted auth pages' origin — the same one the sign-in flows use. */
 const GATEWAY = (process.env.NEXT_PUBLIC_SSO_GATEWAY_URL ?? 'http://localhost').replace(/\/$/, '');
 
-/** This app page as a gateway-local `next`, so a hosted flow returns here. */
-const gatewayNextHere = (): string => window.location.pathname || '/';
+
 
 /** How each factor is named in a sentence; null is "not known yet". */
 const FACTOR: Record<StepUpMethod | 'unknown', { thing: string; sent: string; where: string }> = {
@@ -240,7 +239,7 @@ export function StepUpCodeForm({
 			{extra === 'setup' ? (
 				<a
 					className='text-sm underline underline-offset-4'
-					href={`${GATEWAY}/setup-2fa?next=${encodeURIComponent(gatewayNextHere())}`}
+					href={`${GATEWAY}/setup-2fa?next=%2F`}
 				>
 					Set up a second factor first
 				</a>

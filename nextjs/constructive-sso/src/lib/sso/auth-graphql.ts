@@ -31,6 +31,8 @@
 
 import 'server-only';
 
+import { NextResponse } from 'next/server';
+
 import { createClient } from '@/graphql/sdk/auth/orm';
 import type { QueryBuilder, QueryResult } from '@/graphql/sdk/auth/orm';
 
@@ -65,12 +67,56 @@ export class AuthRefusal extends Error {
   }
 }
 
+/**
+ * A refusal the platform could not name in a code the BFF knows: a surface
+ * error whose message is prose ("permission denied for function …"). Answered
+ * to the caller as the generic AUTH_REFUSED, logged server-side so the
+ * operator sees what the tenant actually said — message only, never a token
+ * or a request body (neither is in scope here).
+ */
+export class AuthRefusedUnnamed extends Error {
+  readonly code = 'AUTH_REFUSED';
+  readonly status = 400;
+
+  constructor(detail: string) {
+    super('AUTH_REFUSED');
+    this.name = 'AuthRefusedUnnamed';
+    console.warn('[auth-graphql] tenant refused without a known code', { detail });
+  }
+}
+
 /** The 4xx a tenant refusal maps to; anything unnamed is a plain 400. */
 function statusForCode(code: string): number {
   if (code === 'NOT_AUTHENTICATED') return 401;
   if (code === 'STEP_UP_SESSION_INVALID') return 401;
   if (code === 'TOO_MANY_REQUESTS') return 429;
   return 400;
+}
+
+/** A tenant code: SCREAMING_SNAKE, as the platform's errors.raise_error writes them. */
+const CODE_SHAPE = /^[A-Z][A-Z0-9_]+$/;
+
+/** The name a GraphQL error carries, from its extensions when it has one. */
+function codeOf(entry: { message?: string; extensions?: Record<string, unknown> }): string {
+  const fromExtensions = entry.extensions?.code;
+  if (typeof fromExtensions === 'string' && CODE_SHAPE.test(fromExtensions)) {
+    // The GraphQL layer's own spelling for an unauthenticated caller; the
+    // platform's auth codes say NOT_AUTHENTICATED.
+    return fromExtensions === 'UNAUTHENTICATED' ? 'NOT_AUTHENTICATED' : fromExtensions;
+  }
+  if (typeof entry.message === 'string' && CODE_SHAPE.test(entry.message)) {
+    return entry.message;
+  }
+  throw new AuthRefusedUnnamed(entry.message ?? 'unknown refusal');
+}
+
+/** The HTTP status the tenant recorded for the refusal, when it recorded one. */
+function statusOf(entry: { extensions?: Record<string, unknown> }, code: string): number {
+  const fromExtensions = entry.extensions?.http;
+  if (typeof fromExtensions === 'number' && fromExtensions >= 400 && fromExtensions < 500) {
+    return fromExtensions;
+  }
+  return statusForCode(code);
 }
 
 /** The marker the custom fetch throws for anything that is not a 2xx. */
@@ -110,7 +156,7 @@ export function authClient(req: Request): ReturnType<typeof createClient> {
     throw new AuthGraphqlUnreachable('GRAPHQL_AUTH_URL is not set — was local:bringup run?');
   }
 
-  const session = sessionOf(req);
+  const session = sessionCookieOf(req);
   const userAgent = req.headers.get('user-agent');
   const origin = req.headers.get('origin');
 
@@ -125,8 +171,38 @@ export function authClient(req: Request): ReturnType<typeof createClient> {
   });
 }
 
+/** The gateway origin as the browser sees it — response bodies are browser-facing. */
+export const GATEWAY_ORIGIN = (
+  process.env.NEXT_PUBLIC_SSO_GATEWAY_URL ?? process.env.SSO_GATEWAY_URL ?? 'http://localhost'
+).replace(/\/$/, '');
+
+/**
+ * The BFF's one answer for a client-surface failure: a refusal the tenant
+ * named keeps its code and status; an unnamed refusal answers AUTH_REFUSED
+ * (already logged where it was thrown); an unreachable tenant answers 502.
+ * Never rethrows — a route that returns this has answered its caller.
+ */
+export function authErrorResponse(err: unknown): NextResponseJson {
+  if (err instanceof AuthRefusal) {
+    return NextResponse.json({ error: err.code }, { status: err.status });
+  }
+  if (err instanceof AuthRefusedUnnamed) {
+    return NextResponse.json({ error: err.code }, { status: err.status });
+  }
+  if (err instanceof AuthGraphqlUnreachable) {
+    return NextResponse.json({ error: err.code }, { status: err.status });
+  }
+  console.warn('[auth-graphql] unexpected client-surface failure', {
+    name: err instanceof Error ? err.name : typeof err
+  });
+  return NextResponse.json({ error: 'AUTH_REFUSED' }, { status: 400 });
+}
+
+/** The shared answer's type — NextResponse.json's return. */
+type NextResponseJson = ReturnType<typeof NextResponse.json>;
+
 /** The `constructive_session` cookie a request carries, if any. */
-function sessionOf(req: Request): string | null {
+export function sessionCookieOf(req: Request): string | null {
   const header = req.headers.get('cookie');
   if (!header) return null;
   for (const part of header.split(';')) {
@@ -163,7 +239,13 @@ export async function runAuth<T extends Record<string, unknown>>(
   if (result.ok) {
     return result.data;
   }
-  // A GraphQL error's message is the tenant's refusal code (errors.raise_error).
-  const first = result.errors?.[0]?.message;
-  throw first ? new AuthRefusal(first) : new AuthGraphqlUnreachable('unknown GraphQL failure');
+  // The code lives in extensions when the layer wrote one (code, http), and
+  // in the message when the platform's errors.raise_error raised it — the
+  // message IS the code there. Prose messages are the unnamed class above.
+  const first = result.errors?.[0];
+  if (!first) {
+    throw new AuthGraphqlUnreachable('unknown GraphQL failure');
+  }
+  const code = codeOf(first);
+  throw new AuthRefusal(code, statusOf(first, code));
 }

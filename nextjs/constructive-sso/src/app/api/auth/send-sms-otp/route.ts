@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { readJsonBody, sameOriginGuard } from '@/lib/bff/request-guard';
-import { AuthRefusal, authClient, runAuth } from '@/lib/sso/auth-graphql';
+import { authClient, authErrorResponse, runAuth } from '@/lib/sso/auth-graphql';
 
 interface SendSmsOtpBody {
 	phone?: string;
@@ -40,9 +40,6 @@ export async function POST(req: Request): Promise<NextResponse> {
 		);
 		return NextResponse.json({ sent: sendSmsOtp?.result === true });
 	} catch (err) {
-		if (err instanceof AuthRefusal) {
-			return NextResponse.json({ error: err.code }, { status: err.status });
-		}
-		throw err;
+		return authErrorResponse(err);
 	}
 }

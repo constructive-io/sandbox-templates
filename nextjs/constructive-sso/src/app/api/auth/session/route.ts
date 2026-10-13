@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-import { authClient, runAuth } from '@/lib/sso/auth-graphql';
+import { authClient, AuthGraphqlUnreachable, runAuth } from '@/lib/sso/auth-graphql';
 
 export interface SessionResult {
   authenticated: boolean;
@@ -31,9 +31,13 @@ export async function POST(req: Request): Promise<NextResponse> {
       username: currentUser.username ?? undefined,
       displayName: currentUser.displayName ?? undefined
     });
-  } catch {
-    // No session, an expired one, an unreachable tenant: to the caller these
-    // are all "not signed in".
+  } catch (err) {
+    // No session, an expired one, a refusal: to the caller these are all
+    // "not signed in". An unreachable tenant is the one worth knowing about
+    // server-side, because every signed-in user of this deployment sees it.
+    if (err instanceof AuthGraphqlUnreachable) {
+      console.warn('[auth/session] tenant auth GraphQL unreachable', { detail: err.message });
+    }
     return NextResponse.json({ authenticated: false });
   }
 }

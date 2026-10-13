@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { readJsonBody, sameOriginGuard } from '@/lib/bff/request-guard';
-import { AuthRefusal, authClient, runAuth } from '@/lib/sso/auth-graphql';
+import { authClient, AuthGraphqlUnreachable, AuthRefusedUnnamed, runAuth } from '@/lib/sso/auth-graphql';
 
 interface ResetPasswordBody {
   roleId?: string;
@@ -44,9 +44,13 @@ export async function POST(req: Request): Promise<NextResponse> {
     );
     return NextResponse.json({ reset: resetPassword?.result === true });
   } catch (err) {
-    if (err instanceof AuthRefusal) {
-      return NextResponse.json({ reset: false });
+    if (err instanceof AuthRefusedUnnamed || err instanceof AuthGraphqlUnreachable) {
+      console.warn('[reset-password] auth surface failure answered as reset:false', {
+        name: err instanceof Error ? err.name : typeof err
+      });
     }
-    throw err;
+    // Every refusal — named, unnamed, transport — is reset:false: the
+    // difference between them is the tenant's to keep.
+    return NextResponse.json({ reset: false });
   }
 }

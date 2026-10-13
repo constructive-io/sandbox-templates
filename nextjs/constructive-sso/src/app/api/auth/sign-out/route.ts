@@ -20,7 +20,8 @@ export async function POST(req: Request): Promise<NextResponse> {
   try {
     await runAuth(db.mutation.signOut({ input: {} }, { select: { clientMutationId: true } }));
   } catch {
-    // Already-revoked, expired, or unreachable — the cookie clears either way.
+    // Already-revoked, expired, or unreachable — the cookie clears either
+    // way, and the caller asked to leave: answering signedOut is honest.
   }
 
   const headers = new Headers();

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { readJsonBody, sameOriginGuard } from '@/lib/bff/request-guard';
-import { AuthRefusal, authClient, runAuth } from '@/lib/sso/auth-graphql';
+import { authClient, authErrorResponse, runAuth, sessionCookieOf } from '@/lib/sso/auth-graphql';
 
 interface VerifyStepUpBody {
 	code?: string;
@@ -34,6 +34,11 @@ export async function POST(req: Request): Promise<NextResponse> {
 		return NextResponse.json({ error: 'code must be six digits' }, { status: 400 });
 	}
 
+	// main's own guard, restored: no session cookie, no call to the tenant.
+	if (!sessionCookieOf(req)) {
+		return NextResponse.json({ error: 'NOT_AUTHENTICATED' }, { status: 401 });
+	}
+
 	const db = authClient(req);
 	try {
 		const { verifyStepUpCode } = await runAuth(
@@ -44,9 +49,6 @@ export async function POST(req: Request): Promise<NextResponse> {
 		}
 		return NextResponse.json({ verified: false, error: 'INVALID_CODE' }, { status: 200 });
 	} catch (err) {
-		if (err instanceof AuthRefusal) {
-			return NextResponse.json({ error: err.code }, { status: err.status });
-		}
-		throw err;
+		return authErrorResponse(err);
 	}
 }

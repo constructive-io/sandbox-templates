@@ -53,6 +53,14 @@ Two parts:
 | 4b | Publish site homepage (`index.html` → site bucket) | B | **yes** |
 | 5 | Bare-`localhost` ingress rule | B | **yes** |
 | 6 | Configure the provider + per-tenant lanes (email/SMS/2FA/orgs) | B | **yes** |
+
+**`TWO_FACTOR`** (bring-up step 8d) is the tenant's `require_mfa`: `on` (default)
+means a password sign-in by a user with no second factor still mints the
+session but is flagged (`signIn` answers `mfaSetupRequired`), and the hosted
+`/setup-2fa?next=%2F&required=1` owns the enrollment — no skip until a factor
+is on. `allow_email_mfa` and `allow_sms_mfa` are both set on for this demo
+tenant, so `/setup-2fa` offers either factor and the step-up codes can travel
+by either. Code-first email registration no longer exists.
 | 6b | Regenerate the GraphQL SDK (`pnpm codegen`) | B | **yes** |
 | 7 | Start the app (`pnpm dev`) | B | **yes** — script's last step |
 
@@ -412,7 +420,7 @@ Gateway logs: `kubectl logs deploy/compute-sync -n constructive-platform-default
 | `src/app/auth/callback/route.ts` | Provider redirect target; relays to the gateway page lane |
 | `src/app/api/auth/session/`   | BFF: currentUser on the tenant's auth GraphQL (Bearer)       |
 | `src/app/api/auth/sign-out/`  | BFF: signOut on the auth GraphQL; cookie always cleared      |
-| `src/app/custom-auth/*`       | BFF: password sign-in / forgot / reset — signIn, forgotPassword, resetPassword on the auth GraphQL |
+| `src/app/api/custom-auth/*`   | BFF: password sign-in / forgot / reset — signIn, forgotPassword, resetPassword on the auth GraphQL |
 | `src/app/api/auth/send-sms-otp/` + `verify-sms-otp/` | BFF: sendSmsOtp / signInSmsOtp on the auth GraphQL |
 | `src/app/api/auth/step-up/`   | BFF: sendStepUpCode / verifyStepUpCode on the auth GraphQL   |
 | `src/lib/sso/auth-graphql.ts` | the server-only auth-GraphQL client all of the above share (Bearer = session cookie; forwards user-agent + origin — step-up compares them) |

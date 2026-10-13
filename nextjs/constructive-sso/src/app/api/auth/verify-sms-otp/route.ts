@@ -2,8 +2,7 @@ import { NextResponse } from 'next/server';
 
 import { maxAgeFromExpiresAt, sessionCookie } from '@/lib/bff/session-cookie';
 import { readJsonBody, sameOriginGuard } from '@/lib/bff/request-guard';
-import { AuthRefusal, authClient, runAuth } from '@/lib/sso/auth-graphql';
-import { SSO_GATEWAY_URL } from '@/lib/sso/gateway';
+import { authClient, authErrorResponse, GATEWAY_ORIGIN, runAuth } from '@/lib/sso/auth-graphql';
 
 interface VerifySmsOtpBody {
 	phone?: string;
@@ -57,7 +56,8 @@ export async function POST(req: Request): Promise<NextResponse> {
 								userId: true,
 								accessToken: true,
 								accessTokenExpiresAt: true,
-								mfaRequired: true
+								mfaRequired: true,
+								deviceApprovalRequired: true
 							}
 						}
 					}
@@ -66,12 +66,17 @@ export async function POST(req: Request): Promise<NextResponse> {
 		);
 		const result = signInSmsOtp?.result ?? null;
 
+		if (result?.deviceApprovalRequired) {
+			return NextResponse.json({ error: 'DEVICE_APPROVAL_REQUIRED' }, { status: 200 });
+		}
 		if (result?.mfaRequired) {
+			// The phone lane's own challenge: the hosted /login/phone is where
+			// this number's code was asked for, so its challenge lands there.
 			return NextResponse.json(
 				{
 					mfaRequired: true,
 					error: 'MFA_REQUIRED',
-					next: `${SSO_GATEWAY_URL}/login?next=%2F`
+					next: `${GATEWAY_ORIGIN}/login/phone?next=%2F`
 				},
 				{ status: 200 }
 			);
@@ -87,9 +92,6 @@ export async function POST(req: Request): Promise<NextResponse> {
 		);
 		return NextResponse.json({ ok: true, next: '/' }, { headers });
 	} catch (err) {
-		if (err instanceof AuthRefusal) {
-			return NextResponse.json({ error: err.code }, { status: err.status });
-		}
-		throw err;
+		return authErrorResponse(err);
 	}
 }

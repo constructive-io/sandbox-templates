@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { readJsonBody, sameOriginGuard } from '@/lib/bff/request-guard';
-import { AuthRefusal, authClient, runAuth } from '@/lib/sso/auth-graphql';
+import { authClient, AuthGraphqlUnreachable, AuthRefusedUnnamed, AuthRefusal, runAuth } from '@/lib/sso/auth-graphql';
 
 interface ForgotPasswordBody {
   email?: string;
@@ -26,10 +26,16 @@ export async function POST(req: Request): Promise<NextResponse> {
   try {
     await runAuth(db.mutation.forgotPassword({ input: { email: body.email } }, { select: {} }));
   } catch (err) {
-    if (err instanceof AuthRefusal) {
-      return NextResponse.json({ requested: true });
+    if (err instanceof AuthRefusedUnnamed || err instanceof AuthGraphqlUnreachable) {
+      // The mailbox-or-not answer never depends on transport: silence here is
+      // the anti-enumeration property the tenant itself keeps.
+      console.warn('[forgot-password] auth surface failure answered as requested', {
+        name: err instanceof Error ? err.name : typeof err
+      });
+    } else if (err instanceof AuthRefusal) {
+      // A named refusal (the throttle) is still requested:true.
     }
-    throw err;
+    return NextResponse.json({ requested: true });
   }
   return NextResponse.json({ requested: true });
 }

@@ -2,8 +2,7 @@ import { NextResponse } from 'next/server';
 
 import { maxAgeFromExpiresAt, sessionCookie } from '@/lib/bff/session-cookie';
 import { readJsonBody, sameOriginGuard } from '@/lib/bff/request-guard';
-import { AuthRefusal, authClient, runAuth } from '@/lib/sso/auth-graphql';
-import { SSO_GATEWAY_URL } from '@/lib/sso/gateway';
+import { authClient, authErrorResponse, GATEWAY_ORIGIN, runAuth } from '@/lib/sso/auth-graphql';
 
 interface SignInBody {
   email?: string;
@@ -73,7 +72,7 @@ export async function POST(req: Request): Promise<NextResponse> {
         {
           mfaRequired: true,
           error: 'MFA_REQUIRED',
-          next: `${SSO_GATEWAY_URL}/login?next=%2F`
+          next: `${GATEWAY_ORIGIN}/login?next=%2F`
         },
         { status: 200 }
       );
@@ -95,7 +94,7 @@ export async function POST(req: Request): Promise<NextResponse> {
         {
           signedIn: true,
           userId: result.userId ?? null,
-          next: `${SSO_GATEWAY_URL}/setup-2fa?next=%2F&required=1`
+          next: `${GATEWAY_ORIGIN}/setup-2fa?next=%2F&required=1`
         },
         { headers }
       );
@@ -105,9 +104,6 @@ export async function POST(req: Request): Promise<NextResponse> {
       { headers }
     );
   } catch (err) {
-    if (err instanceof AuthRefusal) {
-      return NextResponse.json({ error: err.code }, { status: err.status });
-    }
-    throw err;
+    return authErrorResponse(err);
   }
 }

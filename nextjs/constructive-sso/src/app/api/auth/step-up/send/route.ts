@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { readJsonBody, sameOriginGuard } from '@/lib/bff/request-guard';
-import { AuthRefusal, authClient, runAuth } from '@/lib/sso/auth-graphql';
+import { authClient, authErrorResponse, runAuth, sessionCookieOf } from '@/lib/sso/auth-graphql';
 
 interface SendStepUpBody {
 	method?: string;
@@ -32,6 +32,12 @@ export async function POST(req: Request): Promise<NextResponse> {
 		return NextResponse.json({ error: 'method must be sms or email' }, { status: 400 });
 	}
 
+	// main's own guard, restored: no session cookie, no call to the tenant —
+	// the tenant would only refuse the anonymous caller, in prose.
+	if (!sessionCookieOf(req)) {
+		return NextResponse.json({ error: 'NOT_AUTHENTICATED' }, { status: 401 });
+	}
+
 	const db = authClient(req);
 	try {
 		const { sendStepUpCode } = await runAuth(
@@ -47,9 +53,6 @@ export async function POST(req: Request): Promise<NextResponse> {
 		}
 		return NextResponse.json({ sent: true, method: used });
 	} catch (err) {
-		if (err instanceof AuthRefusal) {
-			return NextResponse.json({ error: err.code }, { status: err.status });
-		}
-		throw err;
+		return authErrorResponse(err);
 	}
 }

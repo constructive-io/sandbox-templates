@@ -239,6 +239,10 @@ async function main(): Promise<void> {
   // link ticket requires the signed-in owner of the email. All other flags
   // pre-auth lanes (session probe, OAuth start, the provider return leg, the
   // password verbs) are anonymous. Paths match each manifest's own route.
+  // Only the SSO lanes are bound here: auth is GraphQL-only on main
+  // (planning#2196 deleted the auth_flows:* JSON lane), so the app's auth
+  // calls go to the tenant's auth GraphQL and the hosted mantra pages serve
+  // the browser-facing auth flows.
   const bindings: RouteBinding[] = [
     { path: '/start', target: 'function', task_identifier: 'sso:start', anonymous: true },
     { path: '/sso/callback', target: 'function', task_identifier: 'sso:callback', anonymous: true },
