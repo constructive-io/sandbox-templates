@@ -7,6 +7,12 @@ import { Button } from '@/components/ui/button';
 import { InputOtp } from '@/components/ui/input-otp';
 import { sendStepUpCode, StepUpError, type StepUpMethod, verifyStepUpCode } from '@/lib/auth/step-up';
 
+/** The hosted auth pages' origin — the same one the sign-in flows use. */
+const GATEWAY = (process.env.NEXT_PUBLIC_SSO_GATEWAY_URL ?? 'http://localhost').replace(/\/$/, '');
+
+/** This app page as a gateway-local `next`, so a hosted flow returns here. */
+const gatewayNextHere = (): string => window.location.pathname || '/';
+
 /** How each factor is named in a sentence; null is "not known yet". */
 const FACTOR: Record<StepUpMethod | 'unknown', { thing: string; sent: string; where: string }> = {
 	sms: { thing: 'phone number', sent: 'texted', where: 'your phone' },
@@ -21,20 +27,42 @@ const messageFor = (err: unknown, method: StepUpMethod | null): string => {
 	if (!(err instanceof StepUpError)) return 'Could not reach the app server — is the dev server running?';
 	const { thing, sent } = factor(method);
 	switch (err.code) {
-		case 'STEP_UP_CODE_NOT_SENT':
-			return `This account has no verified ${thing} to send a code to. Add one under Account settings.`;
+		case 'STEP_UP_METHOD_REQUIRED':
+			return 'Both email and text codes are on for this account — pick where the code should go.';
+		case 'MFA_METHOD_NOT_ENABLED':
+			return 'This account has no email or text second factor on yet.';
+		case 'STEP_UP_SESSION_INVALID':
+			return 'This session cannot be re-verified here — sign in again to continue.';
 		case 'MFA_IDENTIFIER_UNVERIFIED':
 			return `Your ${thing} is not verified yet. Verify it under Account settings.`;
 		case 'TOO_MANY_REQUESTS':
 			return `A code was ${sent} less than a minute ago — wait a moment before asking for another.`;
 		case 'ACCOUNT_LOCKED_EXCEED_ATTEMPTS':
 			return 'Too many wrong codes. Wait a few minutes, then try again.';
-		case 'STEP_UP_SESSION_INVALID':
-			return 'This session could not be re-verified. Sign out and sign in again.';
 		case 'NOT_AUTHENTICATED':
 			return 'Your session has ended. Sign in again.';
 		default:
 			return err.code;
+	}
+};
+
+/**
+ * The refusal whose answer is a control, not a sentence: a factor picker
+ * (both factors on — the tenant refuses to choose), a setup link (no factor
+ * on), or a sign-in-again link (this session cannot be re-verified: #2241
+ * makes hosted-page sessions answer this until it is fixed).
+ */
+const extraFor = (err: unknown): 'pick' | 'setup' | 'signin' | null => {
+	if (!(err instanceof StepUpError)) return null;
+	switch (err.code) {
+		case 'STEP_UP_METHOD_REQUIRED':
+			return 'pick';
+		case 'MFA_METHOD_NOT_ENABLED':
+			return 'setup';
+		case 'STEP_UP_SESSION_INVALID':
+			return 'signin';
+		default:
+			return null;
 	}
 };
 
@@ -71,6 +99,9 @@ export function StepUpCodeForm({
 	const [code, setCode] = useState('');
 	const [error, setError] = useState<string | null>(null);
 	const [notice, setNotice] = useState<string | null>(null);
+	// The refusal whose answer is a control: 'pick' shows the factor picker,
+	// 'setup' the setup link, 'signin' the sign-in-again link.
+	const [extra, setExtra] = useState<'pick' | 'setup' | 'signin' | null>(null);
 	const [sending, setSending] = useState(false);
 	const [verifying, setVerifying] = useState(false);
 	const [cooldown, setCooldown] = useState(0);
@@ -81,6 +112,7 @@ export function StepUpCodeForm({
 		setSending(true);
 		setError(null);
 		setNotice(null);
+		setExtra(null);
 		if (via) setMethod(via);
 		try {
 			const used = await sendStepUpCode(via);
@@ -89,19 +121,30 @@ export function StepUpCodeForm({
 			setNotice(resend ? `New code ${sent}. The latest code is the one to use.` : `We ${sent} a code to ${where}.`);
 			setCooldown(RESEND_SECONDS);
 		} catch (err) {
-			// Inside the resend window a code is already on its way and still
-			// valid, so the first send of a retried action is not a failure.
-			if (!resend && err instanceof StepUpError && err.code === 'TOO_MANY_REQUESTS') {
-				const { sent, where } = factor(via ?? null);
-				setNotice(`A code was ${sent} to ${where} in the last minute — enter it below.`);
+			// The resend cooldown is not a failure on either leg: an earlier
+			// code is still live (codes hold for ten minutes), so the input
+			// stays and the notice says so.
+			if (err instanceof StepUpError && err.code === 'TOO_MANY_REQUESTS') {
+				const { sent, where } = factor(via ?? method ?? null);
+				setNotice(
+					resend
+						? `The earlier code still works — codes live ten minutes, and the resend is throttled for a minute.`
+						: `A code was ${sent} to ${where} in the last minute — enter it below.`
+				);
 				setCooldown(RESEND_SECONDS);
 				return;
 			}
-			setError(messageFor(err, via ?? null));
+			const handled = extraFor(err);
+			if (handled) {
+				setExtra(handled);
+				setError(messageFor(err, via ?? method ?? null));
+				return;
+			}
+			setError(messageFor(err, via ?? method ?? null));
 		} finally {
 			setSending(false);
 		}
-	}, []);
+	}, [method]);
 
 	const switchTo = (via: StepUpMethod) => {
 		setCode('');
@@ -133,6 +176,7 @@ export function StepUpCodeForm({
 			}
 			await onVerified();
 		} catch (err) {
+			setExtra(extraFor(err));
 			setError(messageFor(err, method));
 		} finally {
 			setVerifying(false);
@@ -171,6 +215,43 @@ export function StepUpCodeForm({
 				<div role='status' className='bg-primary/10 text-foreground rounded-md px-3 py-2 text-sm'>
 					{notice}
 				</div>
+			) : null}
+			{extra === 'pick' && !working ? (
+				<div className='flex flex-col gap-1'>
+					{(['email', 'sms'] as const).map((via) => (
+						<Button
+							key={via}
+							type='button'
+							variant='outline'
+							className='h-9'
+							disabled={sending}
+							onClick={() => {
+								setCode('');
+								setError(null);
+								setExtra(null);
+								void send(via, false);
+							}}
+						>
+							{via === 'email' ? 'Email me a code' : 'Text me a code'}
+						</Button>
+					))}
+				</div>
+			) : null}
+			{extra === 'setup' ? (
+				<a
+					className='text-sm underline underline-offset-4'
+					href={`${GATEWAY}/setup-2fa?next=${encodeURIComponent(gatewayNextHere())}`}
+				>
+					Set up a second factor first
+				</a>
+			) : null}
+			{extra === 'signin' ? (
+				<a
+					className='text-sm underline underline-offset-4'
+					href={`${GATEWAY}/login?prompt=login&next=%2F`}
+				>
+					Sign in again to continue
+				</a>
 			) : null}
 
 			<InputOtp
