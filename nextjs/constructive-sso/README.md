@@ -411,7 +411,11 @@ Gateway logs: `kubectl logs deploy/compute-sync -n constructive-platform-default
 | `src/`                        | Next.js app (product, account, app shell)                    |
 | `src/app/auth/callback/route.ts` | Provider redirect target; relays to the gateway page lane |
 | `src/app/api/auth/session/`   | BFF: currentUser on the tenant's auth GraphQL (Bearer)       |
-| `src/app/api/auth/sign-out/`  | BFF: revoke the session                                      |
+| `src/app/api/auth/sign-out/`  | BFF: signOut on the auth GraphQL; cookie always cleared      |
+| `src/app/custom-auth/*`       | BFF: password sign-in / forgot / reset — signIn, forgotPassword, resetPassword on the auth GraphQL |
+| `src/app/api/auth/send-sms-otp/` + `verify-sms-otp/` | BFF: sendSmsOtp / signInSmsOtp on the auth GraphQL |
+| `src/app/api/auth/step-up/`   | BFF: sendStepUpCode / verifyStepUpCode on the auth GraphQL   |
+| `src/lib/sso/auth-graphql.ts` | the server-only auth-GraphQL client all of the above share (Bearer = session cookie; forwards user-agent + origin — step-up compares them) |
 | `packages/provision`          | `create-db` (tenant) / `ensure-site` (site + routes) / `provision` (provider) / `promote-owner` / `reset-db` |
 | `packages/export`             | `export:graphql` (legacy GraphQL export; not used by SSO)    |
 | `scripts/local-bringup.sh`    | runs ALL of Part B: owner-login → create-db → legacy seed (owner mode skips) → register + ensure-site → ingress → provision + lanes → codegen → dev; plus the CoreDNS guard |
