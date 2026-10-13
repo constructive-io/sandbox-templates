@@ -145,8 +145,6 @@ export const customQueryKeys = {
   /** Query key for currentUserId */ currentUserId: () => ['currentUserId'] as const,
   /** Query key for currentUserAgent */ currentUserAgent: () => ['currentUserAgent'] as const,
   /** Query key for currentIpAddress */ currentIpAddress: () => ['currentIpAddress'] as const,
-  /** Query key for isVerificationExempt */ isVerificationExempt: (variables?: object) =>
-    ['isVerificationExempt', variables] as const,
   /** Query key for requireStepUp */ requireStepUp: (variables?: object) =>
     ['requireStepUp', variables] as const,
   /** Query key for getMfaStatus */ getMfaStatus: () => ['getMfaStatus'] as const,

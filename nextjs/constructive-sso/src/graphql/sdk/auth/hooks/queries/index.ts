@@ -31,7 +31,6 @@ export * from './useUserQuery';
 export * from './useCurrentUserIdQuery';
 export * from './useCurrentUserAgentQuery';
 export * from './useCurrentIpAddressQuery';
-export * from './useIsVerificationExemptQuery';
 export * from './useRequireStepUpQuery';
 export * from './useGetMfaStatusQuery';
 export * from './useCurrentUserQuery';

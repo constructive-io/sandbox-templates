@@ -102,7 +102,9 @@ async function main(): Promise<void> {
   psqlRun(`
     SET constructive.allow_super_constructive = 'true';
     INSERT INTO metaschema_modules_public.email_sender_module (database_id, scope)
-    VALUES ('${DATABASE_ID}'::uuid, 'database') ON CONFLICT DO NOTHING;`);
+    SELECT '${DATABASE_ID}'::uuid, 'database'
+     WHERE NOT EXISTS (SELECT 1 FROM metaschema_modules_public.email_sender_module
+                       WHERE database_id = '${DATABASE_ID}'::uuid AND scope = 'database');`);
 
   // The generated physical names, read back from the module row — never
   // guessed: a scope prefixes its tables and the row is the recorded fact.

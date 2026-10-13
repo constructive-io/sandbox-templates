@@ -2,9 +2,10 @@
 
 Next.js boilerplate exercising Constructive's **cloud-function SSO** end-to-end.
 Sign-in is served by the platform's shared **mantra** page set (login, sign-up,
-recovery, OAuth return leg) and the **auth** sync lanes (who-am-i, sign-out),
-consumed through the compute sync gateway. The app itself is just the product —
-it does **not** register or fork any of the auth functions.
+recovery, MFA, OAuth return leg) plus the tenant's **auth GraphQL**, which the
+app's server routes call directly (session probe, sign-in/out, SMS OTP,
+step-up). The app itself is just the product — it does **not** register or fork
+any of the auth functions.
 
 > **Architecture:** `fun up --alt-ports` (KIND mode) brings up ONE platform
 > database — `constructive-functions-db1` (in the local kind cluster,
@@ -192,7 +193,7 @@ acting principal; register auto-detects the live cluster for secret seeding).
   never the compiled `hostname_bindings` index);
 - writes the site's `canonical_url` (mantra composes the OAuth callback from it);
 - installs the mantra page set (`sites_install_mantra`) plus the auth sync
-  lanes (who-am-i / sign-out) via one `install_route_bindings` custom document
+  lanes (`sso:start` / `sso:callback` / `sso:link`) via one `install_route_bindings` custom document
   (the `/_mantra/styles.css` route ships with the preset since upstream PR
   #3509 — no custom binding needed);
 - flags the sync lanes anonymous and verifies every bound path resolves.
@@ -409,7 +410,7 @@ Gateway logs: `kubectl logs deploy/compute-sync -n constructive-platform-default
 | ----------------------------- | ------------------------------------------------------------ |
 | `src/`                        | Next.js app (product, account, app shell)                    |
 | `src/app/auth/callback/route.ts` | Provider redirect target; relays to the gateway page lane |
-| `src/app/api/auth/session/`   | BFF: who-am-i (forwards the session cookie)                  |
+| `src/app/api/auth/session/`   | BFF: currentUser on the tenant's auth GraphQL (Bearer)       |
 | `src/app/api/auth/sign-out/`  | BFF: revoke the session                                      |
 | `packages/provision`          | `create-db` (tenant) / `ensure-site` (site + routes) / `provision` (provider) / `promote-owner` / `reset-db` |
 | `packages/export`             | `export:graphql` (legacy GraphQL export; not used by SSO)    |

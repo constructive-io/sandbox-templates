@@ -17,7 +17,7 @@
  *   3. canonical_url in site_metadata (oauth_start composes the callback from
  *      it — SSO_SITE_ORIGIN_UNKNOWN without it);
  *   4. sites_install_mantra — the preset paths;
- *   5. sync lanes + sso/auth_flows lanes via one install_route_bindings custom
+ *   5. the sso sync lanes via one install_route_bindings custom document
  *      doc, each carrying the typed `anonymous` flag the manifest declares
  *      (the gateway requires the route-level flag AND the definition's
  *      anonymous_callable — both halves, neither alone);
@@ -240,37 +240,6 @@ async function main(): Promise<void> {
   // pre-auth lanes (session probe, OAuth start, the provider return leg, the
   // password verbs) are anonymous. Paths match each manifest's own route.
   const bindings: RouteBinding[] = [
-    { path: '/auth/who-am-i', target: 'function', task_identifier: 'auth_flows:who_am_i', anonymous: true },
-    { path: '/auth/sign-out', target: 'function', task_identifier: 'auth_flows:sign_out', anonymous: true },
-    { path: '/auth/sign-in', target: 'function', task_identifier: 'auth_flows:sign_in', anonymous: true },
-    { path: '/auth/forgot-password', target: 'function', task_identifier: 'auth_flows:forgot_password', anonymous: true },
-    { path: '/auth/reset-password', target: 'function', task_identifier: 'auth_flows:reset_password', anonymous: true },
-    // Phone sign-in: the JSON lane that asks for a code (sync channel) and the
-    // gateway-served form that spends it (page channel). Both manifest
-    // anonymousAccess, like the password lanes above. The tenant's send needs
-    // database-scope SMS config/secrets — configure-sms provisions those.
-    { path: '/auth/send-sms-otp', target: 'function', task_identifier: 'auth_flows:send_sms_otp', anonymous: true },
-    { path: '/auth/sms-code', target: 'function', task_identifier: 'auth_flows:sms_code', anonymous: true },
-    // Phone recovery, the emailed reset link's sibling. The mantra
-    // /forgot-password page calls the procs itself, but the JSON lane is what
-    // the app's own UI (or any API client) spends.
-    { path: '/auth/send-reset-sms-code', target: 'function', task_identifier: 'auth_flows:send_reset_sms_code', anonymous: true },
-    { path: '/auth/reset-password-sms', target: 'function', task_identifier: 'auth_flows:reset_password_sms', anonymous: true },
-    // The magic-link lane: the JSON request, and the page its emails land on
-    // (entry form without a token, the spend with one — the same route the
-    // email task builds into every link, so the binding is the contract).
-    { path: '/auth/request-magic-link', target: 'function', task_identifier: 'auth_flows:request_magic_link', anonymous: true },
-    { path: '/auth/magic-link', target: 'function', task_identifier: 'auth_flows:magic_link', anonymous: true },
-    { path: '/auth/send-verification-email', target: 'function', task_identifier: 'auth_flows:send_verification_email', anonymous: true },
-    // The MFA challenge pair: send texts the code a withheld sign-in demands
-    // (anonymous — the browser holds the challenge, not a session), complete
-    // spends it and mints the session.
-    { path: '/auth/send-mfa-code', target: 'function', task_identifier: 'auth_flows:send_mfa_code', anonymous: true },
-    { path: '/auth/mfa/complete', target: 'function', task_identifier: 'auth_flows:complete_mfa', anonymous: true },
-    // Step-up for postured (sensitive) actions — authenticated: the session
-    // the request carries is the thing being re-verified.
-    { path: '/auth/send-step-up-code', target: 'function', task_identifier: 'auth_flows:send_step_up_code' },
-    { path: '/auth/verify-step-up-code', target: 'function', task_identifier: 'auth_flows:verify_step_up_code' },
     { path: '/start', target: 'function', task_identifier: 'sso:start', anonymous: true },
     { path: '/sso/callback', target: 'function', task_identifier: 'sso:callback', anonymous: true },
     { path: '/auth/link', target: 'function', task_identifier: 'sso:link' },

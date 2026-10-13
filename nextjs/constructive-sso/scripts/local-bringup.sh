@@ -32,8 +32,9 @@
 #   8. Configure the SSO provider (real Google from OAUTH_* in .env) + the
 #      anonymous grants the sign-in lane needs, then the per-tenant lanes a
 #      fresh cluster has none of, each idempotent: email (Mailpit sender),
-#      SMS (twilio verify), the two-factor switch (TWO_FACTOR=on|off, default
-#      on), org creation open to every member.
+#      SMS (twilio verify), the 2FA switches (TWO_FACTOR=on|off, default on:
+#      require_mfa plus allow_email_mfa/allow_sms_mfa — see configure-2fa),
+#      org creation open to every member.
 #   9. Regenerate the GraphQL SDK (pnpm codegen) from the tenant's live
 #      admin-/auth-/api-<slug>.localhost GraphQL hosts (port 80; the slug is
 #      the NEXT_PUBLIC_DB_NAME create-db writes), once the admin host answers

@@ -168,8 +168,13 @@ async function main(): Promise<void> {
     [tenantDatabaseId]
   );
   if (pool.rows.length > 0 && (pool.rows[0] as { bootstrap_status: string }).bootstrap_status !== 'completed') {
+    // No CLAIMS_SQL here: the background job this replicates runs the
+    // bootstrap as a system actor, and the owner's identifier inserts below
+    // are postured fresh_auth for *authenticated* callers. Acting as the
+    // owner without a session in the claims tripped that posture
+    // (STEP_UP_REQUIRED_FRESH_AUTH); the owner comes from the pool row's
+    // claimed_by either way, not from the claims.
     await client.query('BEGIN');
-    await client.query(CLAIMS_SQL, [claims]);
     await client.query(`SELECT metaschema_private.db_pool_bootstrap_owner($1)`, [
       (pool.rows[0] as { id: string }).id,
     ]);

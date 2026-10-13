@@ -13,9 +13,6 @@ import type {
   UserSelect,
 } from '../input-types';
 import { connectionFieldsMap } from '../input-types';
-export interface IsVerificationExemptVariables {
-  userId?: string;
-}
 export interface RequireStepUpVariables {
   stepUpType?: string;
 }
@@ -74,35 +71,6 @@ export function createQueryOperations(client: OrmClient) {
           options?.select,
           undefined,
           [],
-          connectionFieldsMap,
-          undefined
-        ),
-      }),
-    isVerificationExempt: (
-      args: IsVerificationExemptVariables,
-      options?: {
-        select?: Record<string, unknown>;
-      }
-    ) =>
-      new QueryBuilder<{
-        isVerificationExempt: boolean | null;
-      }>({
-        client,
-        operation: 'query',
-        operationName: 'IsVerificationExempt',
-        fieldName: 'isVerificationExempt',
-        ...buildCustomDocument(
-          'query',
-          'IsVerificationExempt',
-          'isVerificationExempt',
-          options?.select,
-          args,
-          [
-            {
-              name: 'userId',
-              type: 'UUID',
-            },
-          ],
           connectionFieldsMap,
           undefined
         ),

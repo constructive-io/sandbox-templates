@@ -97,7 +97,6 @@ function App() {
 | `useCurrentUserIdQuery` | Query | currentUserId |
 | `useCurrentUserAgentQuery` | Query | currentUserAgent |
 | `useCurrentIpAddressQuery` | Query | currentIpAddress |
-| `useIsVerificationExemptQuery` | Query | isVerificationExempt |
 | `useRequireStepUpQuery` | Query | requireStepUp |
 | `useGetMfaStatusQuery` | Query | getMfaStatus |
 | `useCurrentUserQuery` | Query | currentUser |
@@ -110,7 +109,6 @@ function App() {
 | `useEnableTotpMutation` | Mutation | enableTotp |
 | `useGenerateBackupCodesMutation` | Mutation | generateBackupCodes |
 | `useApproveDeviceMutation` | Mutation | approveDevice |
-| `useAttachPhoneNumberMutation` | Mutation | attachPhoneNumber |
 | `useConfirmTotpSetupMutation` | Mutation | confirmTotpSetup |
 | `useDeleteOrgPrincipalMutation` | Mutation | deleteOrgPrincipal |
 | `useDeletePrincipalMutation` | Mutation | deletePrincipal |
@@ -119,28 +117,29 @@ function App() {
 | `useRevokeApiKeyMutation` | Mutation | revokeApiKey |
 | `useRevokeSessionMutation` | Mutation | revokeSession |
 | `useSendPhoneVerificationCodeMutation` | Mutation | sendPhoneVerificationCode |
-| `useSetPrimaryPhoneMutation` | Mutation | setPrimaryPhone |
+| `useSendSmsOtpMutation` | Mutation | sendSmsOtp |
 | `useVerifyPasswordMutation` | Mutation | verifyPassword |
+| `useVerifyStepUpCodeMutation` | Mutation | verifyStepUpCode |
 | `useVerifyTotpMutation` | Mutation | verifyTotp |
 | `useCheckPasswordMutation` | Mutation | checkPassword |
+| `useRequestMagicLinkMutation` | Mutation | requestMagicLink |
+| `useSendStepUpCodeMutation` | Mutation | sendStepUpCode |
 | `useConfirmDeleteAccountMutation` | Mutation | confirmDeleteAccount |
 | `useRevokeOrgApiKeyMutation` | Mutation | revokeOrgApiKey |
 | `useSetPasswordMutation` | Mutation | setPassword |
 | `useVerifyEmailMutation` | Mutation | verifyEmail |
 | `useVerifyPhoneMutation` | Mutation | verifyPhone |
-| `useProvisionNewUserMutation` | Mutation | provisionNewUser |
 | `useResetPasswordMutation` | Mutation | resetPassword |
-| `useResetPasswordSmsMutation` | Mutation | resetPasswordSms |
+| `useSendMfaChallengeCodeMutation` | Mutation | sendMfaChallengeCode |
 | `useCreateOrgPrincipalMutation` | Mutation | createOrgPrincipal |
 | `useRefreshAccessTokenMutation` | Mutation | refreshAccessToken |
 | `useSignInCrossOriginMutation` | Mutation | signInCrossOrigin |
-| `useSignInMagicLinkMutation` | Mutation | signInMagicLink |
 | `useSignUpMagicLinkMutation` | Mutation | signUpMagicLink |
-| `useSignInEmailOtpMutation` | Mutation | signInEmailOtp |
-| `useSignInSmsOtpMutation` | Mutation | signInSmsOtp |
 | `useSignUpSmsMutation` | Mutation | signUpSms |
-| `useCompleteMfaChallengeMutation` | Mutation | completeMfaChallenge |
+| `useSignInMagicLinkMutation` | Mutation | signInMagicLink |
+| `useSignInSmsOtpMutation` | Mutation | signInSmsOtp |
 | `useSignUpMutation` | Mutation | signUp |
+| `useCompleteMfaChallengeMutation` | Mutation | completeMfaChallenge |
 | `useSignInMutation` | Mutation | signIn |
 | `useSetPrincipalEntitiesMutation` | Mutation | setPrincipalEntities |
 | `useLinkIdentityMutation` | Mutation | linkIdentity |
@@ -452,17 +451,6 @@ currentIpAddress
 - **Type:** query
 - **Arguments:** none
 
-### `useIsVerificationExemptQuery`
-
-isVerificationExempt
-
-- **Type:** query
-- **Arguments:**
-
-  | Argument | Type |
-  |----------|------|
-  | `userId` | UUID |
-
 ### `useRequireStepUpQuery`
 
 requireStepUp
@@ -587,17 +575,6 @@ approveDevice
   |----------|------|
   | `input` | ApproveDeviceInput (required) |
 
-### `useAttachPhoneNumberMutation`
-
-attachPhoneNumber
-
-- **Type:** mutation
-- **Arguments:**
-
-  | Argument | Type |
-  |----------|------|
-  | `input` | AttachPhoneNumberInput (required) |
-
 ### `useConfirmTotpSetupMutation`
 
 confirmTotpSetup
@@ -686,16 +663,16 @@ sendPhoneVerificationCode
   |----------|------|
   | `input` | SendPhoneVerificationCodeInput (required) |
 
-### `useSetPrimaryPhoneMutation`
+### `useSendSmsOtpMutation`
 
-setPrimaryPhone
+sendSmsOtp
 
 - **Type:** mutation
 - **Arguments:**
 
   | Argument | Type |
   |----------|------|
-  | `input` | SetPrimaryPhoneInput (required) |
+  | `input` | SendSmsOtpInput (required) |
 
 ### `useVerifyPasswordMutation`
 
@@ -707,6 +684,17 @@ verifyPassword
   | Argument | Type |
   |----------|------|
   | `input` | VerifyPasswordInput (required) |
+
+### `useVerifyStepUpCodeMutation`
+
+verifyStepUpCode
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | VerifyStepUpCodeInput (required) |
 
 ### `useVerifyTotpMutation`
 
@@ -729,6 +717,28 @@ checkPassword
   | Argument | Type |
   |----------|------|
   | `input` | CheckPasswordInput (required) |
+
+### `useRequestMagicLinkMutation`
+
+requestMagicLink
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | RequestMagicLinkInput (required) |
+
+### `useSendStepUpCodeMutation`
+
+sendStepUpCode
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | SendStepUpCodeInput (required) |
 
 ### `useConfirmDeleteAccountMutation`
 
@@ -785,17 +795,6 @@ verifyPhone
   |----------|------|
   | `input` | VerifyPhoneInput (required) |
 
-### `useProvisionNewUserMutation`
-
-provisionNewUser
-
-- **Type:** mutation
-- **Arguments:**
-
-  | Argument | Type |
-  |----------|------|
-  | `input` | ProvisionNewUserInput (required) |
-
 ### `useResetPasswordMutation`
 
 resetPassword
@@ -807,16 +806,16 @@ resetPassword
   |----------|------|
   | `input` | ResetPasswordInput (required) |
 
-### `useResetPasswordSmsMutation`
+### `useSendMfaChallengeCodeMutation`
 
-resetPasswordSms
+sendMfaChallengeCode
 
 - **Type:** mutation
 - **Arguments:**
 
   | Argument | Type |
   |----------|------|
-  | `input` | ResetPasswordSmsInput (required) |
+  | `input` | SendMfaChallengeCodeInput (required) |
 
 ### `useCreateOrgPrincipalMutation`
 
@@ -851,17 +850,6 @@ signInCrossOrigin
   |----------|------|
   | `input` | SignInCrossOriginInput (required) |
 
-### `useSignInMagicLinkMutation`
-
-signInMagicLink
-
-- **Type:** mutation
-- **Arguments:**
-
-  | Argument | Type |
-  |----------|------|
-  | `input` | SignInMagicLinkInput (required) |
-
 ### `useSignUpMagicLinkMutation`
 
 signUpMagicLink
@@ -872,28 +860,6 @@ signUpMagicLink
   | Argument | Type |
   |----------|------|
   | `input` | SignUpMagicLinkInput (required) |
-
-### `useSignInEmailOtpMutation`
-
-signInEmailOtp
-
-- **Type:** mutation
-- **Arguments:**
-
-  | Argument | Type |
-  |----------|------|
-  | `input` | SignInEmailOtpInput (required) |
-
-### `useSignInSmsOtpMutation`
-
-signInSmsOtp
-
-- **Type:** mutation
-- **Arguments:**
-
-  | Argument | Type |
-  |----------|------|
-  | `input` | SignInSmsOtpInput (required) |
 
 ### `useSignUpSmsMutation`
 
@@ -906,16 +872,27 @@ signUpSms
   |----------|------|
   | `input` | SignUpSmsInput (required) |
 
-### `useCompleteMfaChallengeMutation`
+### `useSignInMagicLinkMutation`
 
-completeMfaChallenge
+signInMagicLink
 
 - **Type:** mutation
 - **Arguments:**
 
   | Argument | Type |
   |----------|------|
-  | `input` | CompleteMfaChallengeInput (required) |
+  | `input` | SignInMagicLinkInput (required) |
+
+### `useSignInSmsOtpMutation`
+
+signInSmsOtp
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | SignInSmsOtpInput (required) |
 
 ### `useSignUpMutation`
 
@@ -927,6 +904,17 @@ signUp
   | Argument | Type |
   |----------|------|
   | `input` | SignUpInput (required) |
+
+### `useCompleteMfaChallengeMutation`
+
+completeMfaChallenge
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | CompleteMfaChallengeInput (required) |
 
 ### `useSignInMutation`
 

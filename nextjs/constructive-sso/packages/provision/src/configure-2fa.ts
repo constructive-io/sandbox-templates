@@ -1,39 +1,28 @@
 /**
- * configure-2fa — the tenant's verification policy: the second-factor switch,
- * and code-first registration.
+ * configure-2fa — the tenant's three 2FA switches on `app_settings_auth`.
  *
- * Both live in `app_settings_auth.verification_policy`:
+ * Main's switches are plain booleans (the `verification_policy` JSON column
+ * belonged to a design that never merged):
  *
- *   two_factor          the switch below (TWO_FACTOR)
- *   sign_up.verify      always 'code': email + password registration emails a
- *                       6-digit code first, and the account is created only
- *                       once that code is entered — already verified. An
- *                       address that already has an account is told so on the
- *                       sign-up page (with a link to reset the password) and
- *                       is sent nothing. Phone registration verifies by its
- *                       texted code either way.
+ *   require_mfa       TWO_FACTOR=on. A password sign-in by a user with no
+ *                     second factor still mints the session, and `signIn`
+ *                     answers `mfaSetupRequired` — the hosted `/login` and
+ *                     the app's sign-in route both send the user to the
+ *                     hosted `/setup-2fa` (required mode: no skip until a
+ *                     factor is on).
+ *   allow_email_mfa   always on for this demo tenant (the spec default).
+ *   allow_sms_mfa     always on for this demo tenant (the spec default is
+ *                     off; configure-sms has given the tenant a provider).
  *
- * The switch:
+ * With both allow_* switches on, `/setup-2fa` offers either factor and
+ * `enable_email_mfa` / `enable_sms_mfa` accept them; step-up codes
+ * (`sendStepUpCode` / `verifyStepUpCode`) go through whichever factors the
+ * account has on.
  *
- *   on  (default)  every password sign-in is challenged with a code emailed to
- *                  the address the user signed in with (an enrolled
- *                  authenticator answers instead), and sensitive actions —
- *                  deleting an org, changing auth settings, credentials —
- *                  demand a fresh code on the account's own channel: email
- *                  for an email account, a text for a phone sign-up.
- *   off            no second factor at sign-in, and no step-up code for
- *                  sensitive actions.
+ *   TWO_FACTOR=off pnpm run configure-2fa     # require_mfa off
+ *   pnpm run configure-2fa                    # require_mfa on (default)
  *
- * Neither state touches registration: an email sign-up verifies its address
- * and a phone sign-up its number either way, and a phone is never asked for
- * at email sign-up (users add one later under account settings). Sign-ins
- * that already proved possession — the texted code, the magic link — and
- * identity-provider sign-ins are not challenged again.
- *
- *   TWO_FACTOR=off pnpm run configure-2fa     # turn it off
- *   pnpm run configure-2fa                    # turn it on (default)
- *
- * The column is under the auth-settings step-up posture, so the write rides
+ * The columns are under the auth-settings step-up posture, so the write rides
  * the owner-bootstrap setup window (#3765): run within six hours of claiming
  * the tenant, as the bring-up does. Idempotent — set-over-set.
  */
@@ -83,20 +72,28 @@ async function main(): Promise<void> {
     { encoding: 'utf-8' }
   ).trim();
 
-  // The whole policy is replaced: an earlier version of this script wrote
-  // {"sign_up":{"collect":["phone"]}}, which made email sign-up ask for a
-  // phone and switched every new account's SMS factor on.
-  const policy = { two_factor: twoFactor, sign_up: { verify: 'code' } };
+  // Main's 2FA switches are the plain booleans on app_settings_auth
+  // (the verification_policy JSON column belonged to the flexible-2fa design
+  // that never merged). require_mfa is the forced-setup flag: a factorless
+  // password sign-in answers mfa_setup_required and /login sends the user to
+  // /setup-2fa. The allow_* switches gate which factors the setup page and
+  // enable_*_mfa accept; email defaults on, SMS defaults off — both on for
+  // this demo tenant, which configure-sms just gave a provider.
+  const sets = [
+    'allow_email_mfa = true',
+    'allow_sms_mfa = true',
+    `require_mfa = ${twoFactor}`
+  ];
   execFileSync(
     'psql',
     ['-h', PGHOST, '-p', PGPORT, '-U', env.PGUSER ?? 'postgres', '-d', PGDATABASE,
      '-v', 'ON_ERROR_STOP=1', '-c',
      `UPDATE "${schema}".app_settings_auth
-         SET verification_policy = '${JSON.stringify(policy)}'::jsonb`],
+         SET ${sets.join(', ')}`],
     { stdio: ['ignore', 'inherit', 'inherit'] }
   );
   console.log(
-    `auth: verification_policy = ${JSON.stringify(policy)} on ${schema}.app_settings_auth ` +
+    `auth: ${sets.join(', ')} on ${schema}.app_settings_auth ` +
       '(setup window measured from owner bootstrap per #3765)'
   );
 }

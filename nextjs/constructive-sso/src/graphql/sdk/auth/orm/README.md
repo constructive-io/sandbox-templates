@@ -555,21 +555,6 @@ currentIpAddress
 const result = await db.query.currentIpAddress().execute();
 ```
 
-### `db.query.isVerificationExempt`
-
-isVerificationExempt
-
-- **Type:** query
-- **Arguments:**
-
-  | Argument | Type |
-  |----------|------|
-  | `userId` | UUID |
-
-```typescript
-const result = await db.query.isVerificationExempt({ userId: '<UUID>' }).execute();
-```
-
 ### `db.query.requireStepUp`
 
 requireStepUp
@@ -742,21 +727,6 @@ approveDevice
 const result = await db.mutation.approveDevice({ input: { approvalToken: '<String>' } }).execute();
 ```
 
-### `db.mutation.attachPhoneNumber`
-
-attachPhoneNumber
-
-- **Type:** mutation
-- **Arguments:**
-
-  | Argument | Type |
-  |----------|------|
-  | `input` | AttachPhoneNumberInput (required) |
-
-```typescript
-const result = await db.mutation.attachPhoneNumber({ input: { phone: '<String>' } }).execute();
-```
-
 ### `db.mutation.confirmTotpSetup`
 
 confirmTotpSetup
@@ -877,19 +847,19 @@ sendPhoneVerificationCode
 const result = await db.mutation.sendPhoneVerificationCode({ input: { phone: '<String>' } }).execute();
 ```
 
-### `db.mutation.setPrimaryPhone`
+### `db.mutation.sendSmsOtp`
 
-setPrimaryPhone
+sendSmsOtp
 
 - **Type:** mutation
 - **Arguments:**
 
   | Argument | Type |
   |----------|------|
-  | `input` | SetPrimaryPhoneInput (required) |
+  | `input` | SendSmsOtpInput (required) |
 
 ```typescript
-const result = await db.mutation.setPrimaryPhone({ input: { phone: '<String>' } }).execute();
+const result = await db.mutation.sendSmsOtp({ input: { phone: '<String>' } }).execute();
 ```
 
 ### `db.mutation.verifyPassword`
@@ -905,6 +875,21 @@ verifyPassword
 
 ```typescript
 const result = await db.mutation.verifyPassword({ input: { password: '<String>' } }).execute();
+```
+
+### `db.mutation.verifyStepUpCode`
+
+verifyStepUpCode
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | VerifyStepUpCodeInput (required) |
+
+```typescript
+const result = await db.mutation.verifyStepUpCode({ input: { code: '<String>' } }).execute();
 ```
 
 ### `db.mutation.verifyTotp`
@@ -935,6 +920,36 @@ checkPassword
 
 ```typescript
 const result = await db.mutation.checkPassword({ input: { password: '<String>' } }).execute();
+```
+
+### `db.mutation.requestMagicLink`
+
+requestMagicLink
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | RequestMagicLinkInput (required) |
+
+```typescript
+const result = await db.mutation.requestMagicLink({ input: { email: '<String>' } }).execute();
+```
+
+### `db.mutation.sendStepUpCode`
+
+sendStepUpCode
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | SendStepUpCodeInput (required) |
+
+```typescript
+const result = await db.mutation.sendStepUpCode({ input: { method: '<String>' } }).execute();
 ```
 
 ### `db.mutation.confirmDeleteAccount`
@@ -1012,21 +1027,6 @@ verifyPhone
 const result = await db.mutation.verifyPhone({ input: { phone: '<String>', code: '<String>' } }).execute();
 ```
 
-### `db.mutation.provisionNewUser`
-
-provisionNewUser
-
-- **Type:** mutation
-- **Arguments:**
-
-  | Argument | Type |
-  |----------|------|
-  | `input` | ProvisionNewUserInput (required) |
-
-```typescript
-const result = await db.mutation.provisionNewUser({ input: { email: '<String>', password: '<String>' } }).execute();
-```
-
 ### `db.mutation.resetPassword`
 
 resetPassword
@@ -1042,19 +1042,19 @@ resetPassword
 const result = await db.mutation.resetPassword({ input: { roleId: '<UUID>', resetToken: '<String>', newPassword: '<String>' } }).execute();
 ```
 
-### `db.mutation.resetPasswordSms`
+### `db.mutation.sendMfaChallengeCode`
 
-resetPasswordSms
+sendMfaChallengeCode
 
 - **Type:** mutation
 - **Arguments:**
 
   | Argument | Type |
   |----------|------|
-  | `input` | ResetPasswordSmsInput (required) |
+  | `input` | SendMfaChallengeCodeInput (required) |
 
 ```typescript
-const result = await db.mutation.resetPasswordSms({ input: { phone: '<String>', code: '<String>', newPassword: '<String>' } }).execute();
+const result = await db.mutation.sendMfaChallengeCode({ input: { userId: '<UUID>', mfaChallengeToken: '<String>', mfaMethod: '<String>' } }).execute();
 ```
 
 ### `db.mutation.createOrgPrincipal`
@@ -1102,21 +1102,6 @@ signInCrossOrigin
 const result = await db.mutation.signInCrossOrigin({ input: { token: '<String>', credentialKind: '<String>' } }).execute();
 ```
 
-### `db.mutation.signInMagicLink`
-
-signInMagicLink
-
-- **Type:** mutation
-- **Arguments:**
-
-  | Argument | Type |
-  |----------|------|
-  | `input` | SignInMagicLinkInput (required) |
-
-```typescript
-const result = await db.mutation.signInMagicLink({ input: { token: '<String>', credentialKind: '<String>', rememberMe: '<Boolean>', deviceToken: '<String>' } }).execute();
-```
-
 ### `db.mutation.signUpMagicLink`
 
 signUpMagicLink
@@ -1130,36 +1115,6 @@ signUpMagicLink
 
 ```typescript
 const result = await db.mutation.signUpMagicLink({ input: { token: '<String>', credentialKind: '<String>', rememberMe: '<Boolean>', deviceToken: '<String>', inviteToken: '<String>' } }).execute();
-```
-
-### `db.mutation.signInEmailOtp`
-
-signInEmailOtp
-
-- **Type:** mutation
-- **Arguments:**
-
-  | Argument | Type |
-  |----------|------|
-  | `input` | SignInEmailOtpInput (required) |
-
-```typescript
-const result = await db.mutation.signInEmailOtp({ input: { email: '<String>', code: '<String>', credentialKind: '<String>', rememberMe: '<Boolean>', deviceToken: '<String>' } }).execute();
-```
-
-### `db.mutation.signInSmsOtp`
-
-signInSmsOtp
-
-- **Type:** mutation
-- **Arguments:**
-
-  | Argument | Type |
-  |----------|------|
-  | `input` | SignInSmsOtpInput (required) |
-
-```typescript
-const result = await db.mutation.signInSmsOtp({ input: { phone: '<String>', code: '<String>', credentialKind: '<String>', rememberMe: '<Boolean>', deviceToken: '<String>' } }).execute();
 ```
 
 ### `db.mutation.signUpSms`
@@ -1177,19 +1132,34 @@ signUpSms
 const result = await db.mutation.signUpSms({ input: '<SignUpSmsInput>' }).execute();
 ```
 
-### `db.mutation.completeMfaChallenge`
+### `db.mutation.signInMagicLink`
 
-completeMfaChallenge
+signInMagicLink
 
 - **Type:** mutation
 - **Arguments:**
 
   | Argument | Type |
   |----------|------|
-  | `input` | CompleteMfaChallengeInput (required) |
+  | `input` | SignInMagicLinkInput (required) |
 
 ```typescript
-const result = await db.mutation.completeMfaChallenge({ input: '<CompleteMfaChallengeInput>' }).execute();
+const result = await db.mutation.signInMagicLink({ input: { token: '<String>', credentialKind: '<String>', rememberMe: '<Boolean>', deviceToken: '<String>' } }).execute();
+```
+
+### `db.mutation.signInSmsOtp`
+
+signInSmsOtp
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | SignInSmsOtpInput (required) |
+
+```typescript
+const result = await db.mutation.signInSmsOtp({ input: { phone: '<String>', code: '<String>', credentialKind: '<String>', rememberMe: '<Boolean>', deviceToken: '<String>' } }).execute();
 ```
 
 ### `db.mutation.signUp`
@@ -1205,6 +1175,21 @@ signUp
 
 ```typescript
 const result = await db.mutation.signUp({ input: '<SignUpInput>' }).execute();
+```
+
+### `db.mutation.completeMfaChallenge`
+
+completeMfaChallenge
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | CompleteMfaChallengeInput (required) |
+
+```typescript
+const result = await db.mutation.completeMfaChallenge({ input: '<CompleteMfaChallengeInput>' }).execute();
 ```
 
 ### `db.mutation.signIn`
