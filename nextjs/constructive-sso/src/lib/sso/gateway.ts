@@ -1,10 +1,13 @@
 /**
- * sso/gateway — server-only gateway client for the SSO cloud functions.
+ * sso/gateway — server-only helpers for the compute sync gateway's SSO
+ * surface.
  *
- * The browser never talks to the compute sync gateway directly: every call
- * goes through these helpers (a Next.js route handler), which forward the
- * HttpOnly `constructive_session` cookie as `Authorization: Bearer`. That is
- * also the gateway's own session cookie name (compute-types SESSION_COOKIE) —
+ * The SSO JSON lanes (`sso:start`, `sso:link`) are the last things these
+ * helpers serve; the auth surface moved to the tenant's auth GraphQL (see
+ * ./auth-graphql). The browser never talks to the gateway directly: calls go
+ * through a Next.js route handler, which forwards the HttpOnly
+ * `constructive_session` cookie as `Authorization: Bearer`. That is also the
+ * gateway's own session cookie name (compute-types SESSION_COOKIE) —
  * host-scoped on localhost, so both origins see it.
  *
  * Server-only: never import from a client component.

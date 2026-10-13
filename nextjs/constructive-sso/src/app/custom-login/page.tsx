@@ -16,7 +16,7 @@ import { toLocalPath } from '@/lib/sso/local-path';
  *   • provider buttons → POST /api/sso/start (sso:start sync lane; the
  *     redirect URI is constructed server-side) → provider → /auth/custom-callback
  *     relay → sso:callback page → session cookie → back here via `next`;
- *   • the password form → POST /api/custom-auth/sign-in (auth_flows:sign_in
+ *   • the password form → POST /api/custom-auth/sign-in (the tenant's signIn
  *     sync lane; the BFF mints the session cookie).
  *
  * Milestone 1: the provider list is static config (the upstream sso:providers
@@ -65,13 +65,18 @@ function CustomLoginPageContent() {
 						signedIn?: boolean;
 						mfaRequired?: boolean;
 						error?: string;
+						// A gateway page that owns the rest of the flow: the
+						// hosted /login for a challenged account, the hosted
+						// /setup-2fa for one a require_mfa tenant flagged.
+						next?: string;
 					};
-					if (data.mfaRequired) {
-						setNotice('This account uses two-factor sign-in. Please sign in through the platform login page for now.');
-						// The non-fatal mfaRequired record (not null): a null return
-						// makes the card report rejected credentials on top of the
-						// notice. Its own MFA branch is an unwired message seam —
-						// the notice above is the UI.
+					if (data.next) {
+						// The BFF has either minted the cookie (mfaSetupRequired)
+						// or deliberately not (mfaRequired); either way the
+						// hosted page owns what happens next, so navigate to it
+						// in full — it comes back to this app through its own
+						// `next` parameter when the flow completes.
+						window.location.assign(data.next);
 						return {
 							id: null,
 							userId: null,

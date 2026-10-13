@@ -8,7 +8,7 @@ import { AuthScreenLayout } from '@/components/auth/auth-screen-layout';
 
 /**
  * /custom-reset-password — spend a recovery token through the
- * `auth_flows:reset_password` sync lane via the BFF. Reads `role_id` and
+ * the tenant's `resetPassword` on the auth GraphQL via the BFF. Reads `role_id` and
  * `reset_token` from the query string — the same params the recovery email
  * appends to `/reset-password` (email:send_recovery_link). A `reset:false`
  * answer covers wrong, spent and lapsed tokens identically, by design.

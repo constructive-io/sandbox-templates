@@ -53,7 +53,7 @@ export function useAuthContext(): AuthContextType {
  *
  * The cloud-function callback sets an httpOnly constructive_session cookie
  * (host-only on `localhost`). This asks the same-origin BFF
- * (`/api/auth/session`), which relays the cookie to the tenant's own who-am-i
+ * (`/api/auth/session`), which relays the cookie to the tenant's own currentUser
  * as a Bearer credential — the HttpOnly cookie never reaches client JS.
  */
 async function trySessionAuth(

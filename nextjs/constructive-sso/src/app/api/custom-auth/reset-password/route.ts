@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { readJsonBody, sameOriginGuard } from '@/lib/bff/request-guard';
-import { GatewayError, gatewayPost } from '@/lib/sso/gateway';
+import { AuthRefusal, authClient, runAuth } from '@/lib/sso/auth-graphql';
 
 interface ResetPasswordBody {
   roleId?: string;
@@ -10,9 +10,11 @@ interface ResetPasswordBody {
 }
 
 /**
- * POST /api/custom-auth/reset-password — spend a recovery token through
- * `auth_flows:reset_password`. `reset:false` covers wrong/spent/lapsed tokens
- * identically — which of the three is not a caller's business.
+ * POST /api/custom-auth/reset-password — spend a recovery token through the
+ * tenant's `resetPassword`. `reset:false` covers wrong/spent/lapsed tokens
+ * identically — which of the three is not a caller's business. A tenant
+ * refusal (a throttled spend, a policy the new password breaks) answers
+ * `reset:false` for the same reason: the difference is the tenant's to know.
  */
 export async function POST(req: Request): Promise<NextResponse> {
   const csrf = sameOriginGuard(req);
@@ -26,16 +28,24 @@ export async function POST(req: Request): Promise<NextResponse> {
     );
   }
 
+  const db = authClient(req);
   try {
-    const result = await gatewayPost<{ reset: boolean }>(
-      '/auth/reset-password',
-      { role_id: body.roleId, reset_token: body.resetToken, new_password: body.newPassword },
-      null
+    const { resetPassword } = await runAuth(
+      db.mutation.resetPassword(
+        {
+          input: {
+            roleId: body.roleId,
+            resetToken: body.resetToken,
+            newPassword: body.newPassword
+          }
+        },
+        { select: { result: true } }
+      )
     );
-    return NextResponse.json(result);
+    return NextResponse.json({ reset: resetPassword?.result === true });
   } catch (err) {
-    if (err instanceof GatewayError) {
-      return NextResponse.json({ error: err.code }, { status: err.status === 400 ? 400 : 502 });
+    if (err instanceof AuthRefusal) {
+      return NextResponse.json({ reset: false });
     }
     throw err;
   }

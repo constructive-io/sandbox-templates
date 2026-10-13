@@ -1,0 +1,169 @@
+/**
+ * sso/auth-graphql — server-only client for the tenant's auth GraphQL.
+ *
+ * Auth is GraphQL-only on main: the JSON `auth_flows:*` lane is deleted, so
+ * the BFF routes call the same generated surface the hosted pages use, at
+ * `GRAPHQL_AUTH_URL` (the tenant's `auth-<slug>.localhost` host). The client
+ * is the committed SDK under `src/graphql/sdk/auth/orm` — never a hand-rolled
+ * query string — created per request because its headers are per request:
+ *
+ *   Authorization: Bearer <constructive_session cookie>, when one is carried;
+ *   user-agent / origin: forwarded unchanged from the incoming request.
+ *
+ * The header forwarding is not decoration. Sessions record the user agent and
+ * origin they were minted under, and `verifyStepUpCode` compares them later —
+ * a server fetch's default `User-Agent: node` would fail that comparison for
+ * every step-up.
+ *
+ * Errors are two kinds, by construction:
+ *
+ *   - transport: the fetch threw (refused, timeout) or answered non-2xx —
+ *     infrastructure, surfaced as {@link AuthGraphqlUnreachable} (502
+ *     AUTH_GRAPHQL_UNREACHABLE). The SDK's adapter folds HTTP-status failures
+ *     into the same `errors[]` shape as GraphQL refusals, so the custom fetch
+ *     below throws on non-2xx *before* the adapter can conflate the two.
+ *   - refusal: a GraphQL error whose message IS the tenant's code
+ *     (STEP_UP_SESSION_INVALID, TOO_MANY_REQUESTS, …), surfaced as
+ *     {@link AuthRefusal} with that code.
+ *
+ * Never logged: tokens, request bodies. Neither appears in these errors.
+ */
+
+import 'server-only';
+
+import { createClient } from '@/graphql/sdk/auth/orm';
+import type { QueryBuilder, QueryResult } from '@/graphql/sdk/auth/orm';
+
+/** The tenant's auth GraphQL endpoint, from the environment the bring-up wrote. */
+const endpoint = (process.env.GRAPHQL_AUTH_URL ?? '').replace(/\/$/, '');
+
+/** The platform's session cookie — the same name the gateway mints. */
+const SESSION_COOKIE = 'constructive_session';
+
+/** Everything the tenant may spend on one call: 10 seconds, then a 502. */
+const TIMEOUT_MS = 10_000;
+
+/** Transport-level failure: the tenant's auth surface was not reachable. */
+export class AuthGraphqlUnreachable extends Error {
+  readonly code = 'AUTH_GRAPHQL_UNREACHABLE';
+  readonly status = 502;
+
+  constructor(detail: string) {
+    super(`auth GraphQL unreachable — ${detail}`);
+    this.name = 'AuthGraphqlUnreachable';
+  }
+}
+
+/** A refusal the tenant raised; `code` is its own name for the refusal. */
+export class AuthRefusal extends Error {
+  constructor(
+    readonly code: string,
+    readonly status = statusForCode(code)
+  ) {
+    super(code);
+    this.name = 'AuthRefusal';
+  }
+}
+
+/** The 4xx a tenant refusal maps to; anything unnamed is a plain 400. */
+function statusForCode(code: string): number {
+  if (code === 'NOT_AUTHENTICATED') return 401;
+  if (code === 'STEP_UP_SESSION_INVALID') return 401;
+  if (code === 'TOO_MANY_REQUESTS') return 429;
+  return 400;
+}
+
+/** The marker the custom fetch throws for anything that is not a 2xx. */
+class TransportFailure extends Error {
+  constructor(detail: string) {
+    super(detail);
+    this.name = 'TransportFailure';
+  }
+}
+
+/**
+ * The SDK's own fetch: timeout-armed, and non-2xx converted to a throw so the
+ * adapter cannot fold an infrastructure failure into `errors[]` as though the
+ * tenant had refused something.
+ */
+function transportFetch(input: URL | RequestInfo, init?: RequestInit): Promise<Response> {
+  // The endpoint is a fixed string this module reads from the environment;
+  // masking exists so an error never echoes a caller-controlled URL.
+  const url = typeof input === 'string' ? input.split('?')[0] ?? input : input;
+  return fetch(input, { ...init, signal: AbortSignal.timeout(TIMEOUT_MS) }).then(
+    (response) => {
+      if (!response.ok) {
+        throw new TransportFailure(`HTTP ${response.status} from ${url}`);
+      }
+      return response;
+    },
+    (err: unknown) => {
+      const detail = err instanceof Error ? err.message : String(err);
+      throw new TransportFailure(detail);
+    }
+  );
+}
+
+/** The client for one request: this request's headers, this caller's session. */
+export function authClient(req: Request): ReturnType<typeof createClient> {
+  if (!endpoint) {
+    throw new AuthGraphqlUnreachable('GRAPHQL_AUTH_URL is not set — was local:bringup run?');
+  }
+
+  const session = sessionOf(req);
+  const userAgent = req.headers.get('user-agent');
+  const origin = req.headers.get('origin');
+
+  return createClient({
+    endpoint,
+    fetch: transportFetch,
+    headers: {
+      ...(session ? { authorization: `Bearer ${session}` } : {}),
+      ...(userAgent !== null ? { 'user-agent': userAgent } : {}),
+      ...(origin !== null ? { origin } : {})
+    }
+  });
+}
+
+/** The `constructive_session` cookie a request carries, if any. */
+function sessionOf(req: Request): string | null {
+  const header = req.headers.get('cookie');
+  if (!header) return null;
+  for (const part of header.split(';')) {
+    const [name, ...rest] = part.trim().split('=');
+    if (name === SESSION_COOKIE && rest.length > 0) {
+      const value = rest.join('=');
+      return value.length > 0 ? value : null;
+    }
+  }
+  return null;
+}
+
+/**
+ * Execute one SDK query builder with this file's error classification:
+ * resolves with the builder's data, throws {@link AuthRefusal} for a tenant
+ * refusal (whose message IS the code) or {@link AuthGraphqlUnreachable} for
+ * transport. Callers map those to responses; nothing here inspects bodies.
+ */
+export async function runAuth<T extends Record<string, unknown>>(
+  builder: QueryBuilder<T>
+): Promise<T> {
+  let result: QueryResult<T>;
+  try {
+    result = await builder.execute();
+  } catch (err) {
+    // fetch(…) throws for refused/timeout/5xx via transportFetch; anything
+    // the adapter itself throws on is equally not a tenant refusal.
+    if (err instanceof TransportFailure) {
+      throw new AuthGraphqlUnreachable(err.message);
+    }
+    const detail = err instanceof Error ? err.message : String(err);
+    throw new AuthGraphqlUnreachable(detail);
+  }
+  if (result.ok) {
+    return result.data;
+  }
+  // A GraphQL error's message is the tenant's refusal code (errors.raise_error).
+  const first = result.errors?.[0]?.message;
+  throw first ? new AuthRefusal(first) : new AuthGraphqlUnreachable('unknown GraphQL failure');
+}
