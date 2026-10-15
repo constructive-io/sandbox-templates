@@ -105,7 +105,7 @@ export function useOrgInvites(options: UseOrgInvitesOptions) {
 
 			// Step 2: Fetch senders (users) for all invites
 			const senderIds = [...new Set(rawInvites.map((i: any) => i.senderId).filter((id: any): id is string => !!id))] as string[];
-			let senderMap = new Map<string, UserNode>();
+			const senderMap = new Map<string, UserNode>();
 
 			if (senderIds.length > 0) {
 				const usersResult = await fetchUsersQuery({
@@ -207,7 +207,7 @@ export function useOrgClaimedInvites(options: UseOrgInvitesOptions) {
 					...rawClaimed.map((c: any) => c.receiverId).filter((id: any): id is string => !!id),
 				]),
 			];
-			let userMap = new Map<string, UserNode>();
+			const userMap = new Map<string, UserNode>();
 
 			if (userIds.length > 0) {
 				const usersResult = await fetchUsersQuery({

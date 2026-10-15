@@ -218,7 +218,7 @@ export function useOrganization(options: UseOrganizationOptions): UseOrganizatio
 
 			// Step 4: Fetch actors for member preview
 			const actorIds = [...new Set(memberships.map((m: any) => m.actorId).filter((id: any): id is string => !!id))] as string[];
-			let actorMap = new Map<string, ActorNode>();
+			const actorMap = new Map<string, ActorNode>();
 
 			if (actorIds.length > 0) {
 				const usersResult = await fetchUsersQuery({

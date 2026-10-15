@@ -92,7 +92,6 @@ export interface BlocksRuntimeProps {
  */
 function useExistingQueryClient(): QueryClient | null {
 	try {
-		// eslint-disable-next-line react-hooks/rules-of-hooks -- one unconditional call; the throw path only means "no host provider"
 		return useQueryClient();
 	} catch {
 		return null;

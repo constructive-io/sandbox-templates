@@ -14,7 +14,7 @@ const logger = createLogger({ scope: 'query-client' });
  * Tracks auth error handling state to prevent
  * multiple concurrent handlers from triggering logout multiple times.
  */
-let authErrorHandling = { isHandling: false, lastHandledAt: 0 };
+const authErrorHandling = { isHandling: false, lastHandledAt: 0 };
 
 /**
  * Minimum time between auth error handling attempts (ms).
