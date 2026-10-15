@@ -13,7 +13,6 @@ import { PhoneNumberModel } from './models/phoneNumber';
 import { WebauthnCredentialModel } from './models/webauthnCredential';
 import { AuditLogAuthModel } from './models/auditLogAuth';
 import { IdentityProviderModel } from './models/identityProvider';
-import { RoleTypeModel } from './models/roleType';
 import { UserConnectedAccountModel } from './models/userConnectedAccount';
 import { UserSettingsSecurityModel } from './models/userSettingsSecurity';
 import { OrgApiKeyListModel } from './models/orgApiKeyList';
@@ -61,7 +60,6 @@ export function createClient(config: OrmClientConfig) {
     webauthnCredential: new WebauthnCredentialModel(client),
     auditLogAuth: new AuditLogAuthModel(client),
     identityProvider: new IdentityProviderModel(client),
-    roleType: new RoleTypeModel(client),
     userConnectedAccount: new UserConnectedAccountModel(client),
     userSettingsSecurity: new UserSettingsSecurityModel(client),
     orgApiKeyList: new OrgApiKeyListModel(client),

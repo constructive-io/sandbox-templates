@@ -364,24 +364,6 @@ export const orgChartEdgeMutationKeys = {
   /** Delete orgChartEdge mutation key */ delete: (id: string | number) =>
     ['mutation', 'orgchartedge', 'delete', id] as const,
 } as const;
-export const appProfileTemplateMutationKeys = {
-  /** All appProfileTemplate mutation keys */ all: ['mutation', 'appprofiletemplate'] as const,
-  /** Create appProfileTemplate mutation key */ create: () =>
-    ['mutation', 'appprofiletemplate', 'create'] as const,
-  /** Update appProfileTemplate mutation key */ update: (id: string | number) =>
-    ['mutation', 'appprofiletemplate', 'update', id] as const,
-  /** Delete appProfileTemplate mutation key */ delete: (id: string | number) =>
-    ['mutation', 'appprofiletemplate', 'delete', id] as const,
-} as const;
-export const orgProfileTemplateMutationKeys = {
-  /** All orgProfileTemplate mutation keys */ all: ['mutation', 'orgprofiletemplate'] as const,
-  /** Create orgProfileTemplate mutation key */ create: () =>
-    ['mutation', 'orgprofiletemplate', 'create'] as const,
-  /** Update orgProfileTemplate mutation key */ update: (id: string | number) =>
-    ['mutation', 'orgprofiletemplate', 'update', id] as const,
-  /** Delete orgProfileTemplate mutation key */ delete: (id: string | number) =>
-    ['mutation', 'orgprofiletemplate', 'delete', id] as const,
-} as const;
 export const appMembershipDefaultMutationKeys = {
   /** All appMembershipDefault mutation keys */ all: ['mutation', 'appmembershipdefault'] as const,
   /** Create appMembershipDefault mutation key */ create: () =>
@@ -415,15 +397,6 @@ export const orgProfileMutationKeys = {
     ['mutation', 'orgprofile', 'update', id] as const,
   /** Delete orgProfile mutation key */ delete: (id: string | number) =>
     ['mutation', 'orgprofile', 'delete', id] as const,
-} as const;
-export const orgMemberProfileMutationKeys = {
-  /** All orgMemberProfile mutation keys */ all: ['mutation', 'orgmemberprofile'] as const,
-  /** Create orgMemberProfile mutation key */ create: () =>
-    ['mutation', 'orgmemberprofile', 'create'] as const,
-  /** Update orgMemberProfile mutation key */ update: (id: string | number) =>
-    ['mutation', 'orgmemberprofile', 'update', id] as const,
-  /** Delete orgMemberProfile mutation key */ delete: (id: string | number) =>
-    ['mutation', 'orgmemberprofile', 'delete', id] as const,
 } as const;
 export const orgMembershipSettingMutationKeys = {
   /** All orgMembershipSetting mutation keys */ all: ['mutation', 'orgmembershipsetting'] as const,
@@ -476,6 +449,22 @@ export const customMutationKeys = {
     identifier
       ? (['mutation', 'provisionBucket', identifier] as const)
       : (['mutation', 'provisionBucket'] as const),
+  /** Mutation key for webauthnRegisterBegin */ webauthnRegisterBegin: (identifier?: string) =>
+    identifier
+      ? (['mutation', 'webauthnRegisterBegin', identifier] as const)
+      : (['mutation', 'webauthnRegisterBegin'] as const),
+  /** Mutation key for webauthnRegisterFinish */ webauthnRegisterFinish: (identifier?: string) =>
+    identifier
+      ? (['mutation', 'webauthnRegisterFinish', identifier] as const)
+      : (['mutation', 'webauthnRegisterFinish'] as const),
+  /** Mutation key for webauthnSignInBegin */ webauthnSignInBegin: (identifier?: string) =>
+    identifier
+      ? (['mutation', 'webauthnSignInBegin', identifier] as const)
+      : (['mutation', 'webauthnSignInBegin'] as const),
+  /** Mutation key for webauthnSignInFinish */ webauthnSignInFinish: (identifier?: string) =>
+    identifier
+      ? (['mutation', 'webauthnSignInFinish', identifier] as const)
+      : (['mutation', 'webauthnSignInFinish'] as const),
 } as const;
 /**
 
@@ -536,13 +525,10 @@ export const mutationKeys = {
   orgClaimedInvite: orgClaimedInviteMutationKeys,
   orgGrant: orgGrantMutationKeys,
   orgChartEdge: orgChartEdgeMutationKeys,
-  appProfileTemplate: appProfileTemplateMutationKeys,
-  orgProfileTemplate: orgProfileTemplateMutationKeys,
   appMembershipDefault: appMembershipDefaultMutationKeys,
   orgMembershipDefault: orgMembershipDefaultMutationKeys,
   appProfile: appProfileMutationKeys,
   orgProfile: orgProfileMutationKeys,
-  orgMemberProfile: orgMemberProfileMutationKeys,
   orgMembershipSetting: orgMembershipSettingMutationKeys,
   custom: customMutationKeys,
 } as const;

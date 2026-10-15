@@ -206,16 +206,6 @@ function App() {
 | `useCreateOrgChartEdgeMutation` | Mutation | Organizational chart edges defining parent-child reporting relationships between members within an entity |
 | `useUpdateOrgChartEdgeMutation` | Mutation | Organizational chart edges defining parent-child reporting relationships between members within an entity |
 | `useDeleteOrgChartEdgeMutation` | Mutation | Organizational chart edges defining parent-child reporting relationships between members within an entity |
-| `useAppProfileTemplatesQuery` | Query | Template profiles that are automatically seeded into new entities when created |
-| `useAppProfileTemplateQuery` | Query | Template profiles that are automatically seeded into new entities when created |
-| `useCreateAppProfileTemplateMutation` | Mutation | Template profiles that are automatically seeded into new entities when created |
-| `useUpdateAppProfileTemplateMutation` | Mutation | Template profiles that are automatically seeded into new entities when created |
-| `useDeleteAppProfileTemplateMutation` | Mutation | Template profiles that are automatically seeded into new entities when created |
-| `useOrgProfileTemplatesQuery` | Query | Template profiles that are automatically seeded into new entities when created |
-| `useOrgProfileTemplateQuery` | Query | Template profiles that are automatically seeded into new entities when created |
-| `useCreateOrgProfileTemplateMutation` | Mutation | Template profiles that are automatically seeded into new entities when created |
-| `useUpdateOrgProfileTemplateMutation` | Mutation | Template profiles that are automatically seeded into new entities when created |
-| `useDeleteOrgProfileTemplateMutation` | Mutation | Template profiles that are automatically seeded into new entities when created |
 | `useAppMembershipDefaultsQuery` | Query | Default membership settings per entity, controlling initial approval and verification state for new members |
 | `useAppMembershipDefaultQuery` | Query | Default membership settings per entity, controlling initial approval and verification state for new members |
 | `useCreateAppMembershipDefaultMutation` | Mutation | Default membership settings per entity, controlling initial approval and verification state for new members |
@@ -236,11 +226,6 @@ function App() {
 | `useCreateOrgProfileMutation` | Mutation | Named capability bundles (roles) that group multiple capabilities into reusable profiles |
 | `useUpdateOrgProfileMutation` | Mutation | Named capability bundles (roles) that group multiple capabilities into reusable profiles |
 | `useDeleteOrgProfileMutation` | Mutation | Named capability bundles (roles) that group multiple capabilities into reusable profiles |
-| `useOrgMemberProfilesQuery` | Query | Per-membership profile information visible to other entity members (display name, email, title, bio, avatar) |
-| `useOrgMemberProfileQuery` | Query | Per-membership profile information visible to other entity members (display name, email, title, bio, avatar) |
-| `useCreateOrgMemberProfileMutation` | Mutation | Per-membership profile information visible to other entity members (display name, email, title, bio, avatar) |
-| `useUpdateOrgMemberProfileMutation` | Mutation | Per-membership profile information visible to other entity members (display name, email, title, bio, avatar) |
-| `useDeleteOrgMemberProfileMutation` | Mutation | Per-membership profile information visible to other entity members (display name, email, title, bio, avatar) |
 | `useOrgMembershipSettingsQuery` | Query | Per-entity settings for the memberships module |
 | `useOrgMembershipSettingQuery` | Query | Per-entity settings for the memberships module |
 | `useCreateOrgMembershipSettingMutation` | Mutation | Per-entity settings for the memberships module |
@@ -264,10 +249,15 @@ function App() {
 | `useProvisionOrgUserMutation` | Mutation | provisionOrgUser |
 | `useProvisionAppUsersBulkMutation` | Mutation | provisionAppUsersBulk |
 | `useProvisionOrgUsersBulkMutation` | Mutation | provisionOrgUsersBulk |
-| `useProvisionBucketMutation` | Mutation | Provision an S3 bucket for a logical bucket in the database.
-Reads the bucket config via RLS, then creates and configures
-the S3 bucket with the appropriate privacy policies, CORS rules,
-and lifecycle settings. |
+| `useProvisionBucketMutation` | Mutation | Reconcile an S3 bucket for a logical bucket in the database.
+Reads the bucket config via RLS, then enqueues the same
+storage:provision_bucket job used by the INSERT trigger. This is
+idempotent for an already-reconciled bucket; enqueue failures become
+GraphQL errors. |
+| `useWebauthnRegisterBeginMutation` | Mutation | Begin registering a passkey for the signed-in user. |
+| `useWebauthnRegisterFinishMutation` | Mutation | Verify the browser's registration response and store the passkey. |
+| `useWebauthnSignInBeginMutation` | Mutation | Begin a passkey sign-in (discoverable when signed out). |
+| `useWebauthnSignInFinishMutation` | Mutation | Verify the browser's assertion and mint a session. |
 
 ## Table Hooks
 
@@ -1015,48 +1005,6 @@ const { mutate: create } = useCreateOrgChartEdgeMutation({
 create({ entityId: '<UUID>', childId: '<UUID>', parentId: '<UUID>', positionTitle: '<String>', positionLevel: '<Int>' });
 ```
 
-### AppProfileTemplate
-
-```typescript
-// List all appProfileTemplates
-const { data, isLoading } = useAppProfileTemplatesQuery({
-  selection: { fields: { id: true, name: true, slug: true, description: true, capabilities: true, isDefault: true, createdAt: true, updatedAt: true } },
-});
-
-// Get one appProfileTemplate
-const { data: item } = useAppProfileTemplateQuery({
-  id: '<UUID>',
-  selection: { fields: { id: true, name: true, slug: true, description: true, capabilities: true, isDefault: true, createdAt: true, updatedAt: true } },
-});
-
-// Create a appProfileTemplate
-const { mutate: create } = useCreateAppProfileTemplateMutation({
-  selection: { fields: { id: true } },
-});
-create({ name: '<String>', slug: '<String>', description: '<String>', capabilities: '<BitString>', isDefault: '<Boolean>' });
-```
-
-### OrgProfileTemplate
-
-```typescript
-// List all orgProfileTemplates
-const { data, isLoading } = useOrgProfileTemplatesQuery({
-  selection: { fields: { id: true, name: true, slug: true, description: true, capabilities: true, isDefault: true, createdAt: true, updatedAt: true } },
-});
-
-// Get one orgProfileTemplate
-const { data: item } = useOrgProfileTemplateQuery({
-  id: '<UUID>',
-  selection: { fields: { id: true, name: true, slug: true, description: true, capabilities: true, isDefault: true, createdAt: true, updatedAt: true } },
-});
-
-// Create a orgProfileTemplate
-const { mutate: create } = useCreateOrgProfileTemplateMutation({
-  selection: { fields: { id: true } },
-});
-create({ name: '<String>', slug: '<String>', description: '<String>', capabilities: '<BitString>', isDefault: '<Boolean>' });
-```
-
 ### AppMembershipDefault
 
 ```typescript
@@ -1139,27 +1087,6 @@ const { mutate: create } = useCreateOrgProfileMutation({
   selection: { fields: { id: true } },
 });
 create({ name: '<String>', slug: '<String>', description: '<String>', capabilities: '<BitString>', isSystem: '<Boolean>', isDefault: '<Boolean>', entityId: '<UUID>' });
-```
-
-### OrgMemberProfile
-
-```typescript
-// List all orgMemberProfiles
-const { data, isLoading } = useOrgMemberProfilesQuery({
-  selection: { fields: { id: true, createdAt: true, updatedAt: true, membershipId: true, entityId: true, actorId: true, displayName: true, email: true, title: true, bio: true, profilePicture: true } },
-});
-
-// Get one orgMemberProfile
-const { data: item } = useOrgMemberProfileQuery({
-  id: '<UUID>',
-  selection: { fields: { id: true, createdAt: true, updatedAt: true, membershipId: true, entityId: true, actorId: true, displayName: true, email: true, title: true, bio: true, profilePicture: true } },
-});
-
-// Create a orgMemberProfile
-const { mutate: create } = useCreateOrgMemberProfileMutation({
-  selection: { fields: { id: true } },
-});
-create({ membershipId: '<UUID>', entityId: '<UUID>', actorId: '<UUID>', displayName: '<String>', email: '<String>', title: '<String>', bio: '<String>', profilePicture: '<Image>' });
 ```
 
 ### OrgMembershipSetting
@@ -1395,10 +1322,11 @@ provisionOrgUsersBulk
 
 ### `useProvisionBucketMutation`
 
-Provision an S3 bucket for a logical bucket in the database.
-Reads the bucket config via RLS, then creates and configures
-the S3 bucket with the appropriate privacy policies, CORS rules,
-and lifecycle settings.
+Reconcile an S3 bucket for a logical bucket in the database.
+Reads the bucket config via RLS, then enqueues the same
+storage:provision_bucket job used by the INSERT trigger. This is
+idempotent for an already-reconciled bucket; enqueue failures become
+GraphQL errors.
 
 - **Type:** mutation
 - **Arguments:**
@@ -1406,6 +1334,50 @@ and lifecycle settings.
   | Argument | Type |
   |----------|------|
   | `input` | ProvisionBucketInput (required) |
+
+### `useWebauthnRegisterBeginMutation`
+
+Begin registering a passkey for the signed-in user.
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | WebauthnRegisterBeginInput |
+
+### `useWebauthnRegisterFinishMutation`
+
+Verify the browser's registration response and store the passkey.
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | WebauthnRegisterFinishInput (required) |
+
+### `useWebauthnSignInBeginMutation`
+
+Begin a passkey sign-in (discoverable when signed out).
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | WebauthnSignInBeginInput |
+
+### `useWebauthnSignInFinishMutation`
+
+Verify the browser's assertion and mint a session.
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | WebauthnSignInFinishInput (required) |
 
 ---
 

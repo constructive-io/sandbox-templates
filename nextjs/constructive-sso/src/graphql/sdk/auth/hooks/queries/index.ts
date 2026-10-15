@@ -18,8 +18,6 @@ export * from './useWebauthnCredentialQuery';
 export * from './useAuditLogAuthsQuery';
 export * from './useAuditLogAuthQuery';
 export * from './useIdentityProvidersQuery';
-export * from './useRoleTypesQuery';
-export * from './useRoleTypeQuery';
 export * from './useUserConnectedAccountsQuery';
 export * from './useUserConnectedAccountQuery';
 export * from './useUserSettingsSecuritiesQuery';

@@ -349,24 +349,6 @@ export const orgChartEdgeKeys = {
   /** Detail query key for specific item */ detail: (id: string | number) =>
     [...orgChartEdgeKeys.details(), id] as const,
 } as const;
-export const appProfileTemplateKeys = {
-  /** All appProfileTemplate queries */ all: ['appprofiletemplate'] as const,
-  /** List query keys */ lists: () => [...appProfileTemplateKeys.all, 'list'] as const,
-  /** List query key with variables */ list: (variables?: object) =>
-    [...appProfileTemplateKeys.lists(), variables] as const,
-  /** Detail query keys */ details: () => [...appProfileTemplateKeys.all, 'detail'] as const,
-  /** Detail query key for specific item */ detail: (id: string | number) =>
-    [...appProfileTemplateKeys.details(), id] as const,
-} as const;
-export const orgProfileTemplateKeys = {
-  /** All orgProfileTemplate queries */ all: ['orgprofiletemplate'] as const,
-  /** List query keys */ lists: () => [...orgProfileTemplateKeys.all, 'list'] as const,
-  /** List query key with variables */ list: (variables?: object) =>
-    [...orgProfileTemplateKeys.lists(), variables] as const,
-  /** Detail query keys */ details: () => [...orgProfileTemplateKeys.all, 'detail'] as const,
-  /** Detail query key for specific item */ detail: (id: string | number) =>
-    [...orgProfileTemplateKeys.details(), id] as const,
-} as const;
 export const appMembershipDefaultKeys = {
   /** All appMembershipDefault queries */ all: ['appmembershipdefault'] as const,
   /** List query keys */ lists: () => [...appMembershipDefaultKeys.all, 'list'] as const,
@@ -402,15 +384,6 @@ export const orgProfileKeys = {
   /** Detail query keys */ details: () => [...orgProfileKeys.all, 'detail'] as const,
   /** Detail query key for specific item */ detail: (id: string | number) =>
     [...orgProfileKeys.details(), id] as const,
-} as const;
-export const orgMemberProfileKeys = {
-  /** All orgMemberProfile queries */ all: ['orgmemberprofile'] as const,
-  /** List query keys */ lists: () => [...orgMemberProfileKeys.all, 'list'] as const,
-  /** List query key with variables */ list: (variables?: object) =>
-    [...orgMemberProfileKeys.lists(), variables] as const,
-  /** Detail query keys */ details: () => [...orgMemberProfileKeys.all, 'detail'] as const,
-  /** Detail query key for specific item */ detail: (id: string | number) =>
-    [...orgMemberProfileKeys.details(), id] as const,
 } as const;
 export const orgMembershipSettingKeys = {
   /** All orgMembershipSetting queries */ all: ['orgmembershipsetting'] as const,
@@ -511,13 +484,10 @@ export const queryKeys = {
   orgClaimedInvite: orgClaimedInviteKeys,
   orgGrant: orgGrantKeys,
   orgChartEdge: orgChartEdgeKeys,
-  appProfileTemplate: appProfileTemplateKeys,
-  orgProfileTemplate: orgProfileTemplateKeys,
   appMembershipDefault: appMembershipDefaultKeys,
   orgMembershipDefault: orgMembershipDefaultKeys,
   appProfile: appProfileKeys,
   orgProfile: orgProfileKeys,
-  orgMemberProfile: orgMemberProfileKeys,
   orgMembershipSetting: orgMembershipSettingKeys,
   custom: customQueryKeys,
 } as const;

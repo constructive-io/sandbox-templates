@@ -16,6 +16,10 @@ import type {
   ProvisionAppUsersBulkInput,
   ProvisionOrgUsersBulkInput,
   ProvisionBucketInput,
+  WebauthnRegisterBeginInput,
+  WebauthnRegisterFinishInput,
+  WebauthnSignInBeginInput,
+  WebauthnSignInFinishInput,
   AcceptAppInvitePayload,
   AcceptOrgInvitePayload,
   SubmitAppInviteCodePayload,
@@ -25,6 +29,10 @@ import type {
   ProvisionAppUsersBulkPayload,
   ProvisionOrgUsersBulkPayload,
   ProvisionBucketPayload,
+  WebauthnRegisterBeginPayload,
+  WebauthnRegisterFinishPayload,
+  WebauthnSignInBeginPayload,
+  WebauthnSignInFinishPayload,
   AcceptAppInvitePayloadSelect,
   AcceptOrgInvitePayloadSelect,
   SubmitAppInviteCodePayloadSelect,
@@ -34,6 +42,10 @@ import type {
   ProvisionAppUsersBulkPayloadSelect,
   ProvisionOrgUsersBulkPayloadSelect,
   ProvisionBucketPayloadSelect,
+  WebauthnRegisterBeginPayloadSelect,
+  WebauthnRegisterFinishPayloadSelect,
+  WebauthnSignInBeginPayloadSelect,
+  WebauthnSignInFinishPayloadSelect,
 } from '../input-types';
 import { connectionFieldsMap } from '../input-types';
 export interface AcceptAppInviteVariables {
@@ -62,13 +74,42 @@ export interface ProvisionOrgUsersBulkVariables {
 }
 /**
  * Variables for provisionBucket
- * Provision an S3 bucket for a logical bucket in the database.
-Reads the bucket config via RLS, then creates and configures
-the S3 bucket with the appropriate privacy policies, CORS rules,
-and lifecycle settings.
+ * Reconcile an S3 bucket for a logical bucket in the database.
+Reads the bucket config via RLS, then enqueues the same
+storage:provision_bucket job used by the INSERT trigger. This is
+idempotent for an already-reconciled bucket; enqueue failures become
+GraphQL errors.
  */
 export interface ProvisionBucketVariables {
   input: ProvisionBucketInput;
+}
+/**
+ * Variables for webauthnRegisterBegin
+ * Begin registering a passkey for the signed-in user.
+ */
+export interface WebauthnRegisterBeginVariables {
+  input?: WebauthnRegisterBeginInput;
+}
+/**
+ * Variables for webauthnRegisterFinish
+ * Verify the browser's registration response and store the passkey.
+ */
+export interface WebauthnRegisterFinishVariables {
+  input: WebauthnRegisterFinishInput;
+}
+/**
+ * Variables for webauthnSignInBegin
+ * Begin a passkey sign-in (discoverable when signed out).
+ */
+export interface WebauthnSignInBeginVariables {
+  input?: WebauthnSignInBeginInput;
+}
+/**
+ * Variables for webauthnSignInFinish
+ * Verify the browser's assertion and mint a session.
+ */
+export interface WebauthnSignInFinishVariables {
+  input: WebauthnSignInFinishInput;
 }
 export function createMutationOperations(client: OrmClient) {
   return {
@@ -331,6 +372,122 @@ export function createMutationOperations(client: OrmClient) {
           ],
           connectionFieldsMap,
           'ProvisionBucketPayload'
+        ),
+      }),
+    webauthnRegisterBegin: <S extends WebauthnRegisterBeginPayloadSelect>(
+      args: WebauthnRegisterBeginVariables,
+      options: {
+        select: S;
+      } & StrictSelect<S, WebauthnRegisterBeginPayloadSelect>
+    ) =>
+      new QueryBuilder<{
+        webauthnRegisterBegin: InferSelectResult<WebauthnRegisterBeginPayload, S> | null;
+      }>({
+        client,
+        operation: 'mutation',
+        operationName: 'WebauthnRegisterBegin',
+        fieldName: 'webauthnRegisterBegin',
+        ...buildCustomDocument(
+          'mutation',
+          'WebauthnRegisterBegin',
+          'webauthnRegisterBegin',
+          options.select,
+          args,
+          [
+            {
+              name: 'input',
+              type: 'WebauthnRegisterBeginInput',
+            },
+          ],
+          connectionFieldsMap,
+          'WebauthnRegisterBeginPayload'
+        ),
+      }),
+    webauthnRegisterFinish: <S extends WebauthnRegisterFinishPayloadSelect>(
+      args: WebauthnRegisterFinishVariables,
+      options: {
+        select: S;
+      } & StrictSelect<S, WebauthnRegisterFinishPayloadSelect>
+    ) =>
+      new QueryBuilder<{
+        webauthnRegisterFinish: InferSelectResult<WebauthnRegisterFinishPayload, S> | null;
+      }>({
+        client,
+        operation: 'mutation',
+        operationName: 'WebauthnRegisterFinish',
+        fieldName: 'webauthnRegisterFinish',
+        ...buildCustomDocument(
+          'mutation',
+          'WebauthnRegisterFinish',
+          'webauthnRegisterFinish',
+          options.select,
+          args,
+          [
+            {
+              name: 'input',
+              type: 'WebauthnRegisterFinishInput!',
+            },
+          ],
+          connectionFieldsMap,
+          'WebauthnRegisterFinishPayload'
+        ),
+      }),
+    webauthnSignInBegin: <S extends WebauthnSignInBeginPayloadSelect>(
+      args: WebauthnSignInBeginVariables,
+      options: {
+        select: S;
+      } & StrictSelect<S, WebauthnSignInBeginPayloadSelect>
+    ) =>
+      new QueryBuilder<{
+        webauthnSignInBegin: InferSelectResult<WebauthnSignInBeginPayload, S> | null;
+      }>({
+        client,
+        operation: 'mutation',
+        operationName: 'WebauthnSignInBegin',
+        fieldName: 'webauthnSignInBegin',
+        ...buildCustomDocument(
+          'mutation',
+          'WebauthnSignInBegin',
+          'webauthnSignInBegin',
+          options.select,
+          args,
+          [
+            {
+              name: 'input',
+              type: 'WebauthnSignInBeginInput',
+            },
+          ],
+          connectionFieldsMap,
+          'WebauthnSignInBeginPayload'
+        ),
+      }),
+    webauthnSignInFinish: <S extends WebauthnSignInFinishPayloadSelect>(
+      args: WebauthnSignInFinishVariables,
+      options: {
+        select: S;
+      } & StrictSelect<S, WebauthnSignInFinishPayloadSelect>
+    ) =>
+      new QueryBuilder<{
+        webauthnSignInFinish: InferSelectResult<WebauthnSignInFinishPayload, S> | null;
+      }>({
+        client,
+        operation: 'mutation',
+        operationName: 'WebauthnSignInFinish',
+        fieldName: 'webauthnSignInFinish',
+        ...buildCustomDocument(
+          'mutation',
+          'WebauthnSignInFinish',
+          'webauthnSignInFinish',
+          options.select,
+          args,
+          [
+            {
+              name: 'input',
+              type: 'WebauthnSignInFinishInput!',
+            },
+          ],
+          connectionFieldsMap,
+          'WebauthnSignInFinishPayload'
         ),
       }),
   };

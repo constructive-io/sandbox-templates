@@ -4,7 +4,6 @@
  * DO NOT EDIT - changes will be overwritten
  */
 export type ConstructiveInternalTypeEmail = unknown;
-export type ConstructiveInternalTypeImage = unknown;
 export interface OrgGetManagersRecord {
   userId: string | null;
   depth: number | null;
@@ -334,26 +333,6 @@ export interface OrgChartEdge {
   positionTitle: string | null;
   positionLevel: number | null;
 }
-export interface AppProfileTemplate {
-  id: string | null;
-  name: string | null;
-  slug: string | null;
-  description: string | null;
-  capabilities: string | null;
-  isDefault: boolean | null;
-  createdAt: string | null;
-  updatedAt: string | null;
-}
-export interface OrgProfileTemplate {
-  id: string | null;
-  name: string | null;
-  slug: string | null;
-  description: string | null;
-  capabilities: string | null;
-  isDefault: boolean | null;
-  createdAt: string | null;
-  updatedAt: string | null;
-}
 export interface AppMembershipDefault {
   id: string | null;
   createdAt: string | null;
@@ -398,19 +377,6 @@ export interface OrgProfile {
   createdAt: string | null;
   updatedAt: string | null;
   entityId: string | null;
-}
-export interface OrgMemberProfile {
-  id: string | null;
-  createdAt: string | null;
-  updatedAt: string | null;
-  membershipId: string | null;
-  entityId: string | null;
-  actorId: string | null;
-  displayName: string | null;
-  email: string | null;
-  title: string | null;
-  bio: string | null;
-  profilePicture: ConstructiveInternalTypeImage | null;
 }
 export interface OrgMembershipSetting {
   id: string | null;

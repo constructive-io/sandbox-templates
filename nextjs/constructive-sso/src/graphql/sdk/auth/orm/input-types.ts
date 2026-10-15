@@ -379,10 +379,6 @@ export interface IdentityProvider {
   displayName?: string | null;
   enabled?: boolean | null;
 }
-export interface RoleType {
-  id: number;
-  name?: string | null;
-}
 export interface UserConnectedAccount {
   id: string;
   ownerId?: string | null;
@@ -484,14 +480,12 @@ export interface AuditLogAuthRelations {
   actor?: User | null;
 }
 export interface IdentityProviderRelations {}
-export interface RoleTypeRelations {}
 export interface UserConnectedAccountRelations {}
 export interface UserSettingsSecurityRelations {
   owner?: User | null;
 }
 export interface OrgApiKeyListRelations {}
 export interface UserRelations {
-  roleType?: RoleType | null;
   ownedUserSettingsSecurity?: UserSettingsSecurity | null;
   principals?: ConnectionResult<Principal>;
   scopedPrincipals?: ConnectionResult<PrincipalEntity>;
@@ -510,7 +504,6 @@ export type PhoneNumberWithRelations = PhoneNumber & PhoneNumberRelations;
 export type WebauthnCredentialWithRelations = WebauthnCredential & WebauthnCredentialRelations;
 export type AuditLogAuthWithRelations = AuditLogAuth & AuditLogAuthRelations;
 export type IdentityProviderWithRelations = IdentityProvider & IdentityProviderRelations;
-export type RoleTypeWithRelations = RoleType & RoleTypeRelations;
 export type UserConnectedAccountWithRelations = UserConnectedAccount &
   UserConnectedAccountRelations;
 export type UserSettingsSecurityWithRelations = UserSettingsSecurity &
@@ -658,10 +651,6 @@ export type IdentityProviderSelect = {
   displayName?: boolean;
   enabled?: boolean;
 };
-export type RoleTypeSelect = {
-  id?: boolean;
-  name?: boolean;
-};
 export type UserConnectedAccountSelect = {
   id?: boolean;
   ownerId?: boolean;
@@ -713,9 +702,6 @@ export type UserSelect = {
   searchTsvRank?: boolean;
   displayNameTrgmSimilarity?: boolean;
   searchScore?: boolean;
-  roleType?: {
-    select: RoleTypeSelect;
-  };
   ownedUserSettingsSecurity?: {
     select: UserSettingsSecuritySelect;
   };
@@ -1004,18 +990,6 @@ export interface IdentityProviderFilter {
   or?: IdentityProviderFilter[];
   /** Negates the expression. */
   not?: IdentityProviderFilter;
-}
-export interface RoleTypeFilter {
-  /** Filter by the object’s `id` field. */
-  id?: IntFilter;
-  /** Filter by the object’s `name` field. */
-  name?: StringFilter;
-  /** Checks for all expressions in this list. */
-  and?: RoleTypeFilter[];
-  /** Checks for any expressions in this list. */
-  or?: RoleTypeFilter[];
-  /** Negates the expression. */
-  not?: RoleTypeFilter;
 }
 export interface UserConnectedAccountFilter {
   /** Filter by the object’s `id` field. */
@@ -1346,14 +1320,6 @@ export type IdentityProviderOrderBy =
   | 'DISPLAY_NAME_DESC'
   | 'ENABLED_ASC'
   | 'ENABLED_DESC';
-export type RoleTypeOrderBy =
-  | 'NATURAL'
-  | 'PRIMARY_KEY_ASC'
-  | 'PRIMARY_KEY_DESC'
-  | 'ID_ASC'
-  | 'ID_DESC'
-  | 'NAME_ASC'
-  | 'NAME_DESC';
 export type UserConnectedAccountOrderBy =
   | 'NATURAL'
   | 'ID_ASC'
@@ -1542,15 +1508,11 @@ export interface CreateEmailInput {
   email: {
     ownerId?: string;
     email: ConstructiveInternalTypeEmail;
-    isVerified?: boolean;
     isPrimary?: boolean;
     name?: string;
   };
 }
 export interface EmailPatch {
-  ownerId?: string | null;
-  email?: ConstructiveInternalTypeEmail | null;
-  isVerified?: boolean | null;
   isPrimary?: boolean | null;
   name?: string | null;
 }
@@ -1569,16 +1531,11 @@ export interface CreatePhoneNumberInput {
     ownerId?: string;
     cc: string;
     number: string;
-    isVerified?: boolean;
     isPrimary?: boolean;
     name?: string;
   };
 }
 export interface PhoneNumberPatch {
-  ownerId?: string | null;
-  cc?: string | null;
-  number?: string | null;
-  isVerified?: boolean | null;
   isPrimary?: boolean | null;
   name?: string | null;
 }
@@ -1594,13 +1551,13 @@ export interface DeletePhoneNumberInput {
 export interface CreateWebauthnCredentialInput {
   clientMutationId?: string;
   webauthnCredential: {
-    ownerId?: string;
+    ownerId: string;
     credentialId: string;
-    publicKey: Base64EncodedBinary;
+    publicKey?: Base64EncodedBinary;
     signCount?: string;
     webauthnUserId: string;
     transports?: string[];
-    credentialDeviceType: string;
+    credentialDeviceType?: string;
     backupEligible?: boolean;
     backupState?: boolean;
     name?: string;
@@ -1608,17 +1565,7 @@ export interface CreateWebauthnCredentialInput {
   };
 }
 export interface WebauthnCredentialPatch {
-  ownerId?: string | null;
-  credentialId?: string | null;
-  publicKey?: Base64EncodedBinary | null;
-  signCount?: string | null;
-  webauthnUserId?: string | null;
-  transports?: string[] | null;
-  credentialDeviceType?: string | null;
-  backupEligible?: boolean | null;
-  backupState?: boolean | null;
   name?: string | null;
-  lastUsedAt?: string | null;
 }
 export interface UpdateWebauthnCredentialInput {
   clientMutationId?: string;
@@ -1632,12 +1579,12 @@ export interface DeleteWebauthnCredentialInput {
 export interface CreateAuditLogAuthInput {
   clientMutationId?: string;
   auditLogAuth: {
-    event: string;
-    actorId?: string;
+    event?: string;
+    actorId: string;
     origin?: ConstructiveInternalTypeOrigin;
     userAgent?: string;
     ipAddress?: string;
-    success: boolean;
+    success?: boolean;
     details?: Record<string, unknown>;
   };
 }
@@ -1683,24 +1630,6 @@ export interface DeleteIdentityProviderInput {
   clientMutationId?: string;
   id: string;
 }
-export interface CreateRoleTypeInput {
-  clientMutationId?: string;
-  roleType: {
-    name: string;
-  };
-}
-export interface RoleTypePatch {
-  name?: string | null;
-}
-export interface UpdateRoleTypeInput {
-  clientMutationId?: string;
-  id: number;
-  roleTypePatch: RoleTypePatch;
-}
-export interface DeleteRoleTypeInput {
-  clientMutationId?: string;
-  id: number;
-}
 export interface CreateUserConnectedAccountInput {
   clientMutationId?: string;
   userConnectedAccount: {
@@ -1730,7 +1659,7 @@ export interface DeleteUserConnectedAccountInput {
 export interface CreateUserSettingsSecurityInput {
   clientMutationId?: string;
   userSettingsSecurity: {
-    ownerId?: string;
+    ownerId: string;
     totpEnabled?: boolean;
     emailMfaEnabled?: boolean;
     smsMfaEnabled?: boolean;
@@ -1804,7 +1733,6 @@ export interface UserPatch {
   username?: string | null;
   displayName?: string | null;
   profilePicture?: ConstructiveInternalTypeImage | null;
-  type?: number | null;
   profilePictureUpload?: File | null;
 }
 export interface UpdateUserInput {
@@ -2120,6 +2048,24 @@ export interface ProvisionBucketInput {
    * Omit for app-level (database-wide) storage.
    */
   ownerId?: string;
+}
+export interface WebauthnRegisterBeginInput {
+  clientMutationId?: string;
+}
+export interface WebauthnRegisterFinishInput {
+  /** The browser's RegistrationResponseJSON. */
+  response: Record<string, unknown>;
+  webauthnUserId: string;
+  /** A label for the passkey. */
+  name?: string;
+}
+export interface WebauthnSignInBeginInput {
+  clientMutationId?: string;
+}
+export interface WebauthnSignInFinishInput {
+  /** The browser's AuthenticationResponseJSON. */
+  response: Record<string, unknown>;
+  challengeId: string;
 }
 /** A filter to be used against Interval fields. All fields are combined with a logical ‘and.’ */
 export interface IntervalFilter {
@@ -2460,6 +2406,19 @@ export interface ConstructiveInternalTypeImageFilter {
   /** Contained by the specified JSON. */
   containedBy?: ConstructiveInternalTypeImage;
 }
+/** A filter to be used against `RoleType` object types. All fields are combined with a logical ‘and.’ */
+export interface RoleTypeFilter {
+  /** Filter by the object’s `id` field. */
+  id?: IntFilter;
+  /** Filter by the object’s `name` field. */
+  name?: StringFilter;
+  /** Checks for all expressions in this list. */
+  and?: RoleTypeFilter[];
+  /** Checks for any expressions in this list. */
+  or?: RoleTypeFilter[];
+  /** Negates the expression. */
+  not?: RoleTypeFilter;
+}
 /** A filter to be used against many `Principal` object types. All fields are combined with a logical ‘and.’ */
 export interface UserToManyPrincipalFilter {
   /** Filters to entities where at least one related entity matches. */
@@ -2523,116 +2482,32 @@ export interface TrgmSearchInput {
 }
 /** An input for mutations affecting `Email` */
 export interface EmailInput {
-  id?: string;
   ownerId?: string;
   /** The email address */
   email: ConstructiveInternalTypeEmail;
-  /** Whether the email address has been verified via confirmation link */
-  isVerified?: boolean;
   /** Whether this is the user's primary email address */
   isPrimary?: boolean;
   /** Optional user-provided label for this email (e.g. "Work", "Personal"). */
   name?: string;
-  createdAt?: string;
-  updatedAt?: string;
 }
 /** An input for mutations affecting `PhoneNumber` */
 export interface PhoneNumberInput {
-  id?: string;
   ownerId?: string;
   /** Country calling code the number was entered under (e.g. +1, +44). Display only: `number` already carries it, and sign-in matches `number`. */
   cc: string;
   /** The full number in E.164 form, country calling code included (e.g. +15551234567). This is the value SMS sign-in and MFA match, so it is unique across the table and constrained to that shape. */
   number: string;
-  /** Whether the phone number has been verified via SMS code */
-  isVerified?: boolean;
   /** Whether this is the user's primary phone number */
   isPrimary?: boolean;
   /** Optional user-provided label for this phone number (e.g. "Mobile", "Work"). */
   name?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
-/** An input for mutations affecting `WebauthnCredential` */
-export interface WebauthnCredentialInput {
-  id?: string;
-  ownerId?: string;
-  /** Base64url-encoded credential ID returned by the authenticator. Globally unique per WebAuthn spec. */
-  credentialId: string;
-  /** COSE-encoded public key bytes from the authenticator attestation. */
-  publicKey: Base64EncodedBinary;
-  /** Monotonic signature counter. Strict-increase check during sign-in detects cloned credentials. 0 means the authenticator does not implement a counter. */
-  signCount?: string;
-  /** Random per-user handle sent to authenticators as user.id. Privacy-preserving; NOT the internal user UUID. */
-  webauthnUserId: string;
-  /** Authenticator transport hints (e.g. usb, nfc, ble, internal, hybrid). Used to hint browser UI during sign-in. */
-  transports?: string[];
-  /** Either 'singleDevice' (hardware-bound) or 'multiDevice' (synced passkey). Enforced by CHECK constraint below. */
-  credentialDeviceType: string;
-  /** Whether this credential is eligible for backup (syncing) per the authenticator's flags at registration. */
-  backupEligible?: boolean;
-  /** Current backup state; updated on each successful sign-in assertion. */
-  backupState?: boolean;
-  /** User-provided label for this credential (e.g. "YubiKey 5C", "iPhone 15"). Renamed via rename_passkey. */
-  name?: string;
-  /** Timestamp of the most recent successful sign-in assertion using this credential. */
-  lastUsedAt?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
-/** An input for mutations affecting `AuditLogAuth` */
-export interface AuditLogAuthInput {
-  createdAt?: string;
-  /** Unique identifier for each audit event (uuidv7 provides temporal ordering) */
-  id?: string;
-  /** Type of authentication event (e.g. sign_in, sign_up, password_change, verify_email) */
-  event: string;
-  /** User who performed the authentication action; NULL if user was deleted */
-  actorId?: string;
-  /** Request origin (domain) where the auth event occurred */
-  origin?: ConstructiveInternalTypeOrigin;
-  /** Browser or client user-agent string from the request */
-  userAgent?: string;
-  /** IP address of the client that initiated the auth event */
-  ipAddress?: string;
-  /** Whether the authentication attempt succeeded */
-  success: boolean;
-  /** Event-specific structured payload (e.g. preset slug and catalog commit id for create_principal_from_preset) */
-  details?: Record<string, unknown>;
-}
-/** An input for mutations affecting `RoleType` */
-export interface RoleTypeInput {
-  id: number;
-  name: string;
-}
-/** An input for mutations affecting `UserSettingsSecurity` */
-export interface UserSettingsSecurityInput {
-  id?: string;
-  ownerId?: string;
-  /** Whether TOTP (authenticator app) MFA is active for this user */
-  totpEnabled?: boolean;
-  /** Whether email-based MFA codes are active for this user */
-  emailMfaEnabled?: boolean;
-  /** Whether SMS-based MFA codes are active for this user */
-  smsMfaEnabled?: boolean;
-  /** Number of remaining unused backup codes */
-  backupCodesCount?: number;
-  /** When the first MFA method was enabled */
-  mfaEnrolledAt?: string;
-  /** When MFA was last successfully verified */
-  mfaLastUsedAt?: string;
-  createdAt?: string;
-  updatedAt?: string;
 }
 /** An input for mutations affecting `User` */
 export interface UserInput {
-  id?: string;
   username?: string;
   displayName?: string;
   profilePicture?: ConstructiveInternalTypeImage;
   type?: number;
-  createdAt?: string;
-  updatedAt?: string;
 }
 /** An interval of time that has passed where the smallest distinct unit is a second. */
 export interface IntervalInput {
@@ -2765,6 +2640,108 @@ export interface PrincipalScopeOverrideFilter {
   not?: PrincipalScopeOverrideFilter;
   /** Filter by the object’s `principal` relation. */
   principal?: PrincipalFilter;
+}
+/** A filter to be used against Int fields. All fields are combined with a logical ‘and.’ */
+export interface IntFilter {
+  /** Is null (if `true` is specified) or is not null (if `false` is specified). */
+  isNull?: boolean;
+  /** Equal to the specified value. */
+  equalTo?: number;
+  /** Not equal to the specified value. */
+  notEqualTo?: number;
+  /** Not equal to the specified value, treating null like an ordinary value. */
+  distinctFrom?: number;
+  /** Equal to the specified value, treating null like an ordinary value. */
+  notDistinctFrom?: number;
+  /** Included in the specified list. */
+  in?: number[];
+  /** Not included in the specified list. */
+  notIn?: number[];
+  /** Less than the specified value. */
+  lessThan?: number;
+  /** Less than or equal to the specified value. */
+  lessThanOrEqualTo?: number;
+  /** Greater than the specified value. */
+  greaterThan?: number;
+  /** Greater than or equal to the specified value. */
+  greaterThanOrEqualTo?: number;
+}
+/** A filter to be used against String fields. All fields are combined with a logical ‘and.’ */
+export interface StringFilter {
+  /** Is null (if `true` is specified) or is not null (if `false` is specified). */
+  isNull?: boolean;
+  /** Equal to the specified value. */
+  equalTo?: string;
+  /** Not equal to the specified value. */
+  notEqualTo?: string;
+  /** Not equal to the specified value, treating null like an ordinary value. */
+  distinctFrom?: string;
+  /** Equal to the specified value, treating null like an ordinary value. */
+  notDistinctFrom?: string;
+  /** Included in the specified list. */
+  in?: string[];
+  /** Not included in the specified list. */
+  notIn?: string[];
+  /** Less than the specified value. */
+  lessThan?: string;
+  /** Less than or equal to the specified value. */
+  lessThanOrEqualTo?: string;
+  /** Greater than the specified value. */
+  greaterThan?: string;
+  /** Greater than or equal to the specified value. */
+  greaterThanOrEqualTo?: string;
+  /** Contains the specified string (case-sensitive). */
+  includes?: string;
+  /** Does not contain the specified string (case-sensitive). */
+  notIncludes?: string;
+  /** Contains the specified string (case-insensitive). */
+  includesInsensitive?: string;
+  /** Does not contain the specified string (case-insensitive). */
+  notIncludesInsensitive?: string;
+  /** Starts with the specified string (case-sensitive). */
+  startsWith?: string;
+  /** Does not start with the specified string (case-sensitive). */
+  notStartsWith?: string;
+  /** Starts with the specified string (case-insensitive). */
+  startsWithInsensitive?: string;
+  /** Does not start with the specified string (case-insensitive). */
+  notStartsWithInsensitive?: string;
+  /** Ends with the specified string (case-sensitive). */
+  endsWith?: string;
+  /** Does not end with the specified string (case-sensitive). */
+  notEndsWith?: string;
+  /** Ends with the specified string (case-insensitive). */
+  endsWithInsensitive?: string;
+  /** Does not end with the specified string (case-insensitive). */
+  notEndsWithInsensitive?: string;
+  /** Matches the specified pattern (case-sensitive). An underscore (_) matches any single character; a percent sign (%) matches any sequence of zero or more characters. */
+  like?: string;
+  /** Does not match the specified pattern (case-sensitive). An underscore (_) matches any single character; a percent sign (%) matches any sequence of zero or more characters. */
+  notLike?: string;
+  /** Matches the specified pattern (case-insensitive). An underscore (_) matches any single character; a percent sign (%) matches any sequence of zero or more characters. */
+  likeInsensitive?: string;
+  /** Does not match the specified pattern (case-insensitive). An underscore (_) matches any single character; a percent sign (%) matches any sequence of zero or more characters. */
+  notLikeInsensitive?: string;
+  /** Equal to the specified value (case-insensitive). */
+  equalToInsensitive?: string;
+  /** Not equal to the specified value (case-insensitive). */
+  notEqualToInsensitive?: string;
+  /** Not equal to the specified value, treating null like an ordinary value (case-insensitive). */
+  distinctFromInsensitive?: string;
+  /** Equal to the specified value, treating null like an ordinary value (case-insensitive). */
+  notDistinctFromInsensitive?: string;
+  /** Included in the specified list (case-insensitive). */
+  inInsensitive?: string[];
+  /** Not included in the specified list (case-insensitive). */
+  notInInsensitive?: string[];
+  /** Less than the specified value (case-insensitive). */
+  lessThanInsensitive?: string;
+  /** Less than or equal to the specified value (case-insensitive). */
+  lessThanOrEqualToInsensitive?: string;
+  /** Greater than the specified value (case-insensitive). */
+  greaterThanInsensitive?: string;
+  /** Greater than or equal to the specified value (case-insensitive). */
+  greaterThanOrEqualToInsensitive?: string;
 }
 /** A filter to be used against `Email` object types. All fields are combined with a logical ‘and.’ */
 export interface EmailFilter {
@@ -2942,83 +2919,6 @@ export interface DatetimeFilter {
   /** Greater than or equal to the specified value. */
   greaterThanOrEqualTo?: string;
 }
-/** A filter to be used against String fields. All fields are combined with a logical ‘and.’ */
-export interface StringFilter {
-  /** Is null (if `true` is specified) or is not null (if `false` is specified). */
-  isNull?: boolean;
-  /** Equal to the specified value. */
-  equalTo?: string;
-  /** Not equal to the specified value. */
-  notEqualTo?: string;
-  /** Not equal to the specified value, treating null like an ordinary value. */
-  distinctFrom?: string;
-  /** Equal to the specified value, treating null like an ordinary value. */
-  notDistinctFrom?: string;
-  /** Included in the specified list. */
-  in?: string[];
-  /** Not included in the specified list. */
-  notIn?: string[];
-  /** Less than the specified value. */
-  lessThan?: string;
-  /** Less than or equal to the specified value. */
-  lessThanOrEqualTo?: string;
-  /** Greater than the specified value. */
-  greaterThan?: string;
-  /** Greater than or equal to the specified value. */
-  greaterThanOrEqualTo?: string;
-  /** Contains the specified string (case-sensitive). */
-  includes?: string;
-  /** Does not contain the specified string (case-sensitive). */
-  notIncludes?: string;
-  /** Contains the specified string (case-insensitive). */
-  includesInsensitive?: string;
-  /** Does not contain the specified string (case-insensitive). */
-  notIncludesInsensitive?: string;
-  /** Starts with the specified string (case-sensitive). */
-  startsWith?: string;
-  /** Does not start with the specified string (case-sensitive). */
-  notStartsWith?: string;
-  /** Starts with the specified string (case-insensitive). */
-  startsWithInsensitive?: string;
-  /** Does not start with the specified string (case-insensitive). */
-  notStartsWithInsensitive?: string;
-  /** Ends with the specified string (case-sensitive). */
-  endsWith?: string;
-  /** Does not end with the specified string (case-sensitive). */
-  notEndsWith?: string;
-  /** Ends with the specified string (case-insensitive). */
-  endsWithInsensitive?: string;
-  /** Does not end with the specified string (case-insensitive). */
-  notEndsWithInsensitive?: string;
-  /** Matches the specified pattern (case-sensitive). An underscore (_) matches any single character; a percent sign (%) matches any sequence of zero or more characters. */
-  like?: string;
-  /** Does not match the specified pattern (case-sensitive). An underscore (_) matches any single character; a percent sign (%) matches any sequence of zero or more characters. */
-  notLike?: string;
-  /** Matches the specified pattern (case-insensitive). An underscore (_) matches any single character; a percent sign (%) matches any sequence of zero or more characters. */
-  likeInsensitive?: string;
-  /** Does not match the specified pattern (case-insensitive). An underscore (_) matches any single character; a percent sign (%) matches any sequence of zero or more characters. */
-  notLikeInsensitive?: string;
-  /** Equal to the specified value (case-insensitive). */
-  equalToInsensitive?: string;
-  /** Not equal to the specified value (case-insensitive). */
-  notEqualToInsensitive?: string;
-  /** Not equal to the specified value, treating null like an ordinary value (case-insensitive). */
-  distinctFromInsensitive?: string;
-  /** Equal to the specified value, treating null like an ordinary value (case-insensitive). */
-  notDistinctFromInsensitive?: string;
-  /** Included in the specified list (case-insensitive). */
-  inInsensitive?: string[];
-  /** Not included in the specified list (case-insensitive). */
-  notInInsensitive?: string[];
-  /** Less than the specified value (case-insensitive). */
-  lessThanInsensitive?: string;
-  /** Less than or equal to the specified value (case-insensitive). */
-  lessThanOrEqualToInsensitive?: string;
-  /** Greater than the specified value (case-insensitive). */
-  greaterThanInsensitive?: string;
-  /** Greater than or equal to the specified value (case-insensitive). */
-  greaterThanOrEqualToInsensitive?: string;
-}
 /** A filter to be used against Boolean fields. All fields are combined with a logical ‘and.’ */
 export interface BooleanFilter {
   /** Is null (if `true` is specified) or is not null (if `false` is specified). */
@@ -3043,31 +2943,6 @@ export interface BooleanFilter {
   greaterThan?: boolean;
   /** Greater than or equal to the specified value. */
   greaterThanOrEqualTo?: boolean;
-}
-/** A filter to be used against Int fields. All fields are combined with a logical ‘and.’ */
-export interface IntFilter {
-  /** Is null (if `true` is specified) or is not null (if `false` is specified). */
-  isNull?: boolean;
-  /** Equal to the specified value. */
-  equalTo?: number;
-  /** Not equal to the specified value. */
-  notEqualTo?: number;
-  /** Not equal to the specified value, treating null like an ordinary value. */
-  distinctFrom?: number;
-  /** Equal to the specified value, treating null like an ordinary value. */
-  notDistinctFrom?: number;
-  /** Included in the specified list. */
-  in?: number[];
-  /** Not included in the specified list. */
-  notIn?: number[];
-  /** Less than the specified value. */
-  lessThan?: number;
-  /** Less than or equal to the specified value. */
-  lessThanOrEqualTo?: number;
-  /** Greater than the specified value. */
-  greaterThan?: number;
-  /** Greater than or equal to the specified value. */
-  greaterThanOrEqualTo?: number;
 }
 /** A filter to be used against `User` object types. All fields are combined with a logical ‘and.’ */
 export interface UserFilter {
@@ -3313,19 +3188,6 @@ export interface FullTextFilter {
   notIn?: string[];
   /** Performs a full text search on the field. */
   matches?: string;
-}
-/** A filter to be used against `RoleType` object types. All fields are combined with a logical ‘and.’ */
-export interface RoleTypeFilter {
-  /** Filter by the object’s `id` field. */
-  id?: IntFilter;
-  /** Filter by the object’s `name` field. */
-  name?: StringFilter;
-  /** Checks for all expressions in this list. */
-  and?: RoleTypeFilter[];
-  /** Checks for any expressions in this list. */
-  or?: RoleTypeFilter[];
-  /** Negates the expression. */
-  not?: RoleTypeFilter;
 }
 /** A filter to be used against `UserSettingsSecurity` object types. All fields are combined with a logical ‘and.’ */
 export interface UserSettingsSecurityFilter {
@@ -3822,26 +3684,55 @@ export type ForgotPasswordPayloadSelect = {
   clientMutationId?: boolean;
 };
 export interface ProvisionBucketPayload {
-  /** Whether provisioning succeeded */
-  success: boolean;
-  /** The S3 bucket name that was provisioned */
-  bucketName: string;
-  /** The access type applied */
-  accessType: string;
-  /** The storage provider used */
-  provider: string;
-  /** The S3 endpoint (null for AWS S3 default) */
-  endpoint?: string | null;
-  /** Error message if provisioning failed */
-  error?: string | null;
+  /** The logical bucket row that was queued for reconciliation. */
+  bucketId: string;
+  bucketKey: string;
+  /** The physical bucket name already recorded, or null when reconciliation has not completed. */
+  physicalName?: string | null;
+  /** The reconciler job enqueued to provision this bucket. */
+  jobId: string;
 }
 export type ProvisionBucketPayloadSelect = {
-  success?: boolean;
-  bucketName?: boolean;
-  accessType?: boolean;
-  provider?: boolean;
-  endpoint?: boolean;
-  error?: boolean;
+  bucketId?: boolean;
+  bucketKey?: boolean;
+  physicalName?: boolean;
+  jobId?: boolean;
+};
+export interface WebauthnRegisterBeginPayload {
+  /** PublicKeyCredentialCreationOptionsJSON for navigator.credentials.create(). */
+  options: Record<string, unknown>;
+  /** The user handle to echo back to webauthnRegisterFinish. */
+  webauthnUserId: string;
+}
+export type WebauthnRegisterBeginPayloadSelect = {
+  options?: boolean;
+  webauthnUserId?: boolean;
+};
+export interface WebauthnRegisterFinishPayload {
+  credentialId: string;
+}
+export type WebauthnRegisterFinishPayloadSelect = {
+  credentialId?: boolean;
+};
+export interface WebauthnSignInBeginPayload {
+  /** PublicKeyCredentialRequestOptionsJSON for navigator.credentials.get(). */
+  options: Record<string, unknown>;
+  /** Names the pending challenge; echo it back to webauthnSignInFinish. */
+  challengeId: string;
+}
+export type WebauthnSignInBeginPayloadSelect = {
+  options?: boolean;
+  challengeId?: boolean;
+};
+export interface WebauthnSignInFinishPayload {
+  accessToken: string;
+  accessTokenExpiresAt: string;
+  userId: string;
+}
+export type WebauthnSignInFinishPayloadSelect = {
+  accessToken?: boolean;
+  accessTokenExpiresAt?: boolean;
+  userId?: boolean;
 };
 export interface CreatePrincipalPayload {
   clientMutationId?: string | null;
@@ -3941,21 +3832,6 @@ export type DeletePhoneNumberPayloadSelect = {
     select: PhoneNumberEdgeSelect;
   };
 };
-export interface CreateWebauthnCredentialPayload {
-  clientMutationId?: string | null;
-  /** The `WebauthnCredential` that was created by this mutation. */
-  webauthnCredential?: WebauthnCredential | null;
-  webauthnCredentialEdge?: WebauthnCredentialEdge | null;
-}
-export type CreateWebauthnCredentialPayloadSelect = {
-  clientMutationId?: boolean;
-  webauthnCredential?: {
-    select: WebauthnCredentialSelect;
-  };
-  webauthnCredentialEdge?: {
-    select: WebauthnCredentialEdgeSelect;
-  };
-};
 export interface UpdateWebauthnCredentialPayload {
   clientMutationId?: string | null;
   /** The `WebauthnCredential` that was updated by this mutation. */
@@ -3984,141 +3860,6 @@ export type DeleteWebauthnCredentialPayloadSelect = {
   };
   webauthnCredentialEdge?: {
     select: WebauthnCredentialEdgeSelect;
-  };
-};
-export interface CreateAuditLogAuthPayload {
-  clientMutationId?: string | null;
-  /** The `AuditLogAuth` that was created by this mutation. */
-  auditLogAuth?: AuditLogAuth | null;
-  auditLogAuthEdge?: AuditLogAuthEdge | null;
-}
-export type CreateAuditLogAuthPayloadSelect = {
-  clientMutationId?: boolean;
-  auditLogAuth?: {
-    select: AuditLogAuthSelect;
-  };
-  auditLogAuthEdge?: {
-    select: AuditLogAuthEdgeSelect;
-  };
-};
-export interface UpdateAuditLogAuthPayload {
-  clientMutationId?: string | null;
-  /** The `AuditLogAuth` that was updated by this mutation. */
-  auditLogAuth?: AuditLogAuth | null;
-  auditLogAuthEdge?: AuditLogAuthEdge | null;
-}
-export type UpdateAuditLogAuthPayloadSelect = {
-  clientMutationId?: boolean;
-  auditLogAuth?: {
-    select: AuditLogAuthSelect;
-  };
-  auditLogAuthEdge?: {
-    select: AuditLogAuthEdgeSelect;
-  };
-};
-export interface DeleteAuditLogAuthPayload {
-  clientMutationId?: string | null;
-  /** The `AuditLogAuth` that was deleted by this mutation. */
-  auditLogAuth?: AuditLogAuth | null;
-  auditLogAuthEdge?: AuditLogAuthEdge | null;
-}
-export type DeleteAuditLogAuthPayloadSelect = {
-  clientMutationId?: boolean;
-  auditLogAuth?: {
-    select: AuditLogAuthSelect;
-  };
-  auditLogAuthEdge?: {
-    select: AuditLogAuthEdgeSelect;
-  };
-};
-export interface CreateRoleTypePayload {
-  clientMutationId?: string | null;
-  /** The `RoleType` that was created by this mutation. */
-  roleType?: RoleType | null;
-  roleTypeEdge?: RoleTypeEdge | null;
-}
-export type CreateRoleTypePayloadSelect = {
-  clientMutationId?: boolean;
-  roleType?: {
-    select: RoleTypeSelect;
-  };
-  roleTypeEdge?: {
-    select: RoleTypeEdgeSelect;
-  };
-};
-export interface UpdateRoleTypePayload {
-  clientMutationId?: string | null;
-  /** The `RoleType` that was updated by this mutation. */
-  roleType?: RoleType | null;
-  roleTypeEdge?: RoleTypeEdge | null;
-}
-export type UpdateRoleTypePayloadSelect = {
-  clientMutationId?: boolean;
-  roleType?: {
-    select: RoleTypeSelect;
-  };
-  roleTypeEdge?: {
-    select: RoleTypeEdgeSelect;
-  };
-};
-export interface DeleteRoleTypePayload {
-  clientMutationId?: string | null;
-  /** The `RoleType` that was deleted by this mutation. */
-  roleType?: RoleType | null;
-  roleTypeEdge?: RoleTypeEdge | null;
-}
-export type DeleteRoleTypePayloadSelect = {
-  clientMutationId?: boolean;
-  roleType?: {
-    select: RoleTypeSelect;
-  };
-  roleTypeEdge?: {
-    select: RoleTypeEdgeSelect;
-  };
-};
-export interface CreateUserSettingsSecurityPayload {
-  clientMutationId?: string | null;
-  /** The `UserSettingsSecurity` that was created by this mutation. */
-  userSettingsSecurity?: UserSettingsSecurity | null;
-  userSettingsSecurityEdge?: UserSettingsSecurityEdge | null;
-}
-export type CreateUserSettingsSecurityPayloadSelect = {
-  clientMutationId?: boolean;
-  userSettingsSecurity?: {
-    select: UserSettingsSecuritySelect;
-  };
-  userSettingsSecurityEdge?: {
-    select: UserSettingsSecurityEdgeSelect;
-  };
-};
-export interface UpdateUserSettingsSecurityPayload {
-  clientMutationId?: string | null;
-  /** The `UserSettingsSecurity` that was updated by this mutation. */
-  userSettingsSecurity?: UserSettingsSecurity | null;
-  userSettingsSecurityEdge?: UserSettingsSecurityEdge | null;
-}
-export type UpdateUserSettingsSecurityPayloadSelect = {
-  clientMutationId?: boolean;
-  userSettingsSecurity?: {
-    select: UserSettingsSecuritySelect;
-  };
-  userSettingsSecurityEdge?: {
-    select: UserSettingsSecurityEdgeSelect;
-  };
-};
-export interface DeleteUserSettingsSecurityPayload {
-  clientMutationId?: string | null;
-  /** The `UserSettingsSecurity` that was deleted by this mutation. */
-  userSettingsSecurity?: UserSettingsSecurity | null;
-  userSettingsSecurityEdge?: UserSettingsSecurityEdge | null;
-}
-export type DeleteUserSettingsSecurityPayloadSelect = {
-  clientMutationId?: boolean;
-  userSettingsSecurity?: {
-    select: UserSettingsSecuritySelect;
-  };
-  userSettingsSecurityEdge?: {
-    select: UserSettingsSecurityEdgeSelect;
   };
 };
 export interface CreateUserPayload {
@@ -4400,42 +4141,6 @@ export type WebauthnCredentialEdgeSelect = {
   cursor?: boolean;
   node?: {
     select: WebauthnCredentialSelect;
-  };
-};
-/** A `AuditLogAuth` edge in the connection. */
-export interface AuditLogAuthEdge {
-  cursor?: string | null;
-  /** The `AuditLogAuth` at the end of the edge. */
-  node?: AuditLogAuth | null;
-}
-export type AuditLogAuthEdgeSelect = {
-  cursor?: boolean;
-  node?: {
-    select: AuditLogAuthSelect;
-  };
-};
-/** A `RoleType` edge in the connection. */
-export interface RoleTypeEdge {
-  cursor?: string | null;
-  /** The `RoleType` at the end of the edge. */
-  node?: RoleType | null;
-}
-export type RoleTypeEdgeSelect = {
-  cursor?: boolean;
-  node?: {
-    select: RoleTypeSelect;
-  };
-};
-/** A `UserSettingsSecurity` edge in the connection. */
-export interface UserSettingsSecurityEdge {
-  cursor?: string | null;
-  /** The `UserSettingsSecurity` at the end of the edge. */
-  node?: UserSettingsSecurity | null;
-}
-export type UserSettingsSecurityEdgeSelect = {
-  cursor?: boolean;
-  node?: {
-    select: UserSettingsSecuritySelect;
   };
 };
 /** A `User` edge in the connection. */

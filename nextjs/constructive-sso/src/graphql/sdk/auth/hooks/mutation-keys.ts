@@ -91,14 +91,6 @@ export const identityProviderMutationKeys = {
   /** Delete identityProvider mutation key */ delete: (id: string | number) =>
     ['mutation', 'identityprovider', 'delete', id] as const,
 } as const;
-export const roleTypeMutationKeys = {
-  /** All roleType mutation keys */ all: ['mutation', 'roletype'] as const,
-  /** Create roleType mutation key */ create: () => ['mutation', 'roletype', 'create'] as const,
-  /** Update roleType mutation key */ update: (id: string | number) =>
-    ['mutation', 'roletype', 'update', id] as const,
-  /** Delete roleType mutation key */ delete: (id: string | number) =>
-    ['mutation', 'roletype', 'delete', id] as const,
-} as const;
 export const userConnectedAccountMutationKeys = {
   /** All userConnectedAccount mutation keys */ all: ['mutation', 'userconnectedaccount'] as const,
   /** Create userConnectedAccount mutation key */ create: () =>
@@ -362,6 +354,22 @@ export const customMutationKeys = {
     identifier
       ? (['mutation', 'provisionBucket', identifier] as const)
       : (['mutation', 'provisionBucket'] as const),
+  /** Mutation key for webauthnRegisterBegin */ webauthnRegisterBegin: (identifier?: string) =>
+    identifier
+      ? (['mutation', 'webauthnRegisterBegin', identifier] as const)
+      : (['mutation', 'webauthnRegisterBegin'] as const),
+  /** Mutation key for webauthnRegisterFinish */ webauthnRegisterFinish: (identifier?: string) =>
+    identifier
+      ? (['mutation', 'webauthnRegisterFinish', identifier] as const)
+      : (['mutation', 'webauthnRegisterFinish'] as const),
+  /** Mutation key for webauthnSignInBegin */ webauthnSignInBegin: (identifier?: string) =>
+    identifier
+      ? (['mutation', 'webauthnSignInBegin', identifier] as const)
+      : (['mutation', 'webauthnSignInBegin'] as const),
+  /** Mutation key for webauthnSignInFinish */ webauthnSignInFinish: (identifier?: string) =>
+    identifier
+      ? (['mutation', 'webauthnSignInFinish', identifier] as const)
+      : (['mutation', 'webauthnSignInFinish'] as const),
 } as const;
 /**
 
@@ -394,7 +402,6 @@ export const mutationKeys = {
   webauthnCredential: webauthnCredentialMutationKeys,
   auditLogAuth: auditLogAuthMutationKeys,
   identityProvider: identityProviderMutationKeys,
-  roleType: roleTypeMutationKeys,
   userConnectedAccount: userConnectedAccountMutationKeys,
   userSettingsSecurity: userSettingsSecurityMutationKeys,
   orgApiKeyList: orgApiKeyListMutationKeys,

@@ -96,10 +96,6 @@ export interface IdentityProvider {
   displayName: string | null;
   enabled: boolean | null;
 }
-export interface RoleType {
-  id: number | null;
-  name: string | null;
-}
 export interface UserConnectedAccount {
   id: string | null;
   ownerId: string | null;

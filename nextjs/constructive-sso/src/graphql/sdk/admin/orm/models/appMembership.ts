@@ -208,38 +208,4 @@ export class AppMembershipModel {
       variables,
     });
   }
-  delete<S extends AppMembershipSelect>(
-    args: DeleteArgs<
-      {
-        id: string;
-      },
-      S
-    > & {
-      select: S;
-    } & StrictSelect<S, AppMembershipSelect>
-  ): QueryBuilder<{
-    deleteAppMembership: {
-      appMembership: InferSelectResult<AppMembershipWithRelations, S>;
-    };
-  }> {
-    const { document, variables } = buildDeleteByPkDocument(
-      'AppMembership',
-      'deleteAppMembership',
-      'appMembership',
-      {
-        id: args.where.id,
-      },
-      'DeleteAppMembershipInput',
-      args.select,
-      connectionFieldsMap
-    );
-    return new QueryBuilder({
-      client: this.client,
-      operation: 'mutation',
-      operationName: 'AppMembership',
-      fieldName: 'deleteAppMembership',
-      document,
-      variables,
-    });
-  }
 }

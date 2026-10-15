@@ -69,11 +69,6 @@ function App() {
 | `useDeleteAuditLogAuthMutation` | Mutation | Partitioned append-only audit log of authentication events (sign-in, sign-up, password changes, etc.) |
 | `useIdentityProvidersQuery` | Query | List all identityProviders |
 | `useCreateIdentityProviderMutation` | Mutation | Create a identityProvider |
-| `useRoleTypesQuery` | Query | List all roleTypes |
-| `useRoleTypeQuery` | Query | Get one roleType |
-| `useCreateRoleTypeMutation` | Mutation | Create a roleType |
-| `useUpdateRoleTypeMutation` | Mutation | Update a roleType |
-| `useDeleteRoleTypeMutation` | Mutation | Delete a roleType |
 | `useUserConnectedAccountsQuery` | Query | List all userConnectedAccounts |
 | `useUserConnectedAccountQuery` | Query | Get one userConnectedAccount |
 | `useCreateUserConnectedAccountMutation` | Mutation | Create a userConnectedAccount |
@@ -154,10 +149,15 @@ function App() {
 | `useRequestCrossOriginTokenMutation` | Mutation | requestCrossOriginToken |
 | `useSendVerificationEmailMutation` | Mutation | sendVerificationEmail |
 | `useForgotPasswordMutation` | Mutation | forgotPassword |
-| `useProvisionBucketMutation` | Mutation | Provision an S3 bucket for a logical bucket in the database.
-Reads the bucket config via RLS, then creates and configures
-the S3 bucket with the appropriate privacy policies, CORS rules,
-and lifecycle settings. |
+| `useProvisionBucketMutation` | Mutation | Reconcile an S3 bucket for a logical bucket in the database.
+Reads the bucket config via RLS, then enqueues the same
+storage:provision_bucket job used by the INSERT trigger. This is
+idempotent for an already-reconciled bucket; enqueue failures become
+GraphQL errors. |
+| `useWebauthnRegisterBeginMutation` | Mutation | Begin registering a passkey for the signed-in user. |
+| `useWebauthnRegisterFinishMutation` | Mutation | Verify the browser's registration response and store the passkey. |
+| `useWebauthnSignInBeginMutation` | Mutation | Begin a passkey sign-in (discoverable when signed out). |
+| `useWebauthnSignInFinishMutation` | Mutation | Verify the browser's assertion and mint a session. |
 
 ## Table Hooks
 
@@ -321,27 +321,6 @@ const { mutate: create } = useCreateIdentityProviderMutation({
   selection: { fields: { id: true } },
 });
 create({ slug: '<String>', kind: '<String>', displayName: '<String>', enabled: '<Boolean>' });
-```
-
-### RoleType
-
-```typescript
-// List all roleTypes
-const { data, isLoading } = useRoleTypesQuery({
-  selection: { fields: { id: true, name: true } },
-});
-
-// Get one roleType
-const { data: item } = useRoleTypeQuery({
-  id: '<Int>',
-  selection: { fields: { id: true, name: true } },
-});
-
-// Create a roleType
-const { mutate: create } = useCreateRoleTypeMutation({
-  selection: { fields: { id: true } },
-});
-create({ name: '<String>' });
 ```
 
 ### UserConnectedAccount
@@ -1072,10 +1051,11 @@ forgotPassword
 
 ### `useProvisionBucketMutation`
 
-Provision an S3 bucket for a logical bucket in the database.
-Reads the bucket config via RLS, then creates and configures
-the S3 bucket with the appropriate privacy policies, CORS rules,
-and lifecycle settings.
+Reconcile an S3 bucket for a logical bucket in the database.
+Reads the bucket config via RLS, then enqueues the same
+storage:provision_bucket job used by the INSERT trigger. This is
+idempotent for an already-reconciled bucket; enqueue failures become
+GraphQL errors.
 
 - **Type:** mutation
 - **Arguments:**
@@ -1083,6 +1063,50 @@ and lifecycle settings.
   | Argument | Type |
   |----------|------|
   | `input` | ProvisionBucketInput (required) |
+
+### `useWebauthnRegisterBeginMutation`
+
+Begin registering a passkey for the signed-in user.
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | WebauthnRegisterBeginInput |
+
+### `useWebauthnRegisterFinishMutation`
+
+Verify the browser's registration response and store the passkey.
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | WebauthnRegisterFinishInput (required) |
+
+### `useWebauthnSignInBeginMutation`
+
+Begin a passkey sign-in (discoverable when signed out).
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | WebauthnSignInBeginInput |
+
+### `useWebauthnSignInFinishMutation`
+
+Verify the browser's assertion and mint a session.
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | WebauthnSignInFinishInput (required) |
 
 ---
 

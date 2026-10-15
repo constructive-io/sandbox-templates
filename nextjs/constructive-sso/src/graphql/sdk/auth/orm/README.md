@@ -29,7 +29,6 @@ const db = createClient({
 | `webauthnCredential` | findMany, findOne, create, update, delete |
 | `auditLogAuth` | findMany, findOne, create, update, delete |
 | `identityProvider` | findMany, findOne, create, update, delete |
-| `roleType` | findMany, findOne, create, update, delete |
 | `userConnectedAccount` | findMany, findOne, create, update, delete |
 | `userSettingsSecurity` | findMany, findOne, create, update, delete |
 | `orgApiKeyList` | findMany, findOne, create, update, delete |
@@ -332,36 +331,6 @@ const updated = await db.identityProvider.update({ where: { id: '<UUID>' }, data
 
 // Delete
 const deleted = await db.identityProvider.delete({ where: { id: '<UUID>' } }).execute();
-```
-
-### `db.roleType`
-
-CRUD operations for RoleType records.
-
-**Fields:**
-
-| Field | Type | Editable |
-|-------|------|----------|
-| `id` | Int | No |
-| `name` | String | Yes |
-
-**Operations:**
-
-```typescript
-// List all roleType records
-const items = await db.roleType.findMany({ select: { id: true, name: true } }).execute();
-
-// Get one by id
-const item = await db.roleType.findOne({ id: '<Int>', select: { id: true, name: true } }).execute();
-
-// Create
-const created = await db.roleType.create({ data: { name: '<String>' }, select: { id: true } }).execute();
-
-// Update
-const updated = await db.roleType.update({ where: { id: '<Int>' }, data: { name: '<String>' }, select: { id: true } }).execute();
-
-// Delete
-const deleted = await db.roleType.delete({ where: { id: '<Int>' } }).execute();
 ```
 
 ### `db.userConnectedAccount`
@@ -1404,10 +1373,11 @@ const result = await db.mutation.forgotPassword({ input: { email: '<Email>' } })
 
 ### `db.mutation.provisionBucket`
 
-Provision an S3 bucket for a logical bucket in the database.
-Reads the bucket config via RLS, then creates and configures
-the S3 bucket with the appropriate privacy policies, CORS rules,
-and lifecycle settings.
+Reconcile an S3 bucket for a logical bucket in the database.
+Reads the bucket config via RLS, then enqueues the same
+storage:provision_bucket job used by the INSERT trigger. This is
+idempotent for an already-reconciled bucket; enqueue failures become
+GraphQL errors.
 
 - **Type:** mutation
 - **Arguments:**
@@ -1418,6 +1388,66 @@ and lifecycle settings.
 
 ```typescript
 const result = await db.mutation.provisionBucket({ input: { bucketKey: '<String>', ownerId: '<UUID>' } }).execute();
+```
+
+### `db.mutation.webauthnRegisterBegin`
+
+Begin registering a passkey for the signed-in user.
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | WebauthnRegisterBeginInput |
+
+```typescript
+const result = await db.mutation.webauthnRegisterBegin({ input: '<WebauthnRegisterBeginInput>' }).execute();
+```
+
+### `db.mutation.webauthnRegisterFinish`
+
+Verify the browser's registration response and store the passkey.
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | WebauthnRegisterFinishInput (required) |
+
+```typescript
+const result = await db.mutation.webauthnRegisterFinish({ input: { response: '<JSON>', webauthnUserId: '<String>', name: '<String>' } }).execute();
+```
+
+### `db.mutation.webauthnSignInBegin`
+
+Begin a passkey sign-in (discoverable when signed out).
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | WebauthnSignInBeginInput |
+
+```typescript
+const result = await db.mutation.webauthnSignInBegin({ input: '<WebauthnSignInBeginInput>' }).execute();
+```
+
+### `db.mutation.webauthnSignInFinish`
+
+Verify the browser's assertion and mint a session.
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | WebauthnSignInFinishInput (required) |
+
+```typescript
+const result = await db.mutation.webauthnSignInFinish({ input: { response: '<JSON>', challengeId: '<UUID>' } }).execute();
 ```
 
 ---
