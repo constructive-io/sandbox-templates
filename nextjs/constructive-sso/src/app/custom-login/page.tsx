@@ -11,11 +11,11 @@ import { toLocalPath } from '@/lib/sso/local-path';
 /**
  * /custom-login — the app-owned sign-in surface (Dan's custom-UI request).
  *
- * Everything here speaks to the platform's cloud functions through the
- * same-origin BFF, never GraphQL, and never the mantra page set:
- *   • provider buttons → POST /api/sso/start (sso:start sync lane; the
- *     redirect URI is constructed server-side) → provider → /auth/custom-callback
- *     relay → sso:callback page → session cookie → back here via `next`;
+ * The provider buttons are plain links to the hosted /auth/start page
+ * (mantra:oauth_start — the redirect URI is composed server-side from the
+ * site's canonical_url) and the provider returns through /auth/callback's
+ * verbatim relay; the password form still speaks to the tenant's auth
+ * GraphQL through the same-origin BFF:
  *   • the password form → POST /api/custom-auth/sign-in (the tenant's signIn
  *     sync lane; the BFF mints the session cookie).
  *
@@ -36,7 +36,6 @@ function CustomLoginPageContent() {
 		<AuthScreenLayout>
 			<AuthSocialButtons
 				mode='sign-in'
-				startMode='bff'
 				providers={STATIC_PROVIDERS}
 				returnTo={nextPath}
 				className='mb-4 w-full max-w-sm mx-auto'

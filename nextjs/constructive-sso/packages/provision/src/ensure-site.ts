@@ -210,7 +210,7 @@ async function main(): Promise<void> {
   );
   console.log(`site_metadata: canonical_url = ${APP_ORIGIN}`);
 
-  // ---- 4. Mantra page set via the blessed install verb. ----
+  // ---- 4. Mantra page set + the SSO browser legs, via the blessed verbs. ----
   const mantraReport = await tx(client, tenantClaims, () =>
     client.query(`SELECT routing_public.sites_install_mantra(site_id := $1, route_preset := $2)`, [
       siteId,
@@ -218,6 +218,20 @@ async function main(): Promise<void> {
     ])
   );
   console.log(`mantra: installed preset '${MANTRA_PRESET_SLUG}' (report: ${JSON.stringify(mantraReport.rows[0])})`);
+
+  // The provider sign-in browser legs (/auth/start, /auth/callback) are
+  // mantra's own pages behind the opt-in 'sso' preset — the same verb installs
+  // them. Without it both paths 404: the hosted /login provider buttons and
+  // the app's own Google button link to /auth/start, and the provider's
+  // registered redirect (the site's canonical origin + /auth/callback) is
+  // served by /auth/callback.
+  const ssoReport = await tx(client, tenantClaims, () =>
+    client.query(`SELECT routing_public.sites_install_mantra(site_id := $1, route_preset := $2)`, [
+      siteId,
+      'sso',
+    ])
+  );
+  console.log(`sso: installed preset 'sso' (report: ${JSON.stringify(ssoReport.rows[0])})`);
 
   // ---- 4b. REMOVED 2026-09-16 — the tenant's invocation plane. ----
   // Upstream aab3351a4be made the database-scope invocation plane a SHARED
@@ -244,8 +258,10 @@ async function main(): Promise<void> {
   // calls go to the tenant's auth GraphQL and the hosted mantra pages serve
   // the browser-facing auth flows.
   const bindings: RouteBinding[] = [
-    { path: '/start', target: 'function', task_identifier: 'sso:start', anonymous: true },
-    { path: '/sso/callback', target: 'function', task_identifier: 'sso:callback', anonymous: true },
+    // The only sync lane left: account linking. A provider sign-in whose
+    // address an existing account owns parks the identity behind a ticket the
+    // tenant's own UI spends through this verb; the start/callback browser
+    // legs moved to mantra's sso preset pages above.
     { path: '/auth/link', target: 'function', task_identifier: 'sso:link' },
   ];
   const installReport = await tx(client, tenantClaims, () =>

@@ -200,8 +200,10 @@ acting principal; register auto-detects the live cluster for secret seeding).
   verifies the `localhost` hostname (on the source `routing_public.domains`,
   never the compiled `hostname_bindings` index);
 - writes the site's `canonical_url` (mantra composes the OAuth callback from it);
-- installs the mantra page set (`sites_install_mantra`) plus the auth sync
-  lanes (`sso:start` / `sso:callback` / `sso:link`) via one `install_route_bindings` custom document
+- installs the mantra page set (`sites_install_mantra`), the opt-in `sso`
+  preset (mantra's `/auth/start` + `/auth/callback` browser legs), and the one
+  remaining sync lane (`sso:link`, account linking) via one
+  `install_route_bindings` custom document
   (the `/_mantra/styles.css` route ships with the preset since upstream PR
   #3509 — no custom binding needed);
 - flags the sync lanes anonymous and verifies every bound path resolves.
@@ -253,10 +255,12 @@ pnpm dev
 ```
 
 The app runs on `http://localhost:3000`. Signed-out, the home page shows the
-provider grid; **Sign in with Google** asks the BFF (`POST /api/sso/start`)
-for the authorize URL — the sync lane is `POST /start` on the gateway, not a
-hosted page — and the browser goes straight to the provider. mantra handles
-the handshake on the return leg, and you land back signed in.
+provider grid; **Sign in with Google** navigates straight to the gateway's
+`/auth/start` (mantra's `oauth_start` page — the `sso` preset routes it),
+which mints state + PKCE and sends the browser to the provider. The provider
+returns to `http://localhost:3000/auth/callback` (the registered redirect
+URI), which this app relays verbatim to the gateway's `/auth/callback` page —
+the session cookie comes back through the relay and you land signed in.
 `/login`, `/register`, `/forgot-password`, `/reset-password` are thin redirects
 to mantra's own pages on the gateway.
 
@@ -264,10 +268,9 @@ to mantra's own pages on the gateway.
 
 ```bash
 curl -s -o /dev/null -w "%{http_code}\n" http://localhost:3000/     # 200 (the app)
-# The SSO start leg through the BFF: answers the provider's authorize URL + state.
-curl -s -X POST http://localhost:3000/api/sso/start \
-  -H 'content-type: application/json' -H 'origin: http://localhost:3000' \
-  -d '{"provider":"google"}'
+# The SSO start page on the gateway (the `sso` preset routes it): 302 to Google.
+curl -s -o /dev/null -w "%{http_code} %{redirect_url}\n" \
+  "http://localhost/auth/start?provider=google&next=%2F"
 ```
 
 > **Shortcut:** everything in Part B is chained by `pnpm run local:bringup` —
@@ -316,16 +319,15 @@ OAUTH_SCOPES=openid,email,profile
 
 Then the flow is:
 
-1. Home page → **Sign in with Google** → the BFF's `/api/sso/start` asks the
-   gateway's `sso:start` sync lane for the authorize URL, and the browser
-   navigates there.
-2. mantra's `oauth_start` mints state + PKCE and composes the redirect URI
+1. Home page → **Sign in with Google** → the browser navigates to the
+   gateway's `/auth/start?provider=google&next=/` (mantra's `oauth_start`).
+2. `oauth_start` mints state + PKCE and composes the redirect URI
    from the site's `canonical_url`, then sends the browser to the provider.
 3. The provider redirects to `http://localhost:3000/auth/callback` (the
-   registered URI). The app relays it to the gateway's sync lane
-   (`localhost/sso/callback` = the `sso:callback` task), which exchanges the
+   registered URI). The app relays it verbatim to the gateway's page lane
+   (`localhost/auth/callback` = mantra's `oauth_callback`), which exchanges the
    code, mints the session, and sets the `constructive_session` cookie
-   (host-only on `localhost`).
+   (host-only on `localhost`) — both come back through the relay.
 4. mantra 302s to `next` (`/`); the app reads the cookie via
    `/api/auth/session` → signed-in dashboard.
 

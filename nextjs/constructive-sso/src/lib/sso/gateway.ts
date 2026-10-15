@@ -2,7 +2,7 @@
  * sso/gateway — server-only helpers for the compute sync gateway's SSO
  * surface.
  *
- * The SSO JSON lanes (`sso:start`, `sso:link`) are the last things these
+ * The SSO JSON lane (`sso:link` — account linking) is the last thing these
  * helpers serve; the auth surface moved to the tenant's auth GraphQL (see
  * ./auth-graphql). The browser never talks to the gateway directly: calls go
  * through a Next.js route handler, which forwards the HttpOnly
