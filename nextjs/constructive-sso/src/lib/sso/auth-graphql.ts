@@ -151,12 +151,25 @@ function transportFetch(input: URL | RequestInfo, init?: RequestInit): Promise<R
 }
 
 /** The client for one request: this request's headers, this caller's session. */
-export function authClient(req: Request): ReturnType<typeof createClient> {
+export function authClient(req: Request): ReturnType<typeof createClient>;
+/**
+ * The client for one request, with the session cookie deliberately NOT
+ * forwarded as a Bearer — for the anonymous lanes (sign-in, recovery, SMS
+ * OTP): a stale or revoked cookie must not poison a mutation that needs no
+ * session, and the GraphQL layer answers a dead Bearer by authenticating the
+ * whole request UNAUTHENTICATED — which the route would surface as
+ * NOT_AUTHENTICATED on a lane that never wanted a session at all.
+ */
+export function authClient(req: Request, options: { anonymous: true }): ReturnType<typeof createClient>;
+export function authClient(
+  req: Request,
+  options?: { anonymous?: boolean }
+): ReturnType<typeof createClient> {
   if (!endpoint) {
     throw new AuthGraphqlUnreachable('GRAPHQL_AUTH_URL is not set — was local:bringup run?');
   }
 
-  const session = sessionCookieOf(req);
+  const session = options?.anonymous ? null : sessionCookieOf(req);
   const userAgent = req.headers.get('user-agent');
   const origin = req.headers.get('origin');
 

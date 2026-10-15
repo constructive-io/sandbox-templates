@@ -22,7 +22,9 @@ export async function POST(req: Request): Promise<NextResponse> {
     return NextResponse.json({ error: 'email is required' }, { status: 400 });
   }
 
-  const db = authClient(req);
+  // Anonymous lane: no session forwarded — a stale cookie must not
+  // poison a mutation that needs no session (see authClient).
+  const db = authClient(req, { anonymous: true });
   try {
     // A payload type needs at least one selected field — `forgotPassword`
     // answers no domain object, so the mutation id is the whole selection.

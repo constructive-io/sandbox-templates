@@ -33,7 +33,9 @@ export async function POST(req: Request): Promise<NextResponse> {
 		return NextResponse.json({ error: 'phone must be in E.164 format (+country number)' }, { status: 400 });
 	}
 
-	const db = authClient(req);
+	// Anonymous lane: no session forwarded — a stale cookie must not
+  // poison a mutation that needs no session (see authClient).
+  const db = authClient(req, { anonymous: true });
 	try {
 		const { sendSmsOtp } = await runAuth(
 			db.mutation.sendSmsOtp({ input: { phone } }, { select: { result: true } })

@@ -38,7 +38,9 @@ export async function POST(req: Request): Promise<NextResponse> {
   }
 
   const device = deviceTokenOf(req);
-  const db = authClient(req);
+  // Anonymous lane: no session forwarded — a stale cookie must not
+  // poison a mutation that needs no session (see authClient).
+  const db = authClient(req, { anonymous: true });
   try {
     const { signIn } = await runAuth(
       db.mutation.signIn(
