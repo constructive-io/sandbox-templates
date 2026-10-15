@@ -24,7 +24,13 @@ export async function POST(req: Request): Promise<NextResponse> {
 
   const db = authClient(req);
   try {
-    await runAuth(db.mutation.forgotPassword({ input: { email: body.email } }, { select: {} }));
+    // A payload type needs at least one selected field — `forgotPassword`
+    // answers no domain object, so the mutation id is the whole selection.
+    // An empty select sends no selection set at all, which GraphQL answers
+    // with a validation error this route would mask as `requested`.
+    await runAuth(
+      db.mutation.forgotPassword({ input: { email: body.email } }, { select: { clientMutationId: true } })
+    );
   } catch (err) {
     if (err instanceof AuthRefusedUnnamed || err instanceof AuthGraphqlUnreachable) {
       // The mailbox-or-not answer never depends on transport: silence here is
