@@ -36,12 +36,12 @@
 #      require_mfa plus allow_email_mfa/allow_sms_mfa — see configure-2fa),
 #      org creation open to every member.
 #   9. Regenerate the GraphQL SDK (pnpm codegen) from the tenant's live
-#      admin-/auth-/api-<slug>.localhost GraphQL hosts (port 80; the slug is
+#      admin-/auth-<slug>.localhost GraphQL hosts (port 80; the slug is
 #      the NEXT_PUBLIC_DB_NAME create-db writes), once the admin host answers
 #      a GraphQL query. src/graphql/sdk/ is committed generated output — this
 #      is a no-op diff when the platform schema hasn't drifted and a healing
-#      refresh when it has. The app context (business data) has no tables on
-#      this template; codegen.sh keeps the previous sdk/app in that case. Not
+#      refresh when it has. There is no app target: the app context (business
+#      data) has no tables on this template. Not
 #      fatal: a failed refresh leaves the committed SDK and is reported.
 #  10. Next.js on :3000.
 #

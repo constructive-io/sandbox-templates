@@ -7,7 +7,6 @@ import { getEndpoint, type SchemaContext } from '@/app-config';
 import { createSdkFetch, getAuthHeaders } from '@/graphql/execute';
 import { configure as configureAdmin } from '@sdk/admin';
 import { configure as configureAuth } from '@sdk/auth';
-import { configure as configureApp } from '@sdk/app';
 import { BlocksRuntime } from '@/blocks/runtime/blocks-runtime';
 import { AuthProvider } from '@/lib/auth/auth-context';
 import { queryClient } from '@/lib/query-client';
@@ -41,13 +40,12 @@ function createSdkConfig(ctx: SchemaContext) {
 export function reconfigureSdkClients(): void {
 	configureAdmin(createSdkConfig('admin'));
 	configureAuth(createSdkConfig('auth'));
-	configureApp(createSdkConfig('app'));
 }
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
 	return (
 		<QueryClientProvider client={queryClient}>
-			<BlocksRuntime namespaces={['auth', 'admin', 'app']}>
+			<BlocksRuntime namespaces={['auth', 'admin']}>
 				<AuthProvider>
 					<NuqsAdapter>{children}</NuqsAdapter>
 				</AuthProvider>

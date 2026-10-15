@@ -20,7 +20,7 @@
  *
  * @example
  * ```tsx
- * <BlocksRuntime namespaces={['auth', 'admin', 'app']}>
+ * <BlocksRuntime namespaces={['auth', 'admin']}>
  *   {children}
  * </BlocksRuntime>
  * ```
@@ -34,22 +34,20 @@ import { createSdkFetch, getAuthHeaders } from '@/graphql/execute';
 import type { OrmClientConfig } from '@/generated/auth';
 import { configure as configureAuth } from '@/generated/auth';
 import { configure as configureAdmin } from '@/generated/admin';
-import { configure as configureApp } from '@/generated/app';
 
 /**
  * Known Constructive SDK namespaces for this app. A host that generates
  * additional namespaces extends this union and the map below — the single
  * expected edit to this file, since it is the app's wiring point.
  */
-export type BlocksNamespace = 'auth' | 'admin' | 'app';
+export type BlocksNamespace = 'auth' | 'admin';
 
 type ConfigureFn = (config: OrmClientConfig) => void;
 
 /** namespace → its generated `configure()`. */
 const CONFIGURERS: Record<BlocksNamespace, ConfigureFn> = {
 	auth: configureAuth,
-	admin: configureAdmin,
-	app: configureApp
+	admin: configureAdmin
 };
 
 /** Session-aware fetch for the generated SDK clients. */

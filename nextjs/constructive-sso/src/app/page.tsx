@@ -90,8 +90,8 @@ export default function HomePage() {
 									<span className="text-muted-foreground">users, authentication</span>
 								</div>
 								<div className="flex gap-2">
-									<span className="text-purple-600 w-24">@sdk/app</span>
-									<span className="text-muted-foreground">your business data</span>
+									<span className="text-purple-600 w-24">@sdk/admin</span>
+									<span className="text-muted-foreground">organizations, members</span>
 								</div>
 							</div>
 						</CardContent>

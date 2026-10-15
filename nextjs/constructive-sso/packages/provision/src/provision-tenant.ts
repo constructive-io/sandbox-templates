@@ -228,10 +228,8 @@ async function main(): Promise<void> {
           NEXT_PUBLIC_API_PORT: '80',
           NEXT_PUBLIC_ADMIN_ENDPOINT: '/api/graphql/admin',
           NEXT_PUBLIC_AUTH_ENDPOINT: '/api/graphql/auth',
-          NEXT_PUBLIC_APP_ENDPOINT: '/api/graphql/app',
           GRAPHQL_ADMIN_URL: `http://admin-${slug}.localhost/graphql`,
           GRAPHQL_AUTH_URL: `http://auth-${slug}.localhost/graphql`,
-          GRAPHQL_APP_URL: `http://api-${slug}.localhost/graphql`,
         }
       : {}),
   };

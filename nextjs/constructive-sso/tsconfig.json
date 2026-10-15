@@ -17,8 +17,7 @@
 			"@/*": ["./src/*"],
 			"@/generated/*": ["./src/graphql/sdk/*"],
 			"@sdk/admin": ["./src/graphql/sdk/admin"],
-			"@sdk/auth": ["./src/graphql/sdk/auth"],
-			"@sdk/app": ["./src/graphql/sdk/app"]
+			"@sdk/auth": ["./src/graphql/sdk/auth"]
 		},
 		"plugins": [
 			{

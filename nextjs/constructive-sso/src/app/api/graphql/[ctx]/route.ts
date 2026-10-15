@@ -13,7 +13,6 @@ import { sessionCredential } from '@/lib/sso/gateway';
 const UPSTREAMS: Record<string, string | undefined> = {
   admin: process.env.GRAPHQL_ADMIN_URL,
   auth: process.env.GRAPHQL_AUTH_URL,
-  app: process.env.GRAPHQL_APP_URL,
 };
 
 export async function POST(

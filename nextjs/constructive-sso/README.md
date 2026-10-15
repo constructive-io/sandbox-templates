@@ -238,14 +238,13 @@ needs.
 
 `local:bringup` runs `pnpm codegen` (`scripts/codegen.sh`) right before
 starting the app. Codegen introspects the tenant's live GraphQL hosts
-(`admin-/auth-/api-<slug>.localhost`, port 80 — the slug is the
+(`admin-/auth-<slug>.localhost`, port 80 — the slug is the
 `NEXT_PUBLIC_DB_NAME` `create-db` writes) and regenerates `src/graphql/sdk/`,
 which is **committed generated output**: the step is a no-op diff when the
-platform schema hasn't drifted and a healing refresh when it has. The `app`
-context (business data) has no tables on this template — the generator
-rejects empty schemas, so `codegen.sh` keeps the committed `sdk/app` in that
-case. Run `pnpm codegen` alone after a platform image change, or before
-adding new GraphQL fields to the app.
+platform schema hasn't drifted and a healing refresh when it has. There is no
+`app` (business data) target — this template's tenants have no app-context
+tables, and the generator rejects empty schemas. Run `pnpm codegen` alone
+after a platform image change, or before adding new GraphQL fields to the app.
 
 #### 7. Start the app
 
@@ -292,7 +291,7 @@ Traefik ingress on port 80:
   per-tenant GraphQL hosts named from the tenant's internal slug (e.g.
   `admin-208-dry-rose-fox.localhost`) — NOT from `DATABASE_NAME`. The session
   cookie is host-only on `localhost` and never crosses to those hosts, so the
-  SDK's endpoints point at the same-origin proxy (`/api/graphql/{admin,auth,app}`)
+  SDK's endpoints point at the same-origin proxy (`/api/graphql/{admin,auth}`)
   which forwards server-side. `create-db` derives the slug and writes
   `NEXT_PUBLIC_DB_NAME` / `NEXT_PUBLIC_*_ENDPOINT` / `GRAPHQL_*_URL` into
   `.env` for exactly this reason.
