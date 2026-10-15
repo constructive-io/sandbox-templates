@@ -203,11 +203,24 @@ type NextResponseJson = ReturnType<typeof NextResponse.json>;
 
 /** The `constructive_session` cookie a request carries, if any. */
 export function sessionCookieOf(req: Request): string | null {
+  return cookieOf(req, SESSION_COOKIE);
+}
+
+/**
+ * The `constructive_device_token` cookie this browser was given by an earlier
+ * sign-in (either lane's — both write the same host-only cookie), if any.
+ * Feeding it back as `deviceToken` is how the tenant recognises the browser.
+ */
+export function deviceTokenOf(req: Request): string | null {
+  return cookieOf(req, 'constructive_device_token');
+}
+
+function cookieOf(req: Request, name: string): string | null {
   const header = req.headers.get('cookie');
   if (!header) return null;
   for (const part of header.split(';')) {
-    const [name, ...rest] = part.trim().split('=');
-    if (name === SESSION_COOKIE && rest.length > 0) {
+    const [key, ...rest] = part.trim().split('=');
+    if (key === name && rest.length > 0) {
       const value = rest.join('=');
       return value.length > 0 ? value : null;
     }
