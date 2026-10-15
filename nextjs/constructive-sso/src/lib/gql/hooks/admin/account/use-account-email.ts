@@ -64,7 +64,6 @@ export interface UpdateEmailInput {
 	newEmail: string;
 	currentEmail: string;
 	isPrimary?: boolean;
-	isVerified?: boolean;
 	context?: SchemaContext;
 }
 
@@ -78,21 +77,21 @@ export function useUpdateEmail(_defaultContext: SchemaContext = 'admin') {
 		const emailChanged = input.newEmail !== input.currentEmail;
 
 		if (emailChanged) {
-			// Create new email first
+			// Create new email first. `isVerified` is not insertable: a new
+			// address is unverified until the tenant's emailed code proves it.
 			await createEmailMutation.mutateAsync({
 				email: input.newEmail,
 				isPrimary: input.isPrimary ?? true,
-				isVerified: input.isVerified ?? false,
 				ownerId: input.userId,
 			});
 
 			// Then delete old email
 			await deleteEmailMutation.mutateAsync({ id: input.currentEmailId });
 		} else {
-			// Just update existing email properties
-			const patch: { isPrimary?: boolean; isVerified?: boolean } = {};
+			// Just update existing email properties (the patch carries only
+			// isPrimary/name — verification flips through the tenant's code).
+			const patch: { isPrimary?: boolean } = {};
 			if (input.isPrimary !== undefined) patch.isPrimary = input.isPrimary;
-			if (input.isVerified !== undefined) patch.isVerified = input.isVerified;
 
 			if (Object.keys(patch).length > 0) {
 				await updateEmailMutation.mutateAsync({
