@@ -34,7 +34,7 @@ const SIGN_IN = `mutation SignIn($input: SignInInput!) {
   signIn(input: $input) { result { userId accessToken accessTokenExpiresAt } }
 }`;
 const SIGN_UP = `mutation SignUp($input: SignUpInput!) {
-  signUp(input: $input) { result { userId accessToken } }
+  signUp(input: $input) { clientMutationId }
 }`;
 
 interface SessionRecord {
@@ -99,14 +99,12 @@ async function main(): Promise<void> {
   if (record?.accessToken) {
     console.log('  signed in');
   } else {
-    // First run: no such user yet — create it, then use the session signUp
-    // mints (falling back to signIn if the record carries no token, and
-    // tolerating an EMAIL_TAKEN-style refusal from a previous partial run).
+    // First run: no such user yet — create it, then sign in with the password
+    // just set (sign_up never signs anyone in; tolerates an ACCOUNT_EXISTS-style
+    // refusal from a previous partial run).
     console.log('  no session — creating the owner');
     try {
-      record =
-        ((await gql(SIGN_UP, { input: { email: EMAIL, password: PASSWORD } })).signUp ?? null)
-          ?.result ?? null;
+      await gql(SIGN_UP, { input: { email: EMAIL, password: PASSWORD } });
     } catch (signUpError) {
       console.log(
         `  sign-up refused (${signUpError instanceof Error ? signUpError.message : signUpError}) — trying sign-in`

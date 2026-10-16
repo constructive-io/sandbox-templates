@@ -33,8 +33,7 @@ export type LoginFormData = z.infer<typeof loginSchema>;
  */
 export const signUpSchema = z.object({
   email: emailSchema,
-  password: passwordSchema,
-  rememberMe: z.boolean().optional()
+  password: passwordSchema
 });
 
 export type SignUpFormData = z.infer<typeof signUpSchema>;
