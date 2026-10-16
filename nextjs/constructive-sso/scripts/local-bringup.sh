@@ -72,6 +72,23 @@ set -a
 source "$ROOT_DIR/.env"
 set +a
 
+# The one-host rule. The gateway's session cookie is host-only, so the app
+# only sees it when the gateway's host (SSO_ROUTE_HOST) and the app's host
+# (APP_ORIGIN's hostname) are the same cookie host — localhost vs
+# myapp.localhost do NOT match, and the tenant sets no cookie_domain to
+# bridge them. With different hosts every sign-in ends with the app still
+# signed out and the home page bouncing to the gateway's /login forever.
+# Refuse to provision such a tenant: set SSO_ROUTE_HOST to the hostname of
+# APP_ORIGIN (e.g. both localhost) in .env.
+ROUTE_HOSTNAME="$(printf '%s' "${SSO_ROUTE_HOST:-}" | sed -E 's/:[0-9]+$//')"
+APP_HOSTNAME="$(printf '%s' "${APP_ORIGIN:-http://localhost:3000}" | sed -E 's#^https?://##; s/:[0-9]+$//')"
+if [ -n "$ROUTE_HOSTNAME" ] && [ "$ROUTE_HOSTNAME" != "$APP_HOSTNAME" ]; then
+  echo "  ✗ SSO_ROUTE_HOST ('$ROUTE_HOSTNAME') is a different cookie host than APP_ORIGIN ('$APP_HOSTNAME')."
+  echo "    The gateway's host-only session cookie would never reach the app — every sign-in loops on /login."
+  echo "    Fix: set SSO_ROUTE_HOST=$APP_HOSTNAME (and SSO_GATEWAY_URL=http://$APP_HOSTNAME) in .env, then re-run."
+  exit 1
+fi
+
 # Same story for dependencies: every step below runs a pnpm script, and a
 # just-pulled clone has no node_modules.
 if [ ! -d "$ROOT_DIR/node_modules" ]; then
