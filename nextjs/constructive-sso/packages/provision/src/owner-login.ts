@@ -100,22 +100,13 @@ async function main(): Promise<void> {
     console.log('  signed in');
   } else {
     // First run: no such user yet — create it, then sign in with the password
-    // just set (sign_up never signs anyone in; tolerates an ACCOUNT_EXISTS-style
-    // refusal from a previous partial run).
+    // just set (sign_up never signs anyone in).
     console.log('  no session — creating the owner');
-    try {
-      await gql(SIGN_UP, { input: { email: EMAIL, password: PASSWORD } });
-    } catch (signUpError) {
-      console.log(
-        `  sign-up refused (${signUpError instanceof Error ? signUpError.message : signUpError}) — trying sign-in`
-      );
-    }
-    if (!record?.accessToken) {
-      record =
-        ((await gql(SIGN_IN, {
-          input: { email: EMAIL, password: PASSWORD, credentialKind: CREDENTIAL_KIND }
-        })).signIn ?? null)?.result ?? null;
-    }
+    await gql(SIGN_UP, { input: { email: EMAIL, password: PASSWORD } });
+    record =
+      ((await gql(SIGN_IN, {
+        input: { email: EMAIL, password: PASSWORD, credentialKind: CREDENTIAL_KIND }
+      })).signIn ?? null)?.result ?? null;
     if (record?.accessToken) console.log('  owner created');
   }
 

@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import type { RegisterFormData } from '@/lib/auth/schemas';
+import { TokenManager } from '@/lib/auth/token-manager';
 import { useAuthActions } from '@/store/app-store';
 import { ROUTE_PATHS } from '@/app-routes';
 import { useSignUpMutation } from '@sdk/auth';
@@ -32,6 +33,7 @@ export function useRegister() {
 			return { email: formData.email };
 		},
 		onSuccess: ({ email }) => {
+			TokenManager.clearToken();
 			authActions.setUnauthenticated();
 			queryClient.invalidateQueries({ queryKey: authKeys._def });
 
