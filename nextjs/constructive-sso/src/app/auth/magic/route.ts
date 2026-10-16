@@ -15,13 +15,30 @@ import { gatewayLocation, SSO_GATEWAY_URL } from '@/lib/sso/gateway';
  * 302's `Location` is a path on the GATEWAY, so it is made absolute against
  * the gateway before it is relayed.
  */
+export async function POST(req: Request): Promise<NextResponse> {
+  return relay(req);
+}
+
 export async function GET(req: Request): Promise<NextResponse> {
+  return relay(req);
+}
+
+async function relay(req: Request): Promise<NextResponse> {
   const query = new URL(req.url).search;
   const upstreamUrl = `${SSO_GATEWAY_URL}/auth/magic${query}`;
+  // The landing is a form: GET renders the one-click button, POST spends the
+  // token (the click). The POST's form body is forwarded verbatim — the
+  // landing's own hidden fields carry the token and `next`, and rewriting or
+  // dropping the body would spend nothing.
+  const isPost = req.method === 'POST';
+  const body = isPost ? await req.text() : undefined;
   let upstream: Response;
   try {
     upstream = await fetch(upstreamUrl, {
-      method: 'GET',
+      method: isPost ? 'POST' : 'GET',
+      ...(body !== undefined
+        ? { body, headers: { 'content-type': req.headers.get('content-type') ?? 'application/x-www-form-urlencoded' } }
+        : {}),
       redirect: 'manual',
       cache: 'no-store',
       signal: AbortSignal.timeout(10_000),
@@ -44,6 +61,6 @@ export async function GET(req: Request): Promise<NextResponse> {
   }
 
   const isRedirect = upstream.status >= 300 && upstream.status < 400;
-  const body = isRedirect ? null : Buffer.from(await upstream.arrayBuffer());
-  return new NextResponse(body, { status: upstream.status, headers });
+  const responseBody = isRedirect ? null : Buffer.from(await upstream.arrayBuffer());
+  return new NextResponse(responseBody, { status: upstream.status, headers });
 }
