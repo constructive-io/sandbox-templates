@@ -45,8 +45,8 @@ import type {
   SignUpSmsInput,
   SignInMagicLinkInput,
   SignInSmsOtpInput,
-  CompleteMfaChallengeInput,
   SignUpInput,
+  CompleteMfaChallengeInput,
   SignInInput,
   SetPrincipalEntitiesInput,
   LinkIdentityInput,
@@ -104,8 +104,8 @@ import type {
   SignUpSmsPayload,
   SignInMagicLinkPayload,
   SignInSmsOtpPayload,
-  CompleteMfaChallengePayload,
   SignUpPayload,
+  CompleteMfaChallengePayload,
   SignInPayload,
   SetPrincipalEntitiesPayload,
   LinkIdentityPayload,
@@ -163,8 +163,8 @@ import type {
   SignUpSmsPayloadSelect,
   SignInMagicLinkPayloadSelect,
   SignInSmsOtpPayloadSelect,
-  CompleteMfaChallengePayloadSelect,
   SignUpPayloadSelect,
+  CompleteMfaChallengePayloadSelect,
   SignInPayloadSelect,
   SetPrincipalEntitiesPayloadSelect,
   LinkIdentityPayloadSelect,
@@ -300,11 +300,11 @@ export interface SignInMagicLinkVariables {
 export interface SignInSmsOtpVariables {
   input: SignInSmsOtpInput;
 }
-export interface CompleteMfaChallengeVariables {
-  input: CompleteMfaChallengeInput;
-}
 export interface SignUpVariables {
   input: SignUpInput;
+}
+export interface CompleteMfaChallengeVariables {
+  input: CompleteMfaChallengeInput;
 }
 export interface SignInVariables {
   input: SignInInput;
@@ -1491,35 +1491,6 @@ export function createMutationOperations(client: OrmClient) {
           'SignInSmsOtpPayload'
         ),
       }),
-    completeMfaChallenge: <S extends CompleteMfaChallengePayloadSelect>(
-      args: CompleteMfaChallengeVariables,
-      options: {
-        select: S;
-      } & StrictSelect<S, CompleteMfaChallengePayloadSelect>
-    ) =>
-      new QueryBuilder<{
-        completeMfaChallenge: InferSelectResult<CompleteMfaChallengePayload, S> | null;
-      }>({
-        client,
-        operation: 'mutation',
-        operationName: 'CompleteMfaChallenge',
-        fieldName: 'completeMfaChallenge',
-        ...buildCustomDocument(
-          'mutation',
-          'CompleteMfaChallenge',
-          'completeMfaChallenge',
-          options.select,
-          args,
-          [
-            {
-              name: 'input',
-              type: 'CompleteMfaChallengeInput!',
-            },
-          ],
-          connectionFieldsMap,
-          'CompleteMfaChallengePayload'
-        ),
-      }),
     signUp: <S extends SignUpPayloadSelect>(
       args: SignUpVariables,
       options: {
@@ -1547,6 +1518,35 @@ export function createMutationOperations(client: OrmClient) {
           ],
           connectionFieldsMap,
           'SignUpPayload'
+        ),
+      }),
+    completeMfaChallenge: <S extends CompleteMfaChallengePayloadSelect>(
+      args: CompleteMfaChallengeVariables,
+      options: {
+        select: S;
+      } & StrictSelect<S, CompleteMfaChallengePayloadSelect>
+    ) =>
+      new QueryBuilder<{
+        completeMfaChallenge: InferSelectResult<CompleteMfaChallengePayload, S> | null;
+      }>({
+        client,
+        operation: 'mutation',
+        operationName: 'CompleteMfaChallenge',
+        fieldName: 'completeMfaChallenge',
+        ...buildCustomDocument(
+          'mutation',
+          'CompleteMfaChallenge',
+          'completeMfaChallenge',
+          options.select,
+          args,
+          [
+            {
+              name: 'input',
+              type: 'CompleteMfaChallengeInput!',
+            },
+          ],
+          connectionFieldsMap,
+          'CompleteMfaChallengePayload'
         ),
       }),
     signIn: <S extends SignInPayloadSelect>(

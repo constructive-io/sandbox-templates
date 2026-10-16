@@ -1131,21 +1131,6 @@ signInSmsOtp
 const result = await db.mutation.signInSmsOtp({ input: { phone: '<String>', code: '<String>', credentialKind: '<String>', rememberMe: '<Boolean>', deviceToken: '<String>' } }).execute();
 ```
 
-### `db.mutation.completeMfaChallenge`
-
-completeMfaChallenge
-
-- **Type:** mutation
-- **Arguments:**
-
-  | Argument | Type |
-  |----------|------|
-  | `input` | CompleteMfaChallengeInput (required) |
-
-```typescript
-const result = await db.mutation.completeMfaChallenge({ input: '<CompleteMfaChallengeInput>' }).execute();
-```
-
 ### `db.mutation.signUp`
 
 signUp
@@ -1159,6 +1144,21 @@ signUp
 
 ```typescript
 const result = await db.mutation.signUp({ input: '<SignUpInput>' }).execute();
+```
+
+### `db.mutation.completeMfaChallenge`
+
+completeMfaChallenge
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | CompleteMfaChallengeInput (required) |
+
+```typescript
+const result = await db.mutation.completeMfaChallenge({ input: '<CompleteMfaChallengeInput>' }).execute();
 ```
 
 ### `db.mutation.signIn`

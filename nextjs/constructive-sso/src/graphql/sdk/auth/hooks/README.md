@@ -133,8 +133,8 @@ function App() {
 | `useSignUpSmsMutation` | Mutation | signUpSms |
 | `useSignInMagicLinkMutation` | Mutation | signInMagicLink |
 | `useSignInSmsOtpMutation` | Mutation | signInSmsOtp |
-| `useCompleteMfaChallengeMutation` | Mutation | completeMfaChallenge |
 | `useSignUpMutation` | Mutation | signUp |
+| `useCompleteMfaChallengeMutation` | Mutation | completeMfaChallenge |
 | `useSignInMutation` | Mutation | signIn |
 | `useSetPrincipalEntitiesMutation` | Mutation | setPrincipalEntities |
 | `useLinkIdentityMutation` | Mutation | linkIdentity |
@@ -873,17 +873,6 @@ signInSmsOtp
   |----------|------|
   | `input` | SignInSmsOtpInput (required) |
 
-### `useCompleteMfaChallengeMutation`
-
-completeMfaChallenge
-
-- **Type:** mutation
-- **Arguments:**
-
-  | Argument | Type |
-  |----------|------|
-  | `input` | CompleteMfaChallengeInput (required) |
-
 ### `useSignUpMutation`
 
 signUp
@@ -894,6 +883,17 @@ signUp
   | Argument | Type |
   |----------|------|
   | `input` | SignUpInput (required) |
+
+### `useCompleteMfaChallengeMutation`
+
+completeMfaChallenge
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | CompleteMfaChallengeInput (required) |
 
 ### `useSignInMutation`
 

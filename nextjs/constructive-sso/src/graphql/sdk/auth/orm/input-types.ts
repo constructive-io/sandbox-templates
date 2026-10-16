@@ -1931,6 +1931,16 @@ export interface SignInSmsOtpInput {
   rememberMe?: boolean;
   deviceToken?: string;
 }
+export interface SignUpInput {
+  clientMutationId?: string;
+  email?: string;
+  password?: string;
+  rememberMe?: boolean;
+  credentialKind?: string;
+  csrfToken?: string;
+  deviceToken?: string;
+  inviteToken?: string;
+}
 export interface CompleteMfaChallengeInput {
   clientMutationId?: string;
   userId?: string;
@@ -1941,16 +1951,6 @@ export interface CompleteMfaChallengeInput {
   rememberMe?: boolean;
   trustDevice?: boolean;
   deviceToken?: string;
-}
-export interface SignUpInput {
-  clientMutationId?: string;
-  email?: string;
-  password?: string;
-  rememberMe?: boolean;
-  credentialKind?: string;
-  csrfToken?: string;
-  deviceToken?: string;
-  inviteToken?: string;
 }
 export interface SignInInput {
   clientMutationId?: string;
@@ -3543,16 +3543,6 @@ export type SignInSmsOtpPayloadSelect = {
     select: SignInSmsOtpRecordSelect;
   };
 };
-export interface CompleteMfaChallengePayload {
-  clientMutationId?: string | null;
-  result?: CompleteMfaChallengeRecord | null;
-}
-export type CompleteMfaChallengePayloadSelect = {
-  clientMutationId?: boolean;
-  result?: {
-    select: CompleteMfaChallengeRecordSelect;
-  };
-};
 export interface SignUpPayload {
   clientMutationId?: string | null;
   result?: SignUpRecord | null;
@@ -3561,6 +3551,16 @@ export type SignUpPayloadSelect = {
   clientMutationId?: boolean;
   result?: {
     select: SignUpRecordSelect;
+  };
+};
+export interface CompleteMfaChallengePayload {
+  clientMutationId?: string | null;
+  result?: CompleteMfaChallengeRecord | null;
+}
+export type CompleteMfaChallengePayloadSelect = {
+  clientMutationId?: boolean;
+  result?: {
+    select: CompleteMfaChallengeRecordSelect;
   };
 };
 export interface SignInPayload {
@@ -3999,6 +3999,24 @@ export type SignInSmsOtpRecordSelect = {
   mfaRequired?: boolean;
   mfaChallengeToken?: boolean;
 };
+export interface SignUpRecord {
+  id?: string | null;
+  userId?: string | null;
+  accessToken?: string | null;
+  accessTokenExpiresAt?: string | null;
+  isVerified?: boolean | null;
+  totpEnabled?: boolean | null;
+  outDeviceToken?: string | null;
+}
+export type SignUpRecordSelect = {
+  id?: boolean;
+  userId?: boolean;
+  accessToken?: boolean;
+  accessTokenExpiresAt?: boolean;
+  isVerified?: boolean;
+  totpEnabled?: boolean;
+  outDeviceToken?: boolean;
+};
 export interface CompleteMfaChallengeRecord {
   id?: string | null;
   outUserId?: string | null;
@@ -4016,26 +4034,6 @@ export type CompleteMfaChallengeRecordSelect = {
   isVerified?: boolean;
   outDeviceToken?: boolean;
   deviceApprovalRequired?: boolean;
-};
-export interface SignUpRecord {
-  id?: string | null;
-  userId?: string | null;
-  accessToken?: string | null;
-  accessTokenExpiresAt?: string | null;
-  isVerified?: boolean | null;
-  totpEnabled?: boolean | null;
-  mfaSetupRequired?: boolean | null;
-  outDeviceToken?: string | null;
-}
-export type SignUpRecordSelect = {
-  id?: boolean;
-  userId?: boolean;
-  accessToken?: boolean;
-  accessTokenExpiresAt?: boolean;
-  isVerified?: boolean;
-  totpEnabled?: boolean;
-  mfaSetupRequired?: boolean;
-  outDeviceToken?: boolean;
 };
 export interface SignInRecord {
   id?: string | null;
