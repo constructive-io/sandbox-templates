@@ -1339,16 +1339,6 @@ export interface SignInSmsOtpInput {
   rememberMe?: boolean;
   deviceToken?: string;
 }
-export interface SignUpInput {
-  clientMutationId?: string;
-  email?: string;
-  password?: string;
-  rememberMe?: boolean;
-  credentialKind?: string;
-  csrfToken?: string;
-  deviceToken?: string;
-  inviteToken?: string;
-}
 export interface CompleteMfaChallengeInput {
   clientMutationId?: string;
   userId?: string;
@@ -1359,6 +1349,16 @@ export interface CompleteMfaChallengeInput {
   rememberMe?: boolean;
   trustDevice?: boolean;
   deviceToken?: string;
+}
+export interface SignUpInput {
+  clientMutationId?: string;
+  email?: string;
+  password?: string;
+  rememberMe?: boolean;
+  credentialKind?: string;
+  csrfToken?: string;
+  deviceToken?: string;
+  inviteToken?: string;
 }
 export interface SignInInput {
   clientMutationId?: string;
@@ -1846,13 +1846,13 @@ export interface SignInSmsOtpPayload {
   clientMutationId?: string | null;
   result?: SignInSmsOtpRecord | null;
 }
-export interface SignUpPayload {
-  clientMutationId?: string | null;
-  result?: SignUpRecord | null;
-}
 export interface CompleteMfaChallengePayload {
   clientMutationId?: string | null;
   result?: CompleteMfaChallengeRecord | null;
+}
+export interface SignUpPayload {
+  clientMutationId?: string | null;
+  result?: SignUpRecord | null;
 }
 export interface SignInPayload {
   clientMutationId?: string | null;
@@ -2164,15 +2164,6 @@ export interface SignInSmsOtpRecord {
   mfaRequired?: boolean | null;
   mfaChallengeToken?: string | null;
 }
-export interface SignUpRecord {
-  id?: string | null;
-  userId?: string | null;
-  accessToken?: string | null;
-  accessTokenExpiresAt?: string | null;
-  isVerified?: boolean | null;
-  totpEnabled?: boolean | null;
-  outDeviceToken?: string | null;
-}
 export interface CompleteMfaChallengeRecord {
   id?: string | null;
   outUserId?: string | null;
@@ -2181,6 +2172,16 @@ export interface CompleteMfaChallengeRecord {
   isVerified?: boolean | null;
   outDeviceToken?: string | null;
   deviceApprovalRequired?: boolean | null;
+}
+export interface SignUpRecord {
+  id?: string | null;
+  userId?: string | null;
+  accessToken?: string | null;
+  accessTokenExpiresAt?: string | null;
+  isVerified?: boolean | null;
+  totpEnabled?: boolean | null;
+  mfaSetupRequired?: boolean | null;
+  outDeviceToken?: string | null;
 }
 export interface SignInRecord {
   id?: string | null;
