@@ -27,7 +27,6 @@ import { useForm } from '@tanstack/react-form';
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@constructive-io/ui/card';
 import { Button } from '@constructive-io/ui/button';
-import { Checkbox } from '@constructive-io/ui/checkbox';
 import { Progress } from '@constructive-io/ui/progress';
 
 import { cn } from '@/lib/utils';
@@ -45,22 +44,6 @@ import { defaultSignUpCardMessages, type SignUpCardMessages } from './messages';
 export type SignUpVars = {
   email: string;
   password: string;
-  rememberMe: boolean;
-  credentialKind: string;
-};
-
-/**
- * The sign-up record. Mirrors the `auth` SDK's `SignUpRecord`; declared here so
- * the public surface — and the `onSubmit` override — does not depend on a
- * generated type name.
- */
-export type SignUpResult = {
-  id: string | null;
-  userId: string | null;
-  accessToken: string | null;
-  accessTokenExpiresAt: string | null;
-  isVerified: boolean | null;
-  totpEnabled: boolean | null;
 };
 
 /**
@@ -72,14 +55,10 @@ export type SignUpCardMessageOverrides = Partial<Omit<SignUpCardMessages, 'error
 };
 
 export type SignUpCardProps = {
-  /** Show the "remember me" checkbox (default true). */
-  showRememberMe?: boolean;
   /** Show password strength meter (default true). */
   showPasswordStrength?: boolean;
   /** Show password confirm field (default true). Confirm-match validated inline. */
   showPasswordConfirm?: boolean;
-  /** Credential kind sent to the API (default `'bearer'`). */
-  credentialKind?: string;
   /**
    * HIBP breach-check hook (v1 interface; v1.1 default implementation).
    * If provided, called with the raw password before submission.
@@ -91,9 +70,9 @@ export type SignUpCardProps = {
   /** Sign-in link target; rendered as a plain `<a>` when provided. */
   signInHref?: string;
   /** Replace the default `useSignUpMutation` call. Receives the same vars. */
-  onSubmit?: (vars: SignUpVars) => Promise<SignUpResult | null>;
+  onSubmit?: (vars: SignUpVars) => Promise<void>;
   /** Fires after a resolved sign-up. Always fires. */
-  onSuccess?: (result: SignUpResult) => void;
+  onSuccess?: () => void;
   /** Fires after a mapped error. Always fires. */
   onError?: (err: { message: string; code: string }) => void;
   /** Notification seam — fires for success and errors. */
@@ -112,10 +91,8 @@ const STRENGTH_LABELS = {
 } as const satisfies Record<string, keyof SignUpCardMessages>;
 
 export function SignUpCard({
-  showRememberMe = true,
   showPasswordStrength = true,
   showPasswordConfirm = true,
-  credentialKind = 'bearer',
   onCheckPasswordBreach,
   messages: messageOverrides,
   signInHref,
@@ -132,24 +109,8 @@ export function SignUpCard({
     errors: { ...defaultSignUpCardMessages.errors, ...messageOverrides?.errors }
   };
 
-  // Generated hook from the host's `auth` SDK. Payload nests the record under
-  // `result`, so selection mirrors SignUpPayloadSelect → result.select.
-  const defaultMutation = useSignUpMutation({
-    selection: {
-      fields: {
-        result: {
-          select: {
-            id: true,
-            userId: true,
-            accessToken: true,
-            accessTokenExpiresAt: true,
-            isVerified: true,
-            totpEnabled: true
-          }
-        }
-      }
-    }
-  });
+  // sign_up never signs anyone in: the tenant mails a link that does.
+  const defaultMutation = useSignUpMutation({ selection: { fields: { clientMutationId: true } } });
 
   // Hybrid pending: generated hook tracks its own; override path does not.
   const [overridePending, setOverridePending] = useState(false);
@@ -158,10 +119,9 @@ export function SignUpCard({
   const [error, setError] = useState<string | null>(null);
   const [passwordValue, setPasswordValue] = useState('');
 
-  async function runSignUp(vars: SignUpVars): Promise<SignUpResult | null> {
+  async function runSignUp(vars: SignUpVars): Promise<void> {
     if (onSubmitOverride) return onSubmitOverride(vars);
-    const data = await defaultMutation.mutateAsync({ input: vars });
-    return (data.signUp?.result ?? null) as SignUpResult | null;
+    await defaultMutation.mutateAsync({ input: vars });
   }
 
   async function handleSignUp(values: SignUpFormValues) {
@@ -180,15 +140,10 @@ export function SignUpCard({
         }
       }
 
-      const result = await runSignUp({
-        email: values.email,
-        password: values.password,
-        rememberMe: values.rememberMe ?? false,
-        credentialKind
-      });
+      await runSignUp({ email: values.email, password: values.password });
 
       onMessage?.({ kind: 'success', key: 'signUp.success', message: merged.successMessage });
-      onSuccess?.(result as SignUpResult);
+      onSuccess?.();
     } catch (err) {
       const { code, message } = parseGraphQLError(err, {
         customMessages: merged.errors,
@@ -207,8 +162,7 @@ export function SignUpCard({
     defaultValues: {
       email: '',
       password: '',
-      confirmPassword: '',
-      rememberMe: true
+      confirmPassword: ''
     } as SignUpFormValues,
     onSubmit: async ({ value }) => {
       await handleSignUp(value);
@@ -316,23 +270,6 @@ export function SignUpCard({
                   type="password"
                   testId="confirmPassword"
                 />
-              )}
-            </form.Field>
-          )}
-
-          {showRememberMe && (
-            <form.Field name="rememberMe">
-              {(field) => (
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="sign-up-remember-me"
-                    checked={field.state.value ?? false}
-                    onCheckedChange={(checked) => field.handleChange(checked === true)}
-                  />
-                  <label htmlFor="sign-up-remember-me" className="text-sm leading-none font-medium">
-                    {merged.rememberMeLabel}
-                  </label>
-                </div>
               )}
             </form.Field>
           )}

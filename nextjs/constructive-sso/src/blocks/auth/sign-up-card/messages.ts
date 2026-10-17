@@ -7,7 +7,6 @@ export type SignUpCardMessages = {
   passwordPlaceholder: string;
   passwordConfirmLabel: string;
   passwordConfirmPlaceholder: string;
-  rememberMeLabel: string;
   submitLabel: string;
   loadingLabel: string;
   signInPrompt: string;
@@ -43,7 +42,6 @@ export const defaultSignUpCardMessages: SignUpCardMessages = {
   passwordPlaceholder: '••••••••',
   passwordConfirmLabel: 'Confirm password',
   passwordConfirmPlaceholder: '••••••••',
-  rememberMeLabel: 'Remember me',
   submitLabel: 'Create account',
   loadingLabel: 'Creating account…',
   signInPrompt: 'Already have an account?',
@@ -54,7 +52,7 @@ export const defaultSignUpCardMessages: SignUpCardMessages = {
   passwordStrengthStrong: 'Strong',
   passwordMismatch: 'Passwords do not match.',
   passwordBreached: 'This password has appeared in a known data breach. Choose a different one.',
-  successMessage: 'Account created! Check your email to verify your address.',
+  successMessage: 'Check your email for a link to confirm your address and sign in.',
   errors: {
     ACCOUNT_EXISTS: 'An account with this email already exists. Please sign in or use a different email.',
     PASSWORD_INSECURE: 'This password is not secure enough. Please choose a stronger password.',
