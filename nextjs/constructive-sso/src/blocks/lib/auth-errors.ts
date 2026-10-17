@@ -9,9 +9,6 @@ export const ERROR_CODES = {
   PASSWORD_INSECURE: 'PASSWORD_INSECURE',
   PASSWORD_LEN: 'PASSWORD_LEN',
 
-  // Registration errors
-  ACCOUNT_EXISTS: 'ACCOUNT_EXISTS',
-
   // Invitation errors
   INVITE_NOT_FOUND: 'INVITE_NOT_FOUND',
   INVITE_LIMIT: 'INVITE_LIMIT',
@@ -36,8 +33,6 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   [ERROR_CODES.ACCOUNT_DISABLED]: 'Your account has been disabled. Please contact support for assistance.',
   [ERROR_CODES.PASSWORD_INSECURE]: 'This password is not secure enough. Please choose a stronger password.',
   [ERROR_CODES.PASSWORD_LEN]: 'Password must be between 8 and 63 characters long.',
-  [ERROR_CODES.ACCOUNT_EXISTS]:
-    'An account with this email already exists. Please sign in or use a different email.',
   [ERROR_CODES.INVITE_NOT_FOUND]:
     'The invitation code is invalid or has expired. Please check the code or request a new invitation.',
   [ERROR_CODES.INVITE_LIMIT]: 'This invitation has reached its usage limit. Please request a new invitation.',
@@ -182,8 +177,8 @@ function isValidationError(value: unknown): value is ValidationErrorLike {
  * 1. AuthError instance (has typed code)
  * 2. error.extensions.code (GraphQL error format)
  * 3. error.code (generic error format)
- * 4. Error code embedded in message (e.g., "Error (Code: ACCOUNT_EXISTS)")
- * 5. Direct code match in error message (e.g., "ACCOUNT_EXISTS")
+ * 4. Error code embedded in message (e.g., "Error (Code: INVALID_CREDENTIALS)")
+ * 5. Direct code match in error message (e.g., "INVALID_CREDENTIALS")
  */
 function extractErrorCode(error: unknown, knownCodes: string[]): string | null {
   // Handle AuthError instances

@@ -27,19 +27,6 @@ export const loginSchema = z.object({
 export type LoginFormData = z.infer<typeof loginSchema>;
 
 /**
- * Registration form validation schema (auth-sign-up-card).
- * Password-confirm match is validated inline in the component (the confirm
- * field is prop-conditional), so it is not part of this schema.
- */
-export const signUpSchema = z.object({
-  email: emailSchema,
-  password: passwordSchema,
-  rememberMe: z.boolean().optional()
-});
-
-export type SignUpFormData = z.infer<typeof signUpSchema>;
-
-/**
  * Forgot-password form validation schema (auth-forgot-password-card). Email only.
  */
 export const forgotPasswordSchema = z.object({
