@@ -133,22 +133,22 @@ function App() {
 | `useSignUpSmsMutation` | Mutation | signUpSms |
 | `useSignInMagicLinkMutation` | Mutation | signInMagicLink |
 | `useSignInSmsOtpMutation` | Mutation | signInSmsOtp |
-| `useSignUpMutation` | Mutation | signUp |
 | `useCompleteMfaChallengeMutation` | Mutation | completeMfaChallenge |
+| `useSignUpMutation` | Mutation | signUp |
 | `useSignInMutation` | Mutation | signIn |
+| `useSendVerificationEmailMutation` | Mutation | sendVerificationEmail |
+| `useForgotPasswordMutation` | Mutation | forgotPassword |
+| `useRequestCrossOriginTokenMutation` | Mutation | requestCrossOriginToken |
 | `useSetPrincipalEntitiesMutation` | Mutation | setPrincipalEntities |
 | `useLinkIdentityMutation` | Mutation | linkIdentity |
 | `useCreatePrincipalFromPresetMutation` | Mutation | createPrincipalFromPreset |
-| `useUpdatePrincipalMutation` | Mutation | updatePrincipal |
 | `useExtendTokenExpiresMutation` | Mutation | extendTokenExpires |
+| `useUpdatePrincipalMutation` | Mutation | updatePrincipal |
 | `useMintAccessTokenMutation` | Mutation | mintAccessToken |
 | `useCreateOrgApiKeyMutation` | Mutation | createOrgApiKey |
 | `useSetPrincipalScopeMutation` | Mutation | setPrincipalScope |
 | `useCreateApiKeyMutation` | Mutation | createApiKey |
 | `useCreateChildPrincipalMutation` | Mutation | createChildPrincipal |
-| `useRequestCrossOriginTokenMutation` | Mutation | requestCrossOriginToken |
-| `useSendVerificationEmailMutation` | Mutation | sendVerificationEmail |
-| `useForgotPasswordMutation` | Mutation | forgotPassword |
 | `useProvisionBucketMutation` | Mutation | Reconcile an S3 bucket for a logical bucket in the database.
 Reads the bucket config via RLS, then enqueues the same
 storage:provision_bucket job used by the INSERT trigger. This is
@@ -242,7 +242,7 @@ const { data: item } = useEmailQuery({
 const { mutate: create } = useCreateEmailMutation({
   selection: { fields: { id: true } },
 });
-create({ ownerId: '<UUID>', email: '<Email>', isVerified: '<Boolean>', isPrimary: '<Boolean>', name: '<String>' });
+create({ ownerId: '<UUID>', email: '<String>', isVerified: '<Boolean>', isPrimary: '<Boolean>', name: '<String>' });
 ```
 
 ### PhoneNumber
@@ -305,7 +305,7 @@ const { data: item } = useAuditLogAuthQuery({
 const { mutate: create } = useCreateAuditLogAuthMutation({
   selection: { fields: { id: true } },
 });
-create({ event: '<String>', actorId: '<UUID>', origin: '<Origin>', userAgent: '<String>', ipAddress: '<InternetAddress>', success: '<Boolean>', details: '<JSON>' });
+create({ event: '<String>', actorId: '<UUID>', origin: '<String>', userAgent: '<String>', ipAddress: '<InternetAddress>', success: '<Boolean>', details: '<JSON>' });
 ```
 
 ### IdentityProvider
@@ -873,17 +873,6 @@ signInSmsOtp
   |----------|------|
   | `input` | SignInSmsOtpInput (required) |
 
-### `useSignUpMutation`
-
-signUp
-
-- **Type:** mutation
-- **Arguments:**
-
-  | Argument | Type |
-  |----------|------|
-  | `input` | SignUpInput (required) |
-
 ### `useCompleteMfaChallengeMutation`
 
 completeMfaChallenge
@@ -895,6 +884,17 @@ completeMfaChallenge
   |----------|------|
   | `input` | CompleteMfaChallengeInput (required) |
 
+### `useSignUpMutation`
+
+signUp
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | SignUpInput (required) |
+
 ### `useSignInMutation`
 
 signIn
@@ -905,6 +905,39 @@ signIn
   | Argument | Type |
   |----------|------|
   | `input` | SignInInput (required) |
+
+### `useSendVerificationEmailMutation`
+
+sendVerificationEmail
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | SendVerificationEmailInput (required) |
+
+### `useForgotPasswordMutation`
+
+forgotPassword
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | ForgotPasswordInput (required) |
+
+### `useRequestCrossOriginTokenMutation`
+
+requestCrossOriginToken
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | RequestCrossOriginTokenInput (required) |
 
 ### `useSetPrincipalEntitiesMutation`
 
@@ -939,17 +972,6 @@ createPrincipalFromPreset
   |----------|------|
   | `input` | CreatePrincipalFromPresetInput (required) |
 
-### `useUpdatePrincipalMutation`
-
-updatePrincipal
-
-- **Type:** mutation
-- **Arguments:**
-
-  | Argument | Type |
-  |----------|------|
-  | `input` | UpdatePrincipalInput (required) |
-
 ### `useExtendTokenExpiresMutation`
 
 extendTokenExpires
@@ -960,6 +982,17 @@ extendTokenExpires
   | Argument | Type |
   |----------|------|
   | `input` | ExtendTokenExpiresInput (required) |
+
+### `useUpdatePrincipalMutation`
+
+updatePrincipal
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | UpdatePrincipalInput (required) |
 
 ### `useMintAccessTokenMutation`
 
@@ -1015,39 +1048,6 @@ createChildPrincipal
   | Argument | Type |
   |----------|------|
   | `input` | CreateChildPrincipalInput (required) |
-
-### `useRequestCrossOriginTokenMutation`
-
-requestCrossOriginToken
-
-- **Type:** mutation
-- **Arguments:**
-
-  | Argument | Type |
-  |----------|------|
-  | `input` | RequestCrossOriginTokenInput (required) |
-
-### `useSendVerificationEmailMutation`
-
-sendVerificationEmail
-
-- **Type:** mutation
-- **Arguments:**
-
-  | Argument | Type |
-  |----------|------|
-  | `input` | SendVerificationEmailInput (required) |
-
-### `useForgotPasswordMutation`
-
-forgotPassword
-
-- **Type:** mutation
-- **Arguments:**
-
-  | Argument | Type |
-  |----------|------|
-  | `input` | ForgotPasswordInput (required) |
 
 ### `useProvisionBucketMutation`
 

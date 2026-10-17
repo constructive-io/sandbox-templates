@@ -231,7 +231,6 @@ export interface UUIDListFilter {
   anyGreaterThanOrEqualTo?: string;
 }
 // ============ Custom Scalar Types ============
-export type ConstructiveInternalTypeEmail = unknown;
 export type ConstructiveInternalTypeImage = unknown;
 // ============ Entity Types ============
 export interface OrgGetManagersRecord {
@@ -367,7 +366,7 @@ export interface AppInvite {
   /** Delivery channel for this invitation: email, sms, or link */
   channel?: string | null;
   /** Email address of the invited recipient (required when channel=email) */
-  email?: ConstructiveInternalTypeEmail | null;
+  email?: string | null;
   /** Phone number of the invited recipient in E.164 format (required when channel=sms) */
   phone?: string | null;
   /** User ID of the member who sent this invitation */
@@ -519,7 +518,7 @@ export interface OrgInvite {
   /** Delivery channel for this invitation: email, sms, or link */
   channel?: string | null;
   /** Email address of the invited recipient (required when channel=email) */
-  email?: ConstructiveInternalTypeEmail | null;
+  email?: string | null;
   /** Phone number of the invited recipient in E.164 format (required when channel=sms) */
   phone?: string | null;
   /** User ID of the member who sent this invitation */
@@ -1882,8 +1881,6 @@ export interface AppInviteFilter {
   id?: UUIDFilter;
   /** Filter by the object’s `channel` field. */
   channel?: StringFilter;
-  /** Filter by the object’s `email` field. */
-  email?: ConstructiveInternalTypeEmailFilter;
   /** Filter by the object’s `phone` field. */
   phone?: StringFilter;
   /** Filter by the object’s `senderId` field. */
@@ -2174,8 +2171,6 @@ export interface OrgInviteFilter {
   id?: UUIDFilter;
   /** Filter by the object’s `channel` field. */
   channel?: StringFilter;
-  /** Filter by the object’s `email` field. */
-  email?: ConstructiveInternalTypeEmailFilter;
   /** Filter by the object’s `phone` field. */
   phone?: StringFilter;
   /** Filter by the object’s `senderId` field. */
@@ -3764,7 +3759,7 @@ export interface CreateAppInviteInput {
   clientMutationId?: string;
   appInvite: {
     channel?: string;
-    email?: ConstructiveInternalTypeEmail;
+    email?: string;
     phone?: string;
     inviteLimit?: number;
     multiple?: boolean;
@@ -3774,7 +3769,7 @@ export interface CreateAppInviteInput {
 }
 export interface AppInvitePatch {
   channel?: string | null;
-  email?: ConstructiveInternalTypeEmail | null;
+  email?: string | null;
   phone?: string | null;
   senderId?: string | null;
   inviteToken?: string | null;
@@ -3983,7 +3978,7 @@ export interface CreateOrgInviteInput {
   clientMutationId?: string;
   orgInvite: {
     channel?: string;
-    email?: ConstructiveInternalTypeEmail;
+    email?: string;
     phone?: string;
     receiverId?: string;
     inviteLimit?: number;
@@ -3996,7 +3991,7 @@ export interface CreateOrgInviteInput {
 }
 export interface OrgInvitePatch {
   channel?: string | null;
-  email?: ConstructiveInternalTypeEmail | null;
+  email?: string | null;
   phone?: string | null;
   senderId?: string | null;
   receiverId?: string | null;
@@ -4675,83 +4670,6 @@ export interface AppMembershipToManyAppMembershipProfileFilter {
   /** Filters to entities where no related entity matches. */
   none?: AppMembershipProfileFilter;
 }
-/** A filter to be used against ConstructiveInternalTypeEmail fields. All fields are combined with a logical ‘and.’ */
-export interface ConstructiveInternalTypeEmailFilter {
-  /** Is null (if `true` is specified) or is not null (if `false` is specified). */
-  isNull?: boolean;
-  /** Equal to the specified value. */
-  equalTo?: string;
-  /** Not equal to the specified value. */
-  notEqualTo?: string;
-  /** Not equal to the specified value, treating null like an ordinary value. */
-  distinctFrom?: string;
-  /** Equal to the specified value, treating null like an ordinary value. */
-  notDistinctFrom?: string;
-  /** Included in the specified list. */
-  in?: string[];
-  /** Not included in the specified list. */
-  notIn?: string[];
-  /** Less than the specified value. */
-  lessThan?: string;
-  /** Less than or equal to the specified value. */
-  lessThanOrEqualTo?: string;
-  /** Greater than the specified value. */
-  greaterThan?: string;
-  /** Greater than or equal to the specified value. */
-  greaterThanOrEqualTo?: string;
-  /** Contains the specified string (case-sensitive). */
-  includes?: string;
-  /** Does not contain the specified string (case-sensitive). */
-  notIncludes?: string;
-  /** Contains the specified string (case-insensitive). */
-  includesInsensitive?: ConstructiveInternalTypeEmail;
-  /** Does not contain the specified string (case-insensitive). */
-  notIncludesInsensitive?: ConstructiveInternalTypeEmail;
-  /** Starts with the specified string (case-sensitive). */
-  startsWith?: string;
-  /** Does not start with the specified string (case-sensitive). */
-  notStartsWith?: string;
-  /** Starts with the specified string (case-insensitive). */
-  startsWithInsensitive?: ConstructiveInternalTypeEmail;
-  /** Does not start with the specified string (case-insensitive). */
-  notStartsWithInsensitive?: ConstructiveInternalTypeEmail;
-  /** Ends with the specified string (case-sensitive). */
-  endsWith?: string;
-  /** Does not end with the specified string (case-sensitive). */
-  notEndsWith?: string;
-  /** Ends with the specified string (case-insensitive). */
-  endsWithInsensitive?: ConstructiveInternalTypeEmail;
-  /** Does not end with the specified string (case-insensitive). */
-  notEndsWithInsensitive?: ConstructiveInternalTypeEmail;
-  /** Matches the specified pattern (case-sensitive). An underscore (_) matches any single character; a percent sign (%) matches any sequence of zero or more characters. */
-  like?: string;
-  /** Does not match the specified pattern (case-sensitive). An underscore (_) matches any single character; a percent sign (%) matches any sequence of zero or more characters. */
-  notLike?: string;
-  /** Matches the specified pattern (case-insensitive). An underscore (_) matches any single character; a percent sign (%) matches any sequence of zero or more characters. */
-  likeInsensitive?: ConstructiveInternalTypeEmail;
-  /** Does not match the specified pattern (case-insensitive). An underscore (_) matches any single character; a percent sign (%) matches any sequence of zero or more characters. */
-  notLikeInsensitive?: ConstructiveInternalTypeEmail;
-  /** Equal to the specified value (case-insensitive). */
-  equalToInsensitive?: ConstructiveInternalTypeEmail;
-  /** Not equal to the specified value (case-insensitive). */
-  notEqualToInsensitive?: ConstructiveInternalTypeEmail;
-  /** Not equal to the specified value, treating null like an ordinary value (case-insensitive). */
-  distinctFromInsensitive?: ConstructiveInternalTypeEmail;
-  /** Equal to the specified value, treating null like an ordinary value (case-insensitive). */
-  notDistinctFromInsensitive?: ConstructiveInternalTypeEmail;
-  /** Included in the specified list (case-insensitive). */
-  inInsensitive?: ConstructiveInternalTypeEmail[];
-  /** Not included in the specified list (case-insensitive). */
-  notInInsensitive?: ConstructiveInternalTypeEmail[];
-  /** Less than the specified value (case-insensitive). */
-  lessThanInsensitive?: ConstructiveInternalTypeEmail;
-  /** Less than or equal to the specified value (case-insensitive). */
-  lessThanOrEqualToInsensitive?: ConstructiveInternalTypeEmail;
-  /** Greater than the specified value (case-insensitive). */
-  greaterThanInsensitive?: ConstructiveInternalTypeEmail;
-  /** Greater than or equal to the specified value (case-insensitive). */
-  greaterThanOrEqualToInsensitive?: ConstructiveInternalTypeEmail;
-}
 /** A filter to be used against many `OrgCapabilityDefaultCapability` object types. All fields are combined with a logical ‘and.’ */
 export interface OrgCapabilityToManyOrgCapabilityDefaultCapabilityFilter {
   /** Filters to entities where at least one related entity matches. */
@@ -5038,7 +4956,7 @@ export interface AppInviteInput {
   /** Delivery channel for this invitation: email, sms, or link */
   channel?: string;
   /** Email address of the invited recipient (required when channel=email) */
-  email?: ConstructiveInternalTypeEmail;
+  email?: string;
   /** Phone number of the invited recipient in E.164 format (required when channel=sms) */
   phone?: string;
   /** Maximum number of times this invite can be claimed; -1 means unlimited */
@@ -5137,7 +5055,7 @@ export interface OrgInviteInput {
   /** Delivery channel for this invitation: email, sms, or link */
   channel?: string;
   /** Email address of the invited recipient (required when channel=email) */
-  email?: ConstructiveInternalTypeEmail;
+  email?: string;
   /** Phone number of the invited recipient in E.164 format (required when channel=sms) */
   phone?: string;
   /** User ID of the intended recipient, if targeting a specific user */
@@ -5954,8 +5872,6 @@ export interface AppInviteFilter {
   id?: UUIDFilter;
   /** Filter by the object’s `channel` field. */
   channel?: StringFilter;
-  /** Filter by the object’s `email` field. */
-  email?: ConstructiveInternalTypeEmailFilter;
   /** Filter by the object’s `phone` field. */
   phone?: StringFilter;
   /** Filter by the object’s `senderId` field. */
@@ -5995,8 +5911,6 @@ export interface OrgInviteFilter {
   id?: UUIDFilter;
   /** Filter by the object’s `channel` field. */
   channel?: StringFilter;
-  /** Filter by the object’s `email` field. */
-  email?: ConstructiveInternalTypeEmailFilter;
   /** Filter by the object’s `phone` field. */
   phone?: StringFilter;
   /** Filter by the object’s `senderId` field. */

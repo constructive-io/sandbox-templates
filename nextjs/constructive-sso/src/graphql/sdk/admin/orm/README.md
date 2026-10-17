@@ -453,7 +453,7 @@ CRUD operations for AppInvite records.
 |-------|------|----------|
 | `id` | UUID | No |
 | `channel` | String | Yes |
-| `email` | ConstructiveInternalTypeEmail | Yes |
+| `email` | String | Yes |
 | `phone` | String | Yes |
 | `senderId` | UUID | Yes |
 | `inviteToken` | String | Yes |
@@ -477,7 +477,7 @@ const items = await db.appInvite.findMany({ select: { id: true, channel: true, e
 const item = await db.appInvite.findOne({ id: '<UUID>', select: { id: true, channel: true, email: true, phone: true, senderId: true, inviteToken: true, inviteValid: true, inviteLimit: true, inviteCount: true, multiple: true, data: true, profileId: true, expiresAt: true, createdAt: true, updatedAt: true } }).execute();
 
 // Create
-const created = await db.appInvite.create({ data: { channel: '<String>', email: '<Email>', phone: '<String>', senderId: '<UUID>', inviteToken: '<String>', inviteValid: '<Boolean>', inviteLimit: '<Int>', inviteCount: '<Int>', multiple: '<Boolean>', data: '<JSON>', profileId: '<UUID>', expiresAt: '<Datetime>' }, select: { id: true } }).execute();
+const created = await db.appInvite.create({ data: { channel: '<String>', email: '<String>', phone: '<String>', senderId: '<UUID>', inviteToken: '<String>', inviteValid: '<Boolean>', inviteLimit: '<Int>', inviteCount: '<Int>', multiple: '<Boolean>', data: '<JSON>', profileId: '<UUID>', expiresAt: '<Datetime>' }, select: { id: true } }).execute();
 
 // Update
 const updated = await db.appInvite.update({ where: { id: '<UUID>' }, data: { channel: '<String>' }, select: { id: true } }).execute();
@@ -784,7 +784,7 @@ CRUD operations for OrgInvite records.
 |-------|------|----------|
 | `id` | UUID | No |
 | `channel` | String | Yes |
-| `email` | ConstructiveInternalTypeEmail | Yes |
+| `email` | String | Yes |
 | `phone` | String | Yes |
 | `senderId` | UUID | Yes |
 | `receiverId` | UUID | Yes |
@@ -811,7 +811,7 @@ const items = await db.orgInvite.findMany({ select: { id: true, channel: true, e
 const item = await db.orgInvite.findOne({ id: '<UUID>', select: { id: true, channel: true, email: true, phone: true, senderId: true, receiverId: true, inviteToken: true, inviteValid: true, inviteLimit: true, inviteCount: true, multiple: true, data: true, profileId: true, isReadOnly: true, expiresAt: true, createdAt: true, updatedAt: true, entityId: true } }).execute();
 
 // Create
-const created = await db.orgInvite.create({ data: { channel: '<String>', email: '<Email>', phone: '<String>', senderId: '<UUID>', receiverId: '<UUID>', inviteToken: '<String>', inviteValid: '<Boolean>', inviteLimit: '<Int>', inviteCount: '<Int>', multiple: '<Boolean>', data: '<JSON>', profileId: '<UUID>', isReadOnly: '<Boolean>', expiresAt: '<Datetime>', entityId: '<UUID>' }, select: { id: true } }).execute();
+const created = await db.orgInvite.create({ data: { channel: '<String>', email: '<String>', phone: '<String>', senderId: '<UUID>', receiverId: '<UUID>', inviteToken: '<String>', inviteValid: '<Boolean>', inviteLimit: '<Int>', inviteCount: '<Int>', multiple: '<Boolean>', data: '<JSON>', profileId: '<UUID>', isReadOnly: '<Boolean>', expiresAt: '<Datetime>', entityId: '<UUID>' }, select: { id: true } }).execute();
 
 // Update
 const updated = await db.orgInvite.update({ where: { id: '<UUID>' }, data: { channel: '<String>' }, select: { id: true } }).execute();

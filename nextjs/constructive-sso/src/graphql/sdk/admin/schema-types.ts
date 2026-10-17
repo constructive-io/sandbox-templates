@@ -64,7 +64,6 @@ import type {
   UUIDListFilter,
   VectorFilter,
 } from './types';
-export type ConstructiveInternalTypeEmail = unknown;
 export type ConstructiveInternalTypeImage = unknown;
 /** Methods to use when ordering `AppCapabilityDefaultGrant`. */
 export type AppCapabilityDefaultGrantOrderBy =
@@ -1238,8 +1237,6 @@ export interface AppInviteFilter {
   id?: UUIDFilter;
   /** Filter by the object’s `channel` field. */
   channel?: StringFilter;
-  /** Filter by the object’s `email` field. */
-  email?: ConstructiveInternalTypeEmailFilter;
   /** Filter by the object’s `phone` field. */
   phone?: StringFilter;
   /** Filter by the object’s `senderId` field. */
@@ -1272,83 +1269,6 @@ export interface AppInviteFilter {
   profile?: AppProfileFilter;
   /** A related `profile` exists. */
   profileExists?: boolean;
-}
-/** A filter to be used against ConstructiveInternalTypeEmail fields. All fields are combined with a logical ‘and.’ */
-export interface ConstructiveInternalTypeEmailFilter {
-  /** Is null (if `true` is specified) or is not null (if `false` is specified). */
-  isNull?: boolean;
-  /** Equal to the specified value. */
-  equalTo?: string;
-  /** Not equal to the specified value. */
-  notEqualTo?: string;
-  /** Not equal to the specified value, treating null like an ordinary value. */
-  distinctFrom?: string;
-  /** Equal to the specified value, treating null like an ordinary value. */
-  notDistinctFrom?: string;
-  /** Included in the specified list. */
-  in?: string[];
-  /** Not included in the specified list. */
-  notIn?: string[];
-  /** Less than the specified value. */
-  lessThan?: string;
-  /** Less than or equal to the specified value. */
-  lessThanOrEqualTo?: string;
-  /** Greater than the specified value. */
-  greaterThan?: string;
-  /** Greater than or equal to the specified value. */
-  greaterThanOrEqualTo?: string;
-  /** Contains the specified string (case-sensitive). */
-  includes?: string;
-  /** Does not contain the specified string (case-sensitive). */
-  notIncludes?: string;
-  /** Contains the specified string (case-insensitive). */
-  includesInsensitive?: ConstructiveInternalTypeEmail;
-  /** Does not contain the specified string (case-insensitive). */
-  notIncludesInsensitive?: ConstructiveInternalTypeEmail;
-  /** Starts with the specified string (case-sensitive). */
-  startsWith?: string;
-  /** Does not start with the specified string (case-sensitive). */
-  notStartsWith?: string;
-  /** Starts with the specified string (case-insensitive). */
-  startsWithInsensitive?: ConstructiveInternalTypeEmail;
-  /** Does not start with the specified string (case-insensitive). */
-  notStartsWithInsensitive?: ConstructiveInternalTypeEmail;
-  /** Ends with the specified string (case-sensitive). */
-  endsWith?: string;
-  /** Does not end with the specified string (case-sensitive). */
-  notEndsWith?: string;
-  /** Ends with the specified string (case-insensitive). */
-  endsWithInsensitive?: ConstructiveInternalTypeEmail;
-  /** Does not end with the specified string (case-insensitive). */
-  notEndsWithInsensitive?: ConstructiveInternalTypeEmail;
-  /** Matches the specified pattern (case-sensitive). An underscore (_) matches any single character; a percent sign (%) matches any sequence of zero or more characters. */
-  like?: string;
-  /** Does not match the specified pattern (case-sensitive). An underscore (_) matches any single character; a percent sign (%) matches any sequence of zero or more characters. */
-  notLike?: string;
-  /** Matches the specified pattern (case-insensitive). An underscore (_) matches any single character; a percent sign (%) matches any sequence of zero or more characters. */
-  likeInsensitive?: ConstructiveInternalTypeEmail;
-  /** Does not match the specified pattern (case-insensitive). An underscore (_) matches any single character; a percent sign (%) matches any sequence of zero or more characters. */
-  notLikeInsensitive?: ConstructiveInternalTypeEmail;
-  /** Equal to the specified value (case-insensitive). */
-  equalToInsensitive?: ConstructiveInternalTypeEmail;
-  /** Not equal to the specified value (case-insensitive). */
-  notEqualToInsensitive?: ConstructiveInternalTypeEmail;
-  /** Not equal to the specified value, treating null like an ordinary value (case-insensitive). */
-  distinctFromInsensitive?: ConstructiveInternalTypeEmail;
-  /** Equal to the specified value, treating null like an ordinary value (case-insensitive). */
-  notDistinctFromInsensitive?: ConstructiveInternalTypeEmail;
-  /** Included in the specified list (case-insensitive). */
-  inInsensitive?: ConstructiveInternalTypeEmail[];
-  /** Not included in the specified list (case-insensitive). */
-  notInInsensitive?: ConstructiveInternalTypeEmail[];
-  /** Less than the specified value (case-insensitive). */
-  lessThanInsensitive?: ConstructiveInternalTypeEmail;
-  /** Less than or equal to the specified value (case-insensitive). */
-  lessThanOrEqualToInsensitive?: ConstructiveInternalTypeEmail;
-  /** Greater than the specified value (case-insensitive). */
-  greaterThanInsensitive?: ConstructiveInternalTypeEmail;
-  /** Greater than or equal to the specified value (case-insensitive). */
-  greaterThanOrEqualToInsensitive?: ConstructiveInternalTypeEmail;
 }
 /** A filter to be used against many `AppProfileDefinitionGrant` object types. All fields are combined with a logical ‘and.’ */
 export interface AppCapabilityToManyAppProfileDefinitionGrantFilter {
@@ -1845,8 +1765,6 @@ export interface OrgInviteFilter {
   id?: UUIDFilter;
   /** Filter by the object’s `channel` field. */
   channel?: StringFilter;
-  /** Filter by the object’s `email` field. */
-  email?: ConstructiveInternalTypeEmailFilter;
   /** Filter by the object’s `phone` field. */
   phone?: StringFilter;
   /** Filter by the object’s `senderId` field. */
@@ -2847,7 +2765,7 @@ export interface AppInviteInput {
   /** Delivery channel for this invitation: email, sms, or link */
   channel?: string;
   /** Email address of the invited recipient (required when channel=email) */
-  email?: ConstructiveInternalTypeEmail;
+  email?: string;
   /** Phone number of the invited recipient in E.164 format (required when channel=sms) */
   phone?: string;
   /** Maximum number of times this invite can be claimed; -1 means unlimited */
@@ -2881,7 +2799,7 @@ export interface OrgInviteInput {
   /** Delivery channel for this invitation: email, sms, or link */
   channel?: string;
   /** Email address of the invited recipient (required when channel=email) */
-  email?: ConstructiveInternalTypeEmail;
+  email?: string;
   /** Phone number of the invited recipient in E.164 format (required when channel=sms) */
   phone?: string;
   /** User ID of the intended recipient, if targeting a specific user */
@@ -3070,23 +2988,6 @@ export interface OrgProfilePatch {
   /** The default profile is automatically assigned to new members when they join */
   isDefault?: boolean;
 }
-export interface UpdateAppMembershipInput {
-  clientMutationId?: string;
-  id: string;
-  /** An object where the defined keys will be set on the `AppMembership` being updated. */
-  appMembershipPatch: AppMembershipPatch;
-}
-/** Represents an update to a `AppMembership`. Fields that are set will be updated. */
-export interface AppMembershipPatch {
-  /** Whether this membership has been approved by an admin */
-  isApproved?: boolean;
-  /** Whether this member has been banned from the entity */
-  isBanned?: boolean;
-  /** Whether this membership is temporarily disabled */
-  isDisabled?: boolean;
-  /** Whether this member has been verified (e.g. email confirmation) */
-  isVerified?: boolean;
-}
 export interface UpdateAppInviteInput {
   clientMutationId?: string;
   id: string;
@@ -3099,7 +3000,7 @@ export interface AppInvitePatch {
   /** Delivery channel for this invitation: email, sms, or link */
   channel?: string;
   /** Email address of the invited recipient (required when channel=email) */
-  email?: ConstructiveInternalTypeEmail;
+  email?: string;
   /** Phone number of the invited recipient in E.164 format (required when channel=sms) */
   phone?: string;
   /** User ID of the member who sent this invitation */
@@ -3122,6 +3023,23 @@ export interface AppInvitePatch {
   expiresAt?: string;
   createdAt?: string;
   updatedAt?: string;
+}
+export interface UpdateAppMembershipInput {
+  clientMutationId?: string;
+  id: string;
+  /** An object where the defined keys will be set on the `AppMembership` being updated. */
+  appMembershipPatch: AppMembershipPatch;
+}
+/** Represents an update to a `AppMembership`. Fields that are set will be updated. */
+export interface AppMembershipPatch {
+  /** Whether this membership has been approved by an admin */
+  isApproved?: boolean;
+  /** Whether this member has been banned from the entity */
+  isBanned?: boolean;
+  /** Whether this membership is temporarily disabled */
+  isDisabled?: boolean;
+  /** Whether this member has been verified (e.g. email confirmation) */
+  isVerified?: boolean;
 }
 export interface UpdateOrgMembershipInput {
   clientMutationId?: string;
@@ -3152,7 +3070,7 @@ export interface OrgInvitePatch {
   /** Delivery channel for this invitation: email, sms, or link */
   channel?: string;
   /** Email address of the invited recipient (required when channel=email) */
-  email?: ConstructiveInternalTypeEmail;
+  email?: string;
   /** Phone number of the invited recipient in E.164 format (required when channel=sms) */
   phone?: string;
   /** User ID of the member who sent this invitation */
@@ -3351,6 +3269,10 @@ export interface OrgCapabilityConnection {
   edges: OrgCapabilityEdge[];
   pageInfo: PageInfo;
   totalCount: number;
+}
+/** Root meta schema type */
+export interface MetaSchema {
+  tables: MetaTable[];
 }
 /** A connection to a list of `OrgMember` values. */
 export interface OrgMemberConnection {
@@ -3562,17 +3484,17 @@ export interface OrgProfileConnection {
   pageInfo: PageInfo;
   totalCount: number;
 }
-/** A connection to a list of `AppMembership` values. */
-export interface AppMembershipConnection {
-  nodes: AppMembership[];
-  edges: AppMembershipEdge[];
-  pageInfo: PageInfo;
-  totalCount: number;
-}
 /** A connection to a list of `AppInvite` values. */
 export interface AppInviteConnection {
   nodes: AppInvite[];
   edges: AppInviteEdge[];
+  pageInfo: PageInfo;
+  totalCount: number;
+}
+/** A connection to a list of `AppMembership` values. */
+export interface AppMembershipConnection {
+  nodes: AppMembership[];
+  edges: AppMembershipEdge[];
   pageInfo: PageInfo;
   totalCount: number;
 }
@@ -3596,10 +3518,6 @@ export interface OrgMembershipSettingConnection {
   edges: OrgMembershipSettingEdge[];
   pageInfo: PageInfo;
   totalCount: number;
-}
-/** Root meta schema type */
-export interface MetaSchema {
-  tables: MetaTable[];
 }
 export interface AcceptAppInvitePayload {
   clientMutationId?: string | null;
@@ -3861,17 +3779,17 @@ export interface UpdateOrgProfilePayload {
   orgProfile?: OrgProfile | null;
   orgProfileEdge?: OrgProfileEdge | null;
 }
-export interface UpdateAppMembershipPayload {
-  clientMutationId?: string | null;
-  /** The `AppMembership` that was updated by this mutation. */
-  appMembership?: AppMembership | null;
-  appMembershipEdge?: AppMembershipEdge | null;
-}
 export interface UpdateAppInvitePayload {
   clientMutationId?: string | null;
   /** The `AppInvite` that was updated by this mutation. */
   appInvite?: AppInvite | null;
   appInviteEdge?: AppInviteEdge | null;
+}
+export interface UpdateAppMembershipPayload {
+  clientMutationId?: string | null;
+  /** The `AppMembership` that was updated by this mutation. */
+  appMembership?: AppMembership | null;
+  appMembershipEdge?: AppMembershipEdge | null;
 }
 export interface UpdateOrgMembershipPayload {
   clientMutationId?: string | null;
@@ -4063,6 +3981,33 @@ export interface OrgCapabilityEdge {
   /** The `OrgCapability` at the end of the edge. */
   node?: OrgCapability | null;
 }
+/** Information about a database table */
+export interface MetaTable {
+  /** Final GraphQL output type name */
+  name: string;
+  /** PostgreSQL table name */
+  tableName: string;
+  schemaName: string;
+  fields: MetaField[];
+  indexes: MetaIndex[];
+  constraints: MetaConstraints;
+  foreignKeyConstraints: MetaForeignKeyConstraint[];
+  primaryKeyConstraints: MetaPrimaryKeyConstraint[];
+  uniqueConstraints: MetaUniqueConstraint[];
+  relations: MetaRelations;
+  inflection: MetaInflection;
+  query: MetaQuery;
+  /** Storage metadata (null if not a storage table) */
+  storage?: MetaStorage | null;
+  /** Search metadata (null if no search configured) */
+  search?: MetaSearch | null;
+  /** i18n metadata (null if no @i18n tag) */
+  i18n?: MetaI18n | null;
+  /** Realtime metadata (null if no @realtime tag) */
+  realtime?: MetaRealtime | null;
+  /** Provisioning scope metadata (null if no @scope tag) */
+  scope?: MetaScope | null;
+}
 /** A `OrgMember` edge in the connection. */
 export interface OrgMemberEdge {
   cursor?: string | null;
@@ -4243,17 +4188,17 @@ export interface OrgProfileEdge {
   /** The `OrgProfile` at the end of the edge. */
   node?: OrgProfile | null;
 }
-/** A `AppMembership` edge in the connection. */
-export interface AppMembershipEdge {
-  cursor?: string | null;
-  /** The `AppMembership` at the end of the edge. */
-  node?: AppMembership | null;
-}
 /** A `AppInvite` edge in the connection. */
 export interface AppInviteEdge {
   cursor?: string | null;
   /** The `AppInvite` at the end of the edge. */
   node?: AppInvite | null;
+}
+/** A `AppMembership` edge in the connection. */
+export interface AppMembershipEdge {
+  cursor?: string | null;
+  /** The `AppMembership` at the end of the edge. */
+  node?: AppMembership | null;
 }
 /** A `OrgMembership` edge in the connection. */
 export interface OrgMembershipEdge {
@@ -4272,33 +4217,6 @@ export interface OrgMembershipSettingEdge {
   cursor?: string | null;
   /** The `OrgMembershipSetting` at the end of the edge. */
   node?: OrgMembershipSetting | null;
-}
-/** Information about a database table */
-export interface MetaTable {
-  /** Final GraphQL output type name */
-  name: string;
-  /** PostgreSQL table name */
-  tableName: string;
-  schemaName: string;
-  fields: MetaField[];
-  indexes: MetaIndex[];
-  constraints: MetaConstraints;
-  foreignKeyConstraints: MetaForeignKeyConstraint[];
-  primaryKeyConstraints: MetaPrimaryKeyConstraint[];
-  uniqueConstraints: MetaUniqueConstraint[];
-  relations: MetaRelations;
-  inflection: MetaInflection;
-  query: MetaQuery;
-  /** Storage metadata (null if not a storage table) */
-  storage?: MetaStorage | null;
-  /** Search metadata (null if no search configured) */
-  search?: MetaSearch | null;
-  /** i18n metadata (null if no @i18n tag) */
-  i18n?: MetaI18n | null;
-  /** Realtime metadata (null if no @realtime tag) */
-  realtime?: MetaRealtime | null;
-  /** Provisioning scope metadata (null if no @scope tag) */
-  scope?: MetaScope | null;
 }
 export interface ProvisionAppUserRecord {
   userId?: string | null;

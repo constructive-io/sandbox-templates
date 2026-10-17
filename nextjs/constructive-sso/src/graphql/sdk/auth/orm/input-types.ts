@@ -232,9 +232,7 @@ export interface UUIDListFilter {
 }
 // ============ Custom Scalar Types ============
 export type Base64EncodedBinary = unknown;
-export type ConstructiveInternalTypeEmail = unknown;
 export type ConstructiveInternalTypeImage = unknown;
-export type ConstructiveInternalTypeOrigin = unknown;
 /** Scoped sub-identities (API keys and agents) with precomputed SPRT */
 // ============ Entity Types ============
 export interface Principal {
@@ -299,7 +297,7 @@ export interface Email {
   id: string;
   ownerId?: string | null;
   /** The email address */
-  email?: ConstructiveInternalTypeEmail | null;
+  email?: string | null;
   /** Whether the email address has been verified via confirmation link */
   isVerified?: boolean | null;
   /** Whether this is the user's primary email address */
@@ -363,7 +361,7 @@ export interface AuditLogAuth {
   /** User who performed the authentication action; NULL if user was deleted */
   actorId?: string | null;
   /** Request origin (domain) where the auth event occurred */
-  origin?: ConstructiveInternalTypeOrigin | null;
+  origin?: string | null;
   /** Browser or client user-agent string from the request */
   userAgent?: string | null;
   /** IP address of the client that initiated the auth event */
@@ -858,8 +856,6 @@ export interface EmailFilter {
   id?: UUIDFilter;
   /** Filter by the object’s `ownerId` field. */
   ownerId?: UUIDFilter;
-  /** Filter by the object’s `email` field. */
-  email?: ConstructiveInternalTypeEmailFilter;
   /** Filter by the object’s `isVerified` field. */
   isVerified?: BooleanFilter;
   /** Filter by the object’s `isPrimary` field. */
@@ -954,8 +950,6 @@ export interface AuditLogAuthFilter {
   event?: StringFilter;
   /** Filter by the object’s `actorId` field. */
   actorId?: UUIDFilter;
-  /** Filter by the object’s `origin` field. */
-  origin?: ConstructiveInternalTypeOriginFilter;
   /** Filter by the object’s `userAgent` field. */
   userAgent?: StringFilter;
   /** Filter by the object’s `ipAddress` field. */
@@ -1507,7 +1501,7 @@ export interface CreateEmailInput {
   clientMutationId?: string;
   email: {
     ownerId?: string;
-    email: ConstructiveInternalTypeEmail;
+    email: string;
     isPrimary?: boolean;
     name?: string;
   };
@@ -1581,7 +1575,7 @@ export interface CreateAuditLogAuthInput {
   auditLogAuth: {
     event?: string;
     actorId: string;
-    origin?: ConstructiveInternalTypeOrigin;
+    origin?: string;
     userAgent?: string;
     ipAddress?: string;
     success?: boolean;
@@ -1591,7 +1585,7 @@ export interface CreateAuditLogAuthInput {
 export interface AuditLogAuthPatch {
   event?: string | null;
   actorId?: string | null;
-  origin?: ConstructiveInternalTypeOrigin | null;
+  origin?: string | null;
   userAgent?: string | null;
   ipAddress?: string | null;
   success?: boolean | null;
@@ -1931,16 +1925,6 @@ export interface SignInSmsOtpInput {
   rememberMe?: boolean;
   deviceToken?: string;
 }
-export interface SignUpInput {
-  clientMutationId?: string;
-  email?: string;
-  password?: string;
-  rememberMe?: boolean;
-  credentialKind?: string;
-  csrfToken?: string;
-  deviceToken?: string;
-  inviteToken?: string;
-}
 export interface CompleteMfaChallengeInput {
   clientMutationId?: string;
   userId?: string;
@@ -1952,6 +1936,16 @@ export interface CompleteMfaChallengeInput {
   trustDevice?: boolean;
   deviceToken?: string;
 }
+export interface SignUpInput {
+  clientMutationId?: string;
+  email?: string;
+  password?: string;
+  rememberMe?: boolean;
+  credentialKind?: string;
+  csrfToken?: string;
+  deviceToken?: string;
+  inviteToken?: string;
+}
 export interface SignInInput {
   clientMutationId?: string;
   email?: string;
@@ -1960,6 +1954,21 @@ export interface SignInInput {
   credentialKind?: string;
   csrfToken?: string;
   deviceToken?: string;
+}
+export interface SendVerificationEmailInput {
+  clientMutationId?: string;
+  email?: string;
+}
+export interface ForgotPasswordInput {
+  clientMutationId?: string;
+  email?: string;
+}
+export interface RequestCrossOriginTokenInput {
+  clientMutationId?: string;
+  email?: string;
+  password?: string;
+  origin?: string;
+  rememberMe?: boolean;
 }
 export interface SetPrincipalEntitiesInput {
   clientMutationId?: string;
@@ -2024,21 +2033,6 @@ export interface CreateChildPrincipalInput {
   isReadOnly?: boolean;
   expiresAt?: string;
   intent?: string;
-}
-export interface RequestCrossOriginTokenInput {
-  clientMutationId?: string;
-  email?: string;
-  password?: string;
-  origin?: ConstructiveInternalTypeOrigin;
-  rememberMe?: boolean;
-}
-export interface SendVerificationEmailInput {
-  clientMutationId?: string;
-  email?: ConstructiveInternalTypeEmail;
-}
-export interface ForgotPasswordInput {
-  clientMutationId?: string;
-  email?: ConstructiveInternalTypeEmail;
 }
 export interface ProvisionBucketInput {
   /** The logical bucket key (e.g., "public", "private") */
@@ -2119,83 +2113,6 @@ export interface PrincipalToManyPrincipalScopeOverrideFilter {
   /** Filters to entities where no related entity matches. */
   none?: PrincipalScopeOverrideFilter;
 }
-/** A filter to be used against ConstructiveInternalTypeEmail fields. All fields are combined with a logical ‘and.’ */
-export interface ConstructiveInternalTypeEmailFilter {
-  /** Is null (if `true` is specified) or is not null (if `false` is specified). */
-  isNull?: boolean;
-  /** Equal to the specified value. */
-  equalTo?: string;
-  /** Not equal to the specified value. */
-  notEqualTo?: string;
-  /** Not equal to the specified value, treating null like an ordinary value. */
-  distinctFrom?: string;
-  /** Equal to the specified value, treating null like an ordinary value. */
-  notDistinctFrom?: string;
-  /** Included in the specified list. */
-  in?: string[];
-  /** Not included in the specified list. */
-  notIn?: string[];
-  /** Less than the specified value. */
-  lessThan?: string;
-  /** Less than or equal to the specified value. */
-  lessThanOrEqualTo?: string;
-  /** Greater than the specified value. */
-  greaterThan?: string;
-  /** Greater than or equal to the specified value. */
-  greaterThanOrEqualTo?: string;
-  /** Contains the specified string (case-sensitive). */
-  includes?: string;
-  /** Does not contain the specified string (case-sensitive). */
-  notIncludes?: string;
-  /** Contains the specified string (case-insensitive). */
-  includesInsensitive?: ConstructiveInternalTypeEmail;
-  /** Does not contain the specified string (case-insensitive). */
-  notIncludesInsensitive?: ConstructiveInternalTypeEmail;
-  /** Starts with the specified string (case-sensitive). */
-  startsWith?: string;
-  /** Does not start with the specified string (case-sensitive). */
-  notStartsWith?: string;
-  /** Starts with the specified string (case-insensitive). */
-  startsWithInsensitive?: ConstructiveInternalTypeEmail;
-  /** Does not start with the specified string (case-insensitive). */
-  notStartsWithInsensitive?: ConstructiveInternalTypeEmail;
-  /** Ends with the specified string (case-sensitive). */
-  endsWith?: string;
-  /** Does not end with the specified string (case-sensitive). */
-  notEndsWith?: string;
-  /** Ends with the specified string (case-insensitive). */
-  endsWithInsensitive?: ConstructiveInternalTypeEmail;
-  /** Does not end with the specified string (case-insensitive). */
-  notEndsWithInsensitive?: ConstructiveInternalTypeEmail;
-  /** Matches the specified pattern (case-sensitive). An underscore (_) matches any single character; a percent sign (%) matches any sequence of zero or more characters. */
-  like?: string;
-  /** Does not match the specified pattern (case-sensitive). An underscore (_) matches any single character; a percent sign (%) matches any sequence of zero or more characters. */
-  notLike?: string;
-  /** Matches the specified pattern (case-insensitive). An underscore (_) matches any single character; a percent sign (%) matches any sequence of zero or more characters. */
-  likeInsensitive?: ConstructiveInternalTypeEmail;
-  /** Does not match the specified pattern (case-insensitive). An underscore (_) matches any single character; a percent sign (%) matches any sequence of zero or more characters. */
-  notLikeInsensitive?: ConstructiveInternalTypeEmail;
-  /** Equal to the specified value (case-insensitive). */
-  equalToInsensitive?: ConstructiveInternalTypeEmail;
-  /** Not equal to the specified value (case-insensitive). */
-  notEqualToInsensitive?: ConstructiveInternalTypeEmail;
-  /** Not equal to the specified value, treating null like an ordinary value (case-insensitive). */
-  distinctFromInsensitive?: ConstructiveInternalTypeEmail;
-  /** Equal to the specified value, treating null like an ordinary value (case-insensitive). */
-  notDistinctFromInsensitive?: ConstructiveInternalTypeEmail;
-  /** Included in the specified list (case-insensitive). */
-  inInsensitive?: ConstructiveInternalTypeEmail[];
-  /** Not included in the specified list (case-insensitive). */
-  notInInsensitive?: ConstructiveInternalTypeEmail[];
-  /** Less than the specified value (case-insensitive). */
-  lessThanInsensitive?: ConstructiveInternalTypeEmail;
-  /** Less than or equal to the specified value (case-insensitive). */
-  lessThanOrEqualToInsensitive?: ConstructiveInternalTypeEmail;
-  /** Greater than the specified value (case-insensitive). */
-  greaterThanInsensitive?: ConstructiveInternalTypeEmail;
-  /** Greater than or equal to the specified value (case-insensitive). */
-  greaterThanOrEqualToInsensitive?: ConstructiveInternalTypeEmail;
-}
 /** A filter to be used against Base64EncodedBinary fields. All fields are combined with a logical ‘and.’ */
 export interface Base64EncodedBinaryFilter {
   /** Is null (if `true` is specified) or is not null (if `false` is specified). */
@@ -2212,83 +2129,6 @@ export interface Base64EncodedBinaryFilter {
   in?: Base64EncodedBinary[];
   /** Not included in the specified list. */
   notIn?: Base64EncodedBinary[];
-}
-/** A filter to be used against ConstructiveInternalTypeOrigin fields. All fields are combined with a logical ‘and.’ */
-export interface ConstructiveInternalTypeOriginFilter {
-  /** Is null (if `true` is specified) or is not null (if `false` is specified). */
-  isNull?: boolean;
-  /** Equal to the specified value. */
-  equalTo?: ConstructiveInternalTypeOrigin;
-  /** Not equal to the specified value. */
-  notEqualTo?: ConstructiveInternalTypeOrigin;
-  /** Not equal to the specified value, treating null like an ordinary value. */
-  distinctFrom?: ConstructiveInternalTypeOrigin;
-  /** Equal to the specified value, treating null like an ordinary value. */
-  notDistinctFrom?: ConstructiveInternalTypeOrigin;
-  /** Included in the specified list. */
-  in?: ConstructiveInternalTypeOrigin[];
-  /** Not included in the specified list. */
-  notIn?: ConstructiveInternalTypeOrigin[];
-  /** Less than the specified value. */
-  lessThan?: ConstructiveInternalTypeOrigin;
-  /** Less than or equal to the specified value. */
-  lessThanOrEqualTo?: ConstructiveInternalTypeOrigin;
-  /** Greater than the specified value. */
-  greaterThan?: ConstructiveInternalTypeOrigin;
-  /** Greater than or equal to the specified value. */
-  greaterThanOrEqualTo?: ConstructiveInternalTypeOrigin;
-  /** Contains the specified string (case-sensitive). */
-  includes?: ConstructiveInternalTypeOrigin;
-  /** Does not contain the specified string (case-sensitive). */
-  notIncludes?: ConstructiveInternalTypeOrigin;
-  /** Contains the specified string (case-insensitive). */
-  includesInsensitive?: ConstructiveInternalTypeOrigin;
-  /** Does not contain the specified string (case-insensitive). */
-  notIncludesInsensitive?: ConstructiveInternalTypeOrigin;
-  /** Starts with the specified string (case-sensitive). */
-  startsWith?: ConstructiveInternalTypeOrigin;
-  /** Does not start with the specified string (case-sensitive). */
-  notStartsWith?: ConstructiveInternalTypeOrigin;
-  /** Starts with the specified string (case-insensitive). */
-  startsWithInsensitive?: ConstructiveInternalTypeOrigin;
-  /** Does not start with the specified string (case-insensitive). */
-  notStartsWithInsensitive?: ConstructiveInternalTypeOrigin;
-  /** Ends with the specified string (case-sensitive). */
-  endsWith?: ConstructiveInternalTypeOrigin;
-  /** Does not end with the specified string (case-sensitive). */
-  notEndsWith?: ConstructiveInternalTypeOrigin;
-  /** Ends with the specified string (case-insensitive). */
-  endsWithInsensitive?: ConstructiveInternalTypeOrigin;
-  /** Does not end with the specified string (case-insensitive). */
-  notEndsWithInsensitive?: ConstructiveInternalTypeOrigin;
-  /** Matches the specified pattern (case-sensitive). An underscore (_) matches any single character; a percent sign (%) matches any sequence of zero or more characters. */
-  like?: ConstructiveInternalTypeOrigin;
-  /** Does not match the specified pattern (case-sensitive). An underscore (_) matches any single character; a percent sign (%) matches any sequence of zero or more characters. */
-  notLike?: ConstructiveInternalTypeOrigin;
-  /** Matches the specified pattern (case-insensitive). An underscore (_) matches any single character; a percent sign (%) matches any sequence of zero or more characters. */
-  likeInsensitive?: ConstructiveInternalTypeOrigin;
-  /** Does not match the specified pattern (case-insensitive). An underscore (_) matches any single character; a percent sign (%) matches any sequence of zero or more characters. */
-  notLikeInsensitive?: ConstructiveInternalTypeOrigin;
-  /** Equal to the specified value (case-insensitive). */
-  equalToInsensitive?: string;
-  /** Not equal to the specified value (case-insensitive). */
-  notEqualToInsensitive?: string;
-  /** Not equal to the specified value, treating null like an ordinary value (case-insensitive). */
-  distinctFromInsensitive?: string;
-  /** Equal to the specified value, treating null like an ordinary value (case-insensitive). */
-  notDistinctFromInsensitive?: string;
-  /** Included in the specified list (case-insensitive). */
-  inInsensitive?: string[];
-  /** Not included in the specified list (case-insensitive). */
-  notInInsensitive?: string[];
-  /** Less than the specified value (case-insensitive). */
-  lessThanInsensitive?: string;
-  /** Less than or equal to the specified value (case-insensitive). */
-  lessThanOrEqualToInsensitive?: string;
-  /** Greater than the specified value (case-insensitive). */
-  greaterThanInsensitive?: string;
-  /** Greater than or equal to the specified value (case-insensitive). */
-  greaterThanOrEqualToInsensitive?: string;
 }
 /** A filter to be used against String fields with pg_trgm support. All fields are combined with a logical ‘and.’ */
 export interface StringTrgmFilter {
@@ -2484,7 +2324,7 @@ export interface TrgmSearchInput {
 export interface EmailInput {
   ownerId?: string;
   /** The email address */
-  email: ConstructiveInternalTypeEmail;
+  email: string;
   /** Whether this is the user's primary email address */
   isPrimary?: boolean;
   /** Optional user-provided label for this email (e.g. "Work", "Personal"). */
@@ -2749,8 +2589,6 @@ export interface EmailFilter {
   id?: UUIDFilter;
   /** Filter by the object’s `ownerId` field. */
   ownerId?: UUIDFilter;
-  /** Filter by the object’s `email` field. */
-  email?: ConstructiveInternalTypeEmailFilter;
   /** Filter by the object’s `isVerified` field. */
   isVerified?: BooleanFilter;
   /** Filter by the object’s `isPrimary` field. */
@@ -2848,8 +2686,6 @@ export interface AuditLogAuthFilter {
   event?: StringFilter;
   /** Filter by the object’s `actorId` field. */
   actorId?: UUIDFilter;
-  /** Filter by the object’s `origin` field. */
-  origin?: ConstructiveInternalTypeOriginFilter;
   /** Filter by the object’s `userAgent` field. */
   userAgent?: StringFilter;
   /** Filter by the object’s `ipAddress` field. */
@@ -3543,16 +3379,6 @@ export type SignInSmsOtpPayloadSelect = {
     select: SignInSmsOtpRecordSelect;
   };
 };
-export interface SignUpPayload {
-  clientMutationId?: string | null;
-  result?: SignUpRecord | null;
-}
-export type SignUpPayloadSelect = {
-  clientMutationId?: boolean;
-  result?: {
-    select: SignUpRecordSelect;
-  };
-};
 export interface CompleteMfaChallengePayload {
   clientMutationId?: string | null;
   result?: CompleteMfaChallengeRecord | null;
@@ -3561,6 +3387,16 @@ export type CompleteMfaChallengePayloadSelect = {
   clientMutationId?: boolean;
   result?: {
     select: CompleteMfaChallengeRecordSelect;
+  };
+};
+export interface SignUpPayload {
+  clientMutationId?: string | null;
+  result?: SignUpRecord | null;
+}
+export type SignUpPayloadSelect = {
+  clientMutationId?: boolean;
+  result?: {
+    select: SignUpRecordSelect;
   };
 };
 export interface SignInPayload {
@@ -3572,6 +3408,28 @@ export type SignInPayloadSelect = {
   result?: {
     select: SignInRecordSelect;
   };
+};
+export interface SendVerificationEmailPayload {
+  clientMutationId?: string | null;
+  result?: boolean | null;
+}
+export type SendVerificationEmailPayloadSelect = {
+  clientMutationId?: boolean;
+  result?: boolean;
+};
+export interface ForgotPasswordPayload {
+  clientMutationId?: string | null;
+}
+export type ForgotPasswordPayloadSelect = {
+  clientMutationId?: boolean;
+};
+export interface RequestCrossOriginTokenPayload {
+  clientMutationId?: string | null;
+  result?: string | null;
+}
+export type RequestCrossOriginTokenPayloadSelect = {
+  clientMutationId?: boolean;
+  result?: boolean;
 };
 export interface SetPrincipalEntitiesPayload {
   clientMutationId?: string | null;
@@ -3597,14 +3455,6 @@ export type CreatePrincipalFromPresetPayloadSelect = {
   clientMutationId?: boolean;
   result?: boolean;
 };
-export interface UpdatePrincipalPayload {
-  clientMutationId?: string | null;
-  result?: boolean | null;
-}
-export type UpdatePrincipalPayloadSelect = {
-  clientMutationId?: boolean;
-  result?: boolean;
-};
 export interface ExtendTokenExpiresPayload {
   clientMutationId?: string | null;
   result?: ExtendTokenExpiresRecord[] | null;
@@ -3614,6 +3464,14 @@ export type ExtendTokenExpiresPayloadSelect = {
   result?: {
     select: ExtendTokenExpiresRecordSelect;
   };
+};
+export interface UpdatePrincipalPayload {
+  clientMutationId?: string | null;
+  result?: boolean | null;
+}
+export type UpdatePrincipalPayloadSelect = {
+  clientMutationId?: boolean;
+  result?: boolean;
 };
 export interface MintAccessTokenPayload {
   clientMutationId?: string | null;
@@ -3660,28 +3518,6 @@ export interface CreateChildPrincipalPayload {
 export type CreateChildPrincipalPayloadSelect = {
   clientMutationId?: boolean;
   result?: boolean;
-};
-export interface RequestCrossOriginTokenPayload {
-  clientMutationId?: string | null;
-  result?: string | null;
-}
-export type RequestCrossOriginTokenPayloadSelect = {
-  clientMutationId?: boolean;
-  result?: boolean;
-};
-export interface SendVerificationEmailPayload {
-  clientMutationId?: string | null;
-  result?: boolean | null;
-}
-export type SendVerificationEmailPayloadSelect = {
-  clientMutationId?: boolean;
-  result?: boolean;
-};
-export interface ForgotPasswordPayload {
-  clientMutationId?: string | null;
-}
-export type ForgotPasswordPayloadSelect = {
-  clientMutationId?: boolean;
 };
 export interface ProvisionBucketPayload {
   /** The logical bucket row that was queued for reconciliation. */
@@ -3999,24 +3835,6 @@ export type SignInSmsOtpRecordSelect = {
   mfaRequired?: boolean;
   mfaChallengeToken?: boolean;
 };
-export interface SignUpRecord {
-  id?: string | null;
-  userId?: string | null;
-  accessToken?: string | null;
-  accessTokenExpiresAt?: string | null;
-  isVerified?: boolean | null;
-  totpEnabled?: boolean | null;
-  outDeviceToken?: string | null;
-}
-export type SignUpRecordSelect = {
-  id?: boolean;
-  userId?: boolean;
-  accessToken?: boolean;
-  accessTokenExpiresAt?: boolean;
-  isVerified?: boolean;
-  totpEnabled?: boolean;
-  outDeviceToken?: boolean;
-};
 export interface CompleteMfaChallengeRecord {
   id?: string | null;
   outUserId?: string | null;
@@ -4034,6 +3852,26 @@ export type CompleteMfaChallengeRecordSelect = {
   isVerified?: boolean;
   outDeviceToken?: boolean;
   deviceApprovalRequired?: boolean;
+};
+export interface SignUpRecord {
+  id?: string | null;
+  userId?: string | null;
+  accessToken?: string | null;
+  accessTokenExpiresAt?: string | null;
+  isVerified?: boolean | null;
+  totpEnabled?: boolean | null;
+  mfaSetupRequired?: boolean | null;
+  outDeviceToken?: string | null;
+}
+export type SignUpRecordSelect = {
+  id?: boolean;
+  userId?: boolean;
+  accessToken?: boolean;
+  accessTokenExpiresAt?: boolean;
+  isVerified?: boolean;
+  totpEnabled?: boolean;
+  mfaSetupRequired?: boolean;
+  outDeviceToken?: boolean;
 };
 export interface SignInRecord {
   id?: string | null;
