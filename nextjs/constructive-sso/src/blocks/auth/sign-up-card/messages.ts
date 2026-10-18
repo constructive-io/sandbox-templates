@@ -52,7 +52,7 @@ export const defaultSignUpCardMessages: SignUpCardMessages = {
   passwordStrengthStrong: 'Strong',
   passwordMismatch: 'Passwords do not match.',
   passwordBreached: 'This password has appeared in a known data breach. Choose a different one.',
-  successMessage: 'Check your email for a link to confirm your address and sign in.',
+  successMessage: 'Check your email to confirm your address, then sign in with your password.',
   errors: {
     ACCOUNT_EXISTS: 'An account with this email already exists. Please sign in or use a different email.',
     PASSWORD_INSECURE: 'This password is not secure enough. Please choose a stronger password.',
