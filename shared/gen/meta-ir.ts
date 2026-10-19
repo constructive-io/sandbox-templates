@@ -4,6 +4,7 @@
 // naming) are the generator's contract with the database. Every table and
 // field name comes from the `_meta` document; nothing here knows a schema.
 
+import type { FieldInput } from './app-spec.types.ts';
 import { camelCase, humanize, kebabCase, lcFirst, normalizeKey } from './names.ts';
 
 // ---------------------------------------------------------------------------
@@ -90,22 +91,7 @@ export function parseMetaDocument(document: unknown): MetaTable[] {
 // IR
 // ---------------------------------------------------------------------------
 
-export type FieldInput =
-	| 'text'
-	| 'textarea'
-	| 'email'
-	| 'url'
-	| 'number'
-	| 'integer'
-	| 'currency'
-	| 'boolean'
-	| 'date'
-	| 'datetime'
-	| 'time'
-	| 'select'
-	| 'relation'
-	| 'json'
-	| 'uuid';
+export type { FieldInput };
 
 export type FieldFormat =
 	| 'text'
