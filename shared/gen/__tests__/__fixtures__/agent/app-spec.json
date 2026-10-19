@@ -1,0 +1,29 @@
+{
+	"version": 1,
+	"name": "Agent Desk",
+	"tagline": "Threads, messages and tasks",
+	"backend": { "kind": "blueprint", "slug": "agent" },
+	"ui": {
+		"nav": ["agent_thread", "agent_task", "agent_message"],
+		"resources": {
+			"agent_thread": {
+				"label": "Threads",
+				"singular": "Thread",
+				"icon": "messages-square",
+				"fields": { "entity_id": { "hidden": true, "default": "$currentUserId" } }
+			},
+			"agent_task": {
+				"label": "Tasks",
+				"singular": "Task",
+				"icon": "list-checks",
+				"fields": { "entity_id": { "hidden": true, "required": false } }
+			},
+			"agent_message": {
+				"label": "Messages",
+				"singular": "Message",
+				"icon": "message-square",
+				"fields": { "entity_id": { "hidden": true, "required": false } }
+			}
+		}
+	}
+}

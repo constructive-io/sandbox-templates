@@ -1,0 +1,1198 @@
+{
+  "tables": [
+    {
+      "name": "ShiftSignup",
+      "tableName": "shift_signups",
+      "schemaName": "pool-62895054-3bc2441e-app-public",
+      "storage": null,
+      "search": null,
+      "query": {
+        "all": "shiftSignups",
+        "one": null,
+        "create": "createShiftSignup",
+        "update": "updateShiftSignup",
+        "delete": "deleteShiftSignup"
+      },
+      "inflection": {
+        "tableType": "ShiftSignup",
+        "allRows": "shiftSignups",
+        "connection": "ShiftSignupConnection",
+        "edge": "ShiftSignupEdge",
+        "filterType": "ShiftSignupFilter",
+        "orderByType": "ShiftSignupOrderBy",
+        "conditionType": "ShiftSignupCondition",
+        "patchType": "ShiftSignupPatch",
+        "createInputType": "CreateShiftSignupInput",
+        "createPayloadType": "CreateShiftSignupPayload",
+        "updatePayloadType": "UpdateShiftSignupPayload",
+        "deletePayloadType": "DeleteShiftSignupPayload"
+      },
+      "fields": [
+        {
+          "name": "shiftId",
+          "columnName": "shift_id",
+          "enumValues": null,
+          "isNotNull": true,
+          "hasDefault": false,
+          "isPrimaryKey": false,
+          "isForeignKey": true,
+          "description": null,
+          "type": {
+            "gqlType": "UUID",
+            "isArray": false,
+            "pgType": "uuid",
+            "subtype": null,
+            "isNotNull": true,
+            "hasDefault": false
+          }
+        },
+        {
+          "name": "volunteerId",
+          "columnName": "volunteer_id",
+          "enumValues": null,
+          "isNotNull": true,
+          "hasDefault": false,
+          "isPrimaryKey": false,
+          "isForeignKey": true,
+          "description": null,
+          "type": {
+            "gqlType": "UUID",
+            "isArray": false,
+            "pgType": "uuid",
+            "subtype": null,
+            "isNotNull": true,
+            "hasDefault": false
+          }
+        },
+        {
+          "name": "id",
+          "columnName": "id",
+          "enumValues": null,
+          "isNotNull": true,
+          "hasDefault": true,
+          "isPrimaryKey": true,
+          "isForeignKey": false,
+          "description": null,
+          "type": {
+            "gqlType": "UUID",
+            "isArray": false,
+            "pgType": "uuid",
+            "subtype": null,
+            "isNotNull": true,
+            "hasDefault": true
+          }
+        },
+        {
+          "name": "ownerId",
+          "columnName": "owner_id",
+          "enumValues": null,
+          "isNotNull": true,
+          "hasDefault": true,
+          "isPrimaryKey": false,
+          "isForeignKey": false,
+          "description": "User who owns this record",
+          "type": {
+            "gqlType": "UUID",
+            "isArray": false,
+            "pgType": "uuid",
+            "subtype": null,
+            "isNotNull": true,
+            "hasDefault": true
+          }
+        },
+        {
+          "name": "createdAt",
+          "columnName": "created_at",
+          "enumValues": null,
+          "isNotNull": true,
+          "hasDefault": true,
+          "isPrimaryKey": false,
+          "isForeignKey": false,
+          "description": "Timestamp when this record was created",
+          "type": {
+            "gqlType": "Datetime",
+            "isArray": false,
+            "pgType": "timestamptz",
+            "subtype": null,
+            "isNotNull": true,
+            "hasDefault": true
+          }
+        },
+        {
+          "name": "updatedAt",
+          "columnName": "updated_at",
+          "enumValues": null,
+          "isNotNull": true,
+          "hasDefault": true,
+          "isPrimaryKey": false,
+          "isForeignKey": false,
+          "description": "Timestamp when this record was last updated",
+          "type": {
+            "gqlType": "Datetime",
+            "isArray": false,
+            "pgType": "timestamptz",
+            "subtype": null,
+            "isNotNull": true,
+            "hasDefault": true
+          }
+        }
+      ],
+      "relations": {
+        "belongsTo": [
+          {
+            "fieldName": "shift",
+            "isUnique": false,
+            "type": "Shift",
+            "keys": [
+              {
+                "name": "shiftId"
+              }
+            ],
+            "references": {
+              "name": "Shift"
+            }
+          },
+          {
+            "fieldName": "volunteer",
+            "isUnique": false,
+            "type": "Volunteer",
+            "keys": [
+              {
+                "name": "volunteerId"
+              }
+            ],
+            "references": {
+              "name": "Volunteer"
+            }
+          }
+        ],
+        "hasMany": [],
+        "hasOne": [],
+        "manyToMany": []
+      },
+      "constraints": {
+        "primaryKey": {
+          "name": "shiftSignups_pkey",
+          "fields": [
+            {
+              "name": "id"
+            }
+          ]
+        },
+        "unique": [],
+        "foreignKey": [
+          {
+            "name": "shiftsByMyShiftId",
+            "fields": [
+              {
+                "name": "shiftId"
+              }
+            ],
+            "refTable": {
+              "name": "shifts"
+            },
+            "refFields": [
+              {
+                "name": "id"
+              }
+            ]
+          },
+          {
+            "name": "volunteersByMyVolunteerId",
+            "fields": [
+              {
+                "name": "volunteerId"
+              }
+            ],
+            "refTable": {
+              "name": "volunteers"
+            },
+            "refFields": [
+              {
+                "name": "id"
+              }
+            ]
+          }
+        ]
+      },
+      "scope": {
+        "scope": "app",
+        "tier": "global",
+        "keyColumn": null,
+        "entityTable": null,
+        "source": "smartTag"
+      }
+    },
+    {
+      "name": "Location",
+      "tableName": "locations",
+      "schemaName": "pool-62895054-3bc2441e-app-public",
+      "storage": null,
+      "search": null,
+      "query": {
+        "all": "locations",
+        "one": null,
+        "create": "createLocation",
+        "update": "updateLocation",
+        "delete": "deleteLocation"
+      },
+      "inflection": {
+        "tableType": "Location",
+        "allRows": "locations",
+        "connection": "LocationConnection",
+        "edge": "LocationEdge",
+        "filterType": "LocationFilter",
+        "orderByType": "LocationOrderBy",
+        "conditionType": "LocationCondition",
+        "patchType": "LocationPatch",
+        "createInputType": "CreateLocationInput",
+        "createPayloadType": "CreateLocationPayload",
+        "updatePayloadType": "UpdateLocationPayload",
+        "deletePayloadType": "DeleteLocationPayload"
+      },
+      "fields": [
+        {
+          "name": "name",
+          "columnName": "name",
+          "enumValues": null,
+          "isNotNull": true,
+          "hasDefault": false,
+          "isPrimaryKey": false,
+          "isForeignKey": false,
+          "description": null,
+          "type": {
+            "gqlType": "String",
+            "isArray": false,
+            "pgType": "text",
+            "subtype": null,
+            "isNotNull": true,
+            "hasDefault": false
+          }
+        },
+        {
+          "name": "address",
+          "columnName": "address",
+          "enumValues": null,
+          "isNotNull": false,
+          "hasDefault": false,
+          "isPrimaryKey": false,
+          "isForeignKey": false,
+          "description": null,
+          "type": {
+            "gqlType": "String",
+            "isArray": false,
+            "pgType": "text",
+            "subtype": null,
+            "isNotNull": false,
+            "hasDefault": false
+          }
+        },
+        {
+          "name": "capacity",
+          "columnName": "capacity",
+          "enumValues": null,
+          "isNotNull": false,
+          "hasDefault": false,
+          "isPrimaryKey": false,
+          "isForeignKey": false,
+          "description": null,
+          "type": {
+            "gqlType": "Int",
+            "isArray": false,
+            "pgType": "int4",
+            "subtype": null,
+            "isNotNull": false,
+            "hasDefault": false
+          }
+        },
+        {
+          "name": "id",
+          "columnName": "id",
+          "enumValues": null,
+          "isNotNull": true,
+          "hasDefault": true,
+          "isPrimaryKey": true,
+          "isForeignKey": false,
+          "description": null,
+          "type": {
+            "gqlType": "UUID",
+            "isArray": false,
+            "pgType": "uuid",
+            "subtype": null,
+            "isNotNull": true,
+            "hasDefault": true
+          }
+        },
+        {
+          "name": "ownerId",
+          "columnName": "owner_id",
+          "enumValues": null,
+          "isNotNull": true,
+          "hasDefault": true,
+          "isPrimaryKey": false,
+          "isForeignKey": false,
+          "description": "User who owns this record",
+          "type": {
+            "gqlType": "UUID",
+            "isArray": false,
+            "pgType": "uuid",
+            "subtype": null,
+            "isNotNull": true,
+            "hasDefault": true
+          }
+        },
+        {
+          "name": "createdAt",
+          "columnName": "created_at",
+          "enumValues": null,
+          "isNotNull": true,
+          "hasDefault": true,
+          "isPrimaryKey": false,
+          "isForeignKey": false,
+          "description": "Timestamp when this record was created",
+          "type": {
+            "gqlType": "Datetime",
+            "isArray": false,
+            "pgType": "timestamptz",
+            "subtype": null,
+            "isNotNull": true,
+            "hasDefault": true
+          }
+        },
+        {
+          "name": "updatedAt",
+          "columnName": "updated_at",
+          "enumValues": null,
+          "isNotNull": true,
+          "hasDefault": true,
+          "isPrimaryKey": false,
+          "isForeignKey": false,
+          "description": "Timestamp when this record was last updated",
+          "type": {
+            "gqlType": "Datetime",
+            "isArray": false,
+            "pgType": "timestamptz",
+            "subtype": null,
+            "isNotNull": true,
+            "hasDefault": true
+          }
+        }
+      ],
+      "relations": {
+        "belongsTo": [],
+        "hasMany": [
+          {
+            "fieldName": "shifts",
+            "isUnique": false,
+            "type": "ShiftConnection",
+            "keys": [
+              {
+                "name": "id"
+              }
+            ],
+            "referencedBy": {
+              "name": "Shift"
+            }
+          },
+          {
+            "fieldName": "donations",
+            "isUnique": false,
+            "type": "DonationConnection",
+            "keys": [
+              {
+                "name": "id"
+              }
+            ],
+            "referencedBy": {
+              "name": "Donation"
+            }
+          }
+        ],
+        "hasOne": [],
+        "manyToMany": []
+      },
+      "constraints": {
+        "primaryKey": {
+          "name": "locations_pkey",
+          "fields": [
+            {
+              "name": "id"
+            }
+          ]
+        },
+        "unique": [],
+        "foreignKey": []
+      },
+      "scope": {
+        "scope": "app",
+        "tier": "global",
+        "keyColumn": null,
+        "entityTable": null,
+        "source": "smartTag"
+      }
+    },
+    {
+      "name": "Volunteer",
+      "tableName": "volunteers",
+      "schemaName": "pool-62895054-3bc2441e-app-public",
+      "storage": null,
+      "search": null,
+      "query": {
+        "all": "volunteers",
+        "one": null,
+        "create": "createVolunteer",
+        "update": "updateVolunteer",
+        "delete": "deleteVolunteer"
+      },
+      "inflection": {
+        "tableType": "Volunteer",
+        "allRows": "volunteers",
+        "connection": "VolunteerConnection",
+        "edge": "VolunteerEdge",
+        "filterType": "VolunteerFilter",
+        "orderByType": "VolunteerOrderBy",
+        "conditionType": "VolunteerCondition",
+        "patchType": "VolunteerPatch",
+        "createInputType": "CreateVolunteerInput",
+        "createPayloadType": "CreateVolunteerPayload",
+        "updatePayloadType": "UpdateVolunteerPayload",
+        "deletePayloadType": "DeleteVolunteerPayload"
+      },
+      "fields": [
+        {
+          "name": "fullName",
+          "columnName": "full_name",
+          "enumValues": null,
+          "isNotNull": true,
+          "hasDefault": false,
+          "isPrimaryKey": false,
+          "isForeignKey": false,
+          "description": null,
+          "type": {
+            "gqlType": "String",
+            "isArray": false,
+            "pgType": "text",
+            "subtype": null,
+            "isNotNull": true,
+            "hasDefault": false
+          }
+        },
+        {
+          "name": "email",
+          "columnName": "email",
+          "enumValues": null,
+          "isNotNull": false,
+          "hasDefault": false,
+          "isPrimaryKey": false,
+          "isForeignKey": false,
+          "description": null,
+          "type": {
+            "gqlType": "String",
+            "isArray": false,
+            "pgType": "text",
+            "subtype": null,
+            "isNotNull": false,
+            "hasDefault": false
+          }
+        },
+        {
+          "name": "phone",
+          "columnName": "phone",
+          "enumValues": null,
+          "isNotNull": false,
+          "hasDefault": false,
+          "isPrimaryKey": false,
+          "isForeignKey": false,
+          "description": null,
+          "type": {
+            "gqlType": "String",
+            "isArray": false,
+            "pgType": "text",
+            "subtype": null,
+            "isNotNull": false,
+            "hasDefault": false
+          }
+        },
+        {
+          "name": "active",
+          "columnName": "active",
+          "enumValues": null,
+          "isNotNull": false,
+          "hasDefault": true,
+          "isPrimaryKey": false,
+          "isForeignKey": false,
+          "description": null,
+          "type": {
+            "gqlType": "Boolean",
+            "isArray": false,
+            "pgType": "bool",
+            "subtype": null,
+            "isNotNull": false,
+            "hasDefault": true
+          }
+        },
+        {
+          "name": "id",
+          "columnName": "id",
+          "enumValues": null,
+          "isNotNull": true,
+          "hasDefault": true,
+          "isPrimaryKey": true,
+          "isForeignKey": false,
+          "description": null,
+          "type": {
+            "gqlType": "UUID",
+            "isArray": false,
+            "pgType": "uuid",
+            "subtype": null,
+            "isNotNull": true,
+            "hasDefault": true
+          }
+        },
+        {
+          "name": "ownerId",
+          "columnName": "owner_id",
+          "enumValues": null,
+          "isNotNull": true,
+          "hasDefault": true,
+          "isPrimaryKey": false,
+          "isForeignKey": false,
+          "description": "User who owns this record",
+          "type": {
+            "gqlType": "UUID",
+            "isArray": false,
+            "pgType": "uuid",
+            "subtype": null,
+            "isNotNull": true,
+            "hasDefault": true
+          }
+        },
+        {
+          "name": "createdAt",
+          "columnName": "created_at",
+          "enumValues": null,
+          "isNotNull": true,
+          "hasDefault": true,
+          "isPrimaryKey": false,
+          "isForeignKey": false,
+          "description": "Timestamp when this record was created",
+          "type": {
+            "gqlType": "Datetime",
+            "isArray": false,
+            "pgType": "timestamptz",
+            "subtype": null,
+            "isNotNull": true,
+            "hasDefault": true
+          }
+        },
+        {
+          "name": "updatedAt",
+          "columnName": "updated_at",
+          "enumValues": null,
+          "isNotNull": true,
+          "hasDefault": true,
+          "isPrimaryKey": false,
+          "isForeignKey": false,
+          "description": "Timestamp when this record was last updated",
+          "type": {
+            "gqlType": "Datetime",
+            "isArray": false,
+            "pgType": "timestamptz",
+            "subtype": null,
+            "isNotNull": true,
+            "hasDefault": true
+          }
+        }
+      ],
+      "relations": {
+        "belongsTo": [],
+        "hasMany": [
+          {
+            "fieldName": "shiftSignups",
+            "isUnique": false,
+            "type": "ShiftSignupConnection",
+            "keys": [
+              {
+                "name": "id"
+              }
+            ],
+            "referencedBy": {
+              "name": "ShiftSignup"
+            }
+          }
+        ],
+        "hasOne": [],
+        "manyToMany": [
+          {
+            "fieldName": null,
+            "type": null,
+            "junctionTable": {
+              "name": "ShiftSignup"
+            },
+            "rightTable": {
+              "name": "Shift"
+            }
+          }
+        ]
+      },
+      "constraints": {
+        "primaryKey": {
+          "name": "volunteers_pkey",
+          "fields": [
+            {
+              "name": "id"
+            }
+          ]
+        },
+        "unique": [],
+        "foreignKey": []
+      },
+      "scope": {
+        "scope": "app",
+        "tier": "global",
+        "keyColumn": null,
+        "entityTable": null,
+        "source": "smartTag"
+      }
+    },
+    {
+      "name": "Shift",
+      "tableName": "shifts",
+      "schemaName": "pool-62895054-3bc2441e-app-public",
+      "storage": null,
+      "search": null,
+      "query": {
+        "all": "shifts",
+        "one": null,
+        "create": "createShift",
+        "update": "updateShift",
+        "delete": "deleteShift"
+      },
+      "inflection": {
+        "tableType": "Shift",
+        "allRows": "shifts",
+        "connection": "ShiftConnection",
+        "edge": "ShiftEdge",
+        "filterType": "ShiftFilter",
+        "orderByType": "ShiftOrderBy",
+        "conditionType": "ShiftCondition",
+        "patchType": "ShiftPatch",
+        "createInputType": "CreateShiftInput",
+        "createPayloadType": "CreateShiftPayload",
+        "updatePayloadType": "UpdateShiftPayload",
+        "deletePayloadType": "DeleteShiftPayload"
+      },
+      "fields": [
+        {
+          "name": "title",
+          "columnName": "title",
+          "enumValues": null,
+          "isNotNull": true,
+          "hasDefault": false,
+          "isPrimaryKey": false,
+          "isForeignKey": false,
+          "description": null,
+          "type": {
+            "gqlType": "String",
+            "isArray": false,
+            "pgType": "text",
+            "subtype": null,
+            "isNotNull": true,
+            "hasDefault": false
+          }
+        },
+        {
+          "name": "startsAt",
+          "columnName": "starts_at",
+          "enumValues": null,
+          "isNotNull": true,
+          "hasDefault": false,
+          "isPrimaryKey": false,
+          "isForeignKey": false,
+          "description": null,
+          "type": {
+            "gqlType": "Datetime",
+            "isArray": false,
+            "pgType": "timestamptz",
+            "subtype": null,
+            "isNotNull": true,
+            "hasDefault": false
+          }
+        },
+        {
+          "name": "endsAt",
+          "columnName": "ends_at",
+          "enumValues": null,
+          "isNotNull": true,
+          "hasDefault": false,
+          "isPrimaryKey": false,
+          "isForeignKey": false,
+          "description": null,
+          "type": {
+            "gqlType": "Datetime",
+            "isArray": false,
+            "pgType": "timestamptz",
+            "subtype": null,
+            "isNotNull": true,
+            "hasDefault": false
+          }
+        },
+        {
+          "name": "slots",
+          "columnName": "slots",
+          "enumValues": null,
+          "isNotNull": false,
+          "hasDefault": false,
+          "isPrimaryKey": false,
+          "isForeignKey": false,
+          "description": null,
+          "type": {
+            "gqlType": "Int",
+            "isArray": false,
+            "pgType": "int4",
+            "subtype": null,
+            "isNotNull": false,
+            "hasDefault": false
+          }
+        },
+        {
+          "name": "locationId",
+          "columnName": "location_id",
+          "enumValues": null,
+          "isNotNull": true,
+          "hasDefault": false,
+          "isPrimaryKey": false,
+          "isForeignKey": true,
+          "description": null,
+          "type": {
+            "gqlType": "UUID",
+            "isArray": false,
+            "pgType": "uuid",
+            "subtype": null,
+            "isNotNull": true,
+            "hasDefault": false
+          }
+        },
+        {
+          "name": "notes",
+          "columnName": "notes",
+          "enumValues": null,
+          "isNotNull": false,
+          "hasDefault": false,
+          "isPrimaryKey": false,
+          "isForeignKey": false,
+          "description": null,
+          "type": {
+            "gqlType": "String",
+            "isArray": false,
+            "pgType": "text",
+            "subtype": null,
+            "isNotNull": false,
+            "hasDefault": false
+          }
+        },
+        {
+          "name": "id",
+          "columnName": "id",
+          "enumValues": null,
+          "isNotNull": true,
+          "hasDefault": true,
+          "isPrimaryKey": true,
+          "isForeignKey": false,
+          "description": null,
+          "type": {
+            "gqlType": "UUID",
+            "isArray": false,
+            "pgType": "uuid",
+            "subtype": null,
+            "isNotNull": true,
+            "hasDefault": true
+          }
+        },
+        {
+          "name": "ownerId",
+          "columnName": "owner_id",
+          "enumValues": null,
+          "isNotNull": true,
+          "hasDefault": true,
+          "isPrimaryKey": false,
+          "isForeignKey": false,
+          "description": "User who owns this record",
+          "type": {
+            "gqlType": "UUID",
+            "isArray": false,
+            "pgType": "uuid",
+            "subtype": null,
+            "isNotNull": true,
+            "hasDefault": true
+          }
+        },
+        {
+          "name": "createdAt",
+          "columnName": "created_at",
+          "enumValues": null,
+          "isNotNull": true,
+          "hasDefault": true,
+          "isPrimaryKey": false,
+          "isForeignKey": false,
+          "description": "Timestamp when this record was created",
+          "type": {
+            "gqlType": "Datetime",
+            "isArray": false,
+            "pgType": "timestamptz",
+            "subtype": null,
+            "isNotNull": true,
+            "hasDefault": true
+          }
+        },
+        {
+          "name": "updatedAt",
+          "columnName": "updated_at",
+          "enumValues": null,
+          "isNotNull": true,
+          "hasDefault": true,
+          "isPrimaryKey": false,
+          "isForeignKey": false,
+          "description": "Timestamp when this record was last updated",
+          "type": {
+            "gqlType": "Datetime",
+            "isArray": false,
+            "pgType": "timestamptz",
+            "subtype": null,
+            "isNotNull": true,
+            "hasDefault": true
+          }
+        },
+        {
+          "name": "status",
+          "columnName": "status",
+          "enumValues": null,
+          "isNotNull": true,
+          "hasDefault": true,
+          "isPrimaryKey": false,
+          "isForeignKey": false,
+          "description": "Current status of this record",
+          "type": {
+            "gqlType": "String",
+            "isArray": false,
+            "pgType": "text",
+            "subtype": null,
+            "isNotNull": true,
+            "hasDefault": true
+          }
+        }
+      ],
+      "relations": {
+        "belongsTo": [
+          {
+            "fieldName": "location",
+            "isUnique": false,
+            "type": "Location",
+            "keys": [
+              {
+                "name": "locationId"
+              }
+            ],
+            "references": {
+              "name": "Location"
+            }
+          }
+        ],
+        "hasMany": [
+          {
+            "fieldName": "shiftSignups",
+            "isUnique": false,
+            "type": "ShiftSignupConnection",
+            "keys": [
+              {
+                "name": "id"
+              }
+            ],
+            "referencedBy": {
+              "name": "ShiftSignup"
+            }
+          }
+        ],
+        "hasOne": [],
+        "manyToMany": [
+          {
+            "fieldName": null,
+            "type": null,
+            "junctionTable": {
+              "name": "ShiftSignup"
+            },
+            "rightTable": {
+              "name": "Volunteer"
+            }
+          }
+        ]
+      },
+      "constraints": {
+        "primaryKey": {
+          "name": "shifts_pkey",
+          "fields": [
+            {
+              "name": "id"
+            }
+          ]
+        },
+        "unique": [],
+        "foreignKey": [
+          {
+            "name": "locationsByMyLocationId",
+            "fields": [
+              {
+                "name": "locationId"
+              }
+            ],
+            "refTable": {
+              "name": "locations"
+            },
+            "refFields": [
+              {
+                "name": "id"
+              }
+            ]
+          }
+        ]
+      },
+      "scope": {
+        "scope": "app",
+        "tier": "global",
+        "keyColumn": null,
+        "entityTable": null,
+        "source": "smartTag"
+      }
+    },
+    {
+      "name": "Donation",
+      "tableName": "donations",
+      "schemaName": "pool-62895054-3bc2441e-app-public",
+      "storage": null,
+      "search": null,
+      "query": {
+        "all": "donations",
+        "one": null,
+        "create": "createDonation",
+        "update": "updateDonation",
+        "delete": "deleteDonation"
+      },
+      "inflection": {
+        "tableType": "Donation",
+        "allRows": "donations",
+        "connection": "DonationConnection",
+        "edge": "DonationEdge",
+        "filterType": "DonationFilter",
+        "orderByType": "DonationOrderBy",
+        "conditionType": "DonationCondition",
+        "patchType": "DonationPatch",
+        "createInputType": "CreateDonationInput",
+        "createPayloadType": "CreateDonationPayload",
+        "updatePayloadType": "UpdateDonationPayload",
+        "deletePayloadType": "DeleteDonationPayload"
+      },
+      "fields": [
+        {
+          "name": "donorName",
+          "columnName": "donor_name",
+          "enumValues": null,
+          "isNotNull": true,
+          "hasDefault": false,
+          "isPrimaryKey": false,
+          "isForeignKey": false,
+          "description": null,
+          "type": {
+            "gqlType": "String",
+            "isArray": false,
+            "pgType": "text",
+            "subtype": null,
+            "isNotNull": true,
+            "hasDefault": false
+          }
+        },
+        {
+          "name": "pounds",
+          "columnName": "pounds",
+          "enumValues": null,
+          "isNotNull": false,
+          "hasDefault": false,
+          "isPrimaryKey": false,
+          "isForeignKey": false,
+          "description": null,
+          "type": {
+            "gqlType": "Int",
+            "isArray": false,
+            "pgType": "int4",
+            "subtype": null,
+            "isNotNull": false,
+            "hasDefault": false
+          }
+        },
+        {
+          "name": "receivedOn",
+          "columnName": "received_on",
+          "enumValues": null,
+          "isNotNull": false,
+          "hasDefault": false,
+          "isPrimaryKey": false,
+          "isForeignKey": false,
+          "description": null,
+          "type": {
+            "gqlType": "Date",
+            "isArray": false,
+            "pgType": "date",
+            "subtype": null,
+            "isNotNull": false,
+            "hasDefault": false
+          }
+        },
+        {
+          "name": "locationId",
+          "columnName": "location_id",
+          "enumValues": null,
+          "isNotNull": true,
+          "hasDefault": false,
+          "isPrimaryKey": false,
+          "isForeignKey": true,
+          "description": null,
+          "type": {
+            "gqlType": "UUID",
+            "isArray": false,
+            "pgType": "uuid",
+            "subtype": null,
+            "isNotNull": true,
+            "hasDefault": false
+          }
+        },
+        {
+          "name": "id",
+          "columnName": "id",
+          "enumValues": null,
+          "isNotNull": true,
+          "hasDefault": true,
+          "isPrimaryKey": true,
+          "isForeignKey": false,
+          "description": null,
+          "type": {
+            "gqlType": "UUID",
+            "isArray": false,
+            "pgType": "uuid",
+            "subtype": null,
+            "isNotNull": true,
+            "hasDefault": true
+          }
+        },
+        {
+          "name": "ownerId",
+          "columnName": "owner_id",
+          "enumValues": null,
+          "isNotNull": true,
+          "hasDefault": true,
+          "isPrimaryKey": false,
+          "isForeignKey": false,
+          "description": "User who owns this record",
+          "type": {
+            "gqlType": "UUID",
+            "isArray": false,
+            "pgType": "uuid",
+            "subtype": null,
+            "isNotNull": true,
+            "hasDefault": true
+          }
+        },
+        {
+          "name": "createdAt",
+          "columnName": "created_at",
+          "enumValues": null,
+          "isNotNull": true,
+          "hasDefault": true,
+          "isPrimaryKey": false,
+          "isForeignKey": false,
+          "description": "Timestamp when this record was created",
+          "type": {
+            "gqlType": "Datetime",
+            "isArray": false,
+            "pgType": "timestamptz",
+            "subtype": null,
+            "isNotNull": true,
+            "hasDefault": true
+          }
+        },
+        {
+          "name": "updatedAt",
+          "columnName": "updated_at",
+          "enumValues": null,
+          "isNotNull": true,
+          "hasDefault": true,
+          "isPrimaryKey": false,
+          "isForeignKey": false,
+          "description": "Timestamp when this record was last updated",
+          "type": {
+            "gqlType": "Datetime",
+            "isArray": false,
+            "pgType": "timestamptz",
+            "subtype": null,
+            "isNotNull": true,
+            "hasDefault": true
+          }
+        }
+      ],
+      "relations": {
+        "belongsTo": [
+          {
+            "fieldName": "location",
+            "isUnique": false,
+            "type": "Location",
+            "keys": [
+              {
+                "name": "locationId"
+              }
+            ],
+            "references": {
+              "name": "Location"
+            }
+          }
+        ],
+        "hasMany": [],
+        "hasOne": [],
+        "manyToMany": []
+      },
+      "constraints": {
+        "primaryKey": {
+          "name": "donations_pkey",
+          "fields": [
+            {
+              "name": "id"
+            }
+          ]
+        },
+        "unique": [],
+        "foreignKey": [
+          {
+            "name": "locationsByMyLocationId",
+            "fields": [
+              {
+                "name": "locationId"
+              }
+            ],
+            "refTable": {
+              "name": "locations"
+            },
+            "refFields": [
+              {
+                "name": "id"
+              }
+            ]
+          }
+        ]
+      },
+      "scope": {
+        "scope": "app",
+        "tier": "global",
+        "keyColumn": null,
+        "entityTable": null,
+        "source": "smartTag"
+      }
+    }
+  ]
+}
