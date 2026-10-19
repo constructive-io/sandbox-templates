@@ -69,11 +69,6 @@ function App() {
 | `useDeleteAuditLogAuthMutation` | Mutation | Partitioned append-only audit log of authentication events (sign-in, sign-up, password changes, etc.) |
 | `useIdentityProvidersQuery` | Query | List all identityProviders |
 | `useCreateIdentityProviderMutation` | Mutation | Create a identityProvider |
-| `useRoleTypesQuery` | Query | List all roleTypes |
-| `useRoleTypeQuery` | Query | Get one roleType |
-| `useCreateRoleTypeMutation` | Mutation | Create a roleType |
-| `useUpdateRoleTypeMutation` | Mutation | Update a roleType |
-| `useDeleteRoleTypeMutation` | Mutation | Delete a roleType |
 | `useUserConnectedAccountsQuery` | Query | List all userConnectedAccounts |
 | `useUserConnectedAccountQuery` | Query | Get one userConnectedAccount |
 | `useCreateUserConnectedAccountMutation` | Mutation | Create a userConnectedAccount |
@@ -97,7 +92,6 @@ function App() {
 | `useCurrentUserIdQuery` | Query | currentUserId |
 | `useCurrentUserAgentQuery` | Query | currentUserAgent |
 | `useCurrentIpAddressQuery` | Query | currentIpAddress |
-| `useIsVerificationExemptQuery` | Query | isVerificationExempt |
 | `useRequireStepUpQuery` | Query | requireStepUp |
 | `useGetMfaStatusQuery` | Query | getMfaStatus |
 | `useCurrentUserQuery` | Query | currentUser |
@@ -110,7 +104,6 @@ function App() {
 | `useEnableTotpMutation` | Mutation | enableTotp |
 | `useGenerateBackupCodesMutation` | Mutation | generateBackupCodes |
 | `useApproveDeviceMutation` | Mutation | approveDevice |
-| `useAttachPhoneNumberMutation` | Mutation | attachPhoneNumber |
 | `useConfirmTotpSetupMutation` | Mutation | confirmTotpSetup |
 | `useDeleteOrgPrincipalMutation` | Mutation | deleteOrgPrincipal |
 | `useDeletePrincipalMutation` | Mutation | deletePrincipal |
@@ -119,46 +112,53 @@ function App() {
 | `useRevokeApiKeyMutation` | Mutation | revokeApiKey |
 | `useRevokeSessionMutation` | Mutation | revokeSession |
 | `useSendPhoneVerificationCodeMutation` | Mutation | sendPhoneVerificationCode |
-| `useSetPrimaryPhoneMutation` | Mutation | setPrimaryPhone |
+| `useSendSmsOtpMutation` | Mutation | sendSmsOtp |
 | `useVerifyPasswordMutation` | Mutation | verifyPassword |
+| `useVerifyStepUpCodeMutation` | Mutation | verifyStepUpCode |
 | `useVerifyTotpMutation` | Mutation | verifyTotp |
 | `useCheckPasswordMutation` | Mutation | checkPassword |
+| `useRequestMagicLinkMutation` | Mutation | requestMagicLink |
+| `useSendStepUpCodeMutation` | Mutation | sendStepUpCode |
 | `useConfirmDeleteAccountMutation` | Mutation | confirmDeleteAccount |
 | `useRevokeOrgApiKeyMutation` | Mutation | revokeOrgApiKey |
 | `useSetPasswordMutation` | Mutation | setPassword |
 | `useVerifyEmailMutation` | Mutation | verifyEmail |
 | `useVerifyPhoneMutation` | Mutation | verifyPhone |
-| `useProvisionNewUserMutation` | Mutation | provisionNewUser |
 | `useResetPasswordMutation` | Mutation | resetPassword |
-| `useResetPasswordSmsMutation` | Mutation | resetPasswordSms |
+| `useSendMfaChallengeCodeMutation` | Mutation | sendMfaChallengeCode |
+| `useSignUpMutation` | Mutation | signUp |
 | `useCreateOrgPrincipalMutation` | Mutation | createOrgPrincipal |
 | `useRefreshAccessTokenMutation` | Mutation | refreshAccessToken |
 | `useSignInCrossOriginMutation` | Mutation | signInCrossOrigin |
-| `useSignInMagicLinkMutation` | Mutation | signInMagicLink |
 | `useSignUpMagicLinkMutation` | Mutation | signUpMagicLink |
-| `useSignInEmailOtpMutation` | Mutation | signInEmailOtp |
-| `useSignInSmsOtpMutation` | Mutation | signInSmsOtp |
 | `useSignUpSmsMutation` | Mutation | signUpSms |
+| `useSignInMagicLinkMutation` | Mutation | signInMagicLink |
+| `useSignInSmsOtpMutation` | Mutation | signInSmsOtp |
 | `useCompleteMfaChallengeMutation` | Mutation | completeMfaChallenge |
-| `useSignUpMutation` | Mutation | signUp |
 | `useSignInMutation` | Mutation | signIn |
+| `useSendVerificationEmailMutation` | Mutation | sendVerificationEmail |
+| `useForgotPasswordMutation` | Mutation | forgotPassword |
+| `useRequestCrossOriginTokenMutation` | Mutation | requestCrossOriginToken |
 | `useSetPrincipalEntitiesMutation` | Mutation | setPrincipalEntities |
 | `useLinkIdentityMutation` | Mutation | linkIdentity |
 | `useCreatePrincipalFromPresetMutation` | Mutation | createPrincipalFromPreset |
-| `useUpdatePrincipalMutation` | Mutation | updatePrincipal |
 | `useExtendTokenExpiresMutation` | Mutation | extendTokenExpires |
+| `useUpdatePrincipalMutation` | Mutation | updatePrincipal |
 | `useMintAccessTokenMutation` | Mutation | mintAccessToken |
 | `useCreateOrgApiKeyMutation` | Mutation | createOrgApiKey |
 | `useSetPrincipalScopeMutation` | Mutation | setPrincipalScope |
 | `useCreateApiKeyMutation` | Mutation | createApiKey |
 | `useCreateChildPrincipalMutation` | Mutation | createChildPrincipal |
-| `useRequestCrossOriginTokenMutation` | Mutation | requestCrossOriginToken |
-| `useSendVerificationEmailMutation` | Mutation | sendVerificationEmail |
-| `useForgotPasswordMutation` | Mutation | forgotPassword |
-| `useProvisionBucketMutation` | Mutation | Provision an S3 bucket for a logical bucket in the database.
-Reads the bucket config via RLS, then creates and configures
-the S3 bucket with the appropriate privacy policies, CORS rules,
-and lifecycle settings. |
+| `useProvisionBucketMutation` | Mutation | Reconcile an S3 bucket for a logical bucket in the database.
+Records the request on the bucket row via RLS; the bucket's job
+trigger then enqueues the same storage:provision_bucket job used on
+INSERT, and repeated requests collapse into one pending job. This is
+idempotent for an already-reconciled bucket; failures become GraphQL
+errors. |
+| `useWebauthnRegisterBeginMutation` | Mutation | Begin registering a passkey for the signed-in user. |
+| `useWebauthnRegisterFinishMutation` | Mutation | Verify the browser's registration response and store the passkey. |
+| `useWebauthnSignInBeginMutation` | Mutation | Begin a passkey sign-in (discoverable when signed out). |
+| `useWebauthnSignInFinishMutation` | Mutation | Verify the browser's assertion and mint a session. |
 
 ## Table Hooks
 
@@ -243,7 +243,7 @@ const { data: item } = useEmailQuery({
 const { mutate: create } = useCreateEmailMutation({
   selection: { fields: { id: true } },
 });
-create({ ownerId: '<UUID>', email: '<Email>', isVerified: '<Boolean>', isPrimary: '<Boolean>', name: '<String>' });
+create({ ownerId: '<UUID>', email: '<String>', isVerified: '<Boolean>', isPrimary: '<Boolean>', name: '<String>' });
 ```
 
 ### PhoneNumber
@@ -306,7 +306,7 @@ const { data: item } = useAuditLogAuthQuery({
 const { mutate: create } = useCreateAuditLogAuthMutation({
   selection: { fields: { id: true } },
 });
-create({ event: '<String>', actorId: '<UUID>', origin: '<Origin>', userAgent: '<String>', ipAddress: '<InternetAddress>', success: '<Boolean>', details: '<JSON>' });
+create({ event: '<String>', actorId: '<UUID>', origin: '<String>', userAgent: '<String>', ipAddress: '<InternetAddress>', success: '<Boolean>', details: '<JSON>' });
 ```
 
 ### IdentityProvider
@@ -322,27 +322,6 @@ const { mutate: create } = useCreateIdentityProviderMutation({
   selection: { fields: { id: true } },
 });
 create({ slug: '<String>', kind: '<String>', displayName: '<String>', enabled: '<Boolean>' });
-```
-
-### RoleType
-
-```typescript
-// List all roleTypes
-const { data, isLoading } = useRoleTypesQuery({
-  selection: { fields: { id: true, name: true } },
-});
-
-// Get one roleType
-const { data: item } = useRoleTypeQuery({
-  id: '<Int>',
-  selection: { fields: { id: true, name: true } },
-});
-
-// Create a roleType
-const { mutate: create } = useCreateRoleTypeMutation({
-  selection: { fields: { id: true } },
-});
-create({ name: '<String>' });
 ```
 
 ### UserConnectedAccount
@@ -451,17 +430,6 @@ currentIpAddress
 
 - **Type:** query
 - **Arguments:** none
-
-### `useIsVerificationExemptQuery`
-
-isVerificationExempt
-
-- **Type:** query
-- **Arguments:**
-
-  | Argument | Type |
-  |----------|------|
-  | `userId` | UUID |
 
 ### `useRequireStepUpQuery`
 
@@ -587,17 +555,6 @@ approveDevice
   |----------|------|
   | `input` | ApproveDeviceInput (required) |
 
-### `useAttachPhoneNumberMutation`
-
-attachPhoneNumber
-
-- **Type:** mutation
-- **Arguments:**
-
-  | Argument | Type |
-  |----------|------|
-  | `input` | AttachPhoneNumberInput (required) |
-
 ### `useConfirmTotpSetupMutation`
 
 confirmTotpSetup
@@ -686,16 +643,16 @@ sendPhoneVerificationCode
   |----------|------|
   | `input` | SendPhoneVerificationCodeInput (required) |
 
-### `useSetPrimaryPhoneMutation`
+### `useSendSmsOtpMutation`
 
-setPrimaryPhone
+sendSmsOtp
 
 - **Type:** mutation
 - **Arguments:**
 
   | Argument | Type |
   |----------|------|
-  | `input` | SetPrimaryPhoneInput (required) |
+  | `input` | SendSmsOtpInput (required) |
 
 ### `useVerifyPasswordMutation`
 
@@ -707,6 +664,17 @@ verifyPassword
   | Argument | Type |
   |----------|------|
   | `input` | VerifyPasswordInput (required) |
+
+### `useVerifyStepUpCodeMutation`
+
+verifyStepUpCode
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | VerifyStepUpCodeInput (required) |
 
 ### `useVerifyTotpMutation`
 
@@ -729,6 +697,28 @@ checkPassword
   | Argument | Type |
   |----------|------|
   | `input` | CheckPasswordInput (required) |
+
+### `useRequestMagicLinkMutation`
+
+requestMagicLink
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | RequestMagicLinkInput (required) |
+
+### `useSendStepUpCodeMutation`
+
+sendStepUpCode
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | SendStepUpCodeInput (required) |
 
 ### `useConfirmDeleteAccountMutation`
 
@@ -785,17 +775,6 @@ verifyPhone
   |----------|------|
   | `input` | VerifyPhoneInput (required) |
 
-### `useProvisionNewUserMutation`
-
-provisionNewUser
-
-- **Type:** mutation
-- **Arguments:**
-
-  | Argument | Type |
-  |----------|------|
-  | `input` | ProvisionNewUserInput (required) |
-
 ### `useResetPasswordMutation`
 
 resetPassword
@@ -807,16 +786,27 @@ resetPassword
   |----------|------|
   | `input` | ResetPasswordInput (required) |
 
-### `useResetPasswordSmsMutation`
+### `useSendMfaChallengeCodeMutation`
 
-resetPasswordSms
+sendMfaChallengeCode
 
 - **Type:** mutation
 - **Arguments:**
 
   | Argument | Type |
   |----------|------|
-  | `input` | ResetPasswordSmsInput (required) |
+  | `input` | SendMfaChallengeCodeInput (required) |
+
+### `useSignUpMutation`
+
+signUp
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | SignUpInput (required) |
 
 ### `useCreateOrgPrincipalMutation`
 
@@ -851,17 +841,6 @@ signInCrossOrigin
   |----------|------|
   | `input` | SignInCrossOriginInput (required) |
 
-### `useSignInMagicLinkMutation`
-
-signInMagicLink
-
-- **Type:** mutation
-- **Arguments:**
-
-  | Argument | Type |
-  |----------|------|
-  | `input` | SignInMagicLinkInput (required) |
-
 ### `useSignUpMagicLinkMutation`
 
 signUpMagicLink
@@ -872,28 +851,6 @@ signUpMagicLink
   | Argument | Type |
   |----------|------|
   | `input` | SignUpMagicLinkInput (required) |
-
-### `useSignInEmailOtpMutation`
-
-signInEmailOtp
-
-- **Type:** mutation
-- **Arguments:**
-
-  | Argument | Type |
-  |----------|------|
-  | `input` | SignInEmailOtpInput (required) |
-
-### `useSignInSmsOtpMutation`
-
-signInSmsOtp
-
-- **Type:** mutation
-- **Arguments:**
-
-  | Argument | Type |
-  |----------|------|
-  | `input` | SignInSmsOtpInput (required) |
 
 ### `useSignUpSmsMutation`
 
@@ -906,6 +863,28 @@ signUpSms
   |----------|------|
   | `input` | SignUpSmsInput (required) |
 
+### `useSignInMagicLinkMutation`
+
+signInMagicLink
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | SignInMagicLinkInput (required) |
+
+### `useSignInSmsOtpMutation`
+
+signInSmsOtp
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | SignInSmsOtpInput (required) |
+
 ### `useCompleteMfaChallengeMutation`
 
 completeMfaChallenge
@@ -917,17 +896,6 @@ completeMfaChallenge
   |----------|------|
   | `input` | CompleteMfaChallengeInput (required) |
 
-### `useSignUpMutation`
-
-signUp
-
-- **Type:** mutation
-- **Arguments:**
-
-  | Argument | Type |
-  |----------|------|
-  | `input` | SignUpInput (required) |
-
 ### `useSignInMutation`
 
 signIn
@@ -938,6 +906,39 @@ signIn
   | Argument | Type |
   |----------|------|
   | `input` | SignInInput (required) |
+
+### `useSendVerificationEmailMutation`
+
+sendVerificationEmail
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | SendVerificationEmailInput (required) |
+
+### `useForgotPasswordMutation`
+
+forgotPassword
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | ForgotPasswordInput (required) |
+
+### `useRequestCrossOriginTokenMutation`
+
+requestCrossOriginToken
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | RequestCrossOriginTokenInput (required) |
 
 ### `useSetPrincipalEntitiesMutation`
 
@@ -972,17 +973,6 @@ createPrincipalFromPreset
   |----------|------|
   | `input` | CreatePrincipalFromPresetInput (required) |
 
-### `useUpdatePrincipalMutation`
-
-updatePrincipal
-
-- **Type:** mutation
-- **Arguments:**
-
-  | Argument | Type |
-  |----------|------|
-  | `input` | UpdatePrincipalInput (required) |
-
 ### `useExtendTokenExpiresMutation`
 
 extendTokenExpires
@@ -993,6 +983,17 @@ extendTokenExpires
   | Argument | Type |
   |----------|------|
   | `input` | ExtendTokenExpiresInput (required) |
+
+### `useUpdatePrincipalMutation`
+
+updatePrincipal
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | UpdatePrincipalInput (required) |
 
 ### `useMintAccessTokenMutation`
 
@@ -1049,45 +1050,14 @@ createChildPrincipal
   |----------|------|
   | `input` | CreateChildPrincipalInput (required) |
 
-### `useRequestCrossOriginTokenMutation`
-
-requestCrossOriginToken
-
-- **Type:** mutation
-- **Arguments:**
-
-  | Argument | Type |
-  |----------|------|
-  | `input` | RequestCrossOriginTokenInput (required) |
-
-### `useSendVerificationEmailMutation`
-
-sendVerificationEmail
-
-- **Type:** mutation
-- **Arguments:**
-
-  | Argument | Type |
-  |----------|------|
-  | `input` | SendVerificationEmailInput (required) |
-
-### `useForgotPasswordMutation`
-
-forgotPassword
-
-- **Type:** mutation
-- **Arguments:**
-
-  | Argument | Type |
-  |----------|------|
-  | `input` | ForgotPasswordInput (required) |
-
 ### `useProvisionBucketMutation`
 
-Provision an S3 bucket for a logical bucket in the database.
-Reads the bucket config via RLS, then creates and configures
-the S3 bucket with the appropriate privacy policies, CORS rules,
-and lifecycle settings.
+Reconcile an S3 bucket for a logical bucket in the database.
+Records the request on the bucket row via RLS; the bucket's job
+trigger then enqueues the same storage:provision_bucket job used on
+INSERT, and repeated requests collapse into one pending job. This is
+idempotent for an already-reconciled bucket; failures become GraphQL
+errors.
 
 - **Type:** mutation
 - **Arguments:**
@@ -1095,6 +1065,50 @@ and lifecycle settings.
   | Argument | Type |
   |----------|------|
   | `input` | ProvisionBucketInput (required) |
+
+### `useWebauthnRegisterBeginMutation`
+
+Begin registering a passkey for the signed-in user.
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | WebauthnRegisterBeginInput |
+
+### `useWebauthnRegisterFinishMutation`
+
+Verify the browser's registration response and store the passkey.
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | WebauthnRegisterFinishInput (required) |
+
+### `useWebauthnSignInBeginMutation`
+
+Begin a passkey sign-in (discoverable when signed out).
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | WebauthnSignInBeginInput |
+
+### `useWebauthnSignInFinishMutation`
+
+Verify the browser's assertion and mint a session.
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | WebauthnSignInFinishInput (required) |
 
 ---
 

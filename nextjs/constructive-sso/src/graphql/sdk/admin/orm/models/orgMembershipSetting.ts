@@ -210,38 +210,4 @@ export class OrgMembershipSettingModel {
       variables,
     });
   }
-  delete<S extends OrgMembershipSettingSelect>(
-    args: DeleteArgs<
-      {
-        id: string;
-      },
-      S
-    > & {
-      select: S;
-    } & StrictSelect<S, OrgMembershipSettingSelect>
-  ): QueryBuilder<{
-    deleteOrgMembershipSetting: {
-      orgMembershipSetting: InferSelectResult<OrgMembershipSettingWithRelations, S>;
-    };
-  }> {
-    const { document, variables } = buildDeleteByPkDocument(
-      'OrgMembershipSetting',
-      'deleteOrgMembershipSetting',
-      'orgMembershipSetting',
-      {
-        id: args.where.id,
-      },
-      'DeleteOrgMembershipSettingInput',
-      args.select,
-      connectionFieldsMap
-    );
-    return new QueryBuilder({
-      client: this.client,
-      operation: 'mutation',
-      operationName: 'OrgMembershipSetting',
-      fieldName: 'deleteOrgMembershipSetting',
-      document,
-      variables,
-    });
-  }
 }

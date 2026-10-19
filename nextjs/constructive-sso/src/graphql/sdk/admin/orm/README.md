@@ -57,13 +57,10 @@ const db = createClient({
 | `orgClaimedInvite` | findMany, findOne, create, update, delete |
 | `orgGrant` | findMany, findOne, create, update, delete |
 | `orgChartEdge` | findMany, findOne, create, update, delete |
-| `appProfileTemplate` | findMany, findOne, create, update, delete |
-| `orgProfileTemplate` | findMany, findOne, create, update, delete |
 | `appMembershipDefault` | findMany, findOne, create, update, delete |
 | `orgMembershipDefault` | findMany, findOne, create, update, delete |
 | `appProfile` | findMany, findOne, create, update, delete |
 | `orgProfile` | findMany, findOne, create, update, delete |
-| `orgMemberProfile` | findMany, findOne, create, update, delete |
 | `orgMembershipSetting` | findMany, findOne, create, update, delete |
 
 ## Table Operations
@@ -456,7 +453,7 @@ CRUD operations for AppInvite records.
 |-------|------|----------|
 | `id` | UUID | No |
 | `channel` | String | Yes |
-| `email` | ConstructiveInternalTypeEmail | Yes |
+| `email` | String | Yes |
 | `phone` | String | Yes |
 | `senderId` | UUID | Yes |
 | `inviteToken` | String | Yes |
@@ -480,7 +477,7 @@ const items = await db.appInvite.findMany({ select: { id: true, channel: true, e
 const item = await db.appInvite.findOne({ id: '<UUID>', select: { id: true, channel: true, email: true, phone: true, senderId: true, inviteToken: true, inviteValid: true, inviteLimit: true, inviteCount: true, multiple: true, data: true, profileId: true, expiresAt: true, createdAt: true, updatedAt: true } }).execute();
 
 // Create
-const created = await db.appInvite.create({ data: { channel: '<String>', email: '<Email>', phone: '<String>', senderId: '<UUID>', inviteToken: '<String>', inviteValid: '<Boolean>', inviteLimit: '<Int>', inviteCount: '<Int>', multiple: '<Boolean>', data: '<JSON>', profileId: '<UUID>', expiresAt: '<Datetime>' }, select: { id: true } }).execute();
+const created = await db.appInvite.create({ data: { channel: '<String>', email: '<String>', phone: '<String>', senderId: '<UUID>', inviteToken: '<String>', inviteValid: '<Boolean>', inviteLimit: '<Int>', inviteCount: '<Int>', multiple: '<Boolean>', data: '<JSON>', profileId: '<UUID>', expiresAt: '<Datetime>' }, select: { id: true } }).execute();
 
 // Update
 const updated = await db.appInvite.update({ where: { id: '<UUID>' }, data: { channel: '<String>' }, select: { id: true } }).execute();
@@ -787,7 +784,7 @@ CRUD operations for OrgInvite records.
 |-------|------|----------|
 | `id` | UUID | No |
 | `channel` | String | Yes |
-| `email` | ConstructiveInternalTypeEmail | Yes |
+| `email` | String | Yes |
 | `phone` | String | Yes |
 | `senderId` | UUID | Yes |
 | `receiverId` | UUID | Yes |
@@ -814,7 +811,7 @@ const items = await db.orgInvite.findMany({ select: { id: true, channel: true, e
 const item = await db.orgInvite.findOne({ id: '<UUID>', select: { id: true, channel: true, email: true, phone: true, senderId: true, receiverId: true, inviteToken: true, inviteValid: true, inviteLimit: true, inviteCount: true, multiple: true, data: true, profileId: true, isReadOnly: true, expiresAt: true, createdAt: true, updatedAt: true, entityId: true } }).execute();
 
 // Create
-const created = await db.orgInvite.create({ data: { channel: '<String>', email: '<Email>', phone: '<String>', senderId: '<UUID>', receiverId: '<UUID>', inviteToken: '<String>', inviteValid: '<Boolean>', inviteLimit: '<Int>', inviteCount: '<Int>', multiple: '<Boolean>', data: '<JSON>', profileId: '<UUID>', isReadOnly: '<Boolean>', expiresAt: '<Datetime>', entityId: '<UUID>' }, select: { id: true } }).execute();
+const created = await db.orgInvite.create({ data: { channel: '<String>', email: '<String>', phone: '<String>', senderId: '<UUID>', receiverId: '<UUID>', inviteToken: '<String>', inviteValid: '<Boolean>', inviteLimit: '<Int>', inviteCount: '<Int>', multiple: '<Boolean>', data: '<JSON>', profileId: '<UUID>', isReadOnly: '<Boolean>', expiresAt: '<Datetime>', entityId: '<UUID>' }, select: { id: true } }).execute();
 
 // Update
 const updated = await db.orgInvite.update({ where: { id: '<UUID>' }, data: { channel: '<String>' }, select: { id: true } }).execute();
@@ -1333,78 +1330,6 @@ const updated = await db.orgChartEdge.update({ where: { id: '<UUID>' }, data: { 
 const deleted = await db.orgChartEdge.delete({ where: { id: '<UUID>' } }).execute();
 ```
 
-### `db.appProfileTemplate`
-
-CRUD operations for AppProfileTemplate records.
-
-**Fields:**
-
-| Field | Type | Editable |
-|-------|------|----------|
-| `id` | UUID | No |
-| `name` | String | Yes |
-| `slug` | String | Yes |
-| `description` | String | Yes |
-| `capabilities` | BitString | Yes |
-| `isDefault` | Boolean | Yes |
-| `createdAt` | Datetime | No |
-| `updatedAt` | Datetime | No |
-
-**Operations:**
-
-```typescript
-// List all appProfileTemplate records
-const items = await db.appProfileTemplate.findMany({ select: { id: true, name: true, slug: true, description: true, capabilities: true, isDefault: true, createdAt: true, updatedAt: true } }).execute();
-
-// Get one by id
-const item = await db.appProfileTemplate.findOne({ id: '<UUID>', select: { id: true, name: true, slug: true, description: true, capabilities: true, isDefault: true, createdAt: true, updatedAt: true } }).execute();
-
-// Create
-const created = await db.appProfileTemplate.create({ data: { name: '<String>', slug: '<String>', description: '<String>', capabilities: '<BitString>', isDefault: '<Boolean>' }, select: { id: true } }).execute();
-
-// Update
-const updated = await db.appProfileTemplate.update({ where: { id: '<UUID>' }, data: { name: '<String>' }, select: { id: true } }).execute();
-
-// Delete
-const deleted = await db.appProfileTemplate.delete({ where: { id: '<UUID>' } }).execute();
-```
-
-### `db.orgProfileTemplate`
-
-CRUD operations for OrgProfileTemplate records.
-
-**Fields:**
-
-| Field | Type | Editable |
-|-------|------|----------|
-| `id` | UUID | No |
-| `name` | String | Yes |
-| `slug` | String | Yes |
-| `description` | String | Yes |
-| `capabilities` | BitString | Yes |
-| `isDefault` | Boolean | Yes |
-| `createdAt` | Datetime | No |
-| `updatedAt` | Datetime | No |
-
-**Operations:**
-
-```typescript
-// List all orgProfileTemplate records
-const items = await db.orgProfileTemplate.findMany({ select: { id: true, name: true, slug: true, description: true, capabilities: true, isDefault: true, createdAt: true, updatedAt: true } }).execute();
-
-// Get one by id
-const item = await db.orgProfileTemplate.findOne({ id: '<UUID>', select: { id: true, name: true, slug: true, description: true, capabilities: true, isDefault: true, createdAt: true, updatedAt: true } }).execute();
-
-// Create
-const created = await db.orgProfileTemplate.create({ data: { name: '<String>', slug: '<String>', description: '<String>', capabilities: '<BitString>', isDefault: '<Boolean>' }, select: { id: true } }).execute();
-
-// Update
-const updated = await db.orgProfileTemplate.update({ where: { id: '<UUID>' }, data: { name: '<String>' }, select: { id: true } }).execute();
-
-// Delete
-const deleted = await db.orgProfileTemplate.delete({ where: { id: '<UUID>' } }).execute();
-```
-
 ### `db.appMembershipDefault`
 
 CRUD operations for AppMembershipDefault records.
@@ -1552,45 +1477,6 @@ const updated = await db.orgProfile.update({ where: { id: '<UUID>' }, data: { na
 
 // Delete
 const deleted = await db.orgProfile.delete({ where: { id: '<UUID>' } }).execute();
-```
-
-### `db.orgMemberProfile`
-
-CRUD operations for OrgMemberProfile records.
-
-**Fields:**
-
-| Field | Type | Editable |
-|-------|------|----------|
-| `id` | UUID | No |
-| `createdAt` | Datetime | No |
-| `updatedAt` | Datetime | No |
-| `membershipId` | UUID | Yes |
-| `entityId` | UUID | Yes |
-| `actorId` | UUID | Yes |
-| `displayName` | String | Yes |
-| `email` | String | Yes |
-| `title` | String | Yes |
-| `bio` | String | Yes |
-| `profilePicture` | ConstructiveInternalTypeImage | Yes |
-
-**Operations:**
-
-```typescript
-// List all orgMemberProfile records
-const items = await db.orgMemberProfile.findMany({ select: { id: true, createdAt: true, updatedAt: true, membershipId: true, entityId: true, actorId: true, displayName: true, email: true, title: true, bio: true, profilePicture: true } }).execute();
-
-// Get one by id
-const item = await db.orgMemberProfile.findOne({ id: '<UUID>', select: { id: true, createdAt: true, updatedAt: true, membershipId: true, entityId: true, actorId: true, displayName: true, email: true, title: true, bio: true, profilePicture: true } }).execute();
-
-// Create
-const created = await db.orgMemberProfile.create({ data: { membershipId: '<UUID>', entityId: '<UUID>', actorId: '<UUID>', displayName: '<String>', email: '<String>', title: '<String>', bio: '<String>', profilePicture: '<Image>' }, select: { id: true } }).execute();
-
-// Update
-const updated = await db.orgMemberProfile.update({ where: { id: '<UUID>' }, data: { membershipId: '<UUID>' }, select: { id: true } }).execute();
-
-// Delete
-const deleted = await db.orgMemberProfile.delete({ where: { id: '<UUID>' } }).execute();
 ```
 
 ### `db.orgMembershipSetting`
@@ -1923,10 +1809,12 @@ const result = await db.mutation.provisionOrgUsersBulk({ input: { entityId: '<UU
 
 ### `db.mutation.provisionBucket`
 
-Provision an S3 bucket for a logical bucket in the database.
-Reads the bucket config via RLS, then creates and configures
-the S3 bucket with the appropriate privacy policies, CORS rules,
-and lifecycle settings.
+Reconcile an S3 bucket for a logical bucket in the database.
+Records the request on the bucket row via RLS; the bucket's job
+trigger then enqueues the same storage:provision_bucket job used on
+INSERT, and repeated requests collapse into one pending job. This is
+idempotent for an already-reconciled bucket; failures become GraphQL
+errors.
 
 - **Type:** mutation
 - **Arguments:**
@@ -1937,6 +1825,66 @@ and lifecycle settings.
 
 ```typescript
 const result = await db.mutation.provisionBucket({ input: { bucketKey: '<String>', ownerId: '<UUID>' } }).execute();
+```
+
+### `db.mutation.webauthnRegisterBegin`
+
+Begin registering a passkey for the signed-in user.
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | WebauthnRegisterBeginInput |
+
+```typescript
+const result = await db.mutation.webauthnRegisterBegin({ input: '<WebauthnRegisterBeginInput>' }).execute();
+```
+
+### `db.mutation.webauthnRegisterFinish`
+
+Verify the browser's registration response and store the passkey.
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | WebauthnRegisterFinishInput (required) |
+
+```typescript
+const result = await db.mutation.webauthnRegisterFinish({ input: { response: '<JSON>', webauthnUserId: '<String>', name: '<String>' } }).execute();
+```
+
+### `db.mutation.webauthnSignInBegin`
+
+Begin a passkey sign-in (discoverable when signed out).
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | WebauthnSignInBeginInput |
+
+```typescript
+const result = await db.mutation.webauthnSignInBegin({ input: '<WebauthnSignInBeginInput>' }).execute();
+```
+
+### `db.mutation.webauthnSignInFinish`
+
+Verify the browser's assertion and mint a session.
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | WebauthnSignInFinishInput (required) |
+
+```typescript
+const result = await db.mutation.webauthnSignInFinish({ input: { response: '<JSON>', challengeId: '<UUID>' } }).execute();
 ```
 
 ---

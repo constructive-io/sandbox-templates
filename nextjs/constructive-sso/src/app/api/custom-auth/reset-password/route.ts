@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { readJsonBody, sameOriginGuard } from '@/lib/bff/request-guard';
-import { GatewayError, gatewayPost } from '@/lib/sso/gateway';
+import { authClient, AuthGraphqlUnreachable, AuthRefusedUnnamed, runAuth } from '@/lib/sso/auth-graphql';
 
 interface ResetPasswordBody {
   roleId?: string;
@@ -10,9 +10,11 @@ interface ResetPasswordBody {
 }
 
 /**
- * POST /api/custom-auth/reset-password — spend a recovery token through
- * `auth_flows:reset_password`. `reset:false` covers wrong/spent/lapsed tokens
- * identically — which of the three is not a caller's business.
+ * POST /api/custom-auth/reset-password — spend a recovery token through the
+ * tenant's `resetPassword`. `reset:false` covers wrong/spent/lapsed tokens
+ * identically — which of the three is not a caller's business. A tenant
+ * refusal (a throttled spend, a policy the new password breaks) answers
+ * `reset:false` for the same reason: the difference is the tenant's to know.
  */
 export async function POST(req: Request): Promise<NextResponse> {
   const csrf = sameOriginGuard(req);
@@ -26,17 +28,31 @@ export async function POST(req: Request): Promise<NextResponse> {
     );
   }
 
+  // Anonymous lane: no session forwarded — a stale cookie must not
+  // poison a mutation that needs no session (see authClient).
+  const db = authClient(req, { anonymous: true });
   try {
-    const result = await gatewayPost<{ reset: boolean }>(
-      '/auth/reset-password',
-      { role_id: body.roleId, reset_token: body.resetToken, new_password: body.newPassword },
-      null
+    const { resetPassword } = await runAuth(
+      db.mutation.resetPassword(
+        {
+          input: {
+            roleId: body.roleId,
+            resetToken: body.resetToken,
+            newPassword: body.newPassword
+          }
+        },
+        { select: { result: true } }
+      )
     );
-    return NextResponse.json(result);
+    return NextResponse.json({ reset: resetPassword?.result === true });
   } catch (err) {
-    if (err instanceof GatewayError) {
-      return NextResponse.json({ error: err.code }, { status: err.status === 400 ? 400 : 502 });
+    if (err instanceof AuthRefusedUnnamed || err instanceof AuthGraphqlUnreachable) {
+      console.warn('[reset-password] auth surface failure answered as reset:false', {
+        name: err instanceof Error ? err.name : typeof err
+      });
     }
-    throw err;
+    // Every refusal — named, unnamed, transport — is reset:false: the
+    // difference between them is the tenant's to keep.
+    return NextResponse.json({ reset: false });
   }
 }

@@ -67,16 +67,23 @@ export type StepUpMethod = 'sms' | 'email';
 
 /**
  * Send the signed-in caller a step-up code — by the named factor, or, with
- * none, by the account's own sign-in channel — and answer the factor it went
- * through.
+ * none, the tenant demands one be named when both factors are on — and
+ * answer the factor it went through.
+ *
+ * A send the tenant declined answers `{sent:false, error}` rather than a
+ * thrown HTTP error: `TOO_MANY_REQUESTS` is the per-method resend cooldown
+ * (an earlier code is still live), so it reaches the caller as the same
+ * StepUpError a refusal would, and the caller decides what it means.
  */
 export async function sendStepUpCode(method?: StepUpMethod): Promise<StepUpMethod> {
-	const result = await post<{ sent: boolean; method?: StepUpMethod }>(
+	const result = await post<{ sent: boolean; method?: StepUpMethod; error?: string }>(
 		'/api/auth/step-up/send',
 		method ? { method } : {}
 	);
 	if (!result.sent || (result.method !== 'sms' && result.method !== 'email')) {
-		throw new StepUpError('STEP_UP_CODE_NOT_SENT');
+		// error is the tenant's name for why it declined (TOO_MANY_REQUESTS
+		// for the resend cooldown); a missing one is the surface misbehaving.
+		throw new StepUpError(result.error ?? 'STEP_UP_SEND_REFUSED');
 	}
 	return result.method;
 }

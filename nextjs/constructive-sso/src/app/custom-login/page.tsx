@@ -11,12 +11,12 @@ import { toLocalPath } from '@/lib/sso/local-path';
 /**
  * /custom-login — the app-owned sign-in surface (Dan's custom-UI request).
  *
- * Everything here speaks to the platform's cloud functions through the
- * same-origin BFF, never GraphQL, and never the mantra page set:
- *   • provider buttons → POST /api/sso/start (sso:start sync lane; the
- *     redirect URI is constructed server-side) → provider → /auth/custom-callback
- *     relay → sso:callback page → session cookie → back here via `next`;
- *   • the password form → POST /api/custom-auth/sign-in (auth_flows:sign_in
+ * The provider buttons are plain links to the hosted /auth/start page
+ * (mantra:oauth_start — the redirect URI is composed server-side from the
+ * site's canonical_url) and the provider returns through /auth/callback's
+ * verbatim relay; the password form still speaks to the tenant's auth
+ * GraphQL through the same-origin BFF:
+ *   • the password form → POST /api/custom-auth/sign-in (the tenant's signIn
  *     sync lane; the BFF mints the session cookie).
  *
  * Milestone 1: the provider list is static config (the upstream sso:providers
@@ -36,7 +36,6 @@ function CustomLoginPageContent() {
 		<AuthScreenLayout>
 			<AuthSocialButtons
 				mode='sign-in'
-				startMode='bff'
 				providers={STATIC_PROVIDERS}
 				returnTo={nextPath}
 				className='mb-4 w-full max-w-sm mx-auto'
@@ -65,13 +64,18 @@ function CustomLoginPageContent() {
 						signedIn?: boolean;
 						mfaRequired?: boolean;
 						error?: string;
+						// A gateway page that owns the rest of the flow: the
+						// hosted /login for a challenged account, the hosted
+						// /setup-2fa for one a require_mfa tenant flagged.
+						next?: string;
 					};
-					if (data.mfaRequired) {
-						setNotice('This account uses two-factor sign-in. Please sign in through the platform login page for now.');
-						// The non-fatal mfaRequired record (not null): a null return
-						// makes the card report rejected credentials on top of the
-						// notice. Its own MFA branch is an unwired message seam —
-						// the notice above is the UI.
+					if (data.next) {
+						// The BFF has either minted the cookie (mfaSetupRequired)
+						// or deliberately not (mfaRequired); either way the
+						// hosted page owns what happens next, so navigate to it
+						// in full — it comes back to this app through its own
+						// `next` parameter when the flow completes.
+						window.location.assign(data.next);
 						return {
 							id: null,
 							userId: null,

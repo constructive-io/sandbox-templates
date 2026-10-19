@@ -1,5 +1,6 @@
 'use client';
 
+import { useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { AccountPhoneNumbers } from '@/blocks/account/account-phone-numbers/account-phone-numbers';
@@ -7,6 +8,15 @@ import type {
 	AccountPhoneNumber,
 	AccountPhoneNumbersAdapter
 } from '@/blocks/account/account-phone-numbers/account-phone-numbers-contracts';
+import {
+	AlertDialog,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogHeader,
+	AlertDialogTitle
+} from '@/components/ui/alert-dialog';
+import { StepUpCodeForm } from '@/components/auth/step-up-code-form';
+import { isCodeStepUp } from '@/lib/auth/step-up';
 import {
 	useCreatePhoneNumberMutation,
 	useDeletePhoneNumberMutation,
@@ -50,6 +60,11 @@ async function authMutation<T>(document: string, variables: Record<string, unkno
  * `sendPhoneVerificationCode` / `verifyPhone` mutations, and primary selection
  * through the two-step update the partial unique index demands (clear the old
  * primary, then raise the new one).
+ *
+ * Adding a number is a step-up-guarded INSERT (#2163: identifiers need a
+ * fresh sign-in): a stale session is refused with STEP_UP_REQUIRED_FRESH_AUTH,
+ * which this section answers with the code dialog (a texted or emailed code
+ * satisfies fresh_auth) and one retry — never a raw refusal in the form.
  */
 export function PhoneNumbersSection() {
 	const queryClient = useQueryClient();
@@ -66,6 +81,21 @@ export function PhoneNumbersSection() {
 		selection: { fields: { id: true } }
 	});
 
+	// The step-up dialog as a promise the adapter's add can await: resolves
+	// true once a code is accepted, false when the user walks away.
+	const stepUpResolve = useRef<((verified: boolean) => void) | null>(null);
+	const [stepUpOpen, setStepUpOpen] = useState(false);
+	const requestStepUp = (): Promise<boolean> =>
+		new Promise((resolve) => {
+			stepUpResolve.current = resolve;
+			setStepUpOpen(true);
+		});
+	const settleStepUp = (verified: boolean) => {
+		setStepUpOpen(false);
+		stepUpResolve.current?.(verified);
+		stepUpResolve.current = null;
+	};
+
 	const rows = (): PhoneRow[] => (data?.phoneNumbers?.nodes ?? []) as PhoneRow[];
 	const reload = async (): Promise<AccountPhoneNumber[]> => {
 		const fresh = await refetch();
@@ -79,14 +109,27 @@ export function PhoneNumbersSection() {
 		list: () => reload(),
 		add: async ({ number }) => {
 			const existing = await reload();
-			const created = await createPhoneNumber({
-				cc: '+',
-				number,
-				// The platform's writers store cc '+' with the full E.164 in
-				// `number` — sign-in and verification both match on that shape,
-				// and the block's contract calls `number` E.164.
-				isPrimary: existing.length === 0
-			});
+			const create = () =>
+				createPhoneNumber({
+					cc: '+',
+					number,
+					// The platform's writers store cc '+' with the full E.164 in
+					// `number` — sign-in and verification both match on that shape,
+					// and the block's contract calls `number` E.164.
+					isPrimary: existing.length === 0
+				});
+			let created;
+			try {
+				created = await create();
+			} catch (cause) {
+				// A code can answer the fresh-auth demand; anything else is the
+				// block's to show as it is.
+				if (!isCodeStepUp(cause)) throw cause;
+				if (!(await requestStepUp())) {
+					throw new Error('Verification cancelled — the number was not added.');
+				}
+				created = await create();
+			}
 			queryClient.invalidateQueries({ queryKey: ['phoneNumbers'] });
 			const row = created.createPhoneNumber?.phoneNumber as PhoneRow | undefined;
 			return toRow(row ?? { id: '', number, isVerified: false, isPrimary: existing.length === 0 });
@@ -124,5 +167,22 @@ export function PhoneNumbersSection() {
 		}
 	};
 
-	return <AccountPhoneNumbers adapter={adapter} identityKey="account" />;
+	return (
+		<>
+			<AccountPhoneNumbers adapter={adapter} identityKey="account" />
+			<AlertDialog open={stepUpOpen} onOpenChange={(open) => !open && settleStepUp(false)}>
+				<AlertDialogContent className='sm:max-w-md gap-0 p-0 overflow-hidden'>
+					<AlertDialogHeader className='px-6 pt-6 pb-4'>
+						<AlertDialogTitle className='text-lg font-semibold tracking-tight'>Verify it&apos;s you</AlertDialogTitle>
+						<AlertDialogDescription className='text-sm text-muted-foreground pt-1'>
+							Adding a phone number needs a fresh verification — a stale session is not enough.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<div className='px-6 pb-6'>
+						<StepUpCodeForm onVerified={() => settleStepUp(true)} onCancel={() => settleStepUp(false)} />
+					</div>
+				</AlertDialogContent>
+			</AlertDialog>
+		</>
+	);
 }

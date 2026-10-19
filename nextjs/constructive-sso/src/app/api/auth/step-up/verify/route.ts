@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { readJsonBody, sameOriginGuard } from '@/lib/bff/request-guard';
-import { GatewayError, gatewayPost, sessionCredential } from '@/lib/sso/gateway';
+import { authClient, authErrorResponse, runAuth, sessionCookieOf } from '@/lib/sso/auth-graphql';
 
 interface VerifyStepUpBody {
 	code?: string;
@@ -11,14 +11,18 @@ interface VerifyStepUpBody {
 const CODE = /^\d{6}$/;
 
 /**
- * POST /api/auth/step-up/verify — spend the step-up code.
+ * POST /api/auth/step-up/verify — spend the step-up code, through the
+ * tenant's `verifyStepUpCode`.
  *
- * Relays to the gateway's authenticated `auth_flows:verify_step_up_code`
- * lane. On a correct code the tenant stamps THIS session `last_mfa_verified`,
+ * On a correct code the tenant stamps THIS session `last_mfa_verified`,
  * which is what the guarded write (`require_step_up('mfa')`) reads when the
- * caller retries it through the GraphQL proxy — the same session cookie
- * travels as the bearer on both. A wrong code is `verified: false` (counted
- * toward the lockout), not an error.
+ * caller retries it through the app's GraphQL proxy — the same session
+ * cookie travels as the bearer on both. A wrong code — or a locked-out
+ * caller, whose attempts the tenant counts silently — answers
+ * `verified:false`; the difference between the two is the tenant's to keep.
+ * STEP_UP_SESSION_INVALID means this session cannot be re-verified (wrong
+ * session, or its user agent or origin no longer matches): 401, and the
+ * client sends the user to sign in again.
  */
 export async function POST(req: Request): Promise<NextResponse> {
 	const csrf = sameOriginGuard(req);
@@ -30,18 +34,21 @@ export async function POST(req: Request): Promise<NextResponse> {
 		return NextResponse.json({ error: 'code must be six digits' }, { status: 400 });
 	}
 
-	const session = await sessionCredential();
-	if (!session) {
+	// main's own guard, restored: no session cookie, no call to the tenant.
+	if (!sessionCookieOf(req)) {
 		return NextResponse.json({ error: 'NOT_AUTHENTICATED' }, { status: 401 });
 	}
 
+	const db = authClient(req);
 	try {
-		const result = await gatewayPost<{ verified: boolean }>('/auth/verify-step-up-code', { code }, session);
-		return NextResponse.json({ verified: result.verified === true });
-	} catch (err) {
-		if (err instanceof GatewayError) {
-			return NextResponse.json({ error: err.code }, { status: err.status >= 500 ? 502 : err.status });
+		const { verifyStepUpCode } = await runAuth(
+			db.mutation.verifyStepUpCode({ input: { code } }, { select: { result: true } })
+		);
+		if (verifyStepUpCode?.result === true) {
+			return NextResponse.json({ verified: true });
 		}
-		throw err;
+		return NextResponse.json({ verified: false, error: 'INVALID_CODE' }, { status: 200 });
+	} catch (err) {
+		return authErrorResponse(err);
 	}
 }

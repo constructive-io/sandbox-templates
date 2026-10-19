@@ -173,43 +173,6 @@ export class OrgCapabilityDefaultModel {
       variables,
     });
   }
-  update<S extends OrgCapabilityDefaultSelect>(
-    args: UpdateArgs<
-      S,
-      {
-        id: string;
-      },
-      OrgCapabilityDefaultPatch
-    > & {
-      select: S;
-    } & StrictSelect<S, OrgCapabilityDefaultSelect>
-  ): QueryBuilder<{
-    updateOrgCapabilityDefault: {
-      orgCapabilityDefault: InferSelectResult<OrgCapabilityDefaultWithRelations, S>;
-    };
-  }> {
-    const { document, variables } = buildUpdateByPkDocument(
-      'OrgCapabilityDefault',
-      'updateOrgCapabilityDefault',
-      'orgCapabilityDefault',
-      args.select,
-      args.where.id,
-      args.data,
-      'UpdateOrgCapabilityDefaultInput',
-      'id',
-      'orgCapabilityDefaultPatch',
-      connectionFieldsMap,
-      undefined
-    );
-    return new QueryBuilder({
-      client: this.client,
-      operation: 'mutation',
-      operationName: 'OrgCapabilityDefault',
-      fieldName: 'updateOrgCapabilityDefault',
-      document,
-      variables,
-    });
-  }
   delete<S extends OrgCapabilityDefaultSelect>(
     args: DeleteArgs<
       {

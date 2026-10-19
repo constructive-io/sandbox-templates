@@ -23,10 +23,13 @@ try {
 /**
  * Per-DB Template - GraphQL Codegen Configuration
  *
- * Three SDK targets:
+ * Two SDK targets:
  * - admin: Organizations, members, permissions, invites
  * - auth:  Users, emails, authentication
- * - app:   Your business data
+ *
+ * There is no `app` (business data) target: this template's tenants have no
+ * app-context tables, and the generator fatally rejects an empty schema. A
+ * template that gains business tables adds the target back here.
  *
  * Usage:
  *   1. Set NEXT_PUBLIC_DB_NAME in .env
@@ -44,11 +47,10 @@ if (!DB_NAME) {
 }
 
 // Codegen connects via subdomain-based virtual hosts. Endpoints use the
-// per-DB subdomain pattern: admin-{db}.localhost, auth-{db}.localhost, and the
-// app DATA subdomain (api-{db}.localhost by default), served by the platform
-// gateway (Traefik ingress) on port 80. The HTTP Host header — not the URL —
-// drives server-side API routing, so a URL override alone still 404s; the Host
-// must match the routed subdomain.
+// per-DB subdomain pattern: admin-{db}.localhost and auth-{db}.localhost,
+// served by the platform gateway (Traefik ingress) on port 80. The HTTP Host
+// header — not the URL — drives server-side API routing, so a URL override
+// alone still 404s; the Host must match the routed subdomain.
 //
 // The {db} segment is the database slug create-db writes to .env as
 // NEXT_PUBLIC_DB_NAME; PostGraphile maps it back to the physical db name by
@@ -59,10 +61,8 @@ if (!DB_NAME) {
 // Include a port only when the gateway is not on :80:
 // - CODEGEN_ADMIN_HOST  (default: admin-{db}.localhost)
 // - CODEGEN_AUTH_HOST   (default: auth-{db}.localhost)
-// - CODEGEN_APP_HOST    (default: api-{db}.localhost)  ← app business data
 const ADMIN_HOST = process.env.CODEGEN_ADMIN_HOST ?? `admin-${DB_NAME}.localhost`;
 const AUTH_HOST = process.env.CODEGEN_AUTH_HOST ?? `auth-${DB_NAME}.localhost`;
-const APP_HOST = process.env.CODEGEN_APP_HOST ?? `api-${DB_NAME}.localhost`;
 
 const config: Record<string, GraphQLSDKConfigTarget> = {
 	admin: {
@@ -76,12 +76,6 @@ const config: Record<string, GraphQLSDKConfigTarget> = {
 		endpoint: process.env.CODEGEN_AUTH_ENDPOINT ?? `http://${AUTH_HOST}/graphql`,
 		headers: { Host: AUTH_HOST },
 		output: './src/graphql/sdk/auth',
-	},
-	app: {
-		reactQuery: true,
-		endpoint: process.env.CODEGEN_APP_ENDPOINT ?? `http://${APP_HOST}/graphql`,
-		headers: { Host: APP_HOST },
-		output: './src/graphql/sdk/app',
 	},
 };
 

@@ -1,26 +1,33 @@
 import { NextResponse } from 'next/server';
 
+import { deviceCookie, maxAgeFromExpiresAt, sessionCookie } from '@/lib/bff/session-cookie';
 import { readJsonBody, sameOriginGuard } from '@/lib/bff/request-guard';
-import { gatewayLocation, SSO_GATEWAY_URL } from '@/lib/sso/gateway';
+import { authClient, authErrorResponse, deviceTokenOf, GATEWAY_ORIGIN, runAuth } from '@/lib/sso/auth-graphql';
 
 interface VerifySmsOtpBody {
 	phone?: string;
 	code?: string;
 }
 
-/** E.164 (the lane rejects anything else, but refuse it here first). */
+/** E.164 (the tenant rejects anything else, but refuse it here first). */
 const E164 = /^\+[1-9]\d{7,14}$/;
 /** Six digits — the length the tenant's manifest pins the code to. */
 const CODE = /^\d{6}$/;
 
 /**
- * POST /api/auth/verify-sms-otp — spend the SMS code and land the session.
+ * POST /api/auth/verify-sms-otp — spend the SMS code and land the session,
+ * through the tenant's `signInSmsOtp`.
  *
- * The gateway's /auth/sms-code page owns the sign-in (the session cookie is
- * set host-only on localhost); this relay posts the form server-side, keeps
- * the redirect's Set-Cookie (cookies ignore ports, so the app origin
- * receives it too) and answers JSON the in-app code form can render. The
- * browser never sees the gateway's page.
+ * A usable access token mints the app cookie here (built by the central
+ * helper; the token never appears in the response body). An MFA-enrolled
+ * account gets `mfaRequired` and no session, exactly like the password
+ * lane — the hosted `/login` owns the challenge. A wrong or lapsed code is
+ * `INVALID_CODE`: the tenant answers null for a number it never texted and
+ * a code that does not match alike.
+ *
+ * Trusted devices (upstream #2199): like the password lane, a device token
+ * the tenant hands back is kept as the `constructive_device_token` cookie,
+ * and one this browser already holds is fed back as `deviceToken`.
  */
 export async function POST(req: Request): Promise<NextResponse> {
 	const csrf = sameOriginGuard(req);
@@ -41,38 +48,82 @@ export async function POST(req: Request): Promise<NextResponse> {
 		return NextResponse.json({ error: 'code must be six digits' }, { status: 400 });
 	}
 
-	let res: Response;
+	const device = deviceTokenOf(req);
+	// Anonymous lane: no session forwarded — a stale cookie must not
+  // poison a mutation that needs no session (see authClient).
+  const db = authClient(req, { anonymous: true });
 	try {
-		// `next` is a gateway-local path (the gateway refuses absolute targets
-		// and would fall back to /login): its root, whose app-origin redirect
-		// row brings the browser back into this app.
-		res = await fetch(`${SSO_GATEWAY_URL}/auth/sms-code`, {
-			method: 'POST',
-			headers: { 'content-type': 'application/x-www-form-urlencoded' },
-			body: new URLSearchParams({ phone, code, next: '/' }),
-			redirect: 'manual',
-			cache: 'no-store',
-			signal: AbortSignal.timeout(10_000),
-		});
-	} catch {
-		return NextResponse.json({ error: 'GATEWAY_UNREACHABLE' }, { status: 502 });
-	}
+		const { signInSmsOtp } = await runAuth(
+			db.mutation.signInSmsOtp(
+				{
+					input: {
+						phone,
+						code,
+						credentialKind: 'access_token',
+						// The trusted-device token an earlier sign-in left, when present.
+						...(device ? { deviceToken: device } : {})
+					}
+				},
+				{
+					select: {
+						result: {
+							select: {
+								userId: true,
+								accessToken: true,
+								accessTokenExpiresAt: true,
+								mfaRequired: true,
+								deviceApprovalRequired: true,
+								outDeviceToken: true
+							}
+						}
+					}
+				}
+			)
+		);
+		const result = signInSmsOtp?.result ?? null;
 
-	// Success is the gateway's redirect carrying the session cookie.
-	const sessionCookies = res.headers.getSetCookie();
-	if (res.status >= 300 && res.status < 400 && sessionCookies.length > 0) {
-		const next = gatewayLocation(res.headers.get('location') ?? '/', `${SSO_GATEWAY_URL}/auth/sms-code`);
-		const response = NextResponse.json({ ok: true, next });
-		for (const cookie of sessionCookies) response.headers.append('set-cookie', cookie);
-		return response;
-	}
+		// A device token is kept whatever the outcome — the same rule the
+		// password lane and the hosted pages follow.
+		const deviceHeaders = (): Headers => {
+			const headers = new Headers();
+			if (result?.outDeviceToken) {
+				headers.append('set-cookie', deviceCookie(result.outDeviceToken));
+			}
+			return headers;
+		};
 
-	// A refusal is the gateway's error page: the tenant's own code in
-	// <p class="error">…</p> (INVALID_CODE, ACCOUNT_NOT_FOUND, …).
-	const html = await res.text();
-	const refusal = /<p class="error">([A-Z0-9_]+)<\/p>/.exec(html)?.[1];
-	return NextResponse.json(
-		{ error: refusal ?? 'SMS_SIGN_IN_FAILED' },
-		{ status: res.status >= 500 ? 502 : 400 }
-	);
+		if (result?.deviceApprovalRequired) {
+			return NextResponse.json(
+				{ error: 'DEVICE_APPROVAL_REQUIRED' },
+				{ status: 200, headers: deviceHeaders() }
+			);
+		}
+		if (result?.mfaRequired) {
+			// The phone lane's own challenge: the hosted /login/phone is where
+			// this number's code was asked for, so its challenge lands there.
+			return NextResponse.json(
+				{
+					mfaRequired: true,
+					error: 'MFA_REQUIRED',
+					next: `${GATEWAY_ORIGIN}/login/phone?next=%2F`
+				},
+				{ status: 200, headers: deviceHeaders() }
+			);
+		}
+		if (!result?.accessToken) {
+			return NextResponse.json({ error: 'INVALID_CODE' }, { status: 200 });
+		}
+
+		const headers = new Headers();
+		headers.append(
+			'set-cookie',
+			sessionCookie(result.accessToken, maxAgeFromExpiresAt(result.accessTokenExpiresAt))
+		);
+		if (result.outDeviceToken) {
+			headers.append('set-cookie', deviceCookie(result.outDeviceToken));
+		}
+		return NextResponse.json({ ok: true, next: '/' }, { headers });
+	} catch (err) {
+		return authErrorResponse(err);
+	}
 }

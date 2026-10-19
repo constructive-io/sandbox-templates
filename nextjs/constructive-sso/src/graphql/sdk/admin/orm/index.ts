@@ -41,13 +41,10 @@ import { AppGrantModel } from './models/appGrant';
 import { OrgClaimedInviteModel } from './models/orgClaimedInvite';
 import { OrgGrantModel } from './models/orgGrant';
 import { OrgChartEdgeModel } from './models/orgChartEdge';
-import { AppProfileTemplateModel } from './models/appProfileTemplate';
-import { OrgProfileTemplateModel } from './models/orgProfileTemplate';
 import { AppMembershipDefaultModel } from './models/appMembershipDefault';
 import { OrgMembershipDefaultModel } from './models/orgMembershipDefault';
 import { AppProfileModel } from './models/appProfile';
 import { OrgProfileModel } from './models/orgProfile';
-import { OrgMemberProfileModel } from './models/orgMemberProfile';
 import { OrgMembershipSettingModel } from './models/orgMembershipSetting';
 import { createQueryOperations } from './query';
 import { createMutationOperations } from './mutation';
@@ -120,13 +117,10 @@ export function createClient(config: OrmClientConfig) {
     orgClaimedInvite: new OrgClaimedInviteModel(client),
     orgGrant: new OrgGrantModel(client),
     orgChartEdge: new OrgChartEdgeModel(client),
-    appProfileTemplate: new AppProfileTemplateModel(client),
-    orgProfileTemplate: new OrgProfileTemplateModel(client),
     appMembershipDefault: new AppMembershipDefaultModel(client),
     orgMembershipDefault: new OrgMembershipDefaultModel(client),
     appProfile: new AppProfileModel(client),
     orgProfile: new OrgProfileModel(client),
-    orgMemberProfile: new OrgMemberProfileModel(client),
     orgMembershipSetting: new OrgMembershipSettingModel(client),
     query: createQueryOperations(client),
     mutation: createMutationOperations(client),

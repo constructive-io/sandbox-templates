@@ -18,8 +18,19 @@ import 'server-only';
  */
 export const SESSION_COOKIE = 'constructive_session';
 
+/**
+ * The trusted-device cookie — the same name and lifetime the platform's page
+ * lane writes (compute-runtime DEVICE_COOKIE), so a browser this BFF signed
+ * in is recognised by the hosted pages too. Cookies ignore port, and both
+ * cookies are host-only on `localhost`.
+ */
+export const DEVICE_COOKIE = 'constructive_device_token';
+
 /** Fallback lifetime when the lane answers no expiry (matches platform defaults). */
 const DEFAULT_MAX_AGE_SECONDS = 60 * 60 * 24 * 14;
+
+/** A device outlives any one session it signed in (matches compute-runtime). */
+const DEVICE_MAX_AGE_SECONDS = 90 * 24 * 60 * 60;
 
 function attrs(maxAge: number): string {
   return [
@@ -50,4 +61,13 @@ export function sessionCookie(accessToken: string, maxAgeSeconds: number): strin
 /** The Set-Cookie value that retires it — same attributes, empty, expired. */
 export function clearSessionCookie(): string {
   return `${SESSION_COOKIE}=; ${attrs(0)}`;
+}
+
+/**
+ * The Set-Cookie value that keeps a trusted-device token the tenant handed
+ * back at sign-in. HttpOnly like the session cookie: the token is opaque and
+ * no page script has a use for it.
+ */
+export function deviceCookie(token: string): string {
+  return `${DEVICE_COOKIE}=${encodeURIComponent(token)}; ${attrs(DEVICE_MAX_AGE_SECONDS)}`;
 }

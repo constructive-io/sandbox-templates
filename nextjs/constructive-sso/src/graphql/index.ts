@@ -1,10 +1,9 @@
 /**
  * GraphQL exports for the application.
  *
- * Per-DB mode uses three SDK contexts:
+ * Per-DB mode uses two SDK contexts:
  * - @sdk/admin: Organizations, permissions, invites
  * - @sdk/auth: Users, emails, authentication
- * - @sdk/app: Your business data
  */
 import { TypedDocumentString } from './typed-document';
 

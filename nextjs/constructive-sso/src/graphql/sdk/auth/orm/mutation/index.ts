@@ -16,7 +16,6 @@ import type {
   EnableTotpInput,
   GenerateBackupCodesInput,
   ApproveDeviceInput,
-  AttachPhoneNumberInput,
   ConfirmTotpSetupInput,
   DeleteOrgPrincipalInput,
   DeletePrincipalInput,
@@ -25,43 +24,48 @@ import type {
   RevokeApiKeyInput,
   RevokeSessionInput,
   SendPhoneVerificationCodeInput,
-  SetPrimaryPhoneInput,
+  SendSmsOtpInput,
   VerifyPasswordInput,
+  VerifyStepUpCodeInput,
   VerifyTotpInput,
   CheckPasswordInput,
+  RequestMagicLinkInput,
+  SendStepUpCodeInput,
   ConfirmDeleteAccountInput,
   RevokeOrgApiKeyInput,
   SetPasswordInput,
   VerifyEmailInput,
   VerifyPhoneInput,
-  ProvisionNewUserInput,
   ResetPasswordInput,
-  ResetPasswordSmsInput,
+  SendMfaChallengeCodeInput,
+  SignUpInput,
   CreateOrgPrincipalInput,
   RefreshAccessTokenInput,
   SignInCrossOriginInput,
-  SignInMagicLinkInput,
   SignUpMagicLinkInput,
-  SignInEmailOtpInput,
-  SignInSmsOtpInput,
   SignUpSmsInput,
+  SignInMagicLinkInput,
+  SignInSmsOtpInput,
   CompleteMfaChallengeInput,
-  SignUpInput,
   SignInInput,
+  SendVerificationEmailInput,
+  ForgotPasswordInput,
+  RequestCrossOriginTokenInput,
   SetPrincipalEntitiesInput,
   LinkIdentityInput,
   CreatePrincipalFromPresetInput,
-  UpdatePrincipalInput,
   ExtendTokenExpiresInput,
+  UpdatePrincipalInput,
   MintAccessTokenInput,
   CreateOrgApiKeyInput,
   SetPrincipalScopeInput,
   CreateApiKeyInput,
   CreateChildPrincipalInput,
-  RequestCrossOriginTokenInput,
-  SendVerificationEmailInput,
-  ForgotPasswordInput,
   ProvisionBucketInput,
+  WebauthnRegisterBeginInput,
+  WebauthnRegisterFinishInput,
+  WebauthnSignInBeginInput,
+  WebauthnSignInFinishInput,
   DisableEmailMfaPayload,
   DisableSmsMfaPayload,
   EnableEmailMfaPayload,
@@ -71,7 +75,6 @@ import type {
   EnableTotpPayload,
   GenerateBackupCodesPayload,
   ApproveDevicePayload,
-  AttachPhoneNumberPayload,
   ConfirmTotpSetupPayload,
   DeleteOrgPrincipalPayload,
   DeletePrincipalPayload,
@@ -80,43 +83,48 @@ import type {
   RevokeApiKeyPayload,
   RevokeSessionPayload,
   SendPhoneVerificationCodePayload,
-  SetPrimaryPhonePayload,
+  SendSmsOtpPayload,
   VerifyPasswordPayload,
+  VerifyStepUpCodePayload,
   VerifyTotpPayload,
   CheckPasswordPayload,
+  RequestMagicLinkPayload,
+  SendStepUpCodePayload,
   ConfirmDeleteAccountPayload,
   RevokeOrgApiKeyPayload,
   SetPasswordPayload,
   VerifyEmailPayload,
   VerifyPhonePayload,
-  ProvisionNewUserPayload,
   ResetPasswordPayload,
-  ResetPasswordSmsPayload,
+  SendMfaChallengeCodePayload,
+  SignUpPayload,
   CreateOrgPrincipalPayload,
   RefreshAccessTokenPayload,
   SignInCrossOriginPayload,
-  SignInMagicLinkPayload,
   SignUpMagicLinkPayload,
-  SignInEmailOtpPayload,
-  SignInSmsOtpPayload,
   SignUpSmsPayload,
+  SignInMagicLinkPayload,
+  SignInSmsOtpPayload,
   CompleteMfaChallengePayload,
-  SignUpPayload,
   SignInPayload,
+  SendVerificationEmailPayload,
+  ForgotPasswordPayload,
+  RequestCrossOriginTokenPayload,
   SetPrincipalEntitiesPayload,
   LinkIdentityPayload,
   CreatePrincipalFromPresetPayload,
-  UpdatePrincipalPayload,
   ExtendTokenExpiresPayload,
+  UpdatePrincipalPayload,
   MintAccessTokenPayload,
   CreateOrgApiKeyPayload,
   SetPrincipalScopePayload,
   CreateApiKeyPayload,
   CreateChildPrincipalPayload,
-  RequestCrossOriginTokenPayload,
-  SendVerificationEmailPayload,
-  ForgotPasswordPayload,
   ProvisionBucketPayload,
+  WebauthnRegisterBeginPayload,
+  WebauthnRegisterFinishPayload,
+  WebauthnSignInBeginPayload,
+  WebauthnSignInFinishPayload,
   DisableEmailMfaPayloadSelect,
   DisableSmsMfaPayloadSelect,
   EnableEmailMfaPayloadSelect,
@@ -126,7 +134,6 @@ import type {
   EnableTotpPayloadSelect,
   GenerateBackupCodesPayloadSelect,
   ApproveDevicePayloadSelect,
-  AttachPhoneNumberPayloadSelect,
   ConfirmTotpSetupPayloadSelect,
   DeleteOrgPrincipalPayloadSelect,
   DeletePrincipalPayloadSelect,
@@ -135,43 +142,48 @@ import type {
   RevokeApiKeyPayloadSelect,
   RevokeSessionPayloadSelect,
   SendPhoneVerificationCodePayloadSelect,
-  SetPrimaryPhonePayloadSelect,
+  SendSmsOtpPayloadSelect,
   VerifyPasswordPayloadSelect,
+  VerifyStepUpCodePayloadSelect,
   VerifyTotpPayloadSelect,
   CheckPasswordPayloadSelect,
+  RequestMagicLinkPayloadSelect,
+  SendStepUpCodePayloadSelect,
   ConfirmDeleteAccountPayloadSelect,
   RevokeOrgApiKeyPayloadSelect,
   SetPasswordPayloadSelect,
   VerifyEmailPayloadSelect,
   VerifyPhonePayloadSelect,
-  ProvisionNewUserPayloadSelect,
   ResetPasswordPayloadSelect,
-  ResetPasswordSmsPayloadSelect,
+  SendMfaChallengeCodePayloadSelect,
+  SignUpPayloadSelect,
   CreateOrgPrincipalPayloadSelect,
   RefreshAccessTokenPayloadSelect,
   SignInCrossOriginPayloadSelect,
-  SignInMagicLinkPayloadSelect,
   SignUpMagicLinkPayloadSelect,
-  SignInEmailOtpPayloadSelect,
-  SignInSmsOtpPayloadSelect,
   SignUpSmsPayloadSelect,
+  SignInMagicLinkPayloadSelect,
+  SignInSmsOtpPayloadSelect,
   CompleteMfaChallengePayloadSelect,
-  SignUpPayloadSelect,
   SignInPayloadSelect,
+  SendVerificationEmailPayloadSelect,
+  ForgotPasswordPayloadSelect,
+  RequestCrossOriginTokenPayloadSelect,
   SetPrincipalEntitiesPayloadSelect,
   LinkIdentityPayloadSelect,
   CreatePrincipalFromPresetPayloadSelect,
-  UpdatePrincipalPayloadSelect,
   ExtendTokenExpiresPayloadSelect,
+  UpdatePrincipalPayloadSelect,
   MintAccessTokenPayloadSelect,
   CreateOrgApiKeyPayloadSelect,
   SetPrincipalScopePayloadSelect,
   CreateApiKeyPayloadSelect,
   CreateChildPrincipalPayloadSelect,
-  RequestCrossOriginTokenPayloadSelect,
-  SendVerificationEmailPayloadSelect,
-  ForgotPasswordPayloadSelect,
   ProvisionBucketPayloadSelect,
+  WebauthnRegisterBeginPayloadSelect,
+  WebauthnRegisterFinishPayloadSelect,
+  WebauthnSignInBeginPayloadSelect,
+  WebauthnSignInFinishPayloadSelect,
 } from '../input-types';
 import { connectionFieldsMap } from '../input-types';
 export interface DisableEmailMfaVariables {
@@ -201,9 +213,6 @@ export interface GenerateBackupCodesVariables {
 export interface ApproveDeviceVariables {
   input: ApproveDeviceInput;
 }
-export interface AttachPhoneNumberVariables {
-  input: AttachPhoneNumberInput;
-}
 export interface ConfirmTotpSetupVariables {
   input: ConfirmTotpSetupInput;
 }
@@ -228,17 +237,26 @@ export interface RevokeSessionVariables {
 export interface SendPhoneVerificationCodeVariables {
   input: SendPhoneVerificationCodeInput;
 }
-export interface SetPrimaryPhoneVariables {
-  input: SetPrimaryPhoneInput;
+export interface SendSmsOtpVariables {
+  input: SendSmsOtpInput;
 }
 export interface VerifyPasswordVariables {
   input: VerifyPasswordInput;
+}
+export interface VerifyStepUpCodeVariables {
+  input: VerifyStepUpCodeInput;
 }
 export interface VerifyTotpVariables {
   input: VerifyTotpInput;
 }
 export interface CheckPasswordVariables {
   input: CheckPasswordInput;
+}
+export interface RequestMagicLinkVariables {
+  input: RequestMagicLinkInput;
+}
+export interface SendStepUpCodeVariables {
+  input: SendStepUpCodeInput;
 }
 export interface ConfirmDeleteAccountVariables {
   input: ConfirmDeleteAccountInput;
@@ -255,14 +273,14 @@ export interface VerifyEmailVariables {
 export interface VerifyPhoneVariables {
   input: VerifyPhoneInput;
 }
-export interface ProvisionNewUserVariables {
-  input: ProvisionNewUserInput;
-}
 export interface ResetPasswordVariables {
   input: ResetPasswordInput;
 }
-export interface ResetPasswordSmsVariables {
-  input: ResetPasswordSmsInput;
+export interface SendMfaChallengeCodeVariables {
+  input: SendMfaChallengeCodeInput;
+}
+export interface SignUpVariables {
+  input: SignUpInput;
 }
 export interface CreateOrgPrincipalVariables {
   input: CreateOrgPrincipalInput;
@@ -273,29 +291,32 @@ export interface RefreshAccessTokenVariables {
 export interface SignInCrossOriginVariables {
   input: SignInCrossOriginInput;
 }
-export interface SignInMagicLinkVariables {
-  input: SignInMagicLinkInput;
-}
 export interface SignUpMagicLinkVariables {
   input: SignUpMagicLinkInput;
-}
-export interface SignInEmailOtpVariables {
-  input: SignInEmailOtpInput;
-}
-export interface SignInSmsOtpVariables {
-  input: SignInSmsOtpInput;
 }
 export interface SignUpSmsVariables {
   input: SignUpSmsInput;
 }
+export interface SignInMagicLinkVariables {
+  input: SignInMagicLinkInput;
+}
+export interface SignInSmsOtpVariables {
+  input: SignInSmsOtpInput;
+}
 export interface CompleteMfaChallengeVariables {
   input: CompleteMfaChallengeInput;
 }
-export interface SignUpVariables {
-  input: SignUpInput;
-}
 export interface SignInVariables {
   input: SignInInput;
+}
+export interface SendVerificationEmailVariables {
+  input: SendVerificationEmailInput;
+}
+export interface ForgotPasswordVariables {
+  input: ForgotPasswordInput;
+}
+export interface RequestCrossOriginTokenVariables {
+  input: RequestCrossOriginTokenInput;
 }
 export interface SetPrincipalEntitiesVariables {
   input: SetPrincipalEntitiesInput;
@@ -306,11 +327,11 @@ export interface LinkIdentityVariables {
 export interface CreatePrincipalFromPresetVariables {
   input: CreatePrincipalFromPresetInput;
 }
-export interface UpdatePrincipalVariables {
-  input: UpdatePrincipalInput;
-}
 export interface ExtendTokenExpiresVariables {
   input: ExtendTokenExpiresInput;
+}
+export interface UpdatePrincipalVariables {
+  input: UpdatePrincipalInput;
 }
 export interface MintAccessTokenVariables {
   input: MintAccessTokenInput;
@@ -327,24 +348,45 @@ export interface CreateApiKeyVariables {
 export interface CreateChildPrincipalVariables {
   input: CreateChildPrincipalInput;
 }
-export interface RequestCrossOriginTokenVariables {
-  input: RequestCrossOriginTokenInput;
-}
-export interface SendVerificationEmailVariables {
-  input: SendVerificationEmailInput;
-}
-export interface ForgotPasswordVariables {
-  input: ForgotPasswordInput;
-}
 /**
  * Variables for provisionBucket
- * Provision an S3 bucket for a logical bucket in the database.
-Reads the bucket config via RLS, then creates and configures
-the S3 bucket with the appropriate privacy policies, CORS rules,
-and lifecycle settings.
+ * Reconcile an S3 bucket for a logical bucket in the database.
+Records the request on the bucket row via RLS; the bucket's job
+trigger then enqueues the same storage:provision_bucket job used on
+INSERT, and repeated requests collapse into one pending job. This is
+idempotent for an already-reconciled bucket; failures become GraphQL
+errors.
  */
 export interface ProvisionBucketVariables {
   input: ProvisionBucketInput;
+}
+/**
+ * Variables for webauthnRegisterBegin
+ * Begin registering a passkey for the signed-in user.
+ */
+export interface WebauthnRegisterBeginVariables {
+  input?: WebauthnRegisterBeginInput;
+}
+/**
+ * Variables for webauthnRegisterFinish
+ * Verify the browser's registration response and store the passkey.
+ */
+export interface WebauthnRegisterFinishVariables {
+  input: WebauthnRegisterFinishInput;
+}
+/**
+ * Variables for webauthnSignInBegin
+ * Begin a passkey sign-in (discoverable when signed out).
+ */
+export interface WebauthnSignInBeginVariables {
+  input?: WebauthnSignInBeginInput;
+}
+/**
+ * Variables for webauthnSignInFinish
+ * Verify the browser's assertion and mint a session.
+ */
+export interface WebauthnSignInFinishVariables {
+  input: WebauthnSignInFinishInput;
 }
 export function createMutationOperations(client: OrmClient) {
   return {
@@ -609,35 +651,6 @@ export function createMutationOperations(client: OrmClient) {
           'ApproveDevicePayload'
         ),
       }),
-    attachPhoneNumber: <S extends AttachPhoneNumberPayloadSelect>(
-      args: AttachPhoneNumberVariables,
-      options: {
-        select: S;
-      } & StrictSelect<S, AttachPhoneNumberPayloadSelect>
-    ) =>
-      new QueryBuilder<{
-        attachPhoneNumber: InferSelectResult<AttachPhoneNumberPayload, S> | null;
-      }>({
-        client,
-        operation: 'mutation',
-        operationName: 'AttachPhoneNumber',
-        fieldName: 'attachPhoneNumber',
-        ...buildCustomDocument(
-          'mutation',
-          'AttachPhoneNumber',
-          'attachPhoneNumber',
-          options.select,
-          args,
-          [
-            {
-              name: 'input',
-              type: 'AttachPhoneNumberInput!',
-            },
-          ],
-          connectionFieldsMap,
-          'AttachPhoneNumberPayload'
-        ),
-      }),
     confirmTotpSetup: <S extends ConfirmTotpSetupPayloadSelect>(
       args: ConfirmTotpSetupVariables,
       options: {
@@ -870,33 +883,33 @@ export function createMutationOperations(client: OrmClient) {
           'SendPhoneVerificationCodePayload'
         ),
       }),
-    setPrimaryPhone: <S extends SetPrimaryPhonePayloadSelect>(
-      args: SetPrimaryPhoneVariables,
+    sendSmsOtp: <S extends SendSmsOtpPayloadSelect>(
+      args: SendSmsOtpVariables,
       options: {
         select: S;
-      } & StrictSelect<S, SetPrimaryPhonePayloadSelect>
+      } & StrictSelect<S, SendSmsOtpPayloadSelect>
     ) =>
       new QueryBuilder<{
-        setPrimaryPhone: InferSelectResult<SetPrimaryPhonePayload, S> | null;
+        sendSmsOtp: InferSelectResult<SendSmsOtpPayload, S> | null;
       }>({
         client,
         operation: 'mutation',
-        operationName: 'SetPrimaryPhone',
-        fieldName: 'setPrimaryPhone',
+        operationName: 'SendSmsOtp',
+        fieldName: 'sendSmsOtp',
         ...buildCustomDocument(
           'mutation',
-          'SetPrimaryPhone',
-          'setPrimaryPhone',
+          'SendSmsOtp',
+          'sendSmsOtp',
           options.select,
           args,
           [
             {
               name: 'input',
-              type: 'SetPrimaryPhoneInput!',
+              type: 'SendSmsOtpInput!',
             },
           ],
           connectionFieldsMap,
-          'SetPrimaryPhonePayload'
+          'SendSmsOtpPayload'
         ),
       }),
     verifyPassword: <S extends VerifyPasswordPayloadSelect>(
@@ -926,6 +939,35 @@ export function createMutationOperations(client: OrmClient) {
           ],
           connectionFieldsMap,
           'VerifyPasswordPayload'
+        ),
+      }),
+    verifyStepUpCode: <S extends VerifyStepUpCodePayloadSelect>(
+      args: VerifyStepUpCodeVariables,
+      options: {
+        select: S;
+      } & StrictSelect<S, VerifyStepUpCodePayloadSelect>
+    ) =>
+      new QueryBuilder<{
+        verifyStepUpCode: InferSelectResult<VerifyStepUpCodePayload, S> | null;
+      }>({
+        client,
+        operation: 'mutation',
+        operationName: 'VerifyStepUpCode',
+        fieldName: 'verifyStepUpCode',
+        ...buildCustomDocument(
+          'mutation',
+          'VerifyStepUpCode',
+          'verifyStepUpCode',
+          options.select,
+          args,
+          [
+            {
+              name: 'input',
+              type: 'VerifyStepUpCodeInput!',
+            },
+          ],
+          connectionFieldsMap,
+          'VerifyStepUpCodePayload'
         ),
       }),
     verifyTotp: <S extends VerifyTotpPayloadSelect>(
@@ -984,6 +1026,64 @@ export function createMutationOperations(client: OrmClient) {
           ],
           connectionFieldsMap,
           'CheckPasswordPayload'
+        ),
+      }),
+    requestMagicLink: <S extends RequestMagicLinkPayloadSelect>(
+      args: RequestMagicLinkVariables,
+      options: {
+        select: S;
+      } & StrictSelect<S, RequestMagicLinkPayloadSelect>
+    ) =>
+      new QueryBuilder<{
+        requestMagicLink: InferSelectResult<RequestMagicLinkPayload, S> | null;
+      }>({
+        client,
+        operation: 'mutation',
+        operationName: 'RequestMagicLink',
+        fieldName: 'requestMagicLink',
+        ...buildCustomDocument(
+          'mutation',
+          'RequestMagicLink',
+          'requestMagicLink',
+          options.select,
+          args,
+          [
+            {
+              name: 'input',
+              type: 'RequestMagicLinkInput!',
+            },
+          ],
+          connectionFieldsMap,
+          'RequestMagicLinkPayload'
+        ),
+      }),
+    sendStepUpCode: <S extends SendStepUpCodePayloadSelect>(
+      args: SendStepUpCodeVariables,
+      options: {
+        select: S;
+      } & StrictSelect<S, SendStepUpCodePayloadSelect>
+    ) =>
+      new QueryBuilder<{
+        sendStepUpCode: InferSelectResult<SendStepUpCodePayload, S> | null;
+      }>({
+        client,
+        operation: 'mutation',
+        operationName: 'SendStepUpCode',
+        fieldName: 'sendStepUpCode',
+        ...buildCustomDocument(
+          'mutation',
+          'SendStepUpCode',
+          'sendStepUpCode',
+          options.select,
+          args,
+          [
+            {
+              name: 'input',
+              type: 'SendStepUpCodeInput!',
+            },
+          ],
+          connectionFieldsMap,
+          'SendStepUpCodePayload'
         ),
       }),
     confirmDeleteAccount: <S extends ConfirmDeleteAccountPayloadSelect>(
@@ -1131,35 +1231,6 @@ export function createMutationOperations(client: OrmClient) {
           'VerifyPhonePayload'
         ),
       }),
-    provisionNewUser: <S extends ProvisionNewUserPayloadSelect>(
-      args: ProvisionNewUserVariables,
-      options: {
-        select: S;
-      } & StrictSelect<S, ProvisionNewUserPayloadSelect>
-    ) =>
-      new QueryBuilder<{
-        provisionNewUser: InferSelectResult<ProvisionNewUserPayload, S> | null;
-      }>({
-        client,
-        operation: 'mutation',
-        operationName: 'ProvisionNewUser',
-        fieldName: 'provisionNewUser',
-        ...buildCustomDocument(
-          'mutation',
-          'ProvisionNewUser',
-          'provisionNewUser',
-          options.select,
-          args,
-          [
-            {
-              name: 'input',
-              type: 'ProvisionNewUserInput!',
-            },
-          ],
-          connectionFieldsMap,
-          'ProvisionNewUserPayload'
-        ),
-      }),
     resetPassword: <S extends ResetPasswordPayloadSelect>(
       args: ResetPasswordVariables,
       options: {
@@ -1189,33 +1260,62 @@ export function createMutationOperations(client: OrmClient) {
           'ResetPasswordPayload'
         ),
       }),
-    resetPasswordSms: <S extends ResetPasswordSmsPayloadSelect>(
-      args: ResetPasswordSmsVariables,
+    sendMfaChallengeCode: <S extends SendMfaChallengeCodePayloadSelect>(
+      args: SendMfaChallengeCodeVariables,
       options: {
         select: S;
-      } & StrictSelect<S, ResetPasswordSmsPayloadSelect>
+      } & StrictSelect<S, SendMfaChallengeCodePayloadSelect>
     ) =>
       new QueryBuilder<{
-        resetPasswordSms: InferSelectResult<ResetPasswordSmsPayload, S> | null;
+        sendMfaChallengeCode: InferSelectResult<SendMfaChallengeCodePayload, S> | null;
       }>({
         client,
         operation: 'mutation',
-        operationName: 'ResetPasswordSms',
-        fieldName: 'resetPasswordSms',
+        operationName: 'SendMfaChallengeCode',
+        fieldName: 'sendMfaChallengeCode',
         ...buildCustomDocument(
           'mutation',
-          'ResetPasswordSms',
-          'resetPasswordSms',
+          'SendMfaChallengeCode',
+          'sendMfaChallengeCode',
           options.select,
           args,
           [
             {
               name: 'input',
-              type: 'ResetPasswordSmsInput!',
+              type: 'SendMfaChallengeCodeInput!',
             },
           ],
           connectionFieldsMap,
-          'ResetPasswordSmsPayload'
+          'SendMfaChallengeCodePayload'
+        ),
+      }),
+    signUp: <S extends SignUpPayloadSelect>(
+      args: SignUpVariables,
+      options: {
+        select: S;
+      } & StrictSelect<S, SignUpPayloadSelect>
+    ) =>
+      new QueryBuilder<{
+        signUp: InferSelectResult<SignUpPayload, S> | null;
+      }>({
+        client,
+        operation: 'mutation',
+        operationName: 'SignUp',
+        fieldName: 'signUp',
+        ...buildCustomDocument(
+          'mutation',
+          'SignUp',
+          'signUp',
+          options.select,
+          args,
+          [
+            {
+              name: 'input',
+              type: 'SignUpInput!',
+            },
+          ],
+          connectionFieldsMap,
+          'SignUpPayload'
         ),
       }),
     createOrgPrincipal: <S extends CreateOrgPrincipalPayloadSelect>(
@@ -1305,35 +1405,6 @@ export function createMutationOperations(client: OrmClient) {
           'SignInCrossOriginPayload'
         ),
       }),
-    signInMagicLink: <S extends SignInMagicLinkPayloadSelect>(
-      args: SignInMagicLinkVariables,
-      options: {
-        select: S;
-      } & StrictSelect<S, SignInMagicLinkPayloadSelect>
-    ) =>
-      new QueryBuilder<{
-        signInMagicLink: InferSelectResult<SignInMagicLinkPayload, S> | null;
-      }>({
-        client,
-        operation: 'mutation',
-        operationName: 'SignInMagicLink',
-        fieldName: 'signInMagicLink',
-        ...buildCustomDocument(
-          'mutation',
-          'SignInMagicLink',
-          'signInMagicLink',
-          options.select,
-          args,
-          [
-            {
-              name: 'input',
-              type: 'SignInMagicLinkInput!',
-            },
-          ],
-          connectionFieldsMap,
-          'SignInMagicLinkPayload'
-        ),
-      }),
     signUpMagicLink: <S extends SignUpMagicLinkPayloadSelect>(
       args: SignUpMagicLinkVariables,
       options: {
@@ -1361,64 +1432,6 @@ export function createMutationOperations(client: OrmClient) {
           ],
           connectionFieldsMap,
           'SignUpMagicLinkPayload'
-        ),
-      }),
-    signInEmailOtp: <S extends SignInEmailOtpPayloadSelect>(
-      args: SignInEmailOtpVariables,
-      options: {
-        select: S;
-      } & StrictSelect<S, SignInEmailOtpPayloadSelect>
-    ) =>
-      new QueryBuilder<{
-        signInEmailOtp: InferSelectResult<SignInEmailOtpPayload, S> | null;
-      }>({
-        client,
-        operation: 'mutation',
-        operationName: 'SignInEmailOtp',
-        fieldName: 'signInEmailOtp',
-        ...buildCustomDocument(
-          'mutation',
-          'SignInEmailOtp',
-          'signInEmailOtp',
-          options.select,
-          args,
-          [
-            {
-              name: 'input',
-              type: 'SignInEmailOtpInput!',
-            },
-          ],
-          connectionFieldsMap,
-          'SignInEmailOtpPayload'
-        ),
-      }),
-    signInSmsOtp: <S extends SignInSmsOtpPayloadSelect>(
-      args: SignInSmsOtpVariables,
-      options: {
-        select: S;
-      } & StrictSelect<S, SignInSmsOtpPayloadSelect>
-    ) =>
-      new QueryBuilder<{
-        signInSmsOtp: InferSelectResult<SignInSmsOtpPayload, S> | null;
-      }>({
-        client,
-        operation: 'mutation',
-        operationName: 'SignInSmsOtp',
-        fieldName: 'signInSmsOtp',
-        ...buildCustomDocument(
-          'mutation',
-          'SignInSmsOtp',
-          'signInSmsOtp',
-          options.select,
-          args,
-          [
-            {
-              name: 'input',
-              type: 'SignInSmsOtpInput!',
-            },
-          ],
-          connectionFieldsMap,
-          'SignInSmsOtpPayload'
         ),
       }),
     signUpSms: <S extends SignUpSmsPayloadSelect>(
@@ -1450,6 +1463,64 @@ export function createMutationOperations(client: OrmClient) {
           'SignUpSmsPayload'
         ),
       }),
+    signInMagicLink: <S extends SignInMagicLinkPayloadSelect>(
+      args: SignInMagicLinkVariables,
+      options: {
+        select: S;
+      } & StrictSelect<S, SignInMagicLinkPayloadSelect>
+    ) =>
+      new QueryBuilder<{
+        signInMagicLink: InferSelectResult<SignInMagicLinkPayload, S> | null;
+      }>({
+        client,
+        operation: 'mutation',
+        operationName: 'SignInMagicLink',
+        fieldName: 'signInMagicLink',
+        ...buildCustomDocument(
+          'mutation',
+          'SignInMagicLink',
+          'signInMagicLink',
+          options.select,
+          args,
+          [
+            {
+              name: 'input',
+              type: 'SignInMagicLinkInput!',
+            },
+          ],
+          connectionFieldsMap,
+          'SignInMagicLinkPayload'
+        ),
+      }),
+    signInSmsOtp: <S extends SignInSmsOtpPayloadSelect>(
+      args: SignInSmsOtpVariables,
+      options: {
+        select: S;
+      } & StrictSelect<S, SignInSmsOtpPayloadSelect>
+    ) =>
+      new QueryBuilder<{
+        signInSmsOtp: InferSelectResult<SignInSmsOtpPayload, S> | null;
+      }>({
+        client,
+        operation: 'mutation',
+        operationName: 'SignInSmsOtp',
+        fieldName: 'signInSmsOtp',
+        ...buildCustomDocument(
+          'mutation',
+          'SignInSmsOtp',
+          'signInSmsOtp',
+          options.select,
+          args,
+          [
+            {
+              name: 'input',
+              type: 'SignInSmsOtpInput!',
+            },
+          ],
+          connectionFieldsMap,
+          'SignInSmsOtpPayload'
+        ),
+      }),
     completeMfaChallenge: <S extends CompleteMfaChallengePayloadSelect>(
       args: CompleteMfaChallengeVariables,
       options: {
@@ -1479,35 +1550,6 @@ export function createMutationOperations(client: OrmClient) {
           'CompleteMfaChallengePayload'
         ),
       }),
-    signUp: <S extends SignUpPayloadSelect>(
-      args: SignUpVariables,
-      options: {
-        select: S;
-      } & StrictSelect<S, SignUpPayloadSelect>
-    ) =>
-      new QueryBuilder<{
-        signUp: InferSelectResult<SignUpPayload, S> | null;
-      }>({
-        client,
-        operation: 'mutation',
-        operationName: 'SignUp',
-        fieldName: 'signUp',
-        ...buildCustomDocument(
-          'mutation',
-          'SignUp',
-          'signUp',
-          options.select,
-          args,
-          [
-            {
-              name: 'input',
-              type: 'SignUpInput!',
-            },
-          ],
-          connectionFieldsMap,
-          'SignUpPayload'
-        ),
-      }),
     signIn: <S extends SignInPayloadSelect>(
       args: SignInVariables,
       options: {
@@ -1535,6 +1577,93 @@ export function createMutationOperations(client: OrmClient) {
           ],
           connectionFieldsMap,
           'SignInPayload'
+        ),
+      }),
+    sendVerificationEmail: <S extends SendVerificationEmailPayloadSelect>(
+      args: SendVerificationEmailVariables,
+      options: {
+        select: S;
+      } & StrictSelect<S, SendVerificationEmailPayloadSelect>
+    ) =>
+      new QueryBuilder<{
+        sendVerificationEmail: InferSelectResult<SendVerificationEmailPayload, S> | null;
+      }>({
+        client,
+        operation: 'mutation',
+        operationName: 'SendVerificationEmail',
+        fieldName: 'sendVerificationEmail',
+        ...buildCustomDocument(
+          'mutation',
+          'SendVerificationEmail',
+          'sendVerificationEmail',
+          options.select,
+          args,
+          [
+            {
+              name: 'input',
+              type: 'SendVerificationEmailInput!',
+            },
+          ],
+          connectionFieldsMap,
+          'SendVerificationEmailPayload'
+        ),
+      }),
+    forgotPassword: <S extends ForgotPasswordPayloadSelect>(
+      args: ForgotPasswordVariables,
+      options: {
+        select: S;
+      } & StrictSelect<S, ForgotPasswordPayloadSelect>
+    ) =>
+      new QueryBuilder<{
+        forgotPassword: InferSelectResult<ForgotPasswordPayload, S> | null;
+      }>({
+        client,
+        operation: 'mutation',
+        operationName: 'ForgotPassword',
+        fieldName: 'forgotPassword',
+        ...buildCustomDocument(
+          'mutation',
+          'ForgotPassword',
+          'forgotPassword',
+          options.select,
+          args,
+          [
+            {
+              name: 'input',
+              type: 'ForgotPasswordInput!',
+            },
+          ],
+          connectionFieldsMap,
+          'ForgotPasswordPayload'
+        ),
+      }),
+    requestCrossOriginToken: <S extends RequestCrossOriginTokenPayloadSelect>(
+      args: RequestCrossOriginTokenVariables,
+      options: {
+        select: S;
+      } & StrictSelect<S, RequestCrossOriginTokenPayloadSelect>
+    ) =>
+      new QueryBuilder<{
+        requestCrossOriginToken: InferSelectResult<RequestCrossOriginTokenPayload, S> | null;
+      }>({
+        client,
+        operation: 'mutation',
+        operationName: 'RequestCrossOriginToken',
+        fieldName: 'requestCrossOriginToken',
+        ...buildCustomDocument(
+          'mutation',
+          'RequestCrossOriginToken',
+          'requestCrossOriginToken',
+          options.select,
+          args,
+          [
+            {
+              name: 'input',
+              type: 'RequestCrossOriginTokenInput!',
+            },
+          ],
+          connectionFieldsMap,
+          'RequestCrossOriginTokenPayload'
         ),
       }),
     setPrincipalEntities: <S extends SetPrincipalEntitiesPayloadSelect>(
@@ -1624,35 +1753,6 @@ export function createMutationOperations(client: OrmClient) {
           'CreatePrincipalFromPresetPayload'
         ),
       }),
-    updatePrincipal: <S extends UpdatePrincipalPayloadSelect>(
-      args: UpdatePrincipalVariables,
-      options: {
-        select: S;
-      } & StrictSelect<S, UpdatePrincipalPayloadSelect>
-    ) =>
-      new QueryBuilder<{
-        updatePrincipal: InferSelectResult<UpdatePrincipalPayload, S> | null;
-      }>({
-        client,
-        operation: 'mutation',
-        operationName: 'UpdatePrincipal',
-        fieldName: 'updatePrincipal',
-        ...buildCustomDocument(
-          'mutation',
-          'UpdatePrincipal',
-          'updatePrincipal',
-          options.select,
-          args,
-          [
-            {
-              name: 'input',
-              type: 'UpdatePrincipalInput!',
-            },
-          ],
-          connectionFieldsMap,
-          'UpdatePrincipalPayload'
-        ),
-      }),
     extendTokenExpires: <S extends ExtendTokenExpiresPayloadSelect>(
       args: ExtendTokenExpiresVariables,
       options: {
@@ -1680,6 +1780,35 @@ export function createMutationOperations(client: OrmClient) {
           ],
           connectionFieldsMap,
           'ExtendTokenExpiresPayload'
+        ),
+      }),
+    updatePrincipal: <S extends UpdatePrincipalPayloadSelect>(
+      args: UpdatePrincipalVariables,
+      options: {
+        select: S;
+      } & StrictSelect<S, UpdatePrincipalPayloadSelect>
+    ) =>
+      new QueryBuilder<{
+        updatePrincipal: InferSelectResult<UpdatePrincipalPayload, S> | null;
+      }>({
+        client,
+        operation: 'mutation',
+        operationName: 'UpdatePrincipal',
+        fieldName: 'updatePrincipal',
+        ...buildCustomDocument(
+          'mutation',
+          'UpdatePrincipal',
+          'updatePrincipal',
+          options.select,
+          args,
+          [
+            {
+              name: 'input',
+              type: 'UpdatePrincipalInput!',
+            },
+          ],
+          connectionFieldsMap,
+          'UpdatePrincipalPayload'
         ),
       }),
     mintAccessToken: <S extends MintAccessTokenPayloadSelect>(
@@ -1827,93 +1956,6 @@ export function createMutationOperations(client: OrmClient) {
           'CreateChildPrincipalPayload'
         ),
       }),
-    requestCrossOriginToken: <S extends RequestCrossOriginTokenPayloadSelect>(
-      args: RequestCrossOriginTokenVariables,
-      options: {
-        select: S;
-      } & StrictSelect<S, RequestCrossOriginTokenPayloadSelect>
-    ) =>
-      new QueryBuilder<{
-        requestCrossOriginToken: InferSelectResult<RequestCrossOriginTokenPayload, S> | null;
-      }>({
-        client,
-        operation: 'mutation',
-        operationName: 'RequestCrossOriginToken',
-        fieldName: 'requestCrossOriginToken',
-        ...buildCustomDocument(
-          'mutation',
-          'RequestCrossOriginToken',
-          'requestCrossOriginToken',
-          options.select,
-          args,
-          [
-            {
-              name: 'input',
-              type: 'RequestCrossOriginTokenInput!',
-            },
-          ],
-          connectionFieldsMap,
-          'RequestCrossOriginTokenPayload'
-        ),
-      }),
-    sendVerificationEmail: <S extends SendVerificationEmailPayloadSelect>(
-      args: SendVerificationEmailVariables,
-      options: {
-        select: S;
-      } & StrictSelect<S, SendVerificationEmailPayloadSelect>
-    ) =>
-      new QueryBuilder<{
-        sendVerificationEmail: InferSelectResult<SendVerificationEmailPayload, S> | null;
-      }>({
-        client,
-        operation: 'mutation',
-        operationName: 'SendVerificationEmail',
-        fieldName: 'sendVerificationEmail',
-        ...buildCustomDocument(
-          'mutation',
-          'SendVerificationEmail',
-          'sendVerificationEmail',
-          options.select,
-          args,
-          [
-            {
-              name: 'input',
-              type: 'SendVerificationEmailInput!',
-            },
-          ],
-          connectionFieldsMap,
-          'SendVerificationEmailPayload'
-        ),
-      }),
-    forgotPassword: <S extends ForgotPasswordPayloadSelect>(
-      args: ForgotPasswordVariables,
-      options: {
-        select: S;
-      } & StrictSelect<S, ForgotPasswordPayloadSelect>
-    ) =>
-      new QueryBuilder<{
-        forgotPassword: InferSelectResult<ForgotPasswordPayload, S> | null;
-      }>({
-        client,
-        operation: 'mutation',
-        operationName: 'ForgotPassword',
-        fieldName: 'forgotPassword',
-        ...buildCustomDocument(
-          'mutation',
-          'ForgotPassword',
-          'forgotPassword',
-          options.select,
-          args,
-          [
-            {
-              name: 'input',
-              type: 'ForgotPasswordInput!',
-            },
-          ],
-          connectionFieldsMap,
-          'ForgotPasswordPayload'
-        ),
-      }),
     provisionBucket: <S extends ProvisionBucketPayloadSelect>(
       args: ProvisionBucketVariables,
       options: {
@@ -1941,6 +1983,122 @@ export function createMutationOperations(client: OrmClient) {
           ],
           connectionFieldsMap,
           'ProvisionBucketPayload'
+        ),
+      }),
+    webauthnRegisterBegin: <S extends WebauthnRegisterBeginPayloadSelect>(
+      args: WebauthnRegisterBeginVariables,
+      options: {
+        select: S;
+      } & StrictSelect<S, WebauthnRegisterBeginPayloadSelect>
+    ) =>
+      new QueryBuilder<{
+        webauthnRegisterBegin: InferSelectResult<WebauthnRegisterBeginPayload, S> | null;
+      }>({
+        client,
+        operation: 'mutation',
+        operationName: 'WebauthnRegisterBegin',
+        fieldName: 'webauthnRegisterBegin',
+        ...buildCustomDocument(
+          'mutation',
+          'WebauthnRegisterBegin',
+          'webauthnRegisterBegin',
+          options.select,
+          args,
+          [
+            {
+              name: 'input',
+              type: 'WebauthnRegisterBeginInput',
+            },
+          ],
+          connectionFieldsMap,
+          'WebauthnRegisterBeginPayload'
+        ),
+      }),
+    webauthnRegisterFinish: <S extends WebauthnRegisterFinishPayloadSelect>(
+      args: WebauthnRegisterFinishVariables,
+      options: {
+        select: S;
+      } & StrictSelect<S, WebauthnRegisterFinishPayloadSelect>
+    ) =>
+      new QueryBuilder<{
+        webauthnRegisterFinish: InferSelectResult<WebauthnRegisterFinishPayload, S> | null;
+      }>({
+        client,
+        operation: 'mutation',
+        operationName: 'WebauthnRegisterFinish',
+        fieldName: 'webauthnRegisterFinish',
+        ...buildCustomDocument(
+          'mutation',
+          'WebauthnRegisterFinish',
+          'webauthnRegisterFinish',
+          options.select,
+          args,
+          [
+            {
+              name: 'input',
+              type: 'WebauthnRegisterFinishInput!',
+            },
+          ],
+          connectionFieldsMap,
+          'WebauthnRegisterFinishPayload'
+        ),
+      }),
+    webauthnSignInBegin: <S extends WebauthnSignInBeginPayloadSelect>(
+      args: WebauthnSignInBeginVariables,
+      options: {
+        select: S;
+      } & StrictSelect<S, WebauthnSignInBeginPayloadSelect>
+    ) =>
+      new QueryBuilder<{
+        webauthnSignInBegin: InferSelectResult<WebauthnSignInBeginPayload, S> | null;
+      }>({
+        client,
+        operation: 'mutation',
+        operationName: 'WebauthnSignInBegin',
+        fieldName: 'webauthnSignInBegin',
+        ...buildCustomDocument(
+          'mutation',
+          'WebauthnSignInBegin',
+          'webauthnSignInBegin',
+          options.select,
+          args,
+          [
+            {
+              name: 'input',
+              type: 'WebauthnSignInBeginInput',
+            },
+          ],
+          connectionFieldsMap,
+          'WebauthnSignInBeginPayload'
+        ),
+      }),
+    webauthnSignInFinish: <S extends WebauthnSignInFinishPayloadSelect>(
+      args: WebauthnSignInFinishVariables,
+      options: {
+        select: S;
+      } & StrictSelect<S, WebauthnSignInFinishPayloadSelect>
+    ) =>
+      new QueryBuilder<{
+        webauthnSignInFinish: InferSelectResult<WebauthnSignInFinishPayload, S> | null;
+      }>({
+        client,
+        operation: 'mutation',
+        operationName: 'WebauthnSignInFinish',
+        fieldName: 'webauthnSignInFinish',
+        ...buildCustomDocument(
+          'mutation',
+          'WebauthnSignInFinish',
+          'webauthnSignInFinish',
+          options.select,
+          args,
+          [
+            {
+              name: 'input',
+              type: 'WebauthnSignInFinishInput!',
+            },
+          ],
+          connectionFieldsMap,
+          'WebauthnSignInFinishPayload'
         ),
       }),
   };

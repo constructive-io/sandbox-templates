@@ -11,7 +11,6 @@ export { PhoneNumberModel } from './phoneNumber';
 export { WebauthnCredentialModel } from './webauthnCredential';
 export { AuditLogAuthModel } from './auditLogAuth';
 export { IdentityProviderModel } from './identityProvider';
-export { RoleTypeModel } from './roleType';
 export { UserConnectedAccountModel } from './userConnectedAccount';
 export { UserSettingsSecurityModel } from './userSettingsSecurity';
 export { OrgApiKeyListModel } from './orgApiKeyList';

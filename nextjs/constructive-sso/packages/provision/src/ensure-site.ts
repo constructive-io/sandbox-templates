@@ -1,148 +1,54 @@
 /**
- * ensure-site — provision the tenant's site and bind the shared auth/content
- * surfaces onto it, consuming the platform's shared function images with NO
- * per-tenant registration (the frame-chain model, constructive-db PR #3475).
+ * ensure-site — the tenant's site on SSO_ROUTE_HOST, consuming the platform's
+ * shared mantra/sso images with no per-tenant registration (frame-chain
+ * routing, constructive-db PR #3475).
  *
- * This replaces bind-routes.ts. The platform serves mantra/sso/auth-flows from
- * definitions registered ONCE at platform scope; a tenant route may target any
- * definition on its own frame chain (allow_frame_chain on target_function_id),
- * and install_route_bindings resolves the sites plane along the caller's
- * frames, so a tenant served by the shared routing_public plane can install.
+ * Every write runs as the owner's platform session, attributed to the tenant
+ * (realm.ts): the site, its routes and its domain are the tenant's rows in the
+ * platform's shared database-scope planes, and the verbs gate on the owner's
+ * manage_sites capability in the org that owns the tenant.
  *
- * In order (every write wrapped in tx() for attribution):
- *   1. ensure the site via sites_provision_static_site (lookup first — the
- *      verb is not idempotent);
- *   2. DURABLE hostname verification — write the source routing_public.domains
- *      (never the compiled hostname_bindings index), assert rowCount;
- *   3. canonical_url in site_metadata (oauth_start composes the callback from
- *      it — SSO_SITE_ORIGIN_UNKNOWN without it);
- *   4. sites_install_mantra — the preset paths;
- *   5. sync lanes + sso/auth_flows lanes via one install_route_bindings custom
- *      doc, each carrying the typed `anonymous` flag the manifest declares
- *      (the gateway requires the route-level flag AND the definition's
- *      anonymous_callable — both halves, neither alone);
- *   6. verification walk through routing_public.resolve_route;
- *   7. site root '/' repointed to an app-origin redirect ROW — the mantra
- *      pages may only land same-origin (open-redirect guard on `next`), and a
- *      tenant-configured redirect is the sanctioned way to bridge that landing
- *      into the consumer app (ports on localhost share the session cookie).
- *
- * Fail-loud throughout: a verb error or a route that does not resolve is a
- * fault to surface, never to skip.
+ *   1. sites_provision_static_site (lookup first — the verb is not idempotent):
+ *      bucket, site, web config, the root route, and the domains row for the
+ *      host, claimed or reused (DOMAIN_ALREADY_CLAIMED if another database
+ *      holds it).
+ *   2. LOCAL WORKAROUND — the loopback host's verification (see below).
+ *   3. canonical_url in site_metadata: oauth_start composes the provider
+ *      callback from it, and hosted sessions bind their step-up origin to it.
+ *   4. sites_install_mantra: the `mantra` page set and the `sso` preset (the
+ *      provider legs /auth/start and /auth/callback).
+ *   5. /auth/link -> sso:link through install_route_bindings.
+ *   6. The site root '/' as a redirect into the app.
+ *   7. A resolve_route walk: every bound path must resolve.
  */
 
-import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-import * as dotenv from 'dotenv';
 import { Client } from 'pg';
 
-import { claimsFor, resolveActingUser } from './owner-identity.js';
+import { env, pgConfig, required } from './env.js';
+import { asSession, platformSession } from './realm.js';
 
-const MODULE_DIR = dirname(fileURLToPath(import.meta.url));
-const ROOT_ENV_PATH = resolve(MODULE_DIR, '../../../.env');
-dotenv.config({ path: ROOT_ENV_PATH });
-
-const env = process.env;
+const DATABASE_ID = required('DATABASE_ID');
 const SITE_NAME = env.DATABASE_NAME ?? 'myapp';
 const DOMAIN = env.SSO_ROUTE_HOST ?? 'localhost';
 const APP_ORIGIN = env.APP_ORIGIN ?? 'http://localhost:3000';
-// Scheme-less host of the app origin: the static gateway composes the
-// Location as `<request scheme>://<to_host><path>`, so the redirect follows
-// whatever scheme the browser arrived on.
+// Scheme-less: the static gateway composes `<request scheme>://<to_host><path>`.
 const REDIRECT_TO_HOST = new URL(APP_ORIGIN).host;
 const MANTRA_PRESET_SLUG = env.MANTRA_PRESET_SLUG ?? 'mantra';
 
-const PGHOST = env.PGHOST ?? 'localhost';
-const PGPORT = Number(env.PGPORT ?? 15432);
-const PGDATABASE = env.PGDATABASE ?? 'constructive-functions-db1';
-const PGUSER = env.PGUSER ?? 'postgres';
-const PGPASSWORD = env.PGPASSWORD ?? 'password';
-
-const DATABASE_ID = env.DATABASE_ID ?? '';
-
-/** One route binding for install_route_bindings' custom document. */
-interface RouteBinding {
-  path: string;
-  target: 'function';
-  task_identifier: string;
-  /**
-   * The route's half of the anonymous pair. Declare it only where the task's
-   * manifest declares `anonymousAccess` (the definition-level consent) — the
-   * gateway requires BOTH and admits neither half alone.
-   */
-  anonymous?: boolean;
-}
-
-/**
- * Run fn inside one transaction with claims set transaction-locally.
- *
- * Every write in this script goes through here, not just the SECURITY DEFINER
- * verbs: routing_public.domains and routes carry principalstamps triggers that
- * read jwt_public.current_principal_id(), and an unattributed write stamps NULL
- * (attribution only warns today, so nothing would catch the omission). Claims
- * are set with is_local = true, so they must live in the same transaction as
- * the statement that reads them.
- */
-const tx = async <T>(client: Client, claims: string, fn: () => Promise<T>): Promise<T> => {
-  await client.query('BEGIN');
-  await client.query(`SELECT set_config(c.key, c.value, true) FROM jsonb_each_text($1::jsonb) AS c`, [claims]);
-  try {
-    const result = await fn();
-    await client.query('COMMIT');
-    return result;
-  } catch (err) {
-    await client.query('ROLLBACK');
-    throw err;
-  }
-};
-
 async function main(): Promise<void> {
-  if (!DATABASE_ID) throw new Error('missing DATABASE_ID in the environment (run create-db first)');
-  const tenantDatabaseId = DATABASE_ID;
+  const client = new Client(pgConfig);
+  await client.connect();
+  const owner = await platformSession(client);
+  const asOwner = <T>(fn: () => Promise<T>) => asSession(client, owner, DATABASE_ID, fn);
 
-  const client = new Client({ host: PGHOST, port: PGPORT, database: PGDATABASE, user: PGUSER, password: PGPASSWORD });
-  try {
-    await client.connect();
-  } catch (err: unknown) {
-    const detail = err instanceof Error ? (err.stack ?? err.message) : String(err);
-    throw new Error(
-      `cannot connect to the platform database (${PGHOST}:${PGPORT}/${PGDATABASE}) — ` +
-        `is 'fun up --alt-ports' running and finished?\n${detail}`
-    );
-  }
-
-  // Who this run acts as: the real owner when owner-login established one
-  // (issue-2 fix — the site verbs gate on the OWNING org's SPRT, and a real
-  // owner satisfies them the honest way), else the legacy machine principal.
-  const acting = await resolveActingUser(client, process.env.OWNER_USER_ID);
-  const userId = acting.userId;
-  // Claims per the platform's session contract: principal_id holds the
-  // principal's USER id — the same value SPRT is keyed by — never
-  // principals.id. The capability gate's COALESCE(principal_id, user_id)
-  // therefore resolves to the user id either way. (Dan, 8-31: SPRT verdict.)
-  const tenantClaims = claimsFor(tenantDatabaseId, userId);
-  // Same identity plus the super-constructive GUC the module generators demand
-  // for platform/database-scope plane provisioning.
-  const superClaims = JSON.stringify({
-    'jwt.claims.database_id': tenantDatabaseId,
-    'jwt.claims.user_id': userId,
-    'jwt.claims.principal_id': userId,
-    'constructive.allow_super_constructive': 'true',
-  });
-
-  // ---- 1. Ensure the site (lookup first — the verb is NOT idempotent). ----
-  // sites_provision_static_site creates the bucket, the site, web config, the
-  // 404 page, claims-or-reuses the localhost domains row, and the '/' root
-  // route. Gated on manage_sites in the org owning the database; raises
-  // DOMAIN_ALREADY_CLAIMED if another database holds the hostname.
+  // ---- 1. The site. ----
   const existingSite = await client.query(
     `SELECT id FROM routing_public.sites WHERE database_id = $1 AND name = $2`,
-    [tenantDatabaseId, SITE_NAME]
+    [DATABASE_ID, SITE_NAME]
   );
   let siteId: string;
   if (existingSite.rowCount === 0) {
-    const created = await tx(client, tenantClaims, () =>
+    const created = await asOwner(() =>
       client.query(
         `SELECT target_site_id AS site_id
            FROM routing_public.sites_provision_static_site(name := $1, hostname := $2)`,
@@ -156,256 +62,145 @@ async function main(): Promise<void> {
     console.log(`site: reusing '${SITE_NAME}' (${siteId})`);
   }
 
-  // ---- 2. DURABLE hostname verification — the source, not the index. ----
-  // routing_public.hostname_bindings is a COMPILED INDEX maintained by the
-  // domains sync trigger (it copies verification_status from NEW on every
-  // insert/update of domains). Writing the index directly is silently reverted
-  // by the next domains-row touch. resolve_route filters
-  // hostname_bindings.verification_status = 'verified', so the durable write is
-  // on routing_public.domains; the index is then read back to confirm.
-  const verified = await tx(client, tenantClaims, () =>
+  // ---- 2. LOCAL WORKAROUND: verify the loopback host. ----
+  // resolve_route serves only verified hostnames. A custom hostname is
+  // verified by the managed-domain ownership loop (a DNS TXT or http_01
+  // challenge the reconciler observes), and no challenge can prove a bare
+  // `localhost`: inside the cluster that name is the reconciler's own pod. The
+  // platform's sanctioned local host, a `<label>.sites.localhost` subdomain of
+  // the seeded apex, arrives verified — but Google refuses redirect URIs on
+  // `.localhost` subdomains, and the app and the gateway must share one cookie
+  // host. So the loopback row is marked verified here, by its owner, on the
+  // source table (the hostname_bindings index is recompiled from it by
+  // trigger). Refused for any other hostname.
+  if (DOMAIN !== 'localhost') {
+    throw new Error(`SSO_ROUTE_HOST '${DOMAIN}' is not loopback: verify it through the managed-domain flow`);
+  }
+  const verified = await asOwner(() =>
     client.query(
-      `UPDATE routing_public.domains
-          SET verification_status = 'verified', verified_at = now()
-        WHERE hostname = $1 AND database_id = $2`,
-      [DOMAIN, tenantDatabaseId]
+      `UPDATE routing_public.domains SET verification_status = 'verified', verified_at = now()
+        WHERE hostname = $1 AND database_id = $2 AND verification_status IS DISTINCT FROM 'verified'`,
+      [DOMAIN, DATABASE_ID]
     )
   );
-  if (verified.rowCount !== 1) {
-    throw new Error(
-      `domain '${DOMAIN}' row for tenant ${tenantDatabaseId} not found — create-db or the ` +
-        `site verb must claim it first (or another database holds it — the site verb ` +
-        `would have raised DOMAIN_ALREADY_CLAIMED)`
-    );
-  }
-  const hb = await client.query(
+  const binding = await client.query(
     `SELECT verification_status FROM routing_public.hostname_bindings WHERE hostname = $1`,
     [DOMAIN]
   );
-  if ((hb.rows[0] as { verification_status: string } | undefined)?.verification_status !== 'verified') {
-    throw new Error(
-      `hostname_bindings for '${DOMAIN}' did not recompile to 'verified' — the domains sync trigger ` +
-        `may be missing; resolve_route would 404 every bound path`
-    );
+  if ((binding.rows[0] as { verification_status: string } | undefined)?.verification_status !== 'verified') {
+    throw new Error(`hostname_bindings for '${DOMAIN}' is not 'verified' — resolve_route would 404 every path`);
   }
-  console.log(`hostname: '${DOMAIN}' verified (loopback can never fail a DNS check)`);
-
-  // The localhost domains row id — pinned for the anonymous-flag update so a
-  // second site later cannot flip flags on paths it shares.
+  console.log(`hostname: '${DOMAIN}' verified${verified.rowCount ? ' (loopback workaround)' : ' (already)'}`);
   const domainRow = await client.query(
     `SELECT id FROM routing_public.domains WHERE hostname = $1 AND database_id = $2`,
-    [DOMAIN, tenantDatabaseId]
+    [DOMAIN, DATABASE_ID]
   );
-  if (domainRow.rowCount === 0) throw new Error(`domain '${DOMAIN}' row vanished after verification`);
   const domainId = (domainRow.rows[0] as { id: string }).id;
 
-  // ---- 3. canonical_url — oauth_start composes the callback from this. ----
-  await tx(client, tenantClaims, () =>
+  // ---- 3. canonical_url. ----
+  await asOwner(() =>
     client.query(
       `INSERT INTO routing_public.site_metadata (database_id, site_id, canonical_url)
        VALUES ($1, $2, $3)
        ON CONFLICT (site_id) DO UPDATE SET canonical_url = EXCLUDED.canonical_url`,
-      [tenantDatabaseId, siteId, APP_ORIGIN]
+      [DATABASE_ID, siteId, APP_ORIGIN]
     )
   );
   console.log(`site_metadata: canonical_url = ${APP_ORIGIN}`);
 
-  // ---- 4. Mantra page set via the blessed install verb. ----
-  const mantraReport = await tx(client, tenantClaims, () =>
-    client.query(`SELECT routing_public.sites_install_mantra(site_id := $1, route_preset := $2)`, [
-      siteId,
-      MANTRA_PRESET_SLUG,
-    ])
-  );
-  console.log(`mantra: installed preset '${MANTRA_PRESET_SLUG}' (report: ${JSON.stringify(mantraReport.rows[0])})`);
+  // ---- 4. The mantra page set and the sso provider legs. ----
+  for (const preset of [MANTRA_PRESET_SLUG, 'sso']) {
+    await asOwner(() =>
+      client.query(`SELECT routing_public.sites_install_mantra(site_id := $1, route_preset := $2)`, [siteId, preset])
+    );
+    console.log(`preset '${preset}': installed`);
+  }
 
-  // ---- 4b. REMOVED 2026-09-16 — the tenant's invocation plane. ----
-  // Upstream aab3351a4be made the database-scope invocation plane a SHARED
-  // surface: a tenant with no registration of its own is served by the single
-  // shared ledger, exactly like the routing plane (resolveInvocationModule →
-  // loadSurface; regression test invocation.test.ts:321). The block that
-  // provisioned a tenant-local function_module + function_invocation_module
-  // and emitted a per-tenant sync verb was a workaround for the pre-fix
-  // loader and is gone; verified by the clean-tenant check (a throwaway
-  // tenant provisioned WITHOUT this block writes sync invocations through
-  // the shared plane). Do NOT drop the DB rows of tenants provisioned while
-  // the block ran — their local registrations keep winning the surface
-  // lookup, which is correct.
-
-  // ---- 5. Sync + sso lanes, one custom doc. ----
-  // Every flag mirrors the task manifest's `anonymousAccess` (the definition
-  // already registered it as anonymous_callable; the route flag is the second
-  // half of the pair). sso:link is deliberately authenticated — spending a
-  // link ticket requires the signed-in owner of the email. All other flags
-  // pre-auth lanes (session probe, OAuth start, the provider return leg, the
-  // password verbs) are anonymous. Paths match each manifest's own route.
-  const bindings: RouteBinding[] = [
-    { path: '/auth/who-am-i', target: 'function', task_identifier: 'auth_flows:who_am_i', anonymous: true },
-    { path: '/auth/sign-out', target: 'function', task_identifier: 'auth_flows:sign_out', anonymous: true },
-    { path: '/auth/sign-in', target: 'function', task_identifier: 'auth_flows:sign_in', anonymous: true },
-    { path: '/auth/forgot-password', target: 'function', task_identifier: 'auth_flows:forgot_password', anonymous: true },
-    { path: '/auth/reset-password', target: 'function', task_identifier: 'auth_flows:reset_password', anonymous: true },
-    // Phone sign-in: the JSON lane that asks for a code (sync channel) and the
-    // gateway-served form that spends it (page channel). Both manifest
-    // anonymousAccess, like the password lanes above. The tenant's send needs
-    // database-scope SMS config/secrets — configure-sms provisions those.
-    { path: '/auth/send-sms-otp', target: 'function', task_identifier: 'auth_flows:send_sms_otp', anonymous: true },
-    { path: '/auth/sms-code', target: 'function', task_identifier: 'auth_flows:sms_code', anonymous: true },
-    // Phone recovery, the emailed reset link's sibling. The mantra
-    // /forgot-password page calls the procs itself, but the JSON lane is what
-    // the app's own UI (or any API client) spends.
-    { path: '/auth/send-reset-sms-code', target: 'function', task_identifier: 'auth_flows:send_reset_sms_code', anonymous: true },
-    { path: '/auth/reset-password-sms', target: 'function', task_identifier: 'auth_flows:reset_password_sms', anonymous: true },
-    // The magic-link lane: the JSON request, and the page its emails land on
-    // (entry form without a token, the spend with one — the same route the
-    // email task builds into every link, so the binding is the contract).
-    { path: '/auth/request-magic-link', target: 'function', task_identifier: 'auth_flows:request_magic_link', anonymous: true },
-    { path: '/auth/magic-link', target: 'function', task_identifier: 'auth_flows:magic_link', anonymous: true },
-    { path: '/auth/send-verification-email', target: 'function', task_identifier: 'auth_flows:send_verification_email', anonymous: true },
-    // The MFA challenge pair: send texts the code a withheld sign-in demands
-    // (anonymous — the browser holds the challenge, not a session), complete
-    // spends it and mints the session.
-    { path: '/auth/send-mfa-code', target: 'function', task_identifier: 'auth_flows:send_mfa_code', anonymous: true },
-    { path: '/auth/mfa/complete', target: 'function', task_identifier: 'auth_flows:complete_mfa', anonymous: true },
-    // Step-up for postured (sensitive) actions — authenticated: the session
-    // the request carries is the thing being re-verified.
-    { path: '/auth/send-step-up-code', target: 'function', task_identifier: 'auth_flows:send_step_up_code' },
-    { path: '/auth/verify-step-up-code', target: 'function', task_identifier: 'auth_flows:verify_step_up_code' },
-    { path: '/start', target: 'function', task_identifier: 'sso:start', anonymous: true },
-    { path: '/sso/callback', target: 'function', task_identifier: 'sso:callback', anonymous: true },
-    { path: '/auth/link', target: 'function', task_identifier: 'sso:link' },
-  ];
-  const installReport = await tx(client, tenantClaims, () =>
+  // ---- 5. /auth/link: the one SSO sync lane. ----
+  // A provider sign-in whose address an existing account owns parks the
+  // identity behind a ticket the signed-in owner spends here. Authenticated
+  // on purpose: no `anonymous` flag.
+  const bindings = [{ path: '/auth/link', target: 'function', task_identifier: 'sso:link' }];
+  const installed = await asOwner(() =>
     client.query(
       `SELECT function_resolution.install_route_bindings(
          database_id := $1, sites_schema := 'routing_public', sites_table := 'sites',
          site_id := $2, bindings := $3::jsonb) AS report`,
-      [tenantDatabaseId, siteId, JSON.stringify(bindings)]
+      [DATABASE_ID, siteId, JSON.stringify(bindings)]
     )
   );
-  const report = (installReport.rows[0] as { report: { domain_id: string; installed: string[]; skipped: string[] } }).report;
-  // The engine picks the install domain from the site's first route; assert it
-  // is OUR localhost claim rather than trusting it (F5).
+  const report = (installed.rows[0] as { report: { domain_id: string; installed: string[]; skipped: string[] } })
+    .report;
   if (report.domain_id !== domainId) {
-    throw new Error(
-      `install_route_bindings bound to domain ${report.domain_id}, not the localhost claim ${domainId}`
-    );
+    throw new Error(`install_route_bindings bound to domain ${report.domain_id}, not '${DOMAIN}' (${domainId})`);
   }
-  console.log(
-    `sync lanes: installed [${report.installed.join(', ')}]${
-      report.skipped.length ? ` skipped [${report.skipped.join(', ')}]` : ''
-    }`
-  );
+  console.log(`sync lanes: installed [${report.installed.join(', ')}] skipped [${report.skipped.join(', ')}]`);
 
-  // ---- 6. Verification walk — every bound path must resolve. ----
-  // (The typed `anonymous` flag above travels in the binding document itself;
-  // the old post-install routes.config UPDATE is gone.)
-  const mantraBindings = (
-    await client.query(
-      `SELECT metaschema_generators.content_preset_definition('route_bindings', $1) AS bindings`,
-      [MANTRA_PRESET_SLUG]
-    )
-  ).rows[0] as { bindings: Array<{ path: string; task_identifier: string }> };
-  const allPaths: Array<{ path: string; task: string }> = [
-    ...mantraBindings.bindings.map((b) => ({ path: b.path, task: b.task_identifier })),
-    ...bindings.map((b) => ({ path: b.path, task: b.task_identifier })),
-  ];
-  const seen = new Set<string>();
-  for (const { path } of allPaths) {
-    if (seen.has(path)) throw new Error(`path '${path}' bound twice in the route set`);
-    seen.add(path);
-  }
-  for (const { path, task } of allPaths) {
-    const answer = await client.query(
-      `SELECT target_module, resolved_config FROM routing_public.resolve_route($1, $2, 'GET')`,
-      [DOMAIN, path]
-    );
-    const row = answer.rows[0] as
-      | { target_module: string; resolved_config: Record<string, unknown> }
-      | undefined;
-    if (!row || row.target_module !== 'function') {
-      throw new Error(`${DOMAIN}${path} does not resolve to a function target (got ${row?.target_module ?? 'nothing'})`);
-    }
-    const rc = row.resolved_config ?? {};
-    if (rc.task_identifier !== task) {
-      throw new Error(`${DOMAIN}${path} resolves to '${String(rc.task_identifier)}', not '${task}'`);
-    }
-    // mantra paths carry the serving site; sync lanes do not need to.
-    const isMantra = mantraBindings.bindings.some((b) => b.path === path);
-    if (isMantra && rc.site_id !== siteId) {
-      throw new Error(`${DOMAIN}${path} serves site '${String(rc.site_id)}', not '${siteId}'`);
-    }
-    console.log(`  ${DOMAIN}${path} -> ${task}${isMantra ? ` (site ${siteId})` : ''}`);
-  }
-
-  // ---- 7. Site root '/' resolves to an app-origin redirect. ----
-  // The mantra pages' post-auth landing is '/' (same-origin `next` only —
-  // open-redirect guard). A redirect row is tenant-configured data, exempt
-  // from the guard, so a redirect route at '/' turns that landing into an
-  // instant hop into the app; the session cookie is already on localhost
-  // (cookies ignore ports).
-  // Shape: TWO routes at '/', never an in-place repoint — the site keeps its
-  // own '/' route because sites_install_mantra/install_route_bindings refuse
-  // to run for a site that "serves no hostname" (ROUTE_BINDINGS_SITE_NOT_ROUTED
-  // on re-run). The redirect route carries priority 10 and resolve_route orders
-  // priority DESC, so it wins while the site route keeps the verbs satisfied.
-  // Idempotent: upsert the redirect row by (database_id, name); insert the
-  // redirect route only when missing.
-  await tx(client, tenantClaims, async () => {
+  // ---- 6. The site root '/' redirects into the app. ----
+  // The mantra pages land on '/' after sign-in (same-origin `next` only). A
+  // redirect row is tenant data, so a redirect route at '/' turns that landing
+  // into a hop to the app. Two routes at '/': the site keeps its own, which the
+  // install verbs require (ROUTE_BINDINGS_SITE_NOT_ROUTED otherwise), and the
+  // redirect wins on priority (resolve_route orders priority DESC).
+  await asOwner(async () => {
     const redirect = await client.query(
       `INSERT INTO routing_public.redirects
          (database_id, name, to_host, to_path, status_code, preserve_path, preserve_query)
        VALUES ($1, 'app-origin', $2, '/', 302, false, true)
        ON CONFLICT (database_id, name) DO UPDATE SET
-         to_host = EXCLUDED.to_host, to_path = EXCLUDED.to_path,
-         status_code = EXCLUDED.status_code, preserve_path = EXCLUDED.preserve_path,
-         preserve_query = EXCLUDED.preserve_query, updated_at = now()
+         to_host = EXCLUDED.to_host, to_path = EXCLUDED.to_path, status_code = EXCLUDED.status_code,
+         preserve_path = EXCLUDED.preserve_path, preserve_query = EXCLUDED.preserve_query, updated_at = now()
        RETURNING id`,
-      [tenantDatabaseId, REDIRECT_TO_HOST]
+      [DATABASE_ID, REDIRECT_TO_HOST]
     );
     const redirectId = (redirect.rows[0] as { id: string }).id;
-    const inserted = await client.query(
+    await client.query(
       `INSERT INTO routing_public.routes (database_id, domain_id, path, target_redirect_id, priority, is_active)
        SELECT $1::uuid, $2::uuid, '/', $3::uuid, 10, true
-        WHERE NOT EXISTS (
-          SELECT 1 FROM routing_public.routes x
-           WHERE x.database_id = $1 AND x.domain_id = $2 AND x.path = '/' AND x.target_redirect_id = $3
-        )
-       RETURNING id`,
-      [tenantDatabaseId, domainId, redirectId]
+        WHERE NOT EXISTS (SELECT 1 FROM routing_public.routes
+                           WHERE database_id = $1 AND domain_id = $2 AND path = '/' AND target_redirect_id = $3)`,
+      [DATABASE_ID, domainId, redirectId]
     );
-    if (inserted.rowCount === 0) {
-      const stillThere = await client.query(
-        `SELECT 1 FROM routing_public.routes
-          WHERE database_id = $1 AND domain_id = $2 AND path = '/' AND target_redirect_id = $3`,
-        [tenantDatabaseId, domainId, redirectId]
-      );
-      if (stillThere.rowCount === 0) {
-        throw new Error('app-origin redirect route at "/" was neither inserted nor present');
-      }
-    }
   });
-  const rootLane = await client.query(
-    `SELECT serving_lane, resolved_config->>'to_host' AS to_host
-       FROM routing_public.resolve_route($1, '/', 'GET')`,
-    [DOMAIN]
-  );
-  const root = rootLane.rows[0] as { serving_lane: string; to_host: string } | undefined;
-  if (root?.serving_lane !== 'redirect' || root.to_host !== REDIRECT_TO_HOST) {
-    throw new Error(
-      `root '/' does not resolve to the app-origin redirect (lane ${root?.serving_lane ?? 'none'}, to_host ${root?.to_host ?? 'none'})`
-    );
-  }
-  console.log(`site root: '/' -> 302 ${REDIRECT_TO_HOST}/ (app-origin redirect, priority over the site route)`);
 
-  console.log(
-    `tenant ${tenantDatabaseId}: site '${SITE_NAME}' provisioned, mantra + sync lanes bound, ${allPaths.length} route(s) resolving on ${DOMAIN}`
-  );
+  // ---- 7. Every bound path resolves. ----
+  const mantra = (
+    await client.query(`SELECT metaschema_generators.content_preset_definition('route_bindings', $1) AS b`, [
+      MANTRA_PRESET_SLUG
+    ])
+  ).rows[0] as { b: Array<{ path: string; task_identifier: string }> };
+  const paths = [
+    ...mantra.b.map((b) => ({ path: b.path, task: b.task_identifier, site: true })),
+    ...bindings.map((b) => ({ path: b.path, task: b.task_identifier, site: false }))
+  ];
+  for (const { path, task, site } of paths) {
+    const { rows } = await client.query(
+      `SELECT target_module, resolved_config FROM routing_public.resolve_route($1, $2, 'GET')`,
+      [DOMAIN, path]
+    );
+    const row = rows[0] as { target_module: string; resolved_config: Record<string, unknown> } | undefined;
+    if (row?.target_module !== 'function' || row.resolved_config?.task_identifier !== task) {
+      throw new Error(`${DOMAIN}${path} does not resolve to ${task} (got ${JSON.stringify(row ?? null)})`);
+    }
+    if (site && row.resolved_config.site_id !== siteId) {
+      throw new Error(`${DOMAIN}${path} serves site '${String(row.resolved_config.site_id)}', not '${siteId}'`);
+    }
+  }
+  const root = (
+    await client.query(
+      `SELECT serving_lane, resolved_config->>'to_host' AS to_host FROM routing_public.resolve_route($1, '/', 'GET')`,
+      [DOMAIN]
+    )
+  ).rows[0] as { serving_lane: string; to_host: string } | undefined;
+  if (root?.serving_lane !== 'redirect' || root.to_host !== REDIRECT_TO_HOST) {
+    throw new Error(`'/' does not resolve to the app redirect (got ${JSON.stringify(root ?? null)})`);
+  }
+  console.log(`routes: ${paths.length} paths resolve on ${DOMAIN}; '/' -> 302 ${REDIRECT_TO_HOST}/`);
 
   await client.end();
 }
 
 main().catch((err: unknown) => {
-  console.error(err instanceof Error ? (err.stack ?? err.message) || String(err) : String(err));
+  console.error(err instanceof Error ? (err.stack ?? err.message) : String(err));
   process.exit(1);
 });

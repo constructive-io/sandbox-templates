@@ -23,7 +23,6 @@ import {
   webauthnCredentialKeys,
   auditLogAuthKeys,
   identityProviderKeys,
-  roleTypeKeys,
   userConnectedAccountKeys,
   userSettingsSecurityKeys,
   orgApiKeyListKeys,
@@ -182,20 +181,6 @@ export const invalidate = {
         queryKey: identityProviderKeys.detail(id),
       }),
   },
-  /** Invalidate roleType queries */ roleType: {
-    /** Invalidate all roleType queries */ all: (queryClient: QueryClient) =>
-      queryClient.invalidateQueries({
-        queryKey: roleTypeKeys.all,
-      }),
-    /** Invalidate roleType list queries */ lists: (queryClient: QueryClient) =>
-      queryClient.invalidateQueries({
-        queryKey: roleTypeKeys.lists(),
-      }),
-    /** Invalidate a specific roleType */ detail: (queryClient: QueryClient, id: string | number) =>
-      queryClient.invalidateQueries({
-        queryKey: roleTypeKeys.detail(id),
-      }),
-  },
   /** Invalidate userConnectedAccount queries */ userConnectedAccount: {
     /** Invalidate all userConnectedAccount queries */ all: (queryClient: QueryClient) =>
       queryClient.invalidateQueries({
@@ -330,11 +315,6 @@ export const remove = {
   ) => {
     queryClient.removeQueries({
       queryKey: identityProviderKeys.detail(id),
-    });
-  },
-  /** Remove roleType from cache */ roleType: (queryClient: QueryClient, id: string | number) => {
-    queryClient.removeQueries({
-      queryKey: roleTypeKeys.detail(id),
     });
   },
   /** Remove userConnectedAccount from cache */ userConnectedAccount: (

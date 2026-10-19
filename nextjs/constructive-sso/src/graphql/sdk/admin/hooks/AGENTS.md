@@ -5,7 +5,7 @@
 ## Stack
 
 - React Query hooks wrapping ORM operations (TypeScript)
-- 44 tables, 19 custom operations
+- 41 tables, 23 custom operations
 - Query hooks return `UseQueryResult`, mutation hooks return `UseMutationResult`
 
 ## Quick Start
@@ -21,7 +21,7 @@ const queryClient = new QueryClient();
 
 ## Resources
 
-- **Full API reference:** [README.md](./README.md) — hook docs for all 44 tables
+- **Full API reference:** [README.md](./README.md) — hook docs for all 41 tables
 - **Schema types:** [types.ts](./types.ts)
 - **Hooks module:** [hooks.ts](./hooks.ts)
 

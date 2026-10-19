@@ -91,15 +91,6 @@ export const identityProviderKeys = {
   /** Detail query key for specific item */ detail: (id: string | number) =>
     [...identityProviderKeys.details(), id] as const,
 } as const;
-export const roleTypeKeys = {
-  /** All roleType queries */ all: ['roletype'] as const,
-  /** List query keys */ lists: () => [...roleTypeKeys.all, 'list'] as const,
-  /** List query key with variables */ list: (variables?: object) =>
-    [...roleTypeKeys.lists(), variables] as const,
-  /** Detail query keys */ details: () => [...roleTypeKeys.all, 'detail'] as const,
-  /** Detail query key for specific item */ detail: (id: string | number) =>
-    [...roleTypeKeys.details(), id] as const,
-} as const;
 export const userConnectedAccountKeys = {
   /** All userConnectedAccount queries */ all: ['userconnectedaccount'] as const,
   /** List query keys */ lists: () => [...userConnectedAccountKeys.all, 'list'] as const,
@@ -145,8 +136,6 @@ export const customQueryKeys = {
   /** Query key for currentUserId */ currentUserId: () => ['currentUserId'] as const,
   /** Query key for currentUserAgent */ currentUserAgent: () => ['currentUserAgent'] as const,
   /** Query key for currentIpAddress */ currentIpAddress: () => ['currentIpAddress'] as const,
-  /** Query key for isVerificationExempt */ isVerificationExempt: (variables?: object) =>
-    ['isVerificationExempt', variables] as const,
   /** Query key for requireStepUp */ requireStepUp: (variables?: object) =>
     ['requireStepUp', variables] as const,
   /** Query key for getMfaStatus */ getMfaStatus: () => ['getMfaStatus'] as const,
@@ -183,7 +172,6 @@ export const queryKeys = {
   webauthnCredential: webauthnCredentialKeys,
   auditLogAuth: auditLogAuthKeys,
   identityProvider: identityProviderKeys,
-  roleType: roleTypeKeys,
   userConnectedAccount: userConnectedAccountKeys,
   userSettingsSecurity: userSettingsSecurityKeys,
   orgApiKeyList: orgApiKeyListKeys,

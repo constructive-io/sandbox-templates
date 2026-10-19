@@ -30,7 +30,6 @@ import {
 	usePhoneNumbersQuery,
 	useUpdatePhoneNumberMutation,
 } from '@sdk/auth';
-
 /**
  * Phone-number management for the signed-in account.
  *
@@ -82,10 +81,13 @@ export const EditPhoneNumberCard: CardComponent<EditPhoneNumberCardProps> = ({
 	const invalidate = () => queryClient.invalidateQueries({ queryKey: phoneNumberKeys.all });
 
 	const { mutateAsync: createPhoneNumber, isPending: isCreating } = useCreatePhoneNumberMutation({
-		selection: { fields: { ...PHONE_FIELDS }, first: 20 },
+		selection: { fields: { ...PHONE_FIELDS } },
 	});
 	const { mutateAsync: updatePhoneNumber, isPending: isUpdating } = useUpdatePhoneNumberMutation({
-		selection: { fields: { ...PHONE_FIELDS }, first: 20 },
+		selection: { fields: { ...PHONE_FIELDS } },
+	});
+	const { mutateAsync: deletePhoneNumber } = useDeletePhoneNumberMutation({
+		selection: { fields: { id: true } },
 	});
 
 	const busy = isCreating || isUpdating;
@@ -96,16 +98,23 @@ export const EditPhoneNumberCard: CardComponent<EditPhoneNumberCardProps> = ({
 		const trimmed = number.trim();
 		try {
 			if (isEdit && phoneNumber) {
-				await updatePhoneNumber({
-					id: phoneNumber.id,
-					phoneNumberPatch: {
+				if (trimmed !== phoneNumber.number) {
+					// `number` is not in PhoneNumberPatch (#2163): a changed
+					// number is a new row — create it, then remove the old one.
+					// The new row lands unverified until a code proves it.
+					await createPhoneNumber({
 						cc: '+',
 						number: trimmed,
-						name: label.trim() || null,
-						// A moved number is unproven until a code verifies it.
-						...(trimmed !== phoneNumber.number ? { isVerified: false } : {}),
-					},
-				});
+						name: label.trim() || undefined,
+						...(phoneNumber.isPrimary ? { isPrimary: true } : {}),
+					});
+					await deletePhoneNumber({ id: phoneNumber.id });
+				} else {
+					await updatePhoneNumber({
+						id: phoneNumber.id,
+						phoneNumberPatch: { name: label.trim() || null },
+					});
+				}
 			} else {
 				await createPhoneNumber({
 					cc: '+',
@@ -185,7 +194,7 @@ function PhoneRowItem({ row, isOnly }: { row: PhoneRow; isOnly: boolean }) {
 	const queryClient = useQueryClient();
 	const { data } = usePhoneNumbersQuery({ selection: { fields: { ...PHONE_FIELDS }, first: 20 } });
 	const { mutateAsync: updatePhoneNumber, isPending: isUpdating } = useUpdatePhoneNumberMutation({
-		selection: { fields: { ...PHONE_FIELDS }, first: 20 },
+		selection: { fields: { ...PHONE_FIELDS } },
 	});
 	const { mutateAsync: deletePhoneNumber, isPending: isDeleting } = useDeletePhoneNumberMutation({
 		selection: { fields: { id: true } },

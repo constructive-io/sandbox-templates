@@ -7,7 +7,7 @@ import { AuthScreenLayout } from '@/components/auth/auth-screen-layout';
 
 /**
  * /custom-forgot-password — the custom-UI recovery request, through the
- * `auth_flows:forgot_password` sync lane via the BFF. The lane always answers
+ * the tenant's `forgotPassword` on the auth GraphQL via the BFF. The route always answers
  * `requested:true` (an unknown mailbox is indistinguishable by design), so
  * success copy makes no claims about whether the address exists.
  *

@@ -229,7 +229,7 @@ async function main() {
   // ==========================================================================
   // 5. Fetch sql_actions via migrate-client (db_migrate endpoint)
   // ==========================================================================
-  let sqlActionRows: Record<string, unknown>[] = [];
+  const sqlActionRows: Record<string, unknown>[] = [];
 
   if (migrateEndpoint) {
     console.log(`Fetching sql_actions from ${migrateEndpoint}...`);
@@ -357,7 +357,7 @@ async function main() {
     if (next) next();
   };
   const originalMetaQuery = metaClient.query.bind(metaClient);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   (metaClient as any).query = async (...args: any[]) => {
     await acquire();
     try {

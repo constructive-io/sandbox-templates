@@ -19,6 +19,7 @@ import { INVITE_QUERY_PARAMS } from '@/app/invite/page';
 import { isLocalPath } from '@/lib/sso/local-path';
 
 import { useAuthContext } from './auth-context';
+import { isSigningOut } from './sign-out-transition';
 import { TokenManager } from './token-manager';
 
 /**
@@ -138,6 +139,14 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
 		// signed-in hard load to / before the session check starts (the
 		// loading gate initializeAuth sets lives in the parent).
 		if (!mounted) {
+			return;
+		}
+
+		// Sign-out is a handoff to the gateway's /logout. The auth store is
+		// already unauthenticated for that handoff; redirecting now would race
+		// the hard navigation (protected route -> '/', redirect route -> its
+		// target) and strand the browser in the app instead of the gateway.
+		if (isSigningOut()) {
 			return;
 		}
 

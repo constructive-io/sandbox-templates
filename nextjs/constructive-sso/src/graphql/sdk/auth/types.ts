@@ -4,9 +4,7 @@
  * DO NOT EDIT - changes will be overwritten
  */
 export type Base64EncodedBinary = unknown;
-export type ConstructiveInternalTypeEmail = unknown;
 export type ConstructiveInternalTypeImage = unknown;
-export type ConstructiveInternalTypeOrigin = unknown;
 export interface Principal {
   id: string | null;
   createdAt: string | null;
@@ -45,7 +43,7 @@ export interface PrincipalScopeOverride {
 export interface Email {
   id: string | null;
   ownerId: string | null;
-  email: ConstructiveInternalTypeEmail | null;
+  email: string | null;
   isVerified: boolean | null;
   isPrimary: boolean | null;
   name: string | null;
@@ -84,7 +82,7 @@ export interface AuditLogAuth {
   id: string | null;
   event: string | null;
   actorId: string | null;
-  origin: ConstructiveInternalTypeOrigin | null;
+  origin: string | null;
   userAgent: string | null;
   ipAddress: string | null;
   success: boolean | null;
@@ -95,10 +93,6 @@ export interface IdentityProvider {
   kind: string | null;
   displayName: string | null;
   enabled: boolean | null;
-}
-export interface RoleType {
-  id: number | null;
-  name: string | null;
 }
 export interface UserConnectedAccount {
   id: string | null;

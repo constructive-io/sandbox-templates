@@ -193,46 +193,6 @@ export class AppCapabilityDefaultCapabilityModel {
       variables,
     });
   }
-  update<S extends AppCapabilityDefaultCapabilitySelect>(
-    args: UpdateArgs<
-      S,
-      {
-        id: string;
-      },
-      AppCapabilityDefaultCapabilityPatch
-    > & {
-      select: S;
-    } & StrictSelect<S, AppCapabilityDefaultCapabilitySelect>
-  ): QueryBuilder<{
-    updateAppCapabilityDefaultCapability: {
-      appCapabilityDefaultCapability: InferSelectResult<
-        AppCapabilityDefaultCapabilityWithRelations,
-        S
-      >;
-    };
-  }> {
-    const { document, variables } = buildUpdateByPkDocument(
-      'AppCapabilityDefaultCapability',
-      'updateAppCapabilityDefaultCapability',
-      'appCapabilityDefaultCapability',
-      args.select,
-      args.where.id,
-      args.data,
-      'UpdateAppCapabilityDefaultCapabilityInput',
-      'id',
-      'appCapabilityDefaultCapabilityPatch',
-      connectionFieldsMap,
-      undefined
-    );
-    return new QueryBuilder({
-      client: this.client,
-      operation: 'mutation',
-      operationName: 'AppCapabilityDefaultCapability',
-      fieldName: 'updateAppCapabilityDefaultCapability',
-      document,
-      variables,
-    });
-  }
   delete<S extends AppCapabilityDefaultCapabilitySelect>(
     args: DeleteArgs<
       {

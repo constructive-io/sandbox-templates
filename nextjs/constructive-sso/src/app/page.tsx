@@ -5,6 +5,7 @@ import { Rocket } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { getDbName, getSSOGatewayOrigin } from '@/app-config';
 import { useAuthContext } from '@/lib/auth/auth-context';
+import { isSigningOut } from '@/lib/auth/sign-out-transition';
 
 /**
  * Home Page - Start Building Here
@@ -20,6 +21,24 @@ export default function HomePage() {
 	// on both server and first client paint, then switch after mount.
 	const [mounted, setMounted] = React.useState(false);
 	React.useEffect(() => setMounted(true), []);
+
+	// Loop guard: a sign-in trip that comes back still signed out means the
+	// gateway's session cookie never reached this origin — the gateway and
+	// the app are on different cookie hosts (localhost:3000 vs
+	// myapp.localhost, say) and the tenant sets no cookie_domain to bridge
+	// them. Bouncing again would loop forever between this page and the
+	// gateway's /login, so the second trip is answered with the diagnosis
+	// instead. The outbound trip marks this tab (sessionStorage survives the
+	// hard navigation to the gateway and back; the gateway's own redirect
+	// carries no marker we could read).
+	const [loginLoop, setLoginLoop] = React.useState(() => {
+		if (typeof window === 'undefined') return false;
+		try {
+			return window.sessionStorage.getItem('sent-to-login') === '1';
+		} catch {
+			return false;
+		}
+	});
 
 	let dbName = 'your-db';
 	try {
@@ -42,10 +61,63 @@ export default function HomePage() {
 	// leaves) the loading shell below is what renders.
 	React.useEffect(() => {
 		if (!mounted || isAuthLoading) return;
-		if (!isAuthenticated) {
-			window.location.replace(`${getSSOGatewayOrigin()}/login?next=%2F`);
+		if (isAuthenticated) {
+			// A successful sign-in retires the marker. The state reset is what
+			// makes the guard describe this one failed trip rather than every
+			// later render of this mounted page; clearing storage alone does not
+			// change the captured `loginLoop`.
+			try {
+				window.sessionStorage.removeItem('sent-to-login');
+			} catch {
+				// storage-less tab: the state reset still disarms the guard
+			}
+			if (loginLoop) setLoginLoop(false);
+			return;
 		}
-	}, [mounted, isAuthLoading, isAuthenticated]);
+		// Do not bounce while the browser is on its way to the gateway's
+		// `/logout`: the signed-out state is the handoff, not a failed trip.
+		if (loginLoop || isSigningOut()) return;
+		try {
+			window.sessionStorage.setItem('sent-to-login', '1');
+		} catch {
+			// A storage-less browser degrades to the old bounce — never
+			// blocks the sign-in trip itself.
+		}
+		window.location.replace(`${getSSOGatewayOrigin()}/login?next=%2F`);
+	}, [mounted, isAuthLoading, isAuthenticated, loginLoop]);
+
+	const showMismatch =
+		mounted && !isAuthLoading && !isAuthenticated && loginLoop && !isSigningOut();
+
+	if (showMismatch) {
+		return (
+			<div className='bg-background flex h-dvh w-dvw items-center justify-center p-6'>
+				<div className='max-w-md space-y-3 text-center'>
+					<h1 className='text-foreground text-lg font-semibold'>Signed in, but not here</h1>
+					<p className='text-muted-foreground text-sm'>
+						The sign-in page sent you back still signed out: its session cookie lives on another
+						host than this app, so this app can never read it. This is a deployment mismatch, not
+						a bad login — set the gateway and the app on one cookie host (both{' '}
+						<code>localhost</code>) and provision the tenant again.
+					</p>
+					<button
+						type='button'
+						className='text-primary text-sm underline underline-offset-4'
+						onClick={() => {
+							try {
+								window.sessionStorage.removeItem('sent-to-login');
+							} catch {
+								// storage-less tab: a reload re-runs the trip either way
+							}
+							window.location.reload();
+						}}
+					>
+						Try again
+					</button>
+				</div>
+			</div>
+		);
+	}
 
 	// Show loading until client-side auth state is resolved (and for the one
 	// frame an unauthenticated visitor waits out the navigation above).
@@ -90,8 +162,8 @@ export default function HomePage() {
 									<span className="text-muted-foreground">users, authentication</span>
 								</div>
 								<div className="flex gap-2">
-									<span className="text-purple-600 w-24">@sdk/app</span>
-									<span className="text-muted-foreground">your business data</span>
+									<span className="text-purple-600 w-24">@sdk/admin</span>
+									<span className="text-muted-foreground">organizations, members</span>
 								</div>
 							</div>
 						</CardContent>
