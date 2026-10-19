@@ -10,7 +10,6 @@ import { parseGraphQLError } from '@/lib/auth/auth-errors';
 import type { RegisterFormData } from '@/lib/auth/schemas';
 import { registerSchema } from '@/lib/auth/schemas';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { AUTH_QUERY_PARAMS, buildQueryString } from '@/lib/navigation/query-string';
 
 import { AuthErrorAlert } from './auth-error-alert';
@@ -35,7 +34,6 @@ export function RegisterFormView({ onRegister, onShowLogin }: RegisterFormViewPr
 			email: emailFromQuery,
 			password: '',
 			confirmPassword: '',
-			rememberMe: true,
 		},
 		onSubmit: async ({ value }) => {
 			setError(null);
@@ -103,26 +101,6 @@ export function RegisterFormView({ onRegister, onShowLogin }: RegisterFormViewPr
 							type='password'
 							testId='auth-signup-confirm-password'
 						/>
-					)}
-				</form.Field>
-
-				<form.Field name='rememberMe'>
-					{(field) => (
-						<div className='flex items-center space-x-2'>
-							<Checkbox
-								id='rememberMe'
-								checked={field.state.value}
-								onCheckedChange={(checked) => {
-									field.handleChange(checked === true);
-								}}
-							/>
-							<label
-								htmlFor='rememberMe'
-								className='text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70'
-							>
-								Remember me
-							</label>
-						</div>
 					)}
 				</form.Field>
 

@@ -98,39 +98,27 @@ async function main() {
   let userId: string | undefined;
   let accessToken: string | undefined;
 
-  try {
-    const signUpData = await authClient.mutation
-      .signUp(
-        { input: { email: adminEmail, password: config.adminPassword } },
-        { select: { result: { select: { userId: true, accessToken: true } } } }
-      )
-      .unwrap();
-
-    userId = (signUpData as Record<string, Record<string, Record<string, string>>>)
-      ?.signUp?.result?.userId;
-    accessToken = (signUpData as Record<string, Record<string, Record<string, string>>>)
-      ?.signUp?.result?.accessToken;
-  } catch (err: any) {
-    // User already exists from a previous create-db run — sign in instead
-    if (err.message?.includes('ACCOUNT_EXISTS')) {
-      console.log('   Admin user already exists — signing in');
-      const signInData = await authClient.mutation
-        .signIn(
-          { input: { email: adminEmail, password: config.adminPassword } },
-          { select: { result: { select: { userId: true, accessToken: true } } } }
-        )
-        .unwrap();
-      userId = (signInData as Record<string, Record<string, Record<string, string>>>)
-        ?.signIn?.result?.userId;
-      accessToken = (signInData as Record<string, Record<string, Record<string, string>>>)
-        ?.signIn?.result?.accessToken;
-    } else {
-      throw err;
-    }
-  }
+  // sign_up never signs anyone in (and answers the same for a taken address);
+  // sign in with the password just set.
+  await authClient.mutation
+    .signUp(
+      { input: { email: adminEmail, password: config.adminPassword } },
+      { select: { clientMutationId: true } }
+    )
+    .unwrap();
+  const signInData = await authClient.mutation
+    .signIn(
+      { input: { email: adminEmail, password: config.adminPassword } },
+      { select: { result: { select: { userId: true, accessToken: true } } } }
+    )
+    .unwrap();
+  userId = (signInData as Record<string, Record<string, Record<string, string>>>)
+    ?.signIn?.result?.userId;
+  accessToken = (signInData as Record<string, Record<string, Record<string, string>>>)
+    ?.signIn?.result?.accessToken;
 
   if (!accessToken || !userId) {
-    console.error('No token/userId returned from signUp');
+    console.error('No token/userId returned from signIn');
     process.exit(1);
   }
   console.log(`   Signed up (ID: ${userId})`);
