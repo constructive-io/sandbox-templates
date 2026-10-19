@@ -18,7 +18,7 @@ any of the auth functions.
 ## How consumption works (no per-tenant registrations)
 
 `functions/sso`, `functions/auth` and the `mantra` image are registered **once
-at platform scope** by `fun register`. A tenant serves them by writing ordinary
+at platform scope** by `fun up`. A tenant serves them by writing ordinary
 rows into the shared, database-scoped routing plane (`routing_public.routes` /
 `sites`) keyed by its own `database_id`. A tenant route may target any function
 definition on its own **frame chain** (its own scopes, then each ancestor up to
@@ -46,29 +46,15 @@ Two parts:
 | # | Step | Part | `local:bringup` covers it? |
 |---|---|---|---|
 | 0 | Full teardown (optional) | A | no — manual |
-| 1 | `fun up --alt-ports` + port-forward + DNS guard | A | no — prerequisite |
-| 2 | Owner login + create the tenant | B | **yes** |
-| 3 | Membership seed (LEGACY only) | B | **yes** — auto-skipped in owner mode |
-| 4 | `fun register` + `ensure-site` (incl. root `/` → app redirect) | B | **yes** |
-| 4b | Publish site homepage (`index.html` → site bucket) | B | **yes** |
-| 5 | Bare-`localhost` ingress rule | B | **yes** |
-| 6 | Configure the provider + per-tenant lanes (email/SMS/2FA/orgs) | B | **yes** |
-
-**`TWO_FACTOR`** (bring-up step 8d) is the tenant's `require_mfa`: `on` (default)
-means a password sign-in by a user with no second factor still mints the
-session but is flagged (`signIn` answers `mfaSetupRequired`), and the hosted
-`/setup-2fa?next=%2F&required=1` owns the enrollment — no skip until a factor
-is on. `allow_email_mfa` and `allow_sms_mfa` are both set on for this demo
-tenant, so `/setup-2fa` offers either factor and the step-up codes can travel
-by either. Code-first email registration no longer exists.
-| 6b | Regenerate the GraphQL SDK (`pnpm codegen`) | B | **yes** |
-| 7 | Start the app (`pnpm dev`) | B | **yes** — script's last step |
-
-(The old "rate-limiter stack" step is gone: the `b2b:storage` preset ships
-plans/billing/rate_limit_meters since upstream `fac0698a8ce`, 2026-09-08.)
+| 1 | `fun up --alt-ports` | A | no — prerequisite |
+| 2 | `create-db`: the owner + the tenant | B | **yes** |
+| 3 | `ensure-site`: site, mantra + sso presets, root `/` → app | B | **yes** |
+| 4 | `configure-email` / `-sms` / `-sso` / `-auth` / `-orgs` | B | **yes** |
+| 5 | Regenerate the GraphQL SDK (`pnpm codegen`) | B | **yes** |
+| 6 | Start the app (`pnpm dev`) | B | **yes** — script's last step |
 
 So the short path is: do Part A, put `OWNER_EMAIL`/`OWNER_PASSWORD` (and the
-`OAUTH_*` values) in `.env`, then one command:
+`OAUTH_*`, `TWILIO_*` values) in `.env`, then one command:
 
 ```bash
 pnpm run local:bringup
@@ -141,102 +127,126 @@ kubectl exec deploy/compute-sync -n constructive-platform-default -- node -e \
 
 ### Part B — Tenant setup (exactly what `pnpm run local:bringup` runs)
 
-#### 2. Establish the owner, then create the tenant
+#### Who provisioning acts as
 
-Tenant setup must run as the database's **owner** — a real platform user —
-never as the platform-bootstrap machine identity (which deliberately has
-zero org reach; widening it is forbidden). One-time setup in `.env`:
+Every step acts as the tenant's **owner**: a real platform user, signed in with
+`OWNER_EMAIL` / `OWNER_PASSWORD` from `.env` (use an account without 2FA —
+provisioning signs in with the password). A database is its own identity
+realm, so the owner holds two sessions:
 
-```
-OWNER_EMAIL=owner@myapp.local
-OWNER_PASSWORD=<pick one>            # gitignored, never committed
-```
+- the **platform** session (`auth.localhost`), for the tenant's rows in the
+  platform's shared planes: the database request, the site and its routes,
+  the email sender;
+- the **tenant** session (the tenant's own `auth-<slug>` host, issued once the
+  reconciler has bootstrapped the owner into the tenant), for the tenant's own
+  rows: provider, auth policy, config/secrets, membership defaults.
+
+A write goes through the realm's GraphQL where the operation is exposed
+(`requestDatabase`, the tenant's config and admin APIs). Where it is not, it
+runs in SQL inside one transaction whose claims are what the realm's own
+`authenticate()` answers for the session token — so RLS triggers and the 2FA
+step-up guards see the same owner and session a request would
+(`packages/provision/src/realm.ts`). Nothing runs as `platform-bootstrap`, and
+nothing writes with empty claims.
+
+#### 2. The owner and the tenant
 
 ```bash
 cd sandbox-templates/nextjs/constructive-sso
 pnpm install        # once, after cloning or pulling (local:bringup does this if missing)
-pnpm run owner-login   # signs up / signs in via the platform auth lane; writes OWNER_USER_ID to .env
 pnpm run create-db
 ```
 
-`owner-login` creates (first run) or signs in the owner through the platform's
-auth GraphQL lane (`auth.localhost`) and records its user id. `create-db` then
-provisions `myapp` **owned by that user**: `request_database` assigns ownership
-to the caller, the owner bootstrap mints the owner's self-membership (the
-capability `ensure-site` gates on) automatically, and the tenant's hostnames +
-`DATABASE_ID` land in `.env`. Idempotent — re-running reuses the tenant.
+- **First run: the owner is set up through the mailbox.** Password sign-up
+  signs nobody in, and the password stays pending until the address is proven
+  (planning#2291). So `create-db` signs the owner up, opens the verification
+  mail from Mailpit, and signs in. If the address is proven but holds no
+  password (a second sign-up "contests" a pending one), it recovers through
+  forgot/reset password, again from the mailbox.
+- **Operator step: the `databases` allowance.** The platform has no free tier,
+  so an owner with no subscription may not create a database. Locally there is
+  no plan to buy, so the owner gets the explicit unlimited row the platform's
+  own owners hold — the same row as upstream's fixture helper
+  `grantDatabaseAllowance`.
+- `requestDatabase` on the platform's api lane, as the owner (the
+  `b2b:storage` warm pool claims instantly). The reconciler's
+  `db_pool:bootstrap_owner` job then copies the owner into the tenant;
+  `create-db` waits for the ticket's recorded `bootstrap_status`.
+- The tenant's hosts are named from its slug (`*-a88-creepy-white-amphibian.localhost`),
+  so `DATABASE_ID`, `NEXT_PUBLIC_DB_NAME` and the `GRAPHQL_*_URL`s are written
+  into `.env`.
 
-> Legacy fallback: without `OWNER_USER_ID`, create-db/ensure-site act as
-> platform-bootstrap and print a warning on every run; that machine-owned
-> shape needs the `ensure-owner-self-membership` seed (below). Don't use it
-> for new setups.
+Idempotent: re-running reuses the tenant.
 
-#### 3. Seed the owner's capability (LEGACY — machine-owned tenants only)
-
-**Not needed for owner-mode tenants** (step 2): the owner bootstrap mints the
-owner's self-membership automatically. Only the legacy machine-owner shape
-needs this seed, which grants the platform-bootstrap user org reach — a local
-bypass of the platform boundary, kept solely for that path:
-
-```bash
-pnpm run ensure-owner-self-membership
-```
-
-#### 4. Register the shared functions, then ensure the tenant's site + routes
+#### 3. The tenant's site
 
 ```bash
-cd constructive-db/compute
-PGHOST=localhost PGPORT=15432 PGDATABASE=constructive-functions-db1 \
-  fun register --apply --as platform-bootstrap
-cd sandbox-templates/nextjs/constructive-sso
 pnpm run ensure-site
 ```
 
-`fun register` registers the shared images at platform scope (`--as` names the
-acting principal; register auto-detects the live cluster for secret seeding).
-`ensure-site` then, all as platform verbs against the shared routing plane:
+As the owner's platform session, attributed to the tenant:
 
-- ensures the tenant's site (`sites_provision_static_site`) and durably
-  verifies the `localhost` hostname (on the source `routing_public.domains`,
-  never the compiled `hostname_bindings` index);
-- writes the site's `canonical_url` (mantra composes the OAuth callback from it);
-- installs the mantra page set (`sites_install_mantra`), the opt-in `sso`
-  preset (mantra's `/auth/start` + `/auth/callback` browser legs), and the one
-  remaining sync lane (`sso:link`, account linking) via one
-  `install_route_bindings` custom document
-  (the `/_mantra/styles.css` route ships with the preset since upstream PR
-  #3509 — no custom binding needed);
-- flags the sync lanes anonymous and verifies every bound path resolves.
+- the site on `SSO_ROUTE_HOST` (`sites_provision_static_site`, which also
+  claims the `localhost` domains row);
+- **LOCAL WORKAROUND — the loopback host's verification.** `resolve_route`
+  serves only verified hostnames, and no ownership challenge can prove a bare
+  `localhost` (inside the cluster it is the reconciler's own pod). The
+  platform's own local host, `<label>.sites.localhost`, arrives verified — but
+  Google refuses redirect URIs on `.localhost` subdomains, and the app and the
+  gateway must share one cookie host. So the owner marks the `localhost` row
+  verified; any other host is refused;
+- `canonical_url = APP_ORIGIN` in the site metadata (the OAuth callback and the
+  hosted session's step-up origin are both built from it);
+- the `mantra` page set and the `sso` preset (`/auth/start`, `/auth/callback`),
+  plus the one sync lane, `/auth/link` (`sso:link`, account linking);
+- a redirect route that turns the mantra pages' `/` landing into a hop to the
+  app (`http://localhost:3000/`);
+- a `resolve_route` walk: every bound path must resolve.
 
-Expected output: `… site 'myapp' provisioned, mantra + sync lanes bound, 23
-route(s) resolving on localhost`.
+The platform's route reconciler publishes a Traefik route for each path on
+`localhost`; no ingress patch is needed.
 
-#### 5. Add the bare-`localhost` rule to the gateway ingress
-
-`fun up` registers `*.localhost` / `app.localhost`; the provider callback on
-bare `localhost` may need an explicit rule (the route reconciler has a
-localhost arm and often renders it already — this checks first):
-
-```bash
-kubectl get ingress constructive-route-hosts -n constructive-platform-default -o jsonpath='{.spec.rules[*].host}' \
-  | tr ' ' '\n' | grep -qx localhost \
-  || kubectl patch ingress constructive-route-hosts -n constructive-platform-default --type=json \
-  -p='[{"op":"add","path":"/spec/rules/-","value":{"host":"localhost","http":{"paths":[{"backend":{"service":{"name":"compute-sync-svc","port":{"number":8789}}},"path":"/","pathType":"Prefix"}]}}}]'
-```
-
-#### 6. Configure the provider
+#### 4. The per-tenant lanes
 
 ```bash
-cd sandbox-templates/nextjs/constructive-sso
-pnpm run provision
+pnpm run configure-email   # who mail leaves as: smtp -> the in-cluster Mailpit
+pnpm run configure-sms     # Twilio Verify settings
+pnpm run configure-sso     # the Google provider + its encrypted client secret
+pnpm run configure-auth    # the auth policy, 2FA included
+pnpm run configure-orgs    # every member may create organizations
 ```
 
-Upserts the provider row with the endpoints from `.env`, rotates the client
-secret into the tenant's encrypted store, sets the auth settings (host-only
-cookie, `/login` error path), and grants the anonymous role the sign-in lane
-needs.
+- **email:** a hosted tenant installs no email module of its own. Its sender
+  is two rows (a provider account and the default identity) in the platform's
+  database-scope email plane, keyed by the tenant. Mailpit's UI at
+  `http://localhost:18025` is the mailbox.
+- **sms:** two configs and three secrets in the tenant's own `app`-scope stores
+  (the ones `b2b:storage` installs), through the tenant's config API
+  (`config-<slug>`). The Twilio Verify Service needs `CustomCodeEnabled=true`
+  (the platform generates the digits).
+- **sso:** the provider row in the identity module's private table, then
+  `rotate_identity_provider_app_secret`, which encrypts the client secret into
+  the tenant's secrets and points the provider at it.
+- **auth:** one place for every `app_settings_auth` switch: the provider
+  sign-in lanes, the host-only cookie, magic-link and SMS sign-in, the second
+  factors on offer, and `require_mfa` from **`TWO_FACTOR`** (`on` by default:
+  a password sign-in by a user with no second factor is sent to
+  `/setup-2fa?required=1`; magic-link, SMS and SSO sign-ins are never flagged
+  for setup). The row is guarded by the tenant's 2FA posture: inside six hours
+  of the owner's bootstrap the owner's password session may write it; after
+  that the step fails, naming the guard, because the columns need a fresh MFA
+  proof. Only changed columns are written, so a re-run with nothing to change
+  never meets the guard.
+- **orgs:** through the tenant's admin GraphQL. New members arrive approved +
+  verified (their membership is active), and `create_entity` joins the default
+  capability panel every new member inherits. **LOCAL WORKAROUND:** the panel's
+  recompute trigger fires BEFORE the row it should count lands
+  (`memberships_module` creates it with PostgreSQL's BEFORE bit under a comment
+  that says AFTER), so the first grant leaves the panel all zeros; a no-op
+  UPDATE of that row, as the owner's tenant session, re-runs the trigger with
+  the row present.
 
-#### 6b. Regenerate the GraphQL SDK
+#### 5. Regenerate the GraphQL SDK
 
 `local:bringup` runs `pnpm codegen` (`scripts/codegen.sh`) right before
 starting the app. Codegen introspects the tenant's live GraphQL hosts
@@ -248,7 +258,7 @@ platform schema hasn't drifted and a healing refresh when it has. There is no
 tables, and the generator rejects empty schemas. Run `pnpm codegen` alone
 after a platform image change, or before adding new GraphQL fields to the app.
 
-#### 7. Start the app
+#### 6. Start the app
 
 ```bash
 pnpm dev
@@ -272,13 +282,6 @@ curl -s -o /dev/null -w "%{http_code}\n" http://localhost:3000/     # 200 (the a
 curl -s -o /dev/null -w "%{http_code} %{redirect_url}\n" \
   "http://localhost/auth/start?provider=google&next=%2F"
 ```
-
-> **Shortcut:** everything in Part B is chained by `pnpm run local:bringup` —
-> owner-login → create-db → (legacy seed, auto-skipped in owner mode) →
-> register + ensure-site → ingress → provision + lanes (email/SMS/2FA/orgs) →
-> codegen → `pnpm dev`. It installs dependencies itself when `node_modules` is
-> missing, so a fresh `git pull` + filled `.env` is enough.
-> Prerequisites: Part A done, and `OWNER_EMAIL`/`OWNER_PASSWORD` in `.env`.
 
 ## The two planes (auth surfaces vs. GraphQL data)
 
@@ -334,35 +337,10 @@ Then the flow is:
 ### Testing without Google (the mock IdP)
 
 Point the `OAUTH_*` values at the bundled mock (`pnpm mock-oauth`, `:4010`) and
-rerun `pnpm run provision`. The mock's endpoints carry its URLs and
+rerun `pnpm run configure-sso`. The mock's endpoints carry its URLs and
 `OAUTH_ISSUER_URL=http://localhost:4010`; it auto-consents, so the flow runs
 without a Google Console. (The token/userinfo URLs may need a pod-reachable
 host form of `localhost` — see the test guide.)
-
-### After the first sign-in: promote the owner
-
-A fresh tenant's only owner is the platform bootstrap user. The first provider
-sign-in creates YOUR user, but with zero capabilities — organization creation
-(and every admin surface) is RLS-gated on a capability the user doesn't have
-yet. Run once after your first sign-in (idempotent):
-
-```bash
-pnpm run promote-owner                    # promotes the newest human user
-PROMOTE_OWNER_EMAIL=you@example.com pnpm run promote-owner   # or pick by email
-```
-
-### Let every member create organizations
-
-By default only the owner/admin can create organizations: fresh members
-arrive unapproved + unverified (their membership is inactive, so the RLS
-guards can't see them) and the default capability panel has no
-`create_entity` bit (the switch the users-table INSERT policy demands for
-organization rows). `configure-orgs` flips both defaults so every NEW
-member can create orgs (idempotent, data-only; run after promote-owner):
-
-```bash
-pnpm run configure-orgs
-```
 
 ## Re-runs / restarts
 
@@ -389,9 +367,13 @@ pnpm run configure-orgs
   `pnpm run local:bringup`.
 - **Docker restart only, pods still Running:** just re-run the port-forward
   and `pnpm run local:bringup`.
-- To wipe the tenant and start over: `pnpm run reset-db` (then re-run steps 3–4
-  — the legacy capability seed, site routes and invocation plane are
-  per-tenant).
+- **More than six hours after the owner's bootstrap,** `configure-auth` can no
+  longer change the auth policy with a password session (the 2FA posture). An
+  unchanged policy is skipped, so a plain re-run still passes; to change it,
+  start from a fresh platform (Part A step 0).
+- **`ACCOUNT_LOCKED_EXCEED_ATTEMPTS` on sign-in:** repeated failed sign-ins (a
+  wrong `OWNER_PASSWORD`) lock the owner for a while. Fix the password, wait
+  for the lock to expire, re-run.
 
 ## Debugging
 
@@ -406,13 +388,13 @@ SELECT r.path, f.task_identifier, r.config
   LEFT JOIN catalog_private.functions f ON f.id = r.target_function_id
  WHERE r.database_id = '<DATABASE_ID>' ORDER BY r.path;
 
-SELECT slug, left(client_id,20), authorization_url
-  FROM "pool-<tenant>-auth-private".identity_providers WHERE slug='google';
+-- the tenant's identity provider table, from its module row
+SELECT s.schema_name, t.name
+  FROM metaschema_modules_public.identity_providers_module ipm
+  JOIN metaschema_public.schema s ON s.id = ipm.private_schema_id
+  JOIN metaschema_public.table t ON t.id = ipm.table_id
+ WHERE ipm.database_id = '<DATABASE_ID>';
 ```
-
-(`pool-<tenant>` is the schema prefix of your tenant — find it via
-`SELECT private_schema_name FROM metaschema_modules_public.identity_providers_module
-WHERE database_id='<DATABASE_ID>'`.)
 
 Gateway logs: `kubectl logs deploy/compute-sync -n constructive-platform-default`.
 
@@ -428,9 +410,9 @@ Gateway logs: `kubectl logs deploy/compute-sync -n constructive-platform-default
 | `src/app/api/auth/send-sms-otp/` + `verify-sms-otp/` | BFF: sendSmsOtp / signInSmsOtp on the auth GraphQL |
 | `src/app/api/auth/step-up/`   | BFF: sendStepUpCode / verifyStepUpCode on the auth GraphQL   |
 | `src/lib/sso/auth-graphql.ts` | the server-only auth-GraphQL client all of the above share (Bearer = session cookie; forwards user-agent + origin — step-up compares them) |
-| `packages/provision`          | `create-db` (tenant) / `ensure-site` (site + routes) / `provision` (provider) / `promote-owner` / `reset-db` |
+| `packages/provision`          | Part B's steps: `create-db`, `ensure-site`, `configure-{email,sms,sso,auth,orgs}`; `realm.ts` is who they act as |
 | `packages/export`             | `export:graphql` (legacy GraphQL export; not used by SSO)    |
-| `scripts/local-bringup.sh`    | runs ALL of Part B: owner-login → create-db → legacy seed (owner mode skips) → register + ensure-site → ingress → provision + lanes → codegen → dev; plus the CoreDNS guard |
+| `scripts/local-bringup.sh`    | runs ALL of Part B: create-db → ensure-site → configure-* → codegen → dev |
 | `src/graphql/sdk/`            | generated GraphQL SDK (committed; regenerated by `local:bringup` / `pnpm codegen`) |
 | `scripts/mock-oauth-server.ts`| local mock OAuth server for Google-free testing (`:4010`)    |
 

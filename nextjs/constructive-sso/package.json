@@ -14,17 +14,15 @@
     "codegen": "./scripts/codegen.sh",
     "codegen:w": "./scripts/codegen.sh --watch",
     "create-db": "pnpm --filter @constructive-app/provision run create-db",
-    "owner-login": "pnpm --filter @constructive-app/provision run owner-login",
-    "reset-db": "pnpm --filter @constructive-app/provision run reset-db",
-    "provision": "pnpm --filter @constructive-app/provision run provision",
-    "configure-sms": "pnpm --filter @constructive-app/provision run configure-sms",
-    "configure-orgs": "pnpm --filter @constructive-app/provision run configure-orgs",
     "ensure-site": "pnpm --filter @constructive-app/provision run ensure-site",
-    "ensure-owner-self-membership": "pnpm --filter @constructive-app/dev-local run ensure-owner-self-membership",
+    "configure-email": "pnpm --filter @constructive-app/provision run configure-email",
+    "configure-sms": "pnpm --filter @constructive-app/provision run configure-sms",
+    "configure-sso": "pnpm --filter @constructive-app/provision run configure-sso",
+    "configure-auth": "pnpm --filter @constructive-app/provision run configure-auth",
+    "configure-orgs": "pnpm --filter @constructive-app/provision run configure-orgs",
     "export:graphql": "pnpm --filter @constructive-app/export run export:graphql",
     "local:bringup": "./scripts/local-bringup.sh",
-    "mock-oauth": "tsx scripts/mock-oauth-server.ts",
-    "promote-owner": "pnpm --filter @constructive-app/provision run promote-owner"
+    "mock-oauth": "tsx scripts/mock-oauth-server.ts"
   },
   "dependencies": {
     "@0no-co/graphql.web": "^1.2.0",
