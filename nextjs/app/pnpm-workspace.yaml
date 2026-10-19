@@ -1,0 +1,20 @@
+# The composed app is its own pnpm root: these settings apply to its install.
+minimumReleaseAge: 2880
+
+overrides:
+  graphql: 16.13.0
+
+# pnpm 10.26+ reads allowBuilds; earlier pnpm 10 reads the two lists below it.
+allowBuilds:
+  esbuild: true
+  sharp: true
+  unrs-resolver: true
+  '@launchql/protobufjs': false
+
+onlyBuiltDependencies:
+  - esbuild
+  - sharp
+  - unrs-resolver
+
+ignoredBuiltDependencies:
+  - '@launchql/protobufjs'
