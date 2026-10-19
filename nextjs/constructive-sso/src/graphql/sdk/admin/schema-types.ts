@@ -3906,13 +3906,13 @@ export interface DeleteOrgInvitePayload {
   orgInviteEdge?: OrgInviteEdge | null;
 }
 export interface ProvisionBucketPayload {
-  /** The logical bucket row that was queued for reconciliation. */
+  /** The logical bucket row whose reconciliation was requested. */
   bucketId: string;
   bucketKey: string;
   /** The physical bucket name already recorded, or null when reconciliation has not completed. */
   physicalName?: string | null;
-  /** The reconciler job enqueued to provision this bucket. */
-  jobId: string;
+  /** When reconciliation was last requested for this bucket. */
+  provisionRequestedAt: string;
 }
 export interface WebauthnRegisterBeginPayload {
   /** PublicKeyCredentialCreationOptionsJSON for navigator.credentials.create(). */

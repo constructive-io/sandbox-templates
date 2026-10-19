@@ -126,6 +126,7 @@ function App() {
 | `useVerifyPhoneMutation` | Mutation | verifyPhone |
 | `useResetPasswordMutation` | Mutation | resetPassword |
 | `useSendMfaChallengeCodeMutation` | Mutation | sendMfaChallengeCode |
+| `useSignUpMutation` | Mutation | signUp |
 | `useCreateOrgPrincipalMutation` | Mutation | createOrgPrincipal |
 | `useRefreshAccessTokenMutation` | Mutation | refreshAccessToken |
 | `useSignInCrossOriginMutation` | Mutation | signInCrossOrigin |
@@ -134,7 +135,6 @@ function App() {
 | `useSignInMagicLinkMutation` | Mutation | signInMagicLink |
 | `useSignInSmsOtpMutation` | Mutation | signInSmsOtp |
 | `useCompleteMfaChallengeMutation` | Mutation | completeMfaChallenge |
-| `useSignUpMutation` | Mutation | signUp |
 | `useSignInMutation` | Mutation | signIn |
 | `useSendVerificationEmailMutation` | Mutation | sendVerificationEmail |
 | `useForgotPasswordMutation` | Mutation | forgotPassword |
@@ -150,10 +150,11 @@ function App() {
 | `useCreateApiKeyMutation` | Mutation | createApiKey |
 | `useCreateChildPrincipalMutation` | Mutation | createChildPrincipal |
 | `useProvisionBucketMutation` | Mutation | Reconcile an S3 bucket for a logical bucket in the database.
-Reads the bucket config via RLS, then enqueues the same
-storage:provision_bucket job used by the INSERT trigger. This is
-idempotent for an already-reconciled bucket; enqueue failures become
-GraphQL errors. |
+Records the request on the bucket row via RLS; the bucket's job
+trigger then enqueues the same storage:provision_bucket job used on
+INSERT, and repeated requests collapse into one pending job. This is
+idempotent for an already-reconciled bucket; failures become GraphQL
+errors. |
 | `useWebauthnRegisterBeginMutation` | Mutation | Begin registering a passkey for the signed-in user. |
 | `useWebauthnRegisterFinishMutation` | Mutation | Verify the browser's registration response and store the passkey. |
 | `useWebauthnSignInBeginMutation` | Mutation | Begin a passkey sign-in (discoverable when signed out). |
@@ -796,6 +797,17 @@ sendMfaChallengeCode
   |----------|------|
   | `input` | SendMfaChallengeCodeInput (required) |
 
+### `useSignUpMutation`
+
+signUp
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | SignUpInput (required) |
+
 ### `useCreateOrgPrincipalMutation`
 
 createOrgPrincipal
@@ -883,17 +895,6 @@ completeMfaChallenge
   | Argument | Type |
   |----------|------|
   | `input` | CompleteMfaChallengeInput (required) |
-
-### `useSignUpMutation`
-
-signUp
-
-- **Type:** mutation
-- **Arguments:**
-
-  | Argument | Type |
-  |----------|------|
-  | `input` | SignUpInput (required) |
 
 ### `useSignInMutation`
 
@@ -1052,10 +1053,11 @@ createChildPrincipal
 ### `useProvisionBucketMutation`
 
 Reconcile an S3 bucket for a logical bucket in the database.
-Reads the bucket config via RLS, then enqueues the same
-storage:provision_bucket job used by the INSERT trigger. This is
-idempotent for an already-reconciled bucket; enqueue failures become
-GraphQL errors.
+Records the request on the bucket row via RLS; the bucket's job
+trigger then enqueues the same storage:provision_bucket job used on
+INSERT, and repeated requests collapse into one pending job. This is
+idempotent for an already-reconciled bucket; failures become GraphQL
+errors.
 
 - **Type:** mutation
 - **Arguments:**

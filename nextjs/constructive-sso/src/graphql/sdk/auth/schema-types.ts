@@ -1130,6 +1130,13 @@ export interface SendMfaChallengeCodeInput {
   mfaChallengeToken?: string;
   mfaMethod?: string;
 }
+export interface SignUpInput {
+  clientMutationId?: string;
+  email?: string;
+  password?: string;
+  csrfToken?: string;
+  inviteToken?: string;
+}
 export interface CreateOrgPrincipalInput {
   clientMutationId?: string;
   name?: string;
@@ -1189,16 +1196,6 @@ export interface CompleteMfaChallengeInput {
   rememberMe?: boolean;
   trustDevice?: boolean;
   deviceToken?: string;
-}
-export interface SignUpInput {
-  clientMutationId?: string;
-  email?: string;
-  password?: string;
-  rememberMe?: boolean;
-  credentialKind?: string;
-  csrfToken?: string;
-  deviceToken?: string;
-  inviteToken?: string;
 }
 export interface SignInInput {
   clientMutationId?: string;
@@ -1658,6 +1655,9 @@ export interface SendMfaChallengeCodePayload {
   clientMutationId?: string | null;
   result?: boolean | null;
 }
+export interface SignUpPayload {
+  clientMutationId?: string | null;
+}
 export interface CreateOrgPrincipalPayload {
   clientMutationId?: string | null;
   result?: string | null;
@@ -1689,10 +1689,6 @@ export interface SignInSmsOtpPayload {
 export interface CompleteMfaChallengePayload {
   clientMutationId?: string | null;
   result?: CompleteMfaChallengeRecord | null;
-}
-export interface SignUpPayload {
-  clientMutationId?: string | null;
-  result?: SignUpRecord | null;
 }
 export interface SignInPayload {
   clientMutationId?: string | null;
@@ -1820,13 +1816,13 @@ export interface DeleteWebauthnCredentialPayload {
   webauthnCredentialEdge?: WebauthnCredentialEdge | null;
 }
 export interface ProvisionBucketPayload {
-  /** The logical bucket row that was queued for reconciliation. */
+  /** The logical bucket row whose reconciliation was requested. */
   bucketId: string;
   bucketKey: string;
   /** The physical bucket name already recorded, or null when reconciliation has not completed. */
   physicalName?: string | null;
-  /** The reconciler job enqueued to provision this bucket. */
-  jobId: string;
+  /** When reconciliation was last requested for this bucket. */
+  provisionRequestedAt: string;
 }
 export interface WebauthnRegisterBeginPayload {
   /** PublicKeyCredentialCreationOptionsJSON for navigator.credentials.create(). */
@@ -2012,16 +2008,6 @@ export interface CompleteMfaChallengeRecord {
   isVerified?: boolean | null;
   outDeviceToken?: string | null;
   deviceApprovalRequired?: boolean | null;
-}
-export interface SignUpRecord {
-  id?: string | null;
-  userId?: string | null;
-  accessToken?: string | null;
-  accessTokenExpiresAt?: string | null;
-  isVerified?: boolean | null;
-  totpEnabled?: boolean | null;
-  mfaSetupRequired?: boolean | null;
-  outDeviceToken?: string | null;
 }
 export interface SignInRecord {
   id?: string | null;

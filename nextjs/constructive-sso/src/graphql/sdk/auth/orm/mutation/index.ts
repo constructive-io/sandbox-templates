@@ -38,6 +38,7 @@ import type {
   VerifyPhoneInput,
   ResetPasswordInput,
   SendMfaChallengeCodeInput,
+  SignUpInput,
   CreateOrgPrincipalInput,
   RefreshAccessTokenInput,
   SignInCrossOriginInput,
@@ -46,7 +47,6 @@ import type {
   SignInMagicLinkInput,
   SignInSmsOtpInput,
   CompleteMfaChallengeInput,
-  SignUpInput,
   SignInInput,
   SendVerificationEmailInput,
   ForgotPasswordInput,
@@ -97,6 +97,7 @@ import type {
   VerifyPhonePayload,
   ResetPasswordPayload,
   SendMfaChallengeCodePayload,
+  SignUpPayload,
   CreateOrgPrincipalPayload,
   RefreshAccessTokenPayload,
   SignInCrossOriginPayload,
@@ -105,7 +106,6 @@ import type {
   SignInMagicLinkPayload,
   SignInSmsOtpPayload,
   CompleteMfaChallengePayload,
-  SignUpPayload,
   SignInPayload,
   SendVerificationEmailPayload,
   ForgotPasswordPayload,
@@ -156,6 +156,7 @@ import type {
   VerifyPhonePayloadSelect,
   ResetPasswordPayloadSelect,
   SendMfaChallengeCodePayloadSelect,
+  SignUpPayloadSelect,
   CreateOrgPrincipalPayloadSelect,
   RefreshAccessTokenPayloadSelect,
   SignInCrossOriginPayloadSelect,
@@ -164,7 +165,6 @@ import type {
   SignInMagicLinkPayloadSelect,
   SignInSmsOtpPayloadSelect,
   CompleteMfaChallengePayloadSelect,
-  SignUpPayloadSelect,
   SignInPayloadSelect,
   SendVerificationEmailPayloadSelect,
   ForgotPasswordPayloadSelect,
@@ -279,6 +279,9 @@ export interface ResetPasswordVariables {
 export interface SendMfaChallengeCodeVariables {
   input: SendMfaChallengeCodeInput;
 }
+export interface SignUpVariables {
+  input: SignUpInput;
+}
 export interface CreateOrgPrincipalVariables {
   input: CreateOrgPrincipalInput;
 }
@@ -302,9 +305,6 @@ export interface SignInSmsOtpVariables {
 }
 export interface CompleteMfaChallengeVariables {
   input: CompleteMfaChallengeInput;
-}
-export interface SignUpVariables {
-  input: SignUpInput;
 }
 export interface SignInVariables {
   input: SignInInput;
@@ -351,10 +351,11 @@ export interface CreateChildPrincipalVariables {
 /**
  * Variables for provisionBucket
  * Reconcile an S3 bucket for a logical bucket in the database.
-Reads the bucket config via RLS, then enqueues the same
-storage:provision_bucket job used by the INSERT trigger. This is
-idempotent for an already-reconciled bucket; enqueue failures become
-GraphQL errors.
+Records the request on the bucket row via RLS; the bucket's job
+trigger then enqueues the same storage:provision_bucket job used on
+INSERT, and repeated requests collapse into one pending job. This is
+idempotent for an already-reconciled bucket; failures become GraphQL
+errors.
  */
 export interface ProvisionBucketVariables {
   input: ProvisionBucketInput;
@@ -1288,6 +1289,35 @@ export function createMutationOperations(client: OrmClient) {
           'SendMfaChallengeCodePayload'
         ),
       }),
+    signUp: <S extends SignUpPayloadSelect>(
+      args: SignUpVariables,
+      options: {
+        select: S;
+      } & StrictSelect<S, SignUpPayloadSelect>
+    ) =>
+      new QueryBuilder<{
+        signUp: InferSelectResult<SignUpPayload, S> | null;
+      }>({
+        client,
+        operation: 'mutation',
+        operationName: 'SignUp',
+        fieldName: 'signUp',
+        ...buildCustomDocument(
+          'mutation',
+          'SignUp',
+          'signUp',
+          options.select,
+          args,
+          [
+            {
+              name: 'input',
+              type: 'SignUpInput!',
+            },
+          ],
+          connectionFieldsMap,
+          'SignUpPayload'
+        ),
+      }),
     createOrgPrincipal: <S extends CreateOrgPrincipalPayloadSelect>(
       args: CreateOrgPrincipalVariables,
       options: {
@@ -1518,35 +1548,6 @@ export function createMutationOperations(client: OrmClient) {
           ],
           connectionFieldsMap,
           'CompleteMfaChallengePayload'
-        ),
-      }),
-    signUp: <S extends SignUpPayloadSelect>(
-      args: SignUpVariables,
-      options: {
-        select: S;
-      } & StrictSelect<S, SignUpPayloadSelect>
-    ) =>
-      new QueryBuilder<{
-        signUp: InferSelectResult<SignUpPayload, S> | null;
-      }>({
-        client,
-        operation: 'mutation',
-        operationName: 'SignUp',
-        fieldName: 'signUp',
-        ...buildCustomDocument(
-          'mutation',
-          'SignUp',
-          'signUp',
-          options.select,
-          args,
-          [
-            {
-              name: 'input',
-              type: 'SignUpInput!',
-            },
-          ],
-          connectionFieldsMap,
-          'SignUpPayload'
         ),
       }),
     signIn: <S extends SignInPayloadSelect>(

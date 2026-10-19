@@ -260,6 +260,8 @@ export const customMutationKeys = {
     identifier
       ? (['mutation', 'sendMfaChallengeCode', identifier] as const)
       : (['mutation', 'sendMfaChallengeCode'] as const),
+  /** Mutation key for signUp */ signUp: (identifier?: string) =>
+    identifier ? (['mutation', 'signUp', identifier] as const) : (['mutation', 'signUp'] as const),
   /** Mutation key for createOrgPrincipal */ createOrgPrincipal: (identifier?: string) =>
     identifier
       ? (['mutation', 'createOrgPrincipal', identifier] as const)
@@ -292,8 +294,6 @@ export const customMutationKeys = {
     identifier
       ? (['mutation', 'completeMfaChallenge', identifier] as const)
       : (['mutation', 'completeMfaChallenge'] as const),
-  /** Mutation key for signUp */ signUp: (identifier?: string) =>
-    identifier ? (['mutation', 'signUp', identifier] as const) : (['mutation', 'signUp'] as const),
   /** Mutation key for signIn */ signIn: (identifier?: string) =>
     identifier ? (['mutation', 'signIn', identifier] as const) : (['mutation', 'signIn'] as const),
   /** Mutation key for sendVerificationEmail */ sendVerificationEmail: (identifier?: string) =>
