@@ -1,101 +1,13 @@
-// AppSpec v1 types and the overlay that applies a spec to the `_meta` model.
-// `app-spec.schema.json` is the source of truth for the shape; the desktop
-// validates specs against it before they reach the generator.
+// The overlay that applies an AppSpec to the `_meta` model. The AppSpec types
+// live in `app-spec.types.ts`; `app-spec.schema.json` is the source of truth
+// for the shape, and the desktop validates specs against it before they reach
+// the generator.
 
-import { finishLayout, toneFor, type FieldInput, type FieldIR, type MetaModel, type ResourceIR } from './meta-ir.ts';
+import { CURRENT_USER_ID, type AppSpec, type FieldUiSpec, type FilterValue, type SpecBelongsTo, type SpecField } from './app-spec.types.ts';
+import { finishLayout, toneFor, type FieldIR, type MetaModel, type ResourceIR } from './meta-ir.ts';
 import { humanize, kebabCase, normalizeKey } from './names.ts';
 
-export type SpecFieldType =
-	| 'text'
-	| 'long_text'
-	| 'integer'
-	| 'decimal'
-	| 'money'
-	| 'boolean'
-	| 'date'
-	| 'timestamp'
-	| 'email'
-	| 'url'
-	| 'uuid'
-	| 'json';
-
-export type SpecField = {
-	name: string;
-	type: SpecFieldType;
-	required?: boolean;
-	default?: unknown;
-	enum?: string[];
-	label?: string;
-};
-
-export type SpecBelongsTo = { field: string; to: string; onDelete?: 'cascade' | 'set_null' | 'restrict'; label?: string };
-
-export type SpecEntity = {
-	name: string;
-	label?: string;
-	access?: 'shared' | 'private';
-	fields: SpecField[];
-	belongsTo?: SpecBelongsTo[];
-};
-
-export type SpecLink = { name?: string; between: [string, string] };
-
-/** Additions to a curated blueprint: new tables, new columns and keys on its tables, new links. */
-export type BackendExtend = {
-	entities?: SpecEntity[];
-	fields?: Record<string, SpecField[]>;
-	belongsTo?: Record<string, SpecBelongsTo[]>;
-	links?: SpecLink[];
-};
-
-export type FilterValue = string | number | boolean | null;
-
-export type DashboardTileSpec =
-	| { kind: 'count'; resource: string; label?: string; filters?: Record<string, FilterValue> }
-	| { kind: 'recent'; resource: string; limit?: number; label?: string };
-
-/** The signed-in user's id, filled in by the app on create. */
-export const CURRENT_USER_ID = '$currentUserId';
-
-export type FieldUiSpec = {
-	label?: string;
-	/** Help text under the input. */
-	description?: string;
-	/** Allowed values; the field becomes a select. */
-	options?: string[];
-	hidden?: boolean;
-	input?: FieldInput;
-	/** Overrides `_meta`, e.g. false for a column a trigger fills. */
-	required?: boolean;
-	/** `$currentUserId` or a literal sent on create when the form has none. */
-	default?: FilterValue;
-};
-
-export type ResourceUiSpec = {
-	label?: string;
-	singular?: string;
-	icon?: string;
-	titleField?: string;
-	columns?: string[];
-	formFields?: string[];
-	hidden?: boolean;
-	fields?: Record<string, FieldUiSpec>;
-};
-
-export type AppSpec = {
-	version: 1;
-	name: string;
-	tagline?: string;
-	backend:
-		| { kind: 'blueprint'; slug: string; extend?: BackendExtend }
-		| { kind: 'custom'; entities: SpecEntity[]; links?: SpecLink[] };
-	seed?: Record<string, Array<Record<string, unknown>>>;
-	ui?: {
-		nav?: string[];
-		resources?: Record<string, ResourceUiSpec>;
-		dashboard?: { tiles: DashboardTileSpec[] };
-	};
-};
+export * from './app-spec.types.ts';
 
 export type DashboardTile =
 	| { kind: 'count'; resource: string; label: string; filters?: Record<string, FilterValue> }

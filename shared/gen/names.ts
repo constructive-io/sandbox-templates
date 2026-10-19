@@ -49,10 +49,7 @@ export function humanize(value: string): string {
 	return ucFirst(text);
 }
 
-/** Key used to match names across spellings: `volunteer_shifts` ≡ `volunteerShifts` ≡ `volunteer-shifts`. */
-export function normalizeKey(value: string): string {
-	return value.toLowerCase().replace(/[^a-z0-9]/g, '');
-}
+export { normalizeKey } from './app-spec.types.ts';
 
 /** A valid JS identifier for a generated binding (route segments can start with a digit). */
 export function identifier(value: string): string {
