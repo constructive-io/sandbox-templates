@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
+import { beginSignOut } from '@/lib/auth/sign-out-transition';
 import { TokenManager } from '@/lib/auth/token-manager';
 import { reconfigureSdkClients } from '@/components/app-provider';
 import { useAuthActions } from '@/store/app-store';
@@ -43,6 +44,11 @@ export function useLogout() {
 			}
 		},
 		onSuccess: () => {
+			// This state flip is a handoff, not a signed-out visit: tell the
+			// app's auth-reactive redirects (the home loop guard, RouteGuard,
+			// the org layout) to stand down before they see it.
+			beginSignOut();
+
 			// Clear token and auth state
 			TokenManager.clearToken('admin');
 			reconfigureSdkClients();
@@ -50,6 +56,15 @@ export function useLogout() {
 
 			// Clear all queries
 			queryClient.clear();
+
+			// Retire the loop marker. The hard navigation reloads the app, but
+			// this keeps the next mount from inheriting the previous trip's
+			// state if the browser restores the page.
+			try {
+				window.sessionStorage.removeItem('sent-to-login');
+			} catch {
+				// storage-less tab: nothing to retire
+			}
 
 			// Hand the browser to the gateway's own /logout page: it revokes the
 			// session and clears the cookies that carried it (gateway `token` plus

@@ -5,6 +5,7 @@ import { Rocket } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { getDbName, getSSOGatewayOrigin } from '@/app-config';
 import { useAuthContext } from '@/lib/auth/auth-context';
+import { isSigningOut } from '@/lib/auth/sign-out-transition';
 
 /**
  * Home Page - Start Building Here
@@ -30,7 +31,7 @@ export default function HomePage() {
 	// instead. The outbound trip marks this tab (sessionStorage survives the
 	// hard navigation to the gateway and back; the gateway's own redirect
 	// carries no marker we could read).
-	const [loginLoop] = React.useState(() => {
+	const [loginLoop, setLoginLoop] = React.useState(() => {
 		if (typeof window === 'undefined') return false;
 		try {
 			return window.sessionStorage.getItem('sent-to-login') === '1';
@@ -60,18 +61,35 @@ export default function HomePage() {
 	// leaves) the loading shell below is what renders.
 	React.useEffect(() => {
 		if (!mounted || isAuthLoading) return;
-		if (!isAuthenticated && !loginLoop) {
+		if (isAuthenticated) {
+			// A successful sign-in retires the marker. The state reset is what
+			// makes the guard describe this one failed trip rather than every
+			// later render of this mounted page; clearing storage alone does not
+			// change the captured `loginLoop`.
 			try {
-				window.sessionStorage.setItem('sent-to-login', '1');
+				window.sessionStorage.removeItem('sent-to-login');
 			} catch {
-				// A storage-less browser degrades to the old bounce — never
-				// blocks the sign-in trip itself.
+				// storage-less tab: the state reset still disarms the guard
 			}
-			window.location.replace(`${getSSOGatewayOrigin()}/login?next=%2F`);
+			if (loginLoop) setLoginLoop(false);
+			return;
 		}
+		// Do not bounce while the browser is on its way to the gateway's
+		// `/logout`: the signed-out state is the handoff, not a failed trip.
+		if (loginLoop || isSigningOut()) return;
+		try {
+			window.sessionStorage.setItem('sent-to-login', '1');
+		} catch {
+			// A storage-less browser degrades to the old bounce — never
+			// blocks the sign-in trip itself.
+		}
+		window.location.replace(`${getSSOGatewayOrigin()}/login?next=%2F`);
 	}, [mounted, isAuthLoading, isAuthenticated, loginLoop]);
 
-	if (mounted && !isAuthLoading && !isAuthenticated && loginLoop) {
+	const showMismatch =
+		mounted && !isAuthLoading && !isAuthenticated && loginLoop && !isSigningOut();
+
+	if (showMismatch) {
 		return (
 			<div className='bg-background flex h-dvh w-dvw items-center justify-center p-6'>
 				<div className='max-w-md space-y-3 text-center'>

@@ -3,6 +3,7 @@
 import { ReactNode, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
+import { isSigningOut } from '@/lib/auth/sign-out-transition';
 import { useEntityParams } from '@/lib/navigation';
 
 interface OrgLayoutProps {
@@ -29,6 +30,10 @@ export default function OrgLayout({ children }: OrgLayoutProps) {
 	// Handle redirect in useEffect to avoid React render-during-render issues
 	// and to prevent flash of redirect message
 	useEffect(() => {
+		// Sign-out clears the auth-scoped query cache, so the org lookup can
+		// briefly answer "not found". That is the handoff, not a bad URL:
+		// redirecting here would race the gateway /logout navigation.
+		if (isSigningOut()) return;
 		if (isLoading) return;
 
 		// Org not found after loading - redirect to home
