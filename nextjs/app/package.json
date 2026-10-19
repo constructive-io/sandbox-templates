@@ -1,0 +1,39 @@
+{
+	"name": "app",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"dev": "next dev --turbopack",
+		"build": "NODE_ENV=production next build",
+		"start": "next start",
+		"lint:types": "tsc --noEmit",
+		"codegen": "graphql-codegen generate --config ./graphql-codegen.config.ts",
+		"gen:resources": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/gen/cli.ts --emitter nextjs"
+	},
+	"dependencies": {
+		"@base-ui/react": "1.9.0",
+		"@constructive-io/graphql-query": "4.21.3",
+		"@tanstack/react-query": "5.104.3",
+		"class-variance-authority": "0.7.1",
+		"clsx": "2.1.1",
+		"gql-ast": "3.26.0",
+		"graphql": "16.13.0",
+		"graphql-ws": "6.4.1",
+		"lucide-react": "1.58.0",
+		"motion": "13.5.1",
+		"next": "16.4.2",
+		"next-themes": "0.4.6",
+		"react": "19.2.9",
+		"react-dom": "19.2.9",
+		"tailwind-merge": "3.7.0"
+	},
+	"devDependencies": {
+		"@constructive-io/graphql-codegen": "5.24.3",
+		"@tailwindcss/postcss": "4.3.3",
+		"@types/node": "24.19.2",
+		"@types/react": "19.3.0",
+		"@types/react-dom": "19.3.0",
+		"tailwindcss": "4.3.3",
+		"typescript": "5.9.3"
+	}
+}

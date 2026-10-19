@@ -1,0 +1,8 @@
+{
+	"name": "nextjs-app",
+	"framework": "nextjs",
+	"layers": ["shared/app", "nextjs/app"],
+	"gen": { "emitter": "nextjs" },
+	"registry": { "@constructive": "https://constructive-io.github.io/blocks/r/{name}.json" },
+	"blocks": ["constructive-theme", "workspace-kit", "resource-kit", "auth-pages", "dashboard-tiles"]
+}
