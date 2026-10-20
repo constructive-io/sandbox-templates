@@ -10,7 +10,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
-import { applySpec, type AppModel, type AppSpec } from './app-spec.ts';
+import { applySpec, type AppModel, type AppSpec, type SpecGap } from './app-spec.ts';
 import {
 	clearDerived,
 	generatedHash,
@@ -64,6 +64,8 @@ export type GenSummary = {
 	filtersFromSdk: boolean;
 	junctions: AppModel['junctions'];
 	skippedTables: AppModel['skipped'];
+	/** Names the AppSpec uses that `_meta` doesn't have; each is in `warnings` too. */
+	specGaps: SpecGap[];
 	warnings: string[];
 	durationMs: number;
 };
@@ -104,6 +106,7 @@ export function runGen(options: RunOptions): GenSummary {
 		filtersFromSdk,
 		junctions: model.junctions,
 		skippedTables: model.skipped,
+		specGaps: model.gaps,
 		warnings: model.warnings,
 		durationMs: Math.round(performance.now() - started),
 	};

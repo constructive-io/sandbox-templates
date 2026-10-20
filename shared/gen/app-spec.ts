@@ -3,7 +3,15 @@
 // for the shape, and the desktop validates specs against it before they reach
 // the generator.
 
-import { CURRENT_USER_ID, type AppSpec, type FieldUiSpec, type FilterValue, type SpecBelongsTo, type SpecField } from './app-spec.types.ts';
+import {
+	CURRENT_USER_ID,
+	type AppSpec,
+	type FieldUiSpec,
+	type FilterValue,
+	type SpecBelongsTo,
+	type SpecField,
+	type SpecLink,
+} from './app-spec.types.ts';
 import { finishLayout, toneFor, type FieldIR, type MetaModel, type ResourceIR } from './meta-ir.ts';
 import { humanize, kebabCase, normalizeKey } from './names.ts';
 
@@ -13,6 +21,14 @@ export type DashboardTile =
 	| { kind: 'count'; resource: string; label: string; filters?: Record<string, FilterValue> }
 	| { kind: 'recent'; resource: string; label: string; limit: number };
 
+/** A name the AppSpec uses that `_meta` doesn't have: the spec and the live database disagree. */
+export type SpecGap = {
+	/** Where the name sits in the AppSpec, e.g. `backend.entities.shifts.fields` or `ui.resources.shifts.columns`. */
+	path: string;
+	name: string;
+	message: string;
+};
+
 export type AppModel = {
 	app: { name: string; tagline?: string };
 	/** Registry order: nav resources first, in nav order. */
@@ -21,6 +37,8 @@ export type AppModel = {
 	dashboard: DashboardTile[];
 	junctions: MetaModel['junctions'];
 	skipped: MetaModel['skipped'];
+	/** Every gap is in `warnings` too. */
+	gaps: SpecGap[];
 	warnings: string[];
 };
 
@@ -43,6 +61,11 @@ export function assertAppSpec(value: unknown): asserts value is AppSpec {
 
 export function applySpec(model: MetaModel, spec?: AppSpec, options: ApplySpecOptions = {}): AppModel {
 	const warnings: string[] = [];
+	const gaps: SpecGap[] = [];
+	const gap = (path: string, name: string, message: string) => {
+		gaps.push({ path, name, message });
+		warnings.push(message);
+	};
 	const resources = model.resources;
 	const findResource = (key: string) =>
 		resources.find((ir) =>
@@ -57,47 +80,66 @@ export function applySpec(model: MetaModel, spec?: AppSpec, options: ApplySpecOp
 		// A spec names foreign keys by column (`location_id`); a many-to-many field by target (`volunteers`).
 		ir.fields.find((field) => normalizeKey(field.name) === normalizeKey(`${key}Id`));
 
-	const refineTable = (ir: ResourceIR, fields: SpecField[], belongsTo: SpecBelongsTo[]) => {
+	const refineTable = (
+		ir: ResourceIR,
+		fields: SpecField[],
+		belongsTo: SpecBelongsTo[],
+		paths: { fields: string; belongsTo: string },
+	) => {
 		for (const fieldSpec of fields) {
 			const field = findField(ir, fieldSpec.name);
-			if (field) refineField(field, fieldSpec);
+			if (field) refineField(field, fieldSpec, (message) => warnings.push(`${paths.fields}.${fieldSpec.name}: ${message}`));
+			else gap(paths.fields, fieldSpec.name, `${paths.fields} names column "${fieldSpec.name}", which ${ir.table} doesn't have in _meta.`);
 		}
 		for (const link of belongsTo) {
 			const field = findField(ir, link.field);
-			if (field && link.label) field.label = link.label;
+			if (!field) gap(paths.belongsTo, link.field, `${paths.belongsTo} names key "${link.field}", which ${ir.table} doesn't have in _meta.`);
+			else if (link.label) field.label = link.label;
 		}
 	};
 	const backend = spec?.backend;
 	const extend = backend?.kind === 'blueprint' ? backend.extend : undefined;
 	const entities = backend?.kind === 'custom' ? backend.entities : (extend?.entities ?? []);
+	const entitiesPath = backend?.kind === 'custom' ? 'backend.entities' : 'backend.extend.entities';
 	for (const entity of entities) {
 		const ir = findResource(entity.name);
 		if (!ir) {
-			warnings.push(`AppSpec entity "${entity.name}" is not in _meta.`);
+			gap(entitiesPath, entity.name, `AppSpec entity "${entity.name}" is not in _meta.`);
 			continue;
 		}
 		if (entity.label) ir.label = entity.label;
-		refineTable(ir, entity.fields, entity.belongsTo ?? []);
+		const path = `${entitiesPath}.${entity.name}`;
+		refineTable(ir, entity.fields, entity.belongsTo ?? [], { fields: `${path}.fields`, belongsTo: `${path}.belongsTo` });
 	}
 	// The blueprint's own tables keep its field shapes; `extend` refines only the columns it added.
 	for (const table of new Set([...Object.keys(extend?.fields ?? {}), ...Object.keys(extend?.belongsTo ?? {})])) {
 		const ir = findResource(table);
-		if (ir) refineTable(ir, extend?.fields?.[table] ?? [], extend?.belongsTo?.[table] ?? []);
-		else warnings.push(`backend.extend names table "${table}", which is not in _meta.`);
+		if (ir) {
+			refineTable(ir, extend?.fields?.[table] ?? [], extend?.belongsTo?.[table] ?? [], {
+				fields: `backend.extend.fields.${table}`,
+				belongsTo: `backend.extend.belongsTo.${table}`,
+			});
+		} else gap('backend.extend', table, `backend.extend names table "${table}", which is not in _meta.`);
+	}
+	const links = backend?.kind === 'custom' ? (backend.links ?? []) : (extend?.links ?? []);
+	const linksPath = backend?.kind === 'custom' ? 'backend.links' : 'backend.extend.links';
+	for (const link of links) {
+		const missing = linkGap(link, model, findResource);
+		if (missing) gap(linksPath, link.name ?? link.between.join(','), missing);
 	}
 
 	const keep = new Map<ResourceIR, { titleField?: boolean; columns?: boolean; formFields?: boolean }>();
 	for (const [key, ui] of Object.entries(spec?.ui?.resources ?? {})) {
 		const ir = findResource(key);
 		if (!ir) {
-			warnings.push(`ui.resources."${key}" matches no table.`);
+			gap('ui.resources', key, `ui.resources."${key}" matches no table.`);
 			continue;
 		}
 		const flags: { titleField?: boolean; columns?: boolean; formFields?: boolean } = {};
 		for (const [name, hints] of Object.entries(ui.fields ?? {})) {
 			const field = findField(ir, name);
-			if (field) applyFieldHints(ir, field, hints);
-			else warnings.push(`ui.resources."${key}".fields names unknown field "${name}".`);
+			if (field) applyFieldHints(ir, field, hints, (message) => warnings.push(`ui.resources."${key}".fields.${name}: ${message}`));
+			else gap(`ui.resources.${key}.fields`, name, `ui.resources."${key}".fields names unknown field "${name}".`);
 		}
 		if (ui.label) ir.label = ui.label;
 		if (ui.singular) ir.singular = ui.singular;
@@ -108,7 +150,7 @@ export function applySpec(model: MetaModel, spec?: AppSpec, options: ApplySpecOp
 			if (field) {
 				ir.titleField = field.name;
 				flags.titleField = true;
-			} else warnings.push(`ui.resources."${key}".titleField "${ui.titleField}" is not a field.`);
+			} else gap(`ui.resources.${key}.titleField`, ui.titleField, `ui.resources."${key}".titleField "${ui.titleField}" is not a field.`);
 		}
 		const pick = (names: string[] | undefined, what: string) => {
 			if (!names) return undefined;
@@ -116,7 +158,7 @@ export function applySpec(model: MetaModel, spec?: AppSpec, options: ApplySpecOp
 			for (const name of names) {
 				const field = findField(ir, name);
 				if (field && !field.hidden && !picked.includes(field.name)) picked.push(field.name);
-				else if (!field) warnings.push(`ui.resources."${key}".${what} names unknown field "${name}".`);
+				else if (!field) gap(`ui.resources.${key}.${what}`, name, `ui.resources."${key}".${what} names unknown field "${name}".`);
 			}
 			return picked.length ? picked : undefined;
 		};
@@ -150,7 +192,7 @@ export function applySpec(model: MetaModel, spec?: AppSpec, options: ApplySpecOp
 	const ordered: ResourceIR[] = [];
 	for (const key of spec?.ui?.nav ?? []) {
 		const ir = findResource(key);
-		if (!ir) warnings.push(`ui.nav names unknown resource "${key}".`);
+		if (!ir) gap('ui.nav', key, `ui.nav names unknown resource "${key}".`);
 		else if (!ordered.includes(ir) && ir.inNav) ordered.push(ir);
 	}
 	for (const ir of navResources) if (!ordered.includes(ir)) ordered.push(ir);
@@ -163,11 +205,30 @@ export function applySpec(model: MetaModel, spec?: AppSpec, options: ApplySpecOp
 		},
 		resources: registry,
 		nav: ordered.map((ir) => ir.name),
-		dashboard: buildDashboard(spec, ordered, findResource, findField, warnings),
+		dashboard: buildDashboard(spec, ordered, findResource, findField, { gap, warnings }),
 		junctions: model.junctions,
 		skipped: model.skipped,
+		gaps,
 		warnings,
 	};
+}
+
+/** Why a link isn't in `_meta`: a side is missing, or no junction (or table named like the link) joins the two. */
+function linkGap(
+	link: SpecLink,
+	model: MetaModel,
+	findResource: (key: string) => ResourceIR | undefined,
+): string | undefined {
+	const label = link.name ? `AppSpec link "${link.name}"` : `AppSpec link between "${link.between[0]}" and "${link.between[1]}"`;
+	const sides = link.between.map(findResource);
+	const absent = link.between.filter((_, index) => !sides[index]);
+	if (absent.length) {
+		return `${label} names ${absent.map((name) => `"${name}"`).join(' and ')}, which ${absent.length === 1 ? 'is' : 'are'} not in _meta.`;
+	}
+	const names = sides.map((ir) => (ir as ResourceIR).name).sort();
+	const joined = model.junctions.some((junction) => [...junction.between].sort().join() === names.join());
+	if (joined || (link.name && findResource(link.name))) return undefined;
+	return `${label} has no junction table in _meta.`;
 }
 
 function setOptions(field: FieldIR, values: string[]) {
@@ -177,12 +238,28 @@ function setOptions(field: FieldIR, values: string[]) {
 	field.options = values.map((value) => ({ value, label: humanize(value), tone: tones.get(value) ?? toneFor(value) }));
 }
 
-/** Per-field hints from `ui.resources.<table>.fields`: they override everything `_meta` said. */
-function applyFieldHints(ir: ResourceIR, field: FieldIR, hints: FieldUiSpec) {
+const quoted = (values: string[]) => values.map((value) => `"${value}"`).join(', ');
+
+/**
+ * Per-field hints from `ui.resources.<table>.fields`: they override everything `_meta` said, except
+ * the values a column allows. Options keep only those, in the hint's order.
+ */
+function applyFieldHints(ir: ResourceIR, field: FieldIR, hints: FieldUiSpec, warn: (message: string) => void) {
 	if (hints.label) field.label = hints.label;
 	if (hints.description) field.description = hints.description;
 	if (hints.input) field.input = hints.input;
-	if (hints.options?.length) setOptions(field, hints.options);
+	if (hints.options?.length) {
+		const allowed = field.metaValues;
+		const kept = allowed?.length ? hints.options.filter((value) => allowed.includes(value)) : hints.options;
+		if (allowed?.length && !kept.length) {
+			setOptions(field, allowed);
+			warn(`the database allows none of the options; using its values ${quoted(allowed)}.`);
+		} else {
+			setOptions(field, kept);
+			const dropped = hints.options.filter((value) => !kept.includes(value));
+			if (dropped.length) warn(`dropped the options ${quoted(dropped)}, which the database doesn't allow.`);
+		}
+	}
 	if (hints.hidden !== undefined) field.hidden = hints.hidden;
 	const userKey = ir.userKeys.includes(field.name);
 	if (hints.required !== undefined) {
@@ -201,12 +278,31 @@ function applyFieldHints(ir: ResourceIR, field: FieldIR, hints: FieldUiSpec) {
 	}
 }
 
-function refineField(field: FieldIR, spec: SpecField) {
+/**
+ * A spec field's label and type refine the column. Its enum doesn't beat the live database: values
+ * `_meta` serves win (in the spec's order when they are the same set), and when `_meta` says the
+ * column allows any value, the enum is dropped. Only an endpoint that doesn't say keeps the enum.
+ */
+function refineField(field: FieldIR, spec: SpecField, warn: (message: string) => void) {
 	if (spec.label) field.label = spec.label;
 	if (field.input === 'relation' || field.hidden) return;
 	if (spec.enum?.length && (field.input === 'text' || field.input === 'select')) {
-		setOptions(field, spec.enum);
-		return;
+		const live = field.metaValues;
+		if (live === undefined) {
+			setOptions(field, spec.enum);
+			return;
+		}
+		if (live === null) {
+			warn(`the enum ${quoted(spec.enum)} is ignored: the database allows any value.`);
+		} else {
+			const added = live.filter((value) => !spec.enum?.includes(value));
+			const removed = spec.enum.filter((value) => !live.includes(value));
+			if (added.length || removed.length) {
+				const changes = [added.length && `added ${quoted(added)}`, removed.length && `removed ${quoted(removed)}`];
+				warn(`the enum differs from the database (${changes.filter(Boolean).join('; ')}); using the database's values.`);
+			} else setOptions(field, spec.enum);
+			return;
+		}
 	}
 	if (spec.type === 'long_text' && field.input === 'text') field.input = 'textarea';
 	else if (spec.type === 'email' && field.input === 'text') field.input = 'email';
@@ -232,7 +328,7 @@ function buildDashboard(
 	nav: ResourceIR[],
 	findResource: (key: string) => ResourceIR | undefined,
 	findField: (ir: ResourceIR, key: string) => FieldIR | undefined,
-	warnings: string[],
+	report: { gap: (path: string, name: string, message: string) => void; warnings: string[] },
 ): DashboardTile[] {
 	const tiles = spec?.ui?.dashboard?.tiles;
 	if (!tiles) {
@@ -248,10 +344,10 @@ function buildDashboard(
 		return defaults;
 	}
 	const result: DashboardTile[] = [];
-	for (const tile of tiles) {
+	for (const [index, tile] of tiles.entries()) {
 		const ir = findResource(tile.resource);
 		if (!ir) {
-			warnings.push(`Dashboard tile names unknown resource "${tile.resource}".`);
+			report.gap('ui.dashboard.tiles', tile.resource, `Dashboard tile names unknown resource "${tile.resource}".`);
 			continue;
 		}
 		if (tile.kind === 'recent') {
@@ -266,8 +362,12 @@ function buildDashboard(
 		let filters: Record<string, FilterValue> | undefined;
 		for (const [key, value] of Object.entries(tile.filters ?? {})) {
 			const field = findField(ir, key);
-			if (!field || !field.selectable) {
-				warnings.push(`Dashboard tile filter "${key}" is not a field of ${ir.name}.`);
+			if (!field) {
+				report.gap(`ui.dashboard.tiles.${index}.filters`, key, `Dashboard tile filter "${key}" is not a field of ${ir.name}.`);
+				continue;
+			}
+			if (!field.selectable) {
+				report.warnings.push(`Dashboard tile filter "${key}" is not a column of ${ir.name}, so it can't filter.`);
 				continue;
 			}
 			filters = { ...filters, [field.name]: value };

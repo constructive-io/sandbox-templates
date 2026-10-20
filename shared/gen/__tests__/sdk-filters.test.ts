@@ -36,6 +36,7 @@ function model(): AppModel {
 		dashboard: [{ kind: 'count', resource: 'volunteers', label: 'Active', filters: { isActive: true, email: 'x' } }],
 		junctions: [],
 		skipped: [],
+		gaps: [],
 		warnings: [],
 	};
 }
