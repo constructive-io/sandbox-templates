@@ -6,6 +6,7 @@
 // in with their password.
 
 import { runtimeConfig } from '../runtime/config';
+import { failureKind, UNAVAILABLE_MESSAGE } from '../graphql/errors';
 import { graphqlRequest, type GraphQLError } from '../graphql/request';
 import { TokenManager } from './token-manager';
 
@@ -25,6 +26,8 @@ const MESSAGES: Record<string, string> = {
 };
 
 function failed(errors: GraphQLError[], fallback: string): AuthResult {
+	// A deleted or suspended database answers every request this way, sign-in included.
+	if (failureKind(errors) === 'unavailable') return { ok: false, message: UNAVAILABLE_MESSAGE };
 	for (const error of errors) {
 		const code = typeof error.extensions?.code === 'string' ? error.extensions.code : '';
 		const known = MESSAGES[code] ?? Object.entries(MESSAGES).find(([key]) => error.message.includes(key))?.[1];

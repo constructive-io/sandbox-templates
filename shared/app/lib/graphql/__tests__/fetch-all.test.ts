@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
+import { RequestFailure } from '../errors.ts';
 import { fetchAll, MAX_PAGE_SIZE, type PageArgs } from '../fetch-all.ts';
 
 /** A findMany stand-in over `total` rows that pages by cursor like the API. */
@@ -52,5 +53,21 @@ describe('fetchAll', () => {
 			}),
 		});
 		await assert.rejects(fetchAll(failing), /page size is too large/);
+	});
+
+	it('keeps the error codes on what it throws', async () => {
+		const suspended = () => ({
+			execute: async () => ({
+				ok: false as const,
+				data: null,
+				errors: [{ message: 'Access to this database is suspended.', extensions: { code: 'ACCESS_SUSPENDED', httpStatus: 403 } }],
+			}),
+		});
+		await assert.rejects(fetchAll(suspended), (error: RequestFailure) => {
+			assert.ok(error instanceof RequestFailure);
+			assert.equal(error.kind, 'unavailable');
+			assert.equal(error.errors[0].extensions?.code, 'ACCESS_SUSPENDED');
+			return true;
+		});
 	});
 });

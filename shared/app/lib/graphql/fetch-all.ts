@@ -11,6 +11,8 @@
 
 import type { QueryResult } from '@constructive-io/graphql-query/runtime';
 
+import { RequestFailure } from './errors.ts';
+
 export const MAX_PAGE_SIZE = 1000;
 
 /** Spread into findMany's arguments. */
@@ -40,7 +42,8 @@ export async function fetchAll<T>(
 	let after: string | undefined;
 	while (rows.length < limit) {
 		const result = await query({ first: Math.min(pageSize, limit - rows.length), ...(after ? { after } : {}) }).execute();
-		if (!result.ok) throw new Error(result.errors.map((error) => error.message).join('; ') || 'Request failed.');
+		// The errors stay on the failure, so a caller can still tell an unavailable database from a bad query.
+		if (!result.ok) throw new RequestFailure(result.errors);
 		const connection = Object.values(result.data as Record<string, unknown>)[0] as
 			| { nodes?: NodeOf<T>[]; pageInfo?: PageInfo }
 			| null
