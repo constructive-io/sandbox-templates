@@ -64,9 +64,11 @@ async function timed<T>(steps: Step[], step: string, work: () => Promise<T> | T)
 	return result;
 }
 
-function run(command: string, args: string[], cwd: string, env: NodeJS.ProcessEnv = {}): Promise<void> {
+function run(command: string, args: string[], cwd: string, env: NodeJS.ProcessEnv = {}, omit: readonly string[] = []): Promise<void> {
+	const childEnv = { ...process.env, ...env };
+	for (const key of omit) delete childEnv[key];
 	return new Promise((resolvePromise, reject) => {
-		const child = spawn(command, args, { cwd, env: { ...process.env, ...env }, stdio: ['ignore', 'pipe', 'pipe'] });
+		const child = spawn(command, args, { cwd, env: childEnv, stdio: ['ignore', 'pipe', 'pipe'] });
 		let output = '';
 		child.stdout.on('data', (chunk: Buffer) => (output += chunk.toString()));
 		child.stderr.on('data', (chunk: Buffer) => (output += chunk.toString()));
@@ -286,6 +288,8 @@ async function compose(out: string, finalOut: string, { template, manifest, regi
 				],
 				out,
 				shim?.env,
+				// shadcn reads REGISTRY_URL as the base URL of its own registry; the blocks come from components.json.
+				['REGISTRY_URL'],
 			),
 		);
 	} finally {
