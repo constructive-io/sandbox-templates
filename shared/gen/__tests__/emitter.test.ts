@@ -124,7 +124,8 @@ describe('AppSpec text in generated code', () => {
 				deals: {
 					label: HOSTILE,
 					singular: `2nd shift's "x"`,
-					fields: { title: { label: HOSTILE, description: HOSTILE }, stage: { options: [`it's`, 'a\\b'] } },
+					// Options on a free-text column: on an enum column only the values _meta allows would stay.
+					fields: { title: { label: HOSTILE, description: HOSTILE, options: [`it's`, 'a\\b'] } },
 				},
 			},
 			dashboard: {

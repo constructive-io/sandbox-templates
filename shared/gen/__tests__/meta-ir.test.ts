@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { describe, it } from 'node:test';
 
 import { applySpec, type AppSpec } from '../app-spec.ts';
-import { buildMetaModel, parseMetaDocument, type MetaTable, type ResourceIR } from '../meta-ir.ts';
+import { buildMetaModel, parseMetaDocument, type MetaField, type MetaTable, type ResourceIR } from '../meta-ir.ts';
 
 // A hand-written CRM `_meta` with what the live fixture doesn't exercise:
 // enum values, a junction named by manyToMany, storage tables, BigFloat.
@@ -117,7 +117,7 @@ describe('a curated blueprint (agent) with per-field AppSpec hints', () => {
 		assert.equal(resource(app.resources, 'agent-tasks').columns[0], 'description');
 	});
 
-	it('lets field hints override what _meta says, and literal defaults go to creates', () => {
+	it('lets field hints override what _meta says, except the values a column allows, and literal defaults go to creates', () => {
 		const metaTables = tables();
 		const thread = metaTables.find((t) => t.name === 'AgentThread') as MetaTable;
 		const status = thread.fields?.find((f) => f.name === 'status');
@@ -138,15 +138,110 @@ describe('a curated blueprint (agent) with per-field AppSpec hints', () => {
 				},
 			},
 		};
-		const ir = resource(applySpec(buildMetaModel(metaTables), spec).resources, 'agent-threads');
+		const app = applySpec(buildMetaModel(metaTables), spec);
+		const ir = resource(app.resources, 'agent-threads');
+		// The database rejects "paused", so a select offering it would only fail on save.
 		assert.deepEqual(
 			field(ir, 'status').options?.map((o) => o.value),
-			['active', 'paused', 'archived'],
+			['active', 'archived'],
 		);
+		assert.deepEqual(app.warnings, ['ui.resources."agent_thread".fields.status: dropped the options "paused", which the database doesn\'t allow.']);
 		assert.equal(field(ir, 'status').label, 'State');
 		assert.deepEqual(ir.createDefaults, { mode: 'ask' });
 		assert.ok(!ir.formFields.includes('mode'));
 		assert.equal(field(ir, 'title').required, true);
+	});
+});
+
+describe('an AppSpec the database no longer matches', () => {
+	const foodBank = () => parseMetaDocument(readJson(join(FOOD_BANK, 'meta.json')));
+	const foodBankSpec = () => readJson(join(FOOD_BANK, 'app-spec.json')) as AppSpec;
+
+	it('reports every name the spec uses that _meta lacks, and nothing for the ones it has', () => {
+		const spec = foodBankSpec();
+		if (spec.backend.kind !== 'custom') throw new Error('the food-bank fixture is a custom backend');
+		const shifts = spec.backend.entities.find((entity) => entity.name === 'shifts');
+		shifts?.fields.push({ name: 'notes', type: 'long_text' });
+		shifts?.belongsTo?.push({ field: 'driver_id', to: 'volunteers' });
+		spec.backend.entities.push({ name: 'donations', fields: [{ name: 'pounds', type: 'integer' }] });
+		spec.backend.links?.push({ between: ['shifts', 'locations'] });
+		if (spec.ui?.resources?.shifts) {
+			spec.ui.resources.shifts.columns?.push('notes');
+			spec.ui.resources.shifts.fields = { ...spec.ui.resources.shifts.fields, notes: { label: 'Notes' } };
+		}
+
+		const app = applySpec(buildMetaModel(foodBank()), spec);
+		assert.deepEqual(
+			app.gaps.map((gap) => [gap.path, gap.name]),
+			[
+				['backend.entities.shifts.fields', 'notes'],
+				['backend.entities.shifts.belongsTo', 'driver_id'],
+				['backend.entities', 'donations'],
+				['backend.links', 'shifts,locations'],
+				['ui.resources.shifts.fields', 'notes'],
+				['ui.resources.shifts.columns', 'notes'],
+			],
+			'the shift_signups link has its junction, so it is no gap',
+		);
+		for (const gap of app.gaps) assert.ok(app.warnings.includes(gap.message), gap.message);
+
+		const agent = readJson(join(AGENT, 'app-spec.json')) as AppSpec;
+		agent.backend = {
+			kind: 'blueprint',
+			slug: 'agent',
+			extend: {
+				fields: { agent_task: [{ name: 'priority', type: 'text' }] },
+				belongsTo: { agent_task: [{ field: 'project_id', to: 'agent_thread' }], agent_project: [{ field: 'owner_id', to: 'agent_thread' }] },
+				links: [{ name: 'task_threads', between: ['agent_task', 'agent_thread'] }],
+			},
+		};
+		assert.deepEqual(
+			applySpec(buildMetaModel(parseMetaDocument(readJson(join(AGENT, 'meta.json')))), agent).gaps.map((gap) => [gap.path, gap.name]),
+			[
+				['backend.extend.fields.agent_task', 'priority'],
+				['backend.extend.belongsTo.agent_task', 'project_id'],
+				['backend.extend', 'agent_project'],
+				['backend.extend.links', 'task_threads'],
+			],
+		);
+	});
+
+	/** shifts.status with `_meta` serving `allowed` (absent: the endpoint doesn't serve allowedValues), and a spec enum. */
+	function shiftStatus(allowed: string[] | null | 'absent', specEnum: string[]) {
+		const tables = foodBank();
+		const status = tables.find((t) => t.name === 'Shift')?.fields?.find((f) => f.name === 'status') as MetaField;
+		if (allowed !== 'absent') status.allowedValues = allowed;
+		const spec = foodBankSpec();
+		if (spec.backend.kind !== 'custom') throw new Error('the food-bank fixture is a custom backend');
+		spec.backend.entities.find((entity) => entity.name === 'shifts')?.fields.push({ name: 'status', type: 'text', enum: specEnum });
+		delete spec.ui?.resources?.shifts?.fields?.status;
+		const app = applySpec(buildMetaModel(tables), spec);
+		return { status: field(resource(app.resources, 'shifts'), 'status'), warnings: app.warnings, gaps: app.gaps };
+	}
+
+	it('takes enum values from _meta over a spec enum that differs, keeping the spec order for the same set', () => {
+		const same = shiftStatus(['open', 'full', 'cancelled'], ['cancelled', 'open', 'full']);
+		assert.deepEqual(same.status.options?.map((o) => o.value), ['cancelled', 'open', 'full']);
+		assert.deepEqual(same.warnings, []);
+
+		const changed = shiftStatus(['open', 'full', 'closed'], ['open', 'full', 'cancelled']);
+		assert.deepEqual(changed.status.options?.map((o) => o.value), ['open', 'full', 'closed']);
+		assert.deepEqual(changed.warnings, [
+			'backend.entities.shifts.fields.status: the enum differs from the database (added "closed"; removed "cancelled"); using the database\'s values.',
+		]);
+		assert.deepEqual(changed.gaps, [], 'a different enum is a conflict, not a missing name');
+	});
+
+	it('ignores a spec enum when _meta says the column allows any value, and keeps it when the endpoint does not say', () => {
+		const free = shiftStatus(null, ['open', 'full']);
+		assert.equal(free.status.input, 'text');
+		assert.equal(free.status.options, undefined);
+		assert.match(free.warnings.join('\n'), /status: the enum "open", "full" is ignored: the database allows any value/);
+
+		const unknown = shiftStatus('absent', ['open', 'full']);
+		assert.equal(unknown.status.input, 'select');
+		assert.deepEqual(unknown.status.options?.map((o) => o.value), ['open', 'full']);
+		assert.deepEqual(unknown.warnings, []);
 	});
 });
 

@@ -118,6 +118,12 @@ export type FieldIR = {
 	/** Help text under the input. Only the AppSpec sets it: `_meta` descriptions are schema comments, not UX copy. */
 	description?: string;
 	options?: { value: string; label: string; tone?: OptionTone }[];
+	/**
+	 * The values `_meta` allows (`allowedValues`, else `enumValues`). `null`: the endpoint serves
+	 * `allowedValues` and the column has none, so any value goes. `undefined`: the endpoint doesn't
+	 * serve `allowedValues`, so an AppSpec enum is all there is. The emitter doesn't read it.
+	 */
+	metaValues?: string[] | null;
 	relation?: { resource: string; many?: boolean };
 	/** GraphQL scalar the column is served as; `undefined` for many-to-many fields. */
 	gqlType?: string;
@@ -465,6 +471,8 @@ function buildResource(info: TableInfo): ResourceIR {
 		const neverWritable = field.isWritableOnCreate === false && field.isWritableOnUpdate === false;
 		const notNull = field.isNotNull ?? field.type?.isNotNull ?? false;
 		const hasDefault = field.hasDefault ?? field.type?.hasDefault ?? false;
+		const values = field.allowedValues?.length ? field.allowedValues : field.enumValues?.values;
+		const metaValues = values?.length ? values : 'allowedValues' in field ? null : undefined;
 		if (hasDefault && !hiddenSystem && !readOnlySystem) {
 			serverDefaults.push(field.name);
 			if (notNull) keepWhenEmpty.push(field.name);
@@ -481,6 +489,7 @@ function buildResource(info: TableInfo): ResourceIR {
 			gqlType: field.type?.gqlType,
 			textFilter: field.type?.gqlType === 'String' && !isArray && TEXT_PG_TYPES.has((field.type?.pgType ?? 'text').toLowerCase()),
 			selectable: true,
+			...(metaValues !== undefined ? { metaValues } : {}),
 		};
 
 		if (isForeignKey && !hiddenSystem) {
@@ -493,14 +502,13 @@ function buildResource(info: TableInfo): ResourceIR {
 			continue;
 		}
 
-		const values = field.allowedValues?.length ? field.allowedValues : field.enumValues?.values;
-		if (values?.length && !isArray) {
+		if (metaValues && !isArray) {
 			fields.push({
 				...base,
 				label: fieldLabel(field.name, false),
 				input: 'select',
 				format: 'badge',
-				options: values.map((value) => ({ value, label: humanize(value), tone: toneFor(value) })),
+				options: metaValues.map((value) => ({ value, label: humanize(value), tone: toneFor(value) })),
 			});
 			continue;
 		}

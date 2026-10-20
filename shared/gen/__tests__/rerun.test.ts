@@ -134,6 +134,19 @@ describe('gen:resources on an evolved database', () => {
 		assert.deepEqual(runGen({ root, tables: tables('food-bank/meta.json'), spec: foodBankSpec, emitter }).hints, []);
 	});
 
+	it('lists what the spec names and the database lacks, so the caller can tell the two disagree', () => {
+		assert.deepEqual(runGen({ root, tables: tables('food-bank/meta.json'), spec: foodBankSpec, emitter, dryRun: true }).specGaps, []);
+		// The spec of the follow-up, but the database never got its changes (or lost them).
+		const behind = runGen({ root, tables: tables('food-bank/meta.json'), spec: evolvedFoodBankSpec(), emitter, dryRun: true });
+		assert.deepEqual(
+			behind.specGaps.map((gap) => [gap.path, gap.name]),
+			[
+				['backend.entities.shifts.fields', 'notes'],
+				['backend.entities', 'donations'],
+			],
+		);
+	});
+
 	it('applies backend.extend to a curated blueprint: a new table and a new select column', () => {
 		const spec = readJson<AppSpec>('agent/app-spec.json');
 		runGen({ root, tables: tables('agent/meta.json'), spec, emitter });
@@ -168,6 +181,7 @@ describe('gen:resources on an evolved database', () => {
 		const second = runGen({ root, tables: tables('agent/meta-evolved.json'), spec: extended, emitter });
 
 		assert.deepEqual(second.warnings, []);
+		assert.deepEqual(second.specGaps, []);
 		const notes = readFileSync(join(root, 'src/resources/agent-notes.ts'), 'utf8');
 		assert.match(notes, /body: \{ name: 'body', label: 'Body', input: 'textarea', required: true \}/);
 		assert.match(notes, /threadId: \{\n\t+name: 'threadId',\n\t+label: 'Thread',/);
