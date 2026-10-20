@@ -5,7 +5,7 @@
 // field name comes from the `_meta` document; nothing here knows a schema.
 
 import type { FieldInput } from './app-spec.types.ts';
-import { camelCase, humanize, kebabCase, lcFirst, normalizeKey } from './names.ts';
+import { camelCase, humanize, kebabCase, lcFirst, normalizeKey, optionLabels } from './names.ts';
 
 // ---------------------------------------------------------------------------
 // `_meta` shapes: the subset of the live `_meta { tables }` contract we read.
@@ -503,12 +503,13 @@ function buildResource(info: TableInfo): ResourceIR {
 		}
 
 		if (metaValues && !isArray) {
+			const labels = optionLabels(metaValues);
 			fields.push({
 				...base,
 				label: fieldLabel(field.name, false),
 				input: 'select',
 				format: 'badge',
-				options: metaValues.map((value) => ({ value, label: humanize(value), tone: toneFor(value) })),
+				options: metaValues.map((value, i) => ({ value, label: labels[i], tone: toneFor(value) })),
 			});
 			continue;
 		}

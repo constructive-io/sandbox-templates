@@ -13,7 +13,7 @@ import {
 	type SpecLink,
 } from './app-spec.types.ts';
 import { finishLayout, toneFor, type FieldIR, type MetaModel, type ResourceIR } from './meta-ir.ts';
-import { humanize, kebabCase, normalizeKey } from './names.ts';
+import { kebabCase, normalizeKey, optionLabels } from './names.ts';
 
 export * from './app-spec.types.ts';
 
@@ -235,7 +235,8 @@ function setOptions(field: FieldIR, values: string[]) {
 	field.input = 'select';
 	field.format = 'badge';
 	const tones = new Map((field.options ?? []).map((option) => [option.value, option.tone]));
-	field.options = values.map((value) => ({ value, label: humanize(value), tone: tones.get(value) ?? toneFor(value) }));
+	const labels = optionLabels(values);
+	field.options = values.map((value, i) => ({ value, label: labels[i], tone: tones.get(value) ?? toneFor(value) }));
 }
 
 const quoted = (values: string[]) => values.map((value) => `"${value}"`).join(', ');

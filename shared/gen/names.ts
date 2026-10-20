@@ -10,12 +10,14 @@ export function ucFirst(value: string): string {
 	return value ? value[0].toUpperCase() + value.slice(1) : value;
 }
 
+const SEPARATORS = /[\s_\-.]+/;
+
+const splitCamel = (value: string) => value.replace(/([a-z0-9])([A-Z])/g, '$1 $2').replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2');
+
 /** Splits camelCase, PascalCase, snake_case and kebab-case into lower-case words. */
 export function words(value: string): string[] {
-	return value
-		.replace(/([a-z0-9])([A-Z])/g, '$1 $2')
-		.replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
-		.split(/[\s_\-.]+/)
+	return splitCamel(value)
+		.split(SEPARATORS)
 		.filter(Boolean)
 		.map((word) => word.toLowerCase());
 }
@@ -47,6 +49,30 @@ export function constantCase(value: string): string {
 export function humanize(value: string): string {
 	const text = words(value).join(' ');
 	return ucFirst(text);
+}
+
+const CAPITALS = /^[A-Z0-9]*[A-Z][A-Z0-9]*$/;
+
+// An option value's words as written. A run of capitals and digits is one word, so `4XL` and `P1` keep together.
+const optionWords = (value: string) =>
+	value
+		.split(SEPARATORS)
+		.filter(Boolean)
+		.flatMap((part) => (CAPITALS.test(part) ? [part] : splitCamel(part).split(' ')));
+
+// A code: capitals with at most three letters (`XS`, `USD`, `VIP`, `ID`, `A`) or no vowel (`XXXL`).
+const isCode = (word: string) => CAPITALS.test(word) && (word.replace(/[^A-Z]/g, '').length <= 3 || !/[AEIOU]/.test(word));
+
+/**
+ * Labels for a column's allowed values, in sentence case like `humanize`, except that a code keeps
+ * its capitals: `XS`, `XXL`, `USD`. A set written as constants (`OPEN`, `IN_PROGRESS`, `LOW`) uses
+ * capitals as style, so it reads `Open`, `In progress`, `Low`: no lowercase anywhere and a word
+ * that isn't a code mark it, as in a GraphQL enum (`LOW`, `MEDIUM`, `HIGH`).
+ */
+export function optionLabels(values: readonly string[]): string[] {
+	const split = values.map(optionWords);
+	const constants = values.every((value) => !/[a-z]/.test(value)) && split.flat().some((word) => CAPITALS.test(word) && !isCode(word));
+	return split.map((parts) => ucFirst(parts.map((word) => (!constants && isCode(word) ? word : word.toLowerCase())).join(' ')));
 }
 
 export { normalizeKey } from './app-spec.types.ts';
