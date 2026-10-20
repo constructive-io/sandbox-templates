@@ -9,7 +9,8 @@ A Next.js App Router app over a Constructive database. Most screens are generate
 - `src/app/(app)/<resource>/page.tsx` and `[id]/page.tsx`: the list and detail routes. `src/app/(app)/page.tsx` is the dashboard; `src/config/app.ts` holds the app name and tagline.
 - `src/app/(auth)/`: sign-in, sign-up, check-email, verify-email, forgot-password, reset-password.
 - `src/components/ui/`: installed blocks source (`resource-kit`, `auth-pages`, `dashboard-tiles`, `workspace-kit`, primitives). It is yours to edit.
-- `src/lib/`: session and token (`lib/auth`), the ORM client `db` and `fetchAll` (`lib/graphql`), endpoints (`lib/runtime`), `ormSource` (`lib/resources`).
+- `src/lib/`: session and token (`lib/auth`), the ORM client `db`, `fetchAll` and `describeError` (`lib/graphql`), endpoints (`lib/runtime`), `ormSource` (`lib/resources`).
+- `src/app/(app)/error.tsx`, `src/app/error.tsx`, `src/app/global-error.tsx` and `src/app/not-found.tsx`: the error boundaries and the 404 page. A page that throws shows the error inside the shell with a "Try again" button (`src/components/app-error.tsx`), so you don't need a try/catch around a whole page.
 - `src/config/nav.ts`: the sidebar's first section, the home row (`homeNav`) and hand-written pages (`customNav`), above the generated "Data" pages.
 - `src/graphql/sdk/{auth,app}`: the generated SDK. Never edit it; run `pnpm codegen` after a schema change.
 - `.constructive/`: `app-spec.json` (the AppSpec the app was built from), `meta.json` (the database's `_meta` at the last build) and `gen-state.json` (what the generator last wrote; don't edit it).
@@ -38,6 +39,7 @@ import { useQuery } from '@tanstack/react-query';
 import { CalendarDaysIcon, InboxIcon } from 'lucide-react';
 
 import { db } from '@/lib/graphql/db';
+import { describeError } from '@/lib/graphql/errors';
 import { DashboardGrid, StatTile } from '@/components/ui/dashboard-tiles';
 import { EmptyState, TableSurface, tableHeadClass, tableRowClass, ViewFrame } from '@/components/ui/workspace-kit';
 
@@ -61,7 +63,7 @@ export default function UpcomingPage() {
 			<DashboardGrid>
 				<StatTile label='Upcoming' value={data?.<queryAll>.totalCount ?? 0} loading={isPending} />
 			</DashboardGrid>
-			{error ? <p className='text-sm text-destructive'>{error.message}</p> : null}
+			{error ? <p className='text-sm text-destructive'>{describeError(error)}</p> : null}
 			{!isPending && rows.length === 0 ? (
 				<EmptyState icon={InboxIcon} title='Nothing upcoming' />
 			) : (
@@ -98,6 +100,7 @@ export const customNav: CustomNavEntry[] = [{ label: 'Upcoming', href: '/<slug>'
 - A related record's label: select the belongs-to object, `<relation>: { select: { <labelField>: true } }`, then read `row.<relation>?.<labelField>`. Has-many: `<children>: { select: { … }, first: 20 }`, then `.nodes`.
 - **The API caps a page at 1000 rows: `first` above 1000 fails the whole request** ("The requested page size is too large"). For whole tables, use `fetchAll`, which pages by cursor and returns every row, typed by your `select`:
   `const rows = await fetchAll((page) => db.<model>.findMany({ select: { id: true }, where, ...page }));` (import from `@/lib/graphql/fetch-all`).
+- Show a failed query or write with `describeError(error)` (from `@/lib/graphql/errors`), never `error.message`: it turns an unavailable database, a screen the database changed under, or an ended session into one sentence, and keeps the server's text for the rest. React Query doesn't retry those three.
 - Writes: `db.<model>.create({ data, select: { id: true } })`, `.update({ where: { id }, data, select: { id: true } })` and `.delete({ where: { id }, select: { id: true } })`, each with `.unwrap()`. Then `queryClient.invalidateQueries({ queryKey: ['resource-kit', '<resource>'] })` (from `useQueryClient()`).
 - Show dates and times in the user's locale and time zone, as the kit's formatters do: `new Date(value).toLocaleString()` (or `dateFormat` from `@/lib/intl`), never the raw ISO string. A date-only value (`2026-10-19`) is a calendar day, so format it with `timeZone: 'UTC'`, or it shows as the day before west of UTC.
 - The signed-in user's id: `currentUserId()` from `@/lib/auth/token-manager`.
@@ -189,4 +192,5 @@ pnpm dlx shadcn@4.13.1 search @constructive --query "<what you need>"
 ## Keep
 
 - The token storage keys in `src/lib/auth/token-manager.ts`: the desktop signs the owner in through them.
+- The `data-app-error` attribute on the error states (`src/components/app-error.tsx`, `src/app/not-found.tsx`): the desktop's render check fails a page that shows one.
 - `NEXT_PUBLIC_*` endpoints come from `.env.local`, written by the desktop. Don't hard-code URLs.
