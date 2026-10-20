@@ -23,7 +23,8 @@ shared/
   app/                    framework-agnostic app glue, copied into src/
     lib/auth              token storage (desktop contract), session, auth operations
     lib/graphql           ORM client with the session token, SDK hook configuration, fetchAll
-                          (reads past the API's 1000-row page cap by cursor)
+                          (reads past the API's 1000-row page cap by cursor), errors (what a
+                          failure means: unavailable database, outdated app, signed out)
     lib/resources         ormSource: resource-kit data source over a generated ORM model
     lib/runtime           endpoints from env
 nextjs/app/               Next.js App Router shell + template.json

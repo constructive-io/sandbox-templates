@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
+import { OUTDATED_MESSAGE, UNAVAILABLE_MESSAGE } from '../../graphql/errors.ts';
 import { friendlyError, listArgs, orderByValue, ormSource, type OrmModel } from '../orm-source.ts';
 
 const options = { select: { id: true, title: true }, searchFields: ['title', 'notes'], bigNumbers: ['amount'] };
@@ -193,13 +194,38 @@ describe('errors shown to people', () => {
 		assert.equal(plain.userMessage, undefined, 'the kit leads with its own sentence');
 
 		for (const message of [
-			'relation "app_public.shifts" does not exist',
 			'function app_private.notify_shift(uuid) does not exist',
 			'deadlock detected on shift_signups_pkey',
 		]) {
 			const error = friendlyError([{ message, extensions: { code: 'XX000', context: { table: 'shifts' } } }], known);
 			assert.equal(error.message, 'The server rejected the change.', message);
 		}
+	});
+
+	it('says when the database changed under the app or is unavailable, instead of blaming the input', () => {
+		for (const message of ['Cannot query field "notes" on type "Shift".', 'relation "app_public.shifts" does not exist']) {
+			const error = friendlyError([{ message, extensions: { code: 'XX000' } }], known);
+			assert.equal(error.message, OUTDATED_MESSAGE, message);
+			assert.equal(error.userMessage, OUTDATED_MESSAGE, message);
+			assert.equal(error.kind, 'outdated', message);
+		}
+		const suspended = friendlyError([{ message: 'Access to this database is suspended.', extensions: { code: 'ACCESS_SUSPENDED', httpStatus: 403 } }]);
+		assert.equal(suspended.userMessage, UNAVAILABLE_MESSAGE);
+		assert.equal(suspended.kind, 'unavailable');
+	});
+
+	it('fails a list read with the sentence the kit shows', async () => {
+		const model = {
+			findMany: () => ({
+				execute: async () => ({ ok: false as const, data: null, errors: [{ message: 'Cannot query field "notes" on type "Shift".' }] }),
+			}),
+		} as unknown as OrmModel;
+		const source = ormSource(model, { select: { id: true, notes: true } as never });
+		await assert.rejects(source.list({ offset: 0, limit: 25 }), (error: Error & { userMessage?: string }) => {
+			assert.equal(error.message, OUTDATED_MESSAGE);
+			assert.equal(error.userMessage, OUTDATED_MESSAGE);
+			return true;
+		});
 	});
 
 	it('puts nothing but the message, userMessage and fields on the error', () => {

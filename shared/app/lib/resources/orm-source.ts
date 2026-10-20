@@ -8,7 +8,8 @@ import type { QueryResult } from '@constructive-io/graphql-query/runtime';
 
 import type { ListQuery, ResourceSource } from '@/components/ui/resource-kit';
 
-// The extension keeps this importable by the node test runner.
+// The extensions keep this importable by the node test runner.
+import { failureKind, failureMessage, type FailureKind } from '../graphql/errors.ts';
 import { fetchAll } from '../graphql/fetch-all.ts';
 
 type Row = Record<string, unknown>;
@@ -119,9 +120,10 @@ function fromWire(row: Row, bigNumbers: readonly string[]): Row {
 
 /**
  * What resource-kit shows for a rejected write: `userMessage` as the headline,
- * `fields` under each input, and `message` under a collapsed Details.
+ * `fields` under each input, and `message` under a collapsed Details. `kind` is
+ * set when the database, the app or the session is the problem, not the input.
  */
-export type SourceError = Error & { fields?: Record<string, string>; userMessage?: string };
+export type SourceError = Error & { fields?: Record<string, string>; userMessage?: string; kind?: FailureKind };
 
 // Server wording that names database internals. The kit shows `message` under Details, so such text
 // never goes out as is: a message without them (e.g. a validation a trigger raised) is kept.
@@ -135,6 +137,15 @@ export function friendlyError(
 	errors: Array<{ message: string; extensions?: Record<string, unknown> }>,
 	known: readonly string[] = [],
 ): SourceError {
+	// An unavailable database, an app the database changed under, or an ended session: no field is at fault.
+	const kind = failureKind(errors);
+	const sentence = failureMessage(kind);
+	if (sentence) {
+		const error: SourceError = new Error(sentence);
+		error.userMessage = sentence;
+		error.kind = kind;
+		return error;
+	}
 	const text = errors.map((error) => `${error.message} ${String(error.extensions?.detail ?? '')}`).join('\n');
 	const codes = new Set(errors.map((error) => String(error.extensions?.code ?? '')));
 	const fields: Record<string, string> = {};

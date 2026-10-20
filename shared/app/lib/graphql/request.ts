@@ -5,10 +5,9 @@
 import type { GraphQLAdapter, GraphQLError, QueryResult } from '@constructive-io/graphql-query/runtime';
 
 import { isExpired, TokenManager } from '../auth/token-manager.ts';
+import { failureKind, SESSION_EXPIRED_MESSAGE } from './errors.ts';
 
 export type { GraphQLError, QueryResult };
-
-const AUTH_ERROR = /UNAUTHENTICATED|jwt expired|invalid token|token.*expired/i;
 
 function failure<T>(message: string, code?: string): QueryResult<T> {
 	return { ok: false, data: null, errors: [{ message, ...(code ? { extensions: { code } } : {}) }] };
@@ -27,7 +26,7 @@ export async function graphqlRequest<T>(
 	const stored = options.auth === false ? null : TokenManager.read().token;
 	if (stored && isExpired(stored)) {
 		TokenManager.clear();
-		return failure('Your session has expired. Sign in again.', 'UNAUTHENTICATED');
+		return failure(SESSION_EXPIRED_MESSAGE, 'UNAUTHENTICATED');
 	}
 	let response: Response;
 	try {
@@ -45,14 +44,19 @@ export async function graphqlRequest<T>(
 	}
 
 	const body = (await response.json().catch(() => null)) as { data?: T; errors?: GraphQLError[] } | null;
+	// A non-2xx keeps its status on every error, so callers can tell a suspended database (403) from a bad query.
+	const httpStatus = response.ok ? undefined : response.status;
 	const errors = body?.errors?.length
-		? body.errors
-		: response.ok
-			? undefined
-			: [{ message: `HTTP ${response.status}: ${response.statusText}` }];
+		? httpStatus
+			? body.errors.map((error) => ({ ...error, extensions: { ...error.extensions, httpStatus } }))
+			: body.errors
+		: httpStatus
+			? [{ message: `HTTP ${response.status}: ${response.statusText}`, extensions: { code: 'HTTP_ERROR', httpStatus } }]
+			: undefined;
 	if (errors) {
-		// A rejected token ends the session; the guard then sends the user to sign in.
-		const rejected = response.status === 401 || errors.some((e) => AUTH_ERROR.test(`${e.extensions?.code ?? ''} ${e.message}`));
+		// A rejected token ends the session; the guard then sends the user to sign in. A 403 never does:
+		// the database is unavailable, and signing in again would not help.
+		const rejected = httpStatus !== 403 && failureKind(errors) === 'signed-out';
 		if (rejected && options.auth !== false && TokenManager.read().token) TokenManager.clear();
 		return { ok: false, data: null, errors };
 	}
