@@ -30,7 +30,8 @@ jobs:
       # The registry is built from it and served locally, so CI never depends
       # on what the public Pages registry serves today. Bump it with the kit.
       BLOCKS_REF: 734b33b5523730a6f48081b3a8537402b99112cf
-      REGISTRY_URL: http://127.0.0.1:4005/r/{name}.json
+      # Not REGISTRY_URL: shadcn reads that name as the base URL of its own registry.
+      BLOCKS_REGISTRY_URL: http://127.0.0.1:4005/r/{name}.json
     steps:
       - uses: actions/checkout@v4
 
@@ -70,7 +71,7 @@ jobs:
         run: pnpm typecheck
 
       - name: Compose nextjs/app
-        run: node --experimental-strip-types scripts/compose.ts --template nextjs/app --out "$APP_DIR" --registry-url "$REGISTRY_URL"
+        run: node --experimental-strip-types scripts/compose.ts --template nextjs/app --out "$APP_DIR" --registry-url "$BLOCKS_REGISTRY_URL"
 
       - name: Type-check the composed app (stub SDK, no tables)
         working-directory: ${{ env.APP_DIR }}
