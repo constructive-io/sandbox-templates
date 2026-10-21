@@ -29,13 +29,13 @@ import type {
   VerifyStepUpCodeInput,
   VerifyTotpInput,
   CheckPasswordInput,
-  RequestMagicLinkInput,
   SendStepUpCodeInput,
   ConfirmDeleteAccountInput,
   RevokeOrgApiKeyInput,
   SetPasswordInput,
   VerifyEmailInput,
   VerifyPhoneInput,
+  RequestMagicLinkInput,
   ResetPasswordInput,
   SendMfaChallengeCodeInput,
   SignUpInput,
@@ -88,13 +88,13 @@ import type {
   VerifyStepUpCodePayload,
   VerifyTotpPayload,
   CheckPasswordPayload,
-  RequestMagicLinkPayload,
   SendStepUpCodePayload,
   ConfirmDeleteAccountPayload,
   RevokeOrgApiKeyPayload,
   SetPasswordPayload,
   VerifyEmailPayload,
   VerifyPhonePayload,
+  RequestMagicLinkPayload,
   ResetPasswordPayload,
   SendMfaChallengeCodePayload,
   SignUpPayload,
@@ -147,13 +147,13 @@ import type {
   VerifyStepUpCodePayloadSelect,
   VerifyTotpPayloadSelect,
   CheckPasswordPayloadSelect,
-  RequestMagicLinkPayloadSelect,
   SendStepUpCodePayloadSelect,
   ConfirmDeleteAccountPayloadSelect,
   RevokeOrgApiKeyPayloadSelect,
   SetPasswordPayloadSelect,
   VerifyEmailPayloadSelect,
   VerifyPhonePayloadSelect,
+  RequestMagicLinkPayloadSelect,
   ResetPasswordPayloadSelect,
   SendMfaChallengeCodePayloadSelect,
   SignUpPayloadSelect,
@@ -252,9 +252,6 @@ export interface VerifyTotpVariables {
 export interface CheckPasswordVariables {
   input: CheckPasswordInput;
 }
-export interface RequestMagicLinkVariables {
-  input: RequestMagicLinkInput;
-}
 export interface SendStepUpCodeVariables {
   input: SendStepUpCodeInput;
 }
@@ -272,6 +269,9 @@ export interface VerifyEmailVariables {
 }
 export interface VerifyPhoneVariables {
   input: VerifyPhoneInput;
+}
+export interface RequestMagicLinkVariables {
+  input: RequestMagicLinkInput;
 }
 export interface ResetPasswordVariables {
   input: ResetPasswordInput;
@@ -1028,35 +1028,6 @@ export function createMutationOperations(client: OrmClient) {
           'CheckPasswordPayload'
         ),
       }),
-    requestMagicLink: <S extends RequestMagicLinkPayloadSelect>(
-      args: RequestMagicLinkVariables,
-      options: {
-        select: S;
-      } & StrictSelect<S, RequestMagicLinkPayloadSelect>
-    ) =>
-      new QueryBuilder<{
-        requestMagicLink: InferSelectResult<RequestMagicLinkPayload, S> | null;
-      }>({
-        client,
-        operation: 'mutation',
-        operationName: 'RequestMagicLink',
-        fieldName: 'requestMagicLink',
-        ...buildCustomDocument(
-          'mutation',
-          'RequestMagicLink',
-          'requestMagicLink',
-          options.select,
-          args,
-          [
-            {
-              name: 'input',
-              type: 'RequestMagicLinkInput!',
-            },
-          ],
-          connectionFieldsMap,
-          'RequestMagicLinkPayload'
-        ),
-      }),
     sendStepUpCode: <S extends SendStepUpCodePayloadSelect>(
       args: SendStepUpCodeVariables,
       options: {
@@ -1229,6 +1200,35 @@ export function createMutationOperations(client: OrmClient) {
           ],
           connectionFieldsMap,
           'VerifyPhonePayload'
+        ),
+      }),
+    requestMagicLink: <S extends RequestMagicLinkPayloadSelect>(
+      args: RequestMagicLinkVariables,
+      options: {
+        select: S;
+      } & StrictSelect<S, RequestMagicLinkPayloadSelect>
+    ) =>
+      new QueryBuilder<{
+        requestMagicLink: InferSelectResult<RequestMagicLinkPayload, S> | null;
+      }>({
+        client,
+        operation: 'mutation',
+        operationName: 'RequestMagicLink',
+        fieldName: 'requestMagicLink',
+        ...buildCustomDocument(
+          'mutation',
+          'RequestMagicLink',
+          'requestMagicLink',
+          options.select,
+          args,
+          [
+            {
+              name: 'input',
+              type: 'RequestMagicLinkInput!',
+            },
+          ],
+          connectionFieldsMap,
+          'RequestMagicLinkPayload'
         ),
       }),
     resetPassword: <S extends ResetPasswordPayloadSelect>(
