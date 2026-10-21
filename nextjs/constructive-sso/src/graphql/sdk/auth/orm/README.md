@@ -891,21 +891,6 @@ checkPassword
 const result = await db.mutation.checkPassword({ input: { password: '<String>' } }).execute();
 ```
 
-### `db.mutation.requestMagicLink`
-
-requestMagicLink
-
-- **Type:** mutation
-- **Arguments:**
-
-  | Argument | Type |
-  |----------|------|
-  | `input` | RequestMagicLinkInput (required) |
-
-```typescript
-const result = await db.mutation.requestMagicLink({ input: { email: '<String>' } }).execute();
-```
-
 ### `db.mutation.sendStepUpCode`
 
 sendStepUpCode
@@ -994,6 +979,21 @@ verifyPhone
 
 ```typescript
 const result = await db.mutation.verifyPhone({ input: { phone: '<String>', code: '<String>' } }).execute();
+```
+
+### `db.mutation.requestMagicLink`
+
+requestMagicLink
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | RequestMagicLinkInput (required) |
+
+```typescript
+const result = await db.mutation.requestMagicLink({ input: { email: '<String>', next: '<String>' } }).execute();
 ```
 
 ### `db.mutation.resetPassword`

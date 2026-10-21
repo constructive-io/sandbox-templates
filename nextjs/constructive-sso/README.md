@@ -236,7 +236,12 @@ pnpm run configure-orgs    # every member may create organizations
   of the owner's bootstrap the owner's password session may write it; after
   that the step fails, naming the guard, because the columns need a fresh MFA
   proof. Only changed columns are written, so a re-run with nothing to change
-  never meets the guard.
+  never meets the guard. Optional **`STEP_UP_WINDOW`** (a Postgres interval,
+  e.g. `'2 minutes'`) sets how recently a session must have signed in or
+  verified a code before a step-up-guarded write — deleting an organization
+  (`STEP_UP_REQUIRED_FRESH_AUTH`, planning#2297) or adding a phone. Unset
+  keeps the tenant default of 30 minutes; shorten it to see the app's step-up
+  dialog without waiting.
 - **orgs:** through the tenant's admin GraphQL. New members arrive approved +
   verified (their membership is active), and `create_entity` joins the default
   capability panel every new member inherits. **LOCAL WORKAROUND:** the panel's

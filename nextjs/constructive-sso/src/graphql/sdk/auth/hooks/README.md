@@ -117,13 +117,13 @@ function App() {
 | `useVerifyStepUpCodeMutation` | Mutation | verifyStepUpCode |
 | `useVerifyTotpMutation` | Mutation | verifyTotp |
 | `useCheckPasswordMutation` | Mutation | checkPassword |
-| `useRequestMagicLinkMutation` | Mutation | requestMagicLink |
 | `useSendStepUpCodeMutation` | Mutation | sendStepUpCode |
 | `useConfirmDeleteAccountMutation` | Mutation | confirmDeleteAccount |
 | `useRevokeOrgApiKeyMutation` | Mutation | revokeOrgApiKey |
 | `useSetPasswordMutation` | Mutation | setPassword |
 | `useVerifyEmailMutation` | Mutation | verifyEmail |
 | `useVerifyPhoneMutation` | Mutation | verifyPhone |
+| `useRequestMagicLinkMutation` | Mutation | requestMagicLink |
 | `useResetPasswordMutation` | Mutation | resetPassword |
 | `useSendMfaChallengeCodeMutation` | Mutation | sendMfaChallengeCode |
 | `useSignUpMutation` | Mutation | signUp |
@@ -698,17 +698,6 @@ checkPassword
   |----------|------|
   | `input` | CheckPasswordInput (required) |
 
-### `useRequestMagicLinkMutation`
-
-requestMagicLink
-
-- **Type:** mutation
-- **Arguments:**
-
-  | Argument | Type |
-  |----------|------|
-  | `input` | RequestMagicLinkInput (required) |
-
 ### `useSendStepUpCodeMutation`
 
 sendStepUpCode
@@ -774,6 +763,17 @@ verifyPhone
   | Argument | Type |
   |----------|------|
   | `input` | VerifyPhoneInput (required) |
+
+### `useRequestMagicLinkMutation`
+
+requestMagicLink
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | RequestMagicLinkInput (required) |
 
 ### `useResetPasswordMutation`
 

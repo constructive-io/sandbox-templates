@@ -224,10 +224,6 @@ export const customMutationKeys = {
     identifier
       ? (['mutation', 'checkPassword', identifier] as const)
       : (['mutation', 'checkPassword'] as const),
-  /** Mutation key for requestMagicLink */ requestMagicLink: (identifier?: string) =>
-    identifier
-      ? (['mutation', 'requestMagicLink', identifier] as const)
-      : (['mutation', 'requestMagicLink'] as const),
   /** Mutation key for sendStepUpCode */ sendStepUpCode: (identifier?: string) =>
     identifier
       ? (['mutation', 'sendStepUpCode', identifier] as const)
@@ -252,6 +248,10 @@ export const customMutationKeys = {
     identifier
       ? (['mutation', 'verifyPhone', identifier] as const)
       : (['mutation', 'verifyPhone'] as const),
+  /** Mutation key for requestMagicLink */ requestMagicLink: (identifier?: string) =>
+    identifier
+      ? (['mutation', 'requestMagicLink', identifier] as const)
+      : (['mutation', 'requestMagicLink'] as const),
   /** Mutation key for resetPassword */ resetPassword: (identifier?: string) =>
     identifier
       ? (['mutation', 'resetPassword', identifier] as const)

@@ -1831,10 +1831,6 @@ export interface CheckPasswordInput {
   clientMutationId?: string;
   password?: string;
 }
-export interface RequestMagicLinkInput {
-  clientMutationId?: string;
-  email?: string;
-}
 export interface SendStepUpCodeInput {
   clientMutationId?: string;
   method?: string;
@@ -1863,6 +1859,11 @@ export interface VerifyPhoneInput {
   clientMutationId?: string;
   phone?: string;
   code?: string;
+}
+export interface RequestMagicLinkInput {
+  clientMutationId?: string;
+  email?: string;
+  next?: string;
 }
 export interface ResetPasswordInput {
   clientMutationId?: string;
@@ -3238,12 +3239,6 @@ export interface CheckPasswordPayload {
 export type CheckPasswordPayloadSelect = {
   clientMutationId?: boolean;
 };
-export interface RequestMagicLinkPayload {
-  clientMutationId?: string | null;
-}
-export type RequestMagicLinkPayloadSelect = {
-  clientMutationId?: boolean;
-};
 export interface SendStepUpCodePayload {
   clientMutationId?: string | null;
   result?: string | null;
@@ -3291,6 +3286,12 @@ export interface VerifyPhonePayload {
 export type VerifyPhonePayloadSelect = {
   clientMutationId?: boolean;
   result?: boolean;
+};
+export interface RequestMagicLinkPayload {
+  clientMutationId?: string | null;
+}
+export type RequestMagicLinkPayloadSelect = {
+  clientMutationId?: boolean;
 };
 export interface ResetPasswordPayload {
   clientMutationId?: string | null;
