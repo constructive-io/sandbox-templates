@@ -21,6 +21,13 @@
  *                                   Magic-link, SMS and SSO sign-ins are never
  *                                   flagged for setup (only password sign-in
  *                                   answers mfaSetupRequired).
+ *   STEP_UP_WINDOW='2 minutes'      optional step_up_window (a Postgres
+ *                                   interval): how recently a session must have
+ *                                   signed in or verified a code before a
+ *                                   step-up-guarded write (deleting an
+ *                                   organization, adding a phone). Unset keeps
+ *                                   the tenant default, 30 minutes; shorten it
+ *                                   to see the step-up prompt without waiting.
  */
 
 import { Client } from 'pg';
@@ -59,6 +66,7 @@ const POLICY: Record<string, boolean | string | null> = {
   allow_sms_mfa: true,
   require_mfa: switchOf(env.TWO_FACTOR)
 };
+const STEP_UP_WINDOW = env.STEP_UP_WINDOW?.trim() || null;
 
 async function main(): Promise<void> {
   const client = new Client(pgConfig);
@@ -81,15 +89,29 @@ async function main(): Promise<void> {
       throw new Error(`tenant ${DATABASE_ID} has ${current.rowCount} auth settings rows, not one`);
     }
     const row = current.rows[0] as Record<string, unknown>;
-    const changed = Object.keys(POLICY).filter((column) => row[column] !== POLICY[column]);
+    const changed = Object.keys(POLICY)
+      .filter((column) => row[column] !== POLICY[column])
+      .map((column) => ({ column, value: POLICY[column], cast: '' }));
+    if (STEP_UP_WINDOW) {
+      // An interval is compared in Postgres's own spelling, so '2 minutes' and
+      // '00:02:00' are the same setting and a re-run writes nothing.
+      const window = (
+        await client.query(`SELECT step_up_window::text AS current, $1::interval::text AS wanted FROM ${settings}`, [
+          STEP_UP_WINDOW
+        ])
+      ).rows[0] as { current: string; wanted: string };
+      if (window.current !== window.wanted) {
+        changed.push({ column: 'step_up_window', value: STEP_UP_WINDOW, cast: '::interval' });
+      }
+    }
     if (changed.length === 0) {
       console.log('auth settings: already as stated');
       return;
     }
     try {
       await client.query(
-        `UPDATE ${settings} SET ${changed.map((column, i) => `${column} = $${i + 1}`).join(', ')}`,
-        changed.map((column) => POLICY[column])
+        `UPDATE ${settings} SET ${changed.map((c, i) => `${c.column} = $${i + 1}${c.cast}`).join(', ')}`,
+        changed.map((c) => c.value)
       );
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
@@ -102,7 +124,7 @@ async function main(): Promise<void> {
       }
       throw err;
     }
-    console.log(`auth settings: ${changed.map((c) => `${c} = ${JSON.stringify(POLICY[c])}`).join(', ')}`);
+    console.log(`auth settings: ${changed.map((c) => `${c.column} = ${JSON.stringify(c.value)}`).join(', ')}`);
   });
 
   await client.end();

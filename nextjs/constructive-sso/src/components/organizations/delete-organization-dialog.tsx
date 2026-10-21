@@ -36,9 +36,10 @@ interface DeleteOrganizationDialogProps {
  */
 export function DeleteOrganizationDialog({ open, onOpenChange, organization, onSuccess }: DeleteOrganizationDialogProps) {
 	const [confirmName, setConfirmName] = useState('');
-	// Deleting an organization is a step-up-guarded write: the tenant refuses it
-	// with STEP_UP_REQUIRED_MFA until this session re-verifies, so the dialog
-	// swaps to the code step and retries once the code is accepted.
+	// Deleting an organization is a step-up-guarded write: the tenant refuses a
+	// session that has not authenticated recently with STEP_UP_REQUIRED_FRESH_AUTH
+	// (planning#2297), so the dialog swaps to the code step — a verified code
+	// counts as a fresh authentication — and retries once it is accepted.
 	const [stepUp, setStepUp] = useState(false);
 	// Set once a code was accepted: a second step-up refusal after that is a
 	// fault to show, not another prompt to loop on.
