@@ -286,7 +286,7 @@ export function OrgSettingsRoute({ orgId, orgName = 'Organization', organization
 	];
 
 	return (
-		<div className='h-full overflow-y-auto' data-testid='org-settings-route'>
+		<div data-testid='org-settings-route'>
 			<div className='mx-auto max-w-4xl px-6 py-8 lg:px-8 lg:py-10'>
 				<PageHeaderWithIcon title='Settings' description={`Manage settings for ${orgName}`} icon={Settings2} />
 

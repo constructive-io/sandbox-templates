@@ -90,88 +90,86 @@ export function InvitesRoute({ orgId, orgName = 'Organization', organization }: 
 		: `${activeTotalCount} active invite${activeTotalCount !== 1 ? 's' : ''}, ${claimedTotalCount} claimed`;
 
 	return (
-		<div className='h-full overflow-y-auto'>
-			<div className='mx-auto max-w-6xl px-6 py-8 lg:px-8 lg:py-10'>
-				<PageHeaderWithIcon
-					title='Invites'
-					description={headerDescription}
-					icon={Mail}
-					actions={
-						<Button
-							className='gap-2'
-							onClick={() => {
-								stack.push({
-									id: 'send-invite',
-									title: 'Send Invite',
-									description: 'Send an invitation to join your organization',
-									Component: SendInviteCard,
-									props: {
-										entityId: orgId,
-										enabled: canManageInvites,
-										isSending,
-										onSendInvite: async ({ entityId, email, expiresAt }) => {
-											await sendInvite({ orgId: entityId!, email, expiresAt });
-											setActivePage(1);
-										},
+		<div className='mx-auto max-w-6xl px-6 py-8 lg:px-8 lg:py-10'>
+			<PageHeaderWithIcon
+				title='Invites'
+				description={headerDescription}
+				icon={Mail}
+				actions={
+					<Button
+						className='gap-2'
+						onClick={() => {
+							stack.push({
+								id: 'send-invite',
+								title: 'Send Invite',
+								description: 'Send an invitation to join your organization',
+								Component: SendInviteCard,
+								props: {
+									entityId: orgId,
+									enabled: canManageInvites,
+									isSending,
+									onSendInvite: async ({ entityId, email, expiresAt }) => {
+										await sendInvite({ orgId: entityId!, email, expiresAt });
+										setActivePage(1);
 									},
-									width: 480,
-								});
-							}}
-							disabled={!canManageInvites}
-						>
-							<Send className='h-4 w-4' />
-							Send Invite
-						</Button>
-					}
-				/>
+								},
+								width: 480,
+							});
+						}}
+						disabled={!canManageInvites}
+					>
+						<Send className='h-4 w-4' />
+						Send Invite
+					</Button>
+				}
+			/>
 
-				{!canViewInvites && !isSelfOrg && (
+			{!canViewInvites && !isSelfOrg && (
+				<section
+					className='animate-in fade-in-0 slide-in-from-bottom-4 fill-mode-backwards duration-500'
+					style={{ animationDelay: '100ms' }}
+				>
+					<div className='bg-card border-border/60 rounded-xl border p-4 text-sm'>
+						You do not have permission to view invites for this organization.
+					</div>
+				</section>
+			)}
+
+			{canViewInvites && (
+				<div className='space-y-10'>
 					<section
-						className='animate-in fade-in-0 slide-in-from-bottom-4 fill-mode-backwards duration-500'
+						className='animate-in fade-in-0 slide-in-from-bottom-4 fill-mode-backwards space-y-4 duration-500'
 						style={{ animationDelay: '100ms' }}
 					>
-						<div className='bg-card border-border/60 rounded-xl border p-4 text-sm'>
-							You do not have permission to view invites for this organization.
-						</div>
+						<h2 className='text-foreground text-base font-semibold'>Active Invites</h2>
+						<ActiveInvitesTable
+							invites={activeInvites}
+							isLoading={isActiveLoading}
+							error={activeError}
+							canManageInvites={canManageInvites}
+							isBusy={isBusy}
+							onExtend={handleExtend}
+							onCancel={handleCancel}
+						/>
+						<InvitesPagination currentPage={activePage} totalPages={activeTotalPages} onPageChange={setActivePage} />
 					</section>
-				)}
 
-				{canViewInvites && (
-					<div className='space-y-10'>
-						<section
-							className='animate-in fade-in-0 slide-in-from-bottom-4 fill-mode-backwards space-y-4 duration-500'
-							style={{ animationDelay: '100ms' }}
-						>
-							<h2 className='text-foreground text-base font-semibold'>Active Invites</h2>
-							<ActiveInvitesTable
-								invites={activeInvites}
-								isLoading={isActiveLoading}
-								error={activeError}
-								canManageInvites={canManageInvites}
-								isBusy={isBusy}
-								onExtend={handleExtend}
-								onCancel={handleCancel}
-							/>
-							<InvitesPagination currentPage={activePage} totalPages={activeTotalPages} onPageChange={setActivePage} />
-						</section>
+					<section
+						className='animate-in fade-in-0 slide-in-from-bottom-4 fill-mode-backwards space-y-4 duration-500'
+						style={{ animationDelay: '150ms' }}
+					>
+						<h2 className='text-foreground text-base font-semibold'>Claimed Invites</h2>
+						<ClaimedInvitesTable claimedInvites={claimedInvites} isLoading={isClaimedLoading} error={claimedError} />
+						<InvitesPagination
+							currentPage={claimedPage}
+							totalPages={claimedTotalPages}
+							onPageChange={setClaimedPage}
+						/>
+					</section>
+				</div>
+			)}
 
-						<section
-							className='animate-in fade-in-0 slide-in-from-bottom-4 fill-mode-backwards space-y-4 duration-500'
-							style={{ animationDelay: '150ms' }}
-						>
-							<h2 className='text-foreground text-base font-semibold'>Claimed Invites</h2>
-							<ClaimedInvitesTable claimedInvites={claimedInvites} isLoading={isClaimedLoading} error={claimedError} />
-							<InvitesPagination
-								currentPage={claimedPage}
-								totalPages={claimedTotalPages}
-								onPageChange={setClaimedPage}
-							/>
-						</section>
-					</div>
-				)}
-
-				<div className='h-10' />
-			</div>
+			<div className='h-10' />
 		</div>
 	);
 }

@@ -267,21 +267,19 @@ export default function AppUsersPage() {
 
 	if (error) {
 		return (
-			<div className='h-full overflow-y-auto'>
-				<div className='mx-auto max-w-6xl px-6 py-8 lg:px-8 lg:py-10'>
-					<div
-						className={cn(
-							'border-destructive/30 bg-destructive/5 flex items-start gap-4 rounded-xl border p-5',
-							'animate-in fade-in-0 slide-in-from-bottom-4 duration-500',
-						)}
-					>
-						<div className='bg-destructive/15 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg'>
-							<AlertCircle className='text-destructive h-5 w-5' />
-						</div>
-						<div>
-							<h3 className='text-destructive text-sm font-semibold'>Failed to load users</h3>
-							<p className='text-muted-foreground mt-1 text-sm'>{error.message}</p>
-						</div>
+			<div className='mx-auto max-w-6xl px-6 py-8 lg:px-8 lg:py-10'>
+				<div
+					className={cn(
+						'border-destructive/30 bg-destructive/5 flex items-start gap-4 rounded-xl border p-5',
+						'animate-in fade-in-0 slide-in-from-bottom-4 duration-500',
+					)}
+				>
+					<div className='bg-destructive/15 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg'>
+						<AlertCircle className='text-destructive h-5 w-5' />
+					</div>
+					<div>
+						<h3 className='text-destructive text-sm font-semibold'>Failed to load users</h3>
+						<p className='text-muted-foreground mt-1 text-sm'>{error.message}</p>
 					</div>
 				</div>
 			</div>
@@ -289,96 +287,94 @@ export default function AppUsersPage() {
 	}
 
 	return (
-		<div className='h-full overflow-y-auto'>
-			<div className='mx-auto max-w-6xl px-6 py-8 lg:px-8 lg:py-10'>
-				<PageHeaderWithIcon
-					title='App Users'
-					description='Manage platform users, roles, and permissions across your application'
-					icon={Users}
-				/>
+		<div className='mx-auto max-w-6xl px-6 py-8 lg:px-8 lg:py-10'>
+			<PageHeaderWithIcon
+				title='App Users'
+				description='Manage platform users, roles, and permissions across your application'
+				icon={Users}
+			/>
 
-				{/* Filters section */}
-				<section
-					className='animate-in fade-in-0 slide-in-from-bottom-4 fill-mode-backwards mb-6 duration-500'
-					style={{ animationDelay: '100ms' }}
-				>
-					<div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-						{/* Search */}
-						<InputGroup className='max-w-sm flex-1'>
-							<InputGroupAddon>
-								<Search />
-							</InputGroupAddon>
-							<InputGroupInput
-								placeholder='Search users...'
-								value={search}
-								onChange={(e) => setSearch(e.target.value)}
-							/>
-						</InputGroup>
+			{/* Filters section */}
+			<section
+				className='animate-in fade-in-0 slide-in-from-bottom-4 fill-mode-backwards mb-6 duration-500'
+				style={{ animationDelay: '100ms' }}
+			>
+				<div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
+					{/* Search */}
+					<InputGroup className='max-w-sm flex-1'>
+						<InputGroupAddon>
+							<Search />
+						</InputGroupAddon>
+						<InputGroupInput
+							placeholder='Search users...'
+							value={search}
+							onChange={(e) => setSearch(e.target.value)}
+						/>
+					</InputGroup>
 
-						{/* Filter + count */}
-						<div className='flex items-center gap-3'>
-							{!isLoading && (
-								<span className='text-muted-foreground text-sm'>
-									{totalCount} {totalCount === 1 ? 'user' : 'users'}
-								</span>
-							)}
-							<DropdownMenu>
-								<DropdownMenuTrigger asChild>
-									<Button variant='outline' size='sm' className='gap-2'>
-										<Filter className='h-4 w-4' />
-										{filterLabels[statusFilter]}
-									</Button>
-								</DropdownMenuTrigger>
-								<DropdownMenuContent align='end'>
-									<DropdownMenuItem onClick={() => setStatusFilter('all')}>All Users</DropdownMenuItem>
-									<DropdownMenuItem onClick={() => setStatusFilter('active')}>Active</DropdownMenuItem>
-									<DropdownMenuItem onClick={() => setStatusFilter('inactive')}>Inactive</DropdownMenuItem>
-									<DropdownMenuItem onClick={() => setStatusFilter('banned')}>Banned</DropdownMenuItem>
-								</DropdownMenuContent>
-							</DropdownMenu>
-						</div>
+					{/* Filter + count */}
+					<div className='flex items-center gap-3'>
+						{!isLoading && (
+							<span className='text-muted-foreground text-sm'>
+								{totalCount} {totalCount === 1 ? 'user' : 'users'}
+							</span>
+						)}
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button variant='outline' size='sm' className='gap-2'>
+									<Filter className='h-4 w-4' />
+									{filterLabels[statusFilter]}
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent align='end'>
+								<DropdownMenuItem onClick={() => setStatusFilter('all')}>All Users</DropdownMenuItem>
+								<DropdownMenuItem onClick={() => setStatusFilter('active')}>Active</DropdownMenuItem>
+								<DropdownMenuItem onClick={() => setStatusFilter('inactive')}>Inactive</DropdownMenuItem>
+								<DropdownMenuItem onClick={() => setStatusFilter('banned')}>Banned</DropdownMenuItem>
+							</DropdownMenuContent>
+						</DropdownMenu>
 					</div>
-				</section>
+				</div>
+			</section>
 
-				{/* Users list */}
-				<section
-					className='animate-in fade-in-0 slide-in-from-bottom-4 fill-mode-backwards duration-500'
-					style={{ animationDelay: '150ms' }}
-				>
-					{isLoading ? (
-						<UsersTableSkeleton />
-					) : filteredUsers.length === 0 ? (
-						<div
-							className='border-border/50 bg-muted/20 flex flex-col items-center justify-center rounded-xl border
-								border-dashed py-16'
-						>
-							<div className='bg-muted/50 mb-4 flex h-12 w-12 items-center justify-center rounded-full'>
-								<Users className='text-muted-foreground h-6 w-6' />
-							</div>
-							<p className='text-foreground text-sm font-medium'>No users found</p>
-							<p className='text-muted-foreground mt-1 text-xs'>
-								{search ? 'Try adjusting your search query' : 'No users match the current filter'}
-							</p>
+			{/* Users list */}
+			<section
+				className='animate-in fade-in-0 slide-in-from-bottom-4 fill-mode-backwards duration-500'
+				style={{ animationDelay: '150ms' }}
+			>
+				{isLoading ? (
+					<UsersTableSkeleton />
+				) : filteredUsers.length === 0 ? (
+					<div
+						className='border-border/50 bg-muted/20 flex flex-col items-center justify-center rounded-xl border
+							border-dashed py-16'
+					>
+						<div className='bg-muted/50 mb-4 flex h-12 w-12 items-center justify-center rounded-full'>
+							<Users className='text-muted-foreground h-6 w-6' />
 						</div>
-					) : (
-						<div className='space-y-3'>
-							{filteredUsers.map((user, index) => (
-								<UserRow
-									key={user.id}
-									user={user}
-									onToggleAdmin={() => handleToggleAdmin(user)}
-									onToggleActive={() => handleToggleActive(user)}
-									isUpdating={isUpdating}
-									index={index}
-								/>
-							))}
-						</div>
-					)}
-				</section>
+						<p className='text-foreground text-sm font-medium'>No users found</p>
+						<p className='text-muted-foreground mt-1 text-xs'>
+							{search ? 'Try adjusting your search query' : 'No users match the current filter'}
+						</p>
+					</div>
+				) : (
+					<div className='space-y-3'>
+						{filteredUsers.map((user, index) => (
+							<UserRow
+								key={user.id}
+								user={user}
+								onToggleAdmin={() => handleToggleAdmin(user)}
+								onToggleActive={() => handleToggleActive(user)}
+								isUpdating={isUpdating}
+								index={index}
+							/>
+						))}
+					</div>
+				)}
+			</section>
 
-				{/* Bottom spacing */}
-				<div className='h-10' />
-			</div>
+			{/* Bottom spacing */}
+			<div className='h-10' />
 		</div>
 	);
 }
