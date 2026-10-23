@@ -241,7 +241,11 @@ pnpm run configure-orgs    # every member may create organizations
   verified a code before a step-up-guarded write — deleting an organization
   (`STEP_UP_REQUIRED_FRESH_AUTH`, planning#2297) or adding a phone. Unset
   keeps the tenant default of 30 minutes; shorten it to see the app's step-up
-  dialog without waiting.
+  dialog without waiting. Optional **`NATIVE_REDIRECT_URIS`** (comma-separated)
+  lists the deep links a desktop or mobile app may have the hosted Google and
+  magic-link pages hand a sign-in back to (constructive-db #4155); listing any
+  also allows loopback on any port. Unset leaves the tenant's list, empty by
+  default.
 - **orgs:** through the tenant's admin GraphQL. New members arrive approved +
   verified (their membership is active), and `create_entity` joins the default
   capability panel every new member inherits. **LOCAL WORKAROUND:** the panel's
