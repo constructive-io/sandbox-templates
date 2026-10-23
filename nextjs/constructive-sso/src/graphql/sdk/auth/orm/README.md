@@ -936,21 +936,6 @@ revokeOrgApiKey
 const result = await db.mutation.revokeOrgApiKey({ input: { keyId: '<UUID>', orgId: '<UUID>' } }).execute();
 ```
 
-### `db.mutation.setPassword`
-
-setPassword
-
-- **Type:** mutation
-- **Arguments:**
-
-  | Argument | Type |
-  |----------|------|
-  | `input` | SetPasswordInput (required) |
-
-```typescript
-const result = await db.mutation.setPassword({ input: { currentPassword: '<String>', newPassword: '<String>' } }).execute();
-```
-
 ### `db.mutation.verifyEmail`
 
 verifyEmail
@@ -981,21 +966,6 @@ verifyPhone
 const result = await db.mutation.verifyPhone({ input: { phone: '<String>', code: '<String>' } }).execute();
 ```
 
-### `db.mutation.requestMagicLink`
-
-requestMagicLink
-
-- **Type:** mutation
-- **Arguments:**
-
-  | Argument | Type |
-  |----------|------|
-  | `input` | RequestMagicLinkInput (required) |
-
-```typescript
-const result = await db.mutation.requestMagicLink({ input: { email: '<String>', next: '<String>' } }).execute();
-```
-
 ### `db.mutation.resetPassword`
 
 resetPassword
@@ -1024,6 +994,36 @@ sendMfaChallengeCode
 
 ```typescript
 const result = await db.mutation.sendMfaChallengeCode({ input: { userId: '<UUID>', mfaChallengeToken: '<String>', mfaMethod: '<String>' } }).execute();
+```
+
+### `db.mutation.setPassword`
+
+setPassword
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | SetPasswordInput (required) |
+
+```typescript
+const result = await db.mutation.setPassword({ input: { currentPassword: '<String>', newPassword: '<String>', signOutOtherSessions: '<Boolean>' } }).execute();
+```
+
+### `db.mutation.requestMagicLink`
+
+requestMagicLink
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | RequestMagicLinkInput (required) |
+
+```typescript
+const result = await db.mutation.requestMagicLink({ input: { email: '<String>', next: '<String>', nativeRedirectUri: '<String>', codeChallenge: '<String>' } }).execute();
 ```
 
 ### `db.mutation.signUp`
@@ -1086,19 +1086,19 @@ signInCrossOrigin
 const result = await db.mutation.signInCrossOrigin({ input: { token: '<String>', credentialKind: '<String>' } }).execute();
 ```
 
-### `db.mutation.signUpMagicLink`
+### `db.mutation.exchangeNativeHandoff`
 
-signUpMagicLink
+exchangeNativeHandoff
 
 - **Type:** mutation
 - **Arguments:**
 
   | Argument | Type |
   |----------|------|
-  | `input` | SignUpMagicLinkInput (required) |
+  | `input` | ExchangeNativeHandoffInput (required) |
 
 ```typescript
-const result = await db.mutation.signUpMagicLink({ input: { token: '<String>', credentialKind: '<String>', rememberMe: '<Boolean>', deviceToken: '<String>', inviteToken: '<String>' } }).execute();
+const result = await db.mutation.exchangeNativeHandoff({ input: { code: '<String>', codeVerifier: '<String>', credentialKind: '<String>' } }).execute();
 ```
 
 ### `db.mutation.signUpSms`
@@ -1116,19 +1116,19 @@ signUpSms
 const result = await db.mutation.signUpSms({ input: '<SignUpSmsInput>' }).execute();
 ```
 
-### `db.mutation.signInMagicLink`
+### `db.mutation.signUpMagicLink`
 
-signInMagicLink
+signUpMagicLink
 
 - **Type:** mutation
 - **Arguments:**
 
   | Argument | Type |
   |----------|------|
-  | `input` | SignInMagicLinkInput (required) |
+  | `input` | SignUpMagicLinkInput (required) |
 
 ```typescript
-const result = await db.mutation.signInMagicLink({ input: { token: '<String>', credentialKind: '<String>', rememberMe: '<Boolean>', deviceToken: '<String>' } }).execute();
+const result = await db.mutation.signUpMagicLink({ input: { token: '<String>', credentialKind: '<String>', rememberMe: '<Boolean>', deviceToken: '<String>', inviteToken: '<String>' } }).execute();
 ```
 
 ### `db.mutation.signInSmsOtp`
@@ -1144,6 +1144,21 @@ signInSmsOtp
 
 ```typescript
 const result = await db.mutation.signInSmsOtp({ input: { phone: '<String>', code: '<String>', credentialKind: '<String>', rememberMe: '<Boolean>', deviceToken: '<String>' } }).execute();
+```
+
+### `db.mutation.signInMagicLink`
+
+signInMagicLink
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | SignInMagicLinkInput (required) |
+
+```typescript
+const result = await db.mutation.signInMagicLink({ input: { token: '<String>', credentialKind: '<String>', rememberMe: '<Boolean>', deviceToken: '<String>' } }).execute();
 ```
 
 ### `db.mutation.completeMfaChallenge`

@@ -120,20 +120,21 @@ function App() {
 | `useSendStepUpCodeMutation` | Mutation | sendStepUpCode |
 | `useConfirmDeleteAccountMutation` | Mutation | confirmDeleteAccount |
 | `useRevokeOrgApiKeyMutation` | Mutation | revokeOrgApiKey |
-| `useSetPasswordMutation` | Mutation | setPassword |
 | `useVerifyEmailMutation` | Mutation | verifyEmail |
 | `useVerifyPhoneMutation` | Mutation | verifyPhone |
-| `useRequestMagicLinkMutation` | Mutation | requestMagicLink |
 | `useResetPasswordMutation` | Mutation | resetPassword |
 | `useSendMfaChallengeCodeMutation` | Mutation | sendMfaChallengeCode |
+| `useSetPasswordMutation` | Mutation | setPassword |
+| `useRequestMagicLinkMutation` | Mutation | requestMagicLink |
 | `useSignUpMutation` | Mutation | signUp |
 | `useCreateOrgPrincipalMutation` | Mutation | createOrgPrincipal |
 | `useRefreshAccessTokenMutation` | Mutation | refreshAccessToken |
 | `useSignInCrossOriginMutation` | Mutation | signInCrossOrigin |
-| `useSignUpMagicLinkMutation` | Mutation | signUpMagicLink |
+| `useExchangeNativeHandoffMutation` | Mutation | exchangeNativeHandoff |
 | `useSignUpSmsMutation` | Mutation | signUpSms |
-| `useSignInMagicLinkMutation` | Mutation | signInMagicLink |
+| `useSignUpMagicLinkMutation` | Mutation | signUpMagicLink |
 | `useSignInSmsOtpMutation` | Mutation | signInSmsOtp |
+| `useSignInMagicLinkMutation` | Mutation | signInMagicLink |
 | `useCompleteMfaChallengeMutation` | Mutation | completeMfaChallenge |
 | `useSignInMutation` | Mutation | signIn |
 | `useSendVerificationEmailMutation` | Mutation | sendVerificationEmail |
@@ -731,17 +732,6 @@ revokeOrgApiKey
   |----------|------|
   | `input` | RevokeOrgApiKeyInput (required) |
 
-### `useSetPasswordMutation`
-
-setPassword
-
-- **Type:** mutation
-- **Arguments:**
-
-  | Argument | Type |
-  |----------|------|
-  | `input` | SetPasswordInput (required) |
-
 ### `useVerifyEmailMutation`
 
 verifyEmail
@@ -764,17 +754,6 @@ verifyPhone
   |----------|------|
   | `input` | VerifyPhoneInput (required) |
 
-### `useRequestMagicLinkMutation`
-
-requestMagicLink
-
-- **Type:** mutation
-- **Arguments:**
-
-  | Argument | Type |
-  |----------|------|
-  | `input` | RequestMagicLinkInput (required) |
-
 ### `useResetPasswordMutation`
 
 resetPassword
@@ -796,6 +775,28 @@ sendMfaChallengeCode
   | Argument | Type |
   |----------|------|
   | `input` | SendMfaChallengeCodeInput (required) |
+
+### `useSetPasswordMutation`
+
+setPassword
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | SetPasswordInput (required) |
+
+### `useRequestMagicLinkMutation`
+
+requestMagicLink
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | RequestMagicLinkInput (required) |
 
 ### `useSignUpMutation`
 
@@ -841,16 +842,16 @@ signInCrossOrigin
   |----------|------|
   | `input` | SignInCrossOriginInput (required) |
 
-### `useSignUpMagicLinkMutation`
+### `useExchangeNativeHandoffMutation`
 
-signUpMagicLink
+exchangeNativeHandoff
 
 - **Type:** mutation
 - **Arguments:**
 
   | Argument | Type |
   |----------|------|
-  | `input` | SignUpMagicLinkInput (required) |
+  | `input` | ExchangeNativeHandoffInput (required) |
 
 ### `useSignUpSmsMutation`
 
@@ -863,16 +864,16 @@ signUpSms
   |----------|------|
   | `input` | SignUpSmsInput (required) |
 
-### `useSignInMagicLinkMutation`
+### `useSignUpMagicLinkMutation`
 
-signInMagicLink
+signUpMagicLink
 
 - **Type:** mutation
 - **Arguments:**
 
   | Argument | Type |
   |----------|------|
-  | `input` | SignInMagicLinkInput (required) |
+  | `input` | SignUpMagicLinkInput (required) |
 
 ### `useSignInSmsOtpMutation`
 
@@ -884,6 +885,17 @@ signInSmsOtp
   | Argument | Type |
   |----------|------|
   | `input` | SignInSmsOtpInput (required) |
+
+### `useSignInMagicLinkMutation`
+
+signInMagicLink
+
+- **Type:** mutation
+- **Arguments:**
+
+  | Argument | Type |
+  |----------|------|
+  | `input` | SignInMagicLinkInput (required) |
 
 ### `useCompleteMfaChallengeMutation`
 

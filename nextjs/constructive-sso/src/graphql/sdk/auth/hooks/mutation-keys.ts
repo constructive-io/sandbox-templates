@@ -236,10 +236,6 @@ export const customMutationKeys = {
     identifier
       ? (['mutation', 'revokeOrgApiKey', identifier] as const)
       : (['mutation', 'revokeOrgApiKey'] as const),
-  /** Mutation key for setPassword */ setPassword: (identifier?: string) =>
-    identifier
-      ? (['mutation', 'setPassword', identifier] as const)
-      : (['mutation', 'setPassword'] as const),
   /** Mutation key for verifyEmail */ verifyEmail: (identifier?: string) =>
     identifier
       ? (['mutation', 'verifyEmail', identifier] as const)
@@ -248,10 +244,6 @@ export const customMutationKeys = {
     identifier
       ? (['mutation', 'verifyPhone', identifier] as const)
       : (['mutation', 'verifyPhone'] as const),
-  /** Mutation key for requestMagicLink */ requestMagicLink: (identifier?: string) =>
-    identifier
-      ? (['mutation', 'requestMagicLink', identifier] as const)
-      : (['mutation', 'requestMagicLink'] as const),
   /** Mutation key for resetPassword */ resetPassword: (identifier?: string) =>
     identifier
       ? (['mutation', 'resetPassword', identifier] as const)
@@ -260,6 +252,14 @@ export const customMutationKeys = {
     identifier
       ? (['mutation', 'sendMfaChallengeCode', identifier] as const)
       : (['mutation', 'sendMfaChallengeCode'] as const),
+  /** Mutation key for setPassword */ setPassword: (identifier?: string) =>
+    identifier
+      ? (['mutation', 'setPassword', identifier] as const)
+      : (['mutation', 'setPassword'] as const),
+  /** Mutation key for requestMagicLink */ requestMagicLink: (identifier?: string) =>
+    identifier
+      ? (['mutation', 'requestMagicLink', identifier] as const)
+      : (['mutation', 'requestMagicLink'] as const),
   /** Mutation key for signUp */ signUp: (identifier?: string) =>
     identifier ? (['mutation', 'signUp', identifier] as const) : (['mutation', 'signUp'] as const),
   /** Mutation key for createOrgPrincipal */ createOrgPrincipal: (identifier?: string) =>
@@ -274,22 +274,26 @@ export const customMutationKeys = {
     identifier
       ? (['mutation', 'signInCrossOrigin', identifier] as const)
       : (['mutation', 'signInCrossOrigin'] as const),
-  /** Mutation key for signUpMagicLink */ signUpMagicLink: (identifier?: string) =>
+  /** Mutation key for exchangeNativeHandoff */ exchangeNativeHandoff: (identifier?: string) =>
     identifier
-      ? (['mutation', 'signUpMagicLink', identifier] as const)
-      : (['mutation', 'signUpMagicLink'] as const),
+      ? (['mutation', 'exchangeNativeHandoff', identifier] as const)
+      : (['mutation', 'exchangeNativeHandoff'] as const),
   /** Mutation key for signUpSms */ signUpSms: (identifier?: string) =>
     identifier
       ? (['mutation', 'signUpSms', identifier] as const)
       : (['mutation', 'signUpSms'] as const),
-  /** Mutation key for signInMagicLink */ signInMagicLink: (identifier?: string) =>
+  /** Mutation key for signUpMagicLink */ signUpMagicLink: (identifier?: string) =>
     identifier
-      ? (['mutation', 'signInMagicLink', identifier] as const)
-      : (['mutation', 'signInMagicLink'] as const),
+      ? (['mutation', 'signUpMagicLink', identifier] as const)
+      : (['mutation', 'signUpMagicLink'] as const),
   /** Mutation key for signInSmsOtp */ signInSmsOtp: (identifier?: string) =>
     identifier
       ? (['mutation', 'signInSmsOtp', identifier] as const)
       : (['mutation', 'signInSmsOtp'] as const),
+  /** Mutation key for signInMagicLink */ signInMagicLink: (identifier?: string) =>
+    identifier
+      ? (['mutation', 'signInMagicLink', identifier] as const)
+      : (['mutation', 'signInMagicLink'] as const),
   /** Mutation key for completeMfaChallenge */ completeMfaChallenge: (identifier?: string) =>
     identifier
       ? (['mutation', 'completeMfaChallenge', identifier] as const)
