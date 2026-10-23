@@ -1,0 +1,6323 @@
+"""All input for the `approveDevice` mutation."""
+input ApproveDeviceInput {
+  approvalToken: String!
+
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+}
+
+"""The output of our `approveDevice` mutation."""
+type ApproveDevicePayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: Boolean
+}
+
+"""
+Partitioned append-only audit log of authentication events (sign-in, sign-up, password changes, etc.)
+"""
+type AuditLogAuth {
+  """Reads a single `User` that is related to this `AuditLogAuth`."""
+  actor: User
+
+  """User who performed the authentication action; NULL if user was deleted"""
+  actorId: UUID
+  createdAt: Datetime!
+
+  """
+  Event-specific structured payload (e.g. preset slug and catalog commit id for create_principal_from_preset)
+  """
+  details: JSON
+
+  """
+  Type of authentication event (e.g. sign_in, sign_up, password_change, verify_email)
+  """
+  event: String!
+
+  """
+  Unique identifier for each audit event (uuidv7 provides temporal ordering)
+  """
+  id: UUID!
+
+  """IP address of the client that initiated the auth event"""
+  ipAddress: InternetAddress
+
+  """Request origin (domain) where the auth event occurred"""
+  origin: String
+
+  """Whether the authentication attempt succeeded"""
+  success: Boolean!
+
+  """Browser or client user-agent string from the request"""
+  userAgent: String
+}
+
+"""A connection to a list of `AuditLogAuth` values."""
+type AuditLogAuthConnection {
+  """
+  A list of edges which contains the `AuditLogAuth` and cursor to aid in pagination.
+  """
+  edges: [AuditLogAuthEdge]!
+
+  """A list of `AuditLogAuth` objects."""
+  nodes: [AuditLogAuth]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """The count of *all* `AuditLogAuth` you could get from the connection."""
+  totalCount: Int!
+}
+
+"""A `AuditLogAuth` edge in the connection."""
+type AuditLogAuthEdge {
+  """A cursor for use in pagination."""
+  cursor: Cursor
+
+  """The `AuditLogAuth` at the end of the edge."""
+  node: AuditLogAuth
+}
+
+"""
+A filter to be used against `AuditLogAuth` object types. All fields are combined with a logical ‘and.’
+"""
+input AuditLogAuthFilter {
+  """Filter by the object’s `actor` relation."""
+  actor: UserFilter
+
+  """A related `actor` exists."""
+  actorExists: Boolean
+
+  """Filter by the object’s `actorId` field."""
+  actorId: UUIDFilter
+
+  """Checks for all expressions in this list."""
+  and: [AuditLogAuthFilter!]
+
+  """Filter by the object’s `createdAt` field."""
+  createdAt: DatetimeFilter
+
+  """Filter by the object’s `details` field."""
+  details: JSONFilter
+
+  """Filter by the object’s `event` field."""
+  event: StringFilter
+
+  """Filter by the object’s `id` field."""
+  id: UUIDFilter
+
+  """Filter by the object’s `ipAddress` field."""
+  ipAddress: InternetAddressFilter
+
+  """Negates the expression."""
+  not: AuditLogAuthFilter
+
+  """Checks for any expressions in this list."""
+  or: [AuditLogAuthFilter!]
+
+  """Filter by the object’s `success` field."""
+  success: BooleanFilter
+
+  """Filter by the object’s `userAgent` field."""
+  userAgent: StringFilter
+}
+
+"""Methods to use when ordering `AuditLogAuth`."""
+enum AuditLogAuthOrderBy {
+  ACTOR_ID_ASC
+  ACTOR_ID_DESC
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  DETAILS_ASC
+  DETAILS_DESC
+  EVENT_ASC
+  EVENT_DESC
+  ID_ASC
+  ID_DESC
+  IP_ADDRESS_ASC
+  IP_ADDRESS_DESC
+  NATURAL
+  ORIGIN_ASC
+  ORIGIN_DESC
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+  SUCCESS_ASC
+  SUCCESS_DESC
+  USER_AGENT_ASC
+  USER_AGENT_DESC
+}
+
+"""Binary data encoded using Base64"""
+scalar Base64EncodedBinary
+
+"""
+A filter to be used against Base64EncodedBinary fields. All fields are combined with a logical ‘and.’
+"""
+input Base64EncodedBinaryFilter {
+  """
+  Not equal to the specified value, treating null like an ordinary value.
+  """
+  distinctFrom: Base64EncodedBinary
+
+  """Equal to the specified value."""
+  equalTo: Base64EncodedBinary
+
+  """Included in the specified list."""
+  in: [Base64EncodedBinary!]
+
+  """
+  Is null (if `true` is specified) or is not null (if `false` is specified).
+  """
+  isNull: Boolean
+
+  """Equal to the specified value, treating null like an ordinary value."""
+  notDistinctFrom: Base64EncodedBinary
+
+  """Not equal to the specified value."""
+  notEqualTo: Base64EncodedBinary
+
+  """Not included in the specified list."""
+  notIn: [Base64EncodedBinary!]
+}
+
+"""
+A signed eight-byte integer. The upper big integer values are greater than the
+max value for a JavaScript number. Therefore all big integers will be output as
+strings and not numbers.
+"""
+scalar BigInt
+
+"""
+A filter to be used against BigInt fields. All fields are combined with a logical ‘and.’
+"""
+input BigIntFilter {
+  """
+  Not equal to the specified value, treating null like an ordinary value.
+  """
+  distinctFrom: BigInt
+
+  """Equal to the specified value."""
+  equalTo: BigInt
+
+  """Greater than the specified value."""
+  greaterThan: BigInt
+
+  """Greater than or equal to the specified value."""
+  greaterThanOrEqualTo: BigInt
+
+  """Included in the specified list."""
+  in: [BigInt!]
+
+  """
+  Is null (if `true` is specified) or is not null (if `false` is specified).
+  """
+  isNull: Boolean
+
+  """Less than the specified value."""
+  lessThan: BigInt
+
+  """Less than or equal to the specified value."""
+  lessThanOrEqualTo: BigInt
+
+  """Equal to the specified value, treating null like an ordinary value."""
+  notDistinctFrom: BigInt
+
+  """Not equal to the specified value."""
+  notEqualTo: BigInt
+
+  """Not included in the specified list."""
+  notIn: [BigInt!]
+}
+
+"""A string representing a series of binary bits"""
+scalar BitString
+
+"""
+A filter to be used against BitString fields. All fields are combined with a logical ‘and.’
+"""
+input BitStringFilter {
+  """
+  Not equal to the specified value, treating null like an ordinary value.
+  """
+  distinctFrom: BitString
+
+  """Equal to the specified value."""
+  equalTo: BitString
+
+  """Greater than the specified value."""
+  greaterThan: BitString
+
+  """Greater than or equal to the specified value."""
+  greaterThanOrEqualTo: BitString
+
+  """Included in the specified list."""
+  in: [BitString!]
+
+  """
+  Is null (if `true` is specified) or is not null (if `false` is specified).
+  """
+  isNull: Boolean
+
+  """Less than the specified value."""
+  lessThan: BitString
+
+  """Less than or equal to the specified value."""
+  lessThanOrEqualTo: BitString
+
+  """Equal to the specified value, treating null like an ordinary value."""
+  notDistinctFrom: BitString
+
+  """Not equal to the specified value."""
+  notEqualTo: BitString
+
+  """Not included in the specified list."""
+  notIn: [BitString!]
+}
+
+"""
+A filter to be used against Boolean fields. All fields are combined with a logical ‘and.’
+"""
+input BooleanFilter {
+  """
+  Not equal to the specified value, treating null like an ordinary value.
+  """
+  distinctFrom: Boolean
+
+  """Equal to the specified value."""
+  equalTo: Boolean
+
+  """Greater than the specified value."""
+  greaterThan: Boolean
+
+  """Greater than or equal to the specified value."""
+  greaterThanOrEqualTo: Boolean
+
+  """Included in the specified list."""
+  in: [Boolean!]
+
+  """
+  Is null (if `true` is specified) or is not null (if `false` is specified).
+  """
+  isNull: Boolean
+
+  """Less than the specified value."""
+  lessThan: Boolean
+
+  """Less than or equal to the specified value."""
+  lessThanOrEqualTo: Boolean
+
+  """Equal to the specified value, treating null like an ordinary value."""
+  notDistinctFrom: Boolean
+
+  """Not equal to the specified value."""
+  notEqualTo: Boolean
+
+  """Not included in the specified list."""
+  notIn: [Boolean!]
+}
+
+"""All input for the `checkPassword` mutation."""
+input CheckPasswordInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  password: String
+}
+
+"""The output of our `checkPassword` mutation."""
+type CheckPasswordPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+}
+
+"""All input for the `completeMfaChallenge` mutation."""
+input CompleteMfaChallengeInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  credentialKind: String
+  deviceToken: String
+  mfaChallengeToken: String
+  mfaMethod: String
+  rememberMe: Boolean
+  totpCode: String
+  trustDevice: Boolean
+  userId: UUID
+}
+
+"""The output of our `completeMfaChallenge` mutation."""
+type CompleteMfaChallengePayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: CompleteMfaChallengeRecord
+}
+
+type CompleteMfaChallengeRecord {
+  accessToken: String
+  accessTokenExpiresAt: Datetime
+  deviceApprovalRequired: Boolean
+  id: UUID
+  isVerified: Boolean
+  outDeviceToken: String
+  outUserId: UUID
+}
+
+"""All input for the `confirmDeleteAccount` mutation."""
+input ConfirmDeleteAccountInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  token: String
+  userId: UUID
+}
+
+"""The output of our `confirmDeleteAccount` mutation."""
+type ConfirmDeleteAccountPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: Boolean
+}
+
+"""All input for the `confirmTotpSetup` mutation."""
+input ConfirmTotpSetupInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  totpValue: String!
+}
+
+"""The output of our `confirmTotpSetup` mutation."""
+type ConfirmTotpSetupPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: Boolean
+}
+
+scalar ConstructiveInternalTypeImage
+
+"""
+A filter to be used against ConstructiveInternalTypeImage fields. All fields are combined with a logical ‘and.’
+"""
+input ConstructiveInternalTypeImageFilter {
+  """Contained by the specified JSON."""
+  containedBy: ConstructiveInternalTypeImage
+
+  """Contains the specified JSON."""
+  contains: ConstructiveInternalTypeImage
+
+  """Contains all of the specified keys."""
+  containsAllKeys: [String!]
+
+  """Contains any of the specified keys."""
+  containsAnyKeys: [String!]
+
+  """Contains the specified key."""
+  containsKey: String
+
+  """
+  Not equal to the specified value, treating null like an ordinary value.
+  """
+  distinctFrom: ConstructiveInternalTypeImage
+
+  """Equal to the specified value."""
+  equalTo: ConstructiveInternalTypeImage
+
+  """Greater than the specified value."""
+  greaterThan: ConstructiveInternalTypeImage
+
+  """Greater than or equal to the specified value."""
+  greaterThanOrEqualTo: ConstructiveInternalTypeImage
+
+  """Included in the specified list."""
+  in: [ConstructiveInternalTypeImage!]
+
+  """
+  Is null (if `true` is specified) or is not null (if `false` is specified).
+  """
+  isNull: Boolean
+
+  """Less than the specified value."""
+  lessThan: ConstructiveInternalTypeImage
+
+  """Less than or equal to the specified value."""
+  lessThanOrEqualTo: ConstructiveInternalTypeImage
+
+  """Equal to the specified value, treating null like an ordinary value."""
+  notDistinctFrom: ConstructiveInternalTypeImage
+
+  """Not equal to the specified value."""
+  notEqualTo: ConstructiveInternalTypeImage
+
+  """Not included in the specified list."""
+  notIn: [ConstructiveInternalTypeImage!]
+}
+
+"""All input for the `createApiKey` mutation."""
+input CreateApiKeyInput {
+  accessLevel: String
+
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  expiresIn: IntervalInput
+  keyName: String
+  mfaLevel: String
+  principalId: UUID
+}
+
+"""The output of our `createApiKey` mutation."""
+type CreateApiKeyPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: CreateApiKeyRecord
+}
+
+type CreateApiKeyRecord {
+  apiKey: String
+  expiresAt: Datetime
+  keyId: UUID
+}
+
+"""All input for the `createChildPrincipal` mutation."""
+input CreateChildPrincipalInput {
+  allowedMask: BitString
+
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  entityIds: [UUID]
+  expiresAt: Datetime
+  intent: String
+  isReadOnly: Boolean
+  name: String
+  parentPrincipalId: UUID
+}
+
+"""The output of our `createChildPrincipal` mutation."""
+type CreateChildPrincipalPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: UUID
+}
+
+"""All input for the create `Email` mutation."""
+input CreateEmailInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+
+  """The `Email` to be created by this mutation."""
+  email: EmailInput!
+}
+
+"""The output of our create `Email` mutation."""
+type CreateEmailPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The `Email` that was created by this mutation."""
+  email: Email
+
+  """An edge for our `Email`. May be used by Relay 1."""
+  emailEdge(
+    """The method to use when ordering `Email`."""
+    orderBy: [EmailOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): EmailEdge
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+}
+
+"""All input for the `createOrgApiKey` mutation."""
+input CreateOrgApiKeyInput {
+  accessLevel: String
+
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  expiresIn: IntervalInput
+  keyName: String
+  mfaLevel: String
+  orgId: UUID
+  principalId: UUID
+}
+
+"""The output of our `createOrgApiKey` mutation."""
+type CreateOrgApiKeyPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: CreateOrgApiKeyRecord
+}
+
+type CreateOrgApiKeyRecord {
+  apiKey: String
+  expiresAt: Datetime
+  keyId: UUID
+}
+
+"""All input for the `createOrgPrincipal` mutation."""
+input CreateOrgPrincipalInput {
+  bypassStepUp: Boolean
+
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  isReadOnly: Boolean
+  name: String
+  orgId: UUID
+  useAdminOwner: Boolean
+}
+
+"""The output of our `createOrgPrincipal` mutation."""
+type CreateOrgPrincipalPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: UUID
+}
+
+"""All input for the create `PhoneNumber` mutation."""
+input CreatePhoneNumberInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+
+  """The `PhoneNumber` to be created by this mutation."""
+  phoneNumber: PhoneNumberInput!
+}
+
+"""The output of our create `PhoneNumber` mutation."""
+type CreatePhoneNumberPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The `PhoneNumber` that was created by this mutation."""
+  phoneNumber: PhoneNumber
+
+  """An edge for our `PhoneNumber`. May be used by Relay 1."""
+  phoneNumberEdge(
+    """The method to use when ordering `PhoneNumber`."""
+    orderBy: [PhoneNumberOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): PhoneNumberEdge
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+}
+
+"""All input for the `createPrincipalFromPreset` mutation."""
+input CreatePrincipalFromPresetInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  entityIds: [UUID]
+  name: String
+  overrides: JSON
+  slug: String
+}
+
+"""The output of our `createPrincipalFromPreset` mutation."""
+type CreatePrincipalFromPresetPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: UUID
+}
+
+"""All input for the `createPrincipal` mutation."""
+input CreatePrincipalInput {
+  bypassStepUp: Boolean
+
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  entityIds: [UUID]
+  isReadOnly: Boolean
+  name: String
+  useAdminOwner: Boolean
+}
+
+"""The output of our `createPrincipal` mutation."""
+type CreatePrincipalPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: UUID
+}
+
+"""All input for the create `User` mutation."""
+input CreateUserInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+
+  """The `User` to be created by this mutation."""
+  user: UserInput!
+}
+
+"""The output of our create `User` mutation."""
+type CreateUserPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """The `User` that was created by this mutation."""
+  user: User
+
+  """An edge for our `User`. May be used by Relay 1."""
+  userEdge(
+    """The method to use when ordering `User`."""
+    orderBy: [UserOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): UserEdge
+}
+
+"""A location in a connection that can be used for resuming pagination."""
+scalar Cursor
+
+"""
+A point in time as described by the [ISO
+8601](https://en.wikipedia.org/wiki/ISO_8601) and, if it has a timezone, [RFC
+3339](https://datatracker.ietf.org/doc/html/rfc3339) standards. Input values
+that do not conform to both ISO 8601 and RFC 3339 may be coerced, which may lead
+to unexpected results.
+"""
+scalar Datetime
+
+"""
+A filter to be used against Datetime fields. All fields are combined with a logical ‘and.’
+"""
+input DatetimeFilter {
+  """
+  Not equal to the specified value, treating null like an ordinary value.
+  """
+  distinctFrom: Datetime
+
+  """Equal to the specified value."""
+  equalTo: Datetime
+
+  """Greater than the specified value."""
+  greaterThan: Datetime
+
+  """Greater than or equal to the specified value."""
+  greaterThanOrEqualTo: Datetime
+
+  """Included in the specified list."""
+  in: [Datetime!]
+
+  """
+  Is null (if `true` is specified) or is not null (if `false` is specified).
+  """
+  isNull: Boolean
+
+  """Less than the specified value."""
+  lessThan: Datetime
+
+  """Less than or equal to the specified value."""
+  lessThanOrEqualTo: Datetime
+
+  """Equal to the specified value, treating null like an ordinary value."""
+  notDistinctFrom: Datetime
+
+  """Not equal to the specified value."""
+  notEqualTo: Datetime
+
+  """Not included in the specified list."""
+  notIn: [Datetime!]
+}
+
+"""All input for the `deleteEmail` mutation."""
+input DeleteEmailInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  id: UUID!
+}
+
+"""The output of our delete `Email` mutation."""
+type DeleteEmailPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The `Email` that was deleted by this mutation."""
+  email: Email
+
+  """An edge for our `Email`. May be used by Relay 1."""
+  emailEdge(
+    """The method to use when ordering `Email`."""
+    orderBy: [EmailOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): EmailEdge
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+}
+
+"""All input for the `deleteOrgPrincipal` mutation."""
+input DeleteOrgPrincipalInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  principalId: UUID
+}
+
+"""The output of our `deleteOrgPrincipal` mutation."""
+type DeleteOrgPrincipalPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: Boolean
+}
+
+"""All input for the `deletePhoneNumber` mutation."""
+input DeletePhoneNumberInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  id: UUID!
+}
+
+"""The output of our delete `PhoneNumber` mutation."""
+type DeletePhoneNumberPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The `PhoneNumber` that was deleted by this mutation."""
+  phoneNumber: PhoneNumber
+
+  """An edge for our `PhoneNumber`. May be used by Relay 1."""
+  phoneNumberEdge(
+    """The method to use when ordering `PhoneNumber`."""
+    orderBy: [PhoneNumberOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): PhoneNumberEdge
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+}
+
+"""All input for the `deletePrincipal` mutation."""
+input DeletePrincipalInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  principalId: UUID
+}
+
+"""The output of our `deletePrincipal` mutation."""
+type DeletePrincipalPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: Boolean
+}
+
+"""All input for the `deleteUser` mutation."""
+input DeleteUserInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  id: UUID!
+}
+
+"""The output of our delete `User` mutation."""
+type DeleteUserPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """The `User` that was deleted by this mutation."""
+  user: User
+
+  """An edge for our `User`. May be used by Relay 1."""
+  userEdge(
+    """The method to use when ordering `User`."""
+    orderBy: [UserOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): UserEdge
+}
+
+"""All input for the `deleteWebauthnCredential` mutation."""
+input DeleteWebauthnCredentialInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  id: UUID!
+}
+
+"""The output of our delete `WebauthnCredential` mutation."""
+type DeleteWebauthnCredentialPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """The `WebauthnCredential` that was deleted by this mutation."""
+  webauthnCredential: WebauthnCredential
+
+  """An edge for our `WebauthnCredential`. May be used by Relay 1."""
+  webauthnCredentialEdge(
+    """The method to use when ordering `WebauthnCredential`."""
+    orderBy: [WebauthnCredentialOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): WebauthnCredentialEdge
+}
+
+"""All input for the `disableEmailMfa` mutation."""
+input DisableEmailMfaInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+}
+
+"""The output of our `disableEmailMfa` mutation."""
+type DisableEmailMfaPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: Boolean
+}
+
+"""All input for the `disableSmsMfa` mutation."""
+input DisableSmsMfaInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+}
+
+"""The output of our `disableSmsMfa` mutation."""
+type DisableSmsMfaPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: Boolean
+}
+
+"""All input for the `disableTotp` mutation."""
+input DisableTotpInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  totpValue: String!
+}
+
+"""The output of our `disableTotp` mutation."""
+type DisableTotpPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: Boolean
+}
+
+"""All input for the `disconnectAccount` mutation."""
+input DisconnectAccountInput {
+  accountId: UUID!
+
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+}
+
+"""The output of our `disconnectAccount` mutation."""
+type DisconnectAccountPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: Boolean
+}
+
+"""User email addresses with verification and primary-email management"""
+type Email {
+  createdAt: Datetime
+
+  """The email address"""
+  email: String!
+  id: UUID!
+
+  """Whether this is the user's primary email address"""
+  isPrimary: Boolean!
+
+  """Whether the email address has been verified via confirmation link"""
+  isVerified: Boolean!
+
+  """Optional user-provided label for this email (e.g. "Work", "Personal")."""
+  name: String
+
+  """Reads a single `User` that is related to this `Email`."""
+  owner: User
+  ownerId: UUID!
+  updatedAt: Datetime
+}
+
+"""A connection to a list of `Email` values."""
+type EmailConnection {
+  """
+  A list of edges which contains the `Email` and cursor to aid in pagination.
+  """
+  edges: [EmailEdge]!
+
+  """A list of `Email` objects."""
+  nodes: [Email]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """The count of *all* `Email` you could get from the connection."""
+  totalCount: Int!
+}
+
+"""A `Email` edge in the connection."""
+type EmailEdge {
+  """A cursor for use in pagination."""
+  cursor: Cursor
+
+  """The `Email` at the end of the edge."""
+  node: Email
+}
+
+"""
+A filter to be used against `Email` object types. All fields are combined with a logical ‘and.’
+"""
+input EmailFilter {
+  """Checks for all expressions in this list."""
+  and: [EmailFilter!]
+
+  """Filter by the object’s `createdAt` field."""
+  createdAt: DatetimeFilter
+
+  """Filter by the object’s `id` field."""
+  id: UUIDFilter
+
+  """Filter by the object’s `isPrimary` field."""
+  isPrimary: BooleanFilter
+
+  """Filter by the object’s `isVerified` field."""
+  isVerified: BooleanFilter
+
+  """Filter by the object’s `name` field."""
+  name: StringFilter
+
+  """Negates the expression."""
+  not: EmailFilter
+
+  """Checks for any expressions in this list."""
+  or: [EmailFilter!]
+
+  """Filter by the object’s `owner` relation."""
+  owner: UserFilter
+
+  """Filter by the object’s `ownerId` field."""
+  ownerId: UUIDFilter
+
+  """Filter by the object’s `updatedAt` field."""
+  updatedAt: DatetimeFilter
+}
+
+"""An input for mutations affecting `Email`"""
+input EmailInput {
+  """The email address"""
+  email: String!
+
+  """Whether this is the user's primary email address"""
+  isPrimary: Boolean
+
+  """Optional user-provided label for this email (e.g. "Work", "Personal")."""
+  name: String
+  ownerId: UUID
+}
+
+"""Methods to use when ordering `Email`."""
+enum EmailOrderBy {
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  EMAIL_ASC
+  EMAIL_DESC
+  ID_ASC
+  ID_DESC
+  IS_PRIMARY_ASC
+  IS_PRIMARY_DESC
+  IS_VERIFIED_ASC
+  IS_VERIFIED_DESC
+  NAME_ASC
+  NAME_DESC
+  NATURAL
+  OWNER_ID_ASC
+  OWNER_ID_DESC
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+  UPDATED_AT_ASC
+  UPDATED_AT_DESC
+}
+
+"""
+Represents an update to a `Email`. Fields that are set will be updated.
+"""
+input EmailPatch {
+  """Whether this is the user's primary email address"""
+  isPrimary: Boolean
+
+  """Optional user-provided label for this email (e.g. "Work", "Personal")."""
+  name: String
+}
+
+"""All input for the `enableEmailMfa` mutation."""
+input EnableEmailMfaInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+}
+
+"""The output of our `enableEmailMfa` mutation."""
+type EnableEmailMfaPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: Boolean
+}
+
+"""All input for the `enableSmsMfa` mutation."""
+input EnableSmsMfaInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+}
+
+"""The output of our `enableSmsMfa` mutation."""
+type EnableSmsMfaPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: Boolean
+}
+
+"""All input for the `enableTotp` mutation."""
+input EnableTotpInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+}
+
+"""The output of our `enableTotp` mutation."""
+type EnableTotpPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: String
+}
+
+"""All input for the `extendTokenExpires` mutation."""
+input ExtendTokenExpiresInput {
+  amount: IntervalInput
+
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+}
+
+"""The output of our `extendTokenExpires` mutation."""
+type ExtendTokenExpiresPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: [ExtendTokenExpiresRecord]
+}
+
+type ExtendTokenExpiresRecord {
+  expiresAt: Datetime
+  id: UUID
+  sessionId: UUID
+}
+
+"""All input for the `forgotPassword` mutation."""
+input ForgotPasswordInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  email: String
+}
+
+"""The output of our `forgotPassword` mutation."""
+type ForgotPasswordPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+}
+
+"""A full-text search tsvector value represented as a string."""
+scalar FullText
+
+"""
+A filter to be used against FullText fields. All fields are combined with a logical ‘and.’
+"""
+input FullTextFilter {
+  """
+  Not equal to the specified value, treating null like an ordinary value.
+  """
+  distinctFrom: FullText
+
+  """Equal to the specified value."""
+  equalTo: FullText
+
+  """Included in the specified list."""
+  in: [FullText!]
+
+  """
+  Is null (if `true` is specified) or is not null (if `false` is specified).
+  """
+  isNull: Boolean
+
+  """Performs a full text search on the field."""
+  matches: String
+
+  """Equal to the specified value, treating null like an ordinary value."""
+  notDistinctFrom: FullText
+
+  """Not equal to the specified value."""
+  notEqualTo: FullText
+
+  """Not included in the specified list."""
+  notIn: [FullText!]
+}
+
+"""All input for the `generateBackupCodes` mutation."""
+input GenerateBackupCodesInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+}
+
+"""The output of our `generateBackupCodes` mutation."""
+type GenerateBackupCodesPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: String
+}
+
+type GetMfaStatusRecord {
+  backupCodesCount: Int
+  emailMfaEnabled: Boolean
+  smsMfaEnabled: Boolean
+  totpEnabled: Boolean
+}
+
+type IdentityProvider {
+  displayName: String
+  enabled: Boolean
+  kind: String
+  slug: String
+}
+
+"""A connection to a list of `IdentityProvider` values."""
+type IdentityProviderConnection {
+  """
+  A list of edges which contains the `IdentityProvider` and cursor to aid in pagination.
+  """
+  edges: [IdentityProviderEdge]!
+
+  """A list of `IdentityProvider` objects."""
+  nodes: [IdentityProvider]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """
+  The count of *all* `IdentityProvider` you could get from the connection.
+  """
+  totalCount: Int!
+}
+
+"""A `IdentityProvider` edge in the connection."""
+type IdentityProviderEdge {
+  """A cursor for use in pagination."""
+  cursor: Cursor
+
+  """The `IdentityProvider` at the end of the edge."""
+  node: IdentityProvider
+}
+
+"""
+A filter to be used against `IdentityProvider` object types. All fields are combined with a logical ‘and.’
+"""
+input IdentityProviderFilter {
+  """Checks for all expressions in this list."""
+  and: [IdentityProviderFilter!]
+
+  """Filter by the object’s `displayName` field."""
+  displayName: StringFilter
+
+  """Filter by the object’s `enabled` field."""
+  enabled: BooleanFilter
+
+  """Filter by the object’s `kind` field."""
+  kind: StringFilter
+
+  """Negates the expression."""
+  not: IdentityProviderFilter
+
+  """Checks for any expressions in this list."""
+  or: [IdentityProviderFilter!]
+
+  """Filter by the object’s `slug` field."""
+  slug: StringFilter
+}
+
+"""Methods to use when ordering `IdentityProvider`."""
+enum IdentityProviderOrderBy {
+  DISPLAY_NAME_ASC
+  DISPLAY_NAME_DESC
+  ENABLED_ASC
+  ENABLED_DESC
+  KIND_ASC
+  KIND_DESC
+  NATURAL
+  SLUG_ASC
+  SLUG_DESC
+}
+
+"""
+A filter to be used against Int fields. All fields are combined with a logical ‘and.’
+"""
+input IntFilter {
+  """
+  Not equal to the specified value, treating null like an ordinary value.
+  """
+  distinctFrom: Int
+
+  """Equal to the specified value."""
+  equalTo: Int
+
+  """Greater than the specified value."""
+  greaterThan: Int
+
+  """Greater than or equal to the specified value."""
+  greaterThanOrEqualTo: Int
+
+  """Included in the specified list."""
+  in: [Int!]
+
+  """
+  Is null (if `true` is specified) or is not null (if `false` is specified).
+  """
+  isNull: Boolean
+
+  """Less than the specified value."""
+  lessThan: Int
+
+  """Less than or equal to the specified value."""
+  lessThanOrEqualTo: Int
+
+  """Equal to the specified value, treating null like an ordinary value."""
+  notDistinctFrom: Int
+
+  """Not equal to the specified value."""
+  notEqualTo: Int
+
+  """Not included in the specified list."""
+  notIn: [Int!]
+}
+
+"""An IPv4 or IPv6 host address, and optionally its subnet."""
+scalar InternetAddress
+
+"""
+A filter to be used against InternetAddress fields. All fields are combined with a logical ‘and.’
+"""
+input InternetAddressFilter {
+  """Contained by the specified internet address."""
+  containedBy: InternetAddress
+
+  """Contained by or equal to the specified internet address."""
+  containedByOrEqualTo: InternetAddress
+
+  """Contains the specified internet address."""
+  contains: InternetAddress
+
+  """Contains or contained by the specified internet address."""
+  containsOrContainedBy: InternetAddress
+
+  """Contains or equal to the specified internet address."""
+  containsOrEqualTo: InternetAddress
+
+  """
+  Not equal to the specified value, treating null like an ordinary value.
+  """
+  distinctFrom: InternetAddress
+
+  """Equal to the specified value."""
+  equalTo: InternetAddress
+
+  """Greater than the specified value."""
+  greaterThan: InternetAddress
+
+  """Greater than or equal to the specified value."""
+  greaterThanOrEqualTo: InternetAddress
+
+  """Included in the specified list."""
+  in: [InternetAddress!]
+
+  """
+  Is null (if `true` is specified) or is not null (if `false` is specified).
+  """
+  isNull: Boolean
+
+  """Less than the specified value."""
+  lessThan: InternetAddress
+
+  """Less than or equal to the specified value."""
+  lessThanOrEqualTo: InternetAddress
+
+  """Equal to the specified value, treating null like an ordinary value."""
+  notDistinctFrom: InternetAddress
+
+  """Not equal to the specified value."""
+  notEqualTo: InternetAddress
+
+  """Not included in the specified list."""
+  notIn: [InternetAddress!]
+}
+
+"""
+An interval of time that has passed where the smallest distinct unit is a second.
+"""
+type Interval {
+  """A quantity of days."""
+  days: Int
+
+  """A quantity of hours."""
+  hours: Int
+
+  """A quantity of minutes."""
+  minutes: Int
+
+  """A quantity of months."""
+  months: Int
+
+  """
+  A quantity of seconds. This is the only non-integer field, as all the other
+  fields will dump their overflow into a smaller unit of time. Intervals don’t
+  have a smaller unit than seconds.
+  """
+  seconds: Float
+
+  """A quantity of years."""
+  years: Int
+}
+
+"""
+A filter to be used against Interval fields. All fields are combined with a logical ‘and.’
+"""
+input IntervalFilter {
+  """
+  Not equal to the specified value, treating null like an ordinary value.
+  """
+  distinctFrom: IntervalInput
+
+  """Equal to the specified value."""
+  equalTo: IntervalInput
+
+  """Greater than the specified value."""
+  greaterThan: IntervalInput
+
+  """Greater than or equal to the specified value."""
+  greaterThanOrEqualTo: IntervalInput
+
+  """Included in the specified list."""
+  in: [IntervalInput!]
+
+  """
+  Is null (if `true` is specified) or is not null (if `false` is specified).
+  """
+  isNull: Boolean
+
+  """Less than the specified value."""
+  lessThan: IntervalInput
+
+  """Less than or equal to the specified value."""
+  lessThanOrEqualTo: IntervalInput
+
+  """Equal to the specified value, treating null like an ordinary value."""
+  notDistinctFrom: IntervalInput
+
+  """Not equal to the specified value."""
+  notEqualTo: IntervalInput
+
+  """Not included in the specified list."""
+  notIn: [IntervalInput!]
+}
+
+"""
+An interval of time that has passed where the smallest distinct unit is a second.
+"""
+input IntervalInput {
+  """A quantity of days."""
+  days: Int
+
+  """A quantity of hours."""
+  hours: Int
+
+  """A quantity of minutes."""
+  minutes: Int
+
+  """A quantity of months."""
+  months: Int
+
+  """
+  A quantity of seconds. This is the only non-integer field, as all the other
+  fields will dump their overflow into a smaller unit of time. Intervals don’t
+  have a smaller unit than seconds.
+  """
+  seconds: Float
+
+  """A quantity of years."""
+  years: Int
+}
+
+"""
+Represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON
+
+"""
+A filter to be used against JSON fields. All fields are combined with a logical ‘and.’
+"""
+input JSONFilter {
+  """Contained by the specified JSON."""
+  containedBy: JSON
+
+  """Contains the specified JSON."""
+  contains: JSON
+
+  """Contains all of the specified keys."""
+  containsAllKeys: [String!]
+
+  """Contains any of the specified keys."""
+  containsAnyKeys: [String!]
+
+  """Contains the specified key."""
+  containsKey: String
+
+  """
+  Not equal to the specified value, treating null like an ordinary value.
+  """
+  distinctFrom: JSON
+
+  """Equal to the specified value."""
+  equalTo: JSON
+
+  """Greater than the specified value."""
+  greaterThan: JSON
+
+  """Greater than or equal to the specified value."""
+  greaterThanOrEqualTo: JSON
+
+  """Included in the specified list."""
+  in: [JSON!]
+
+  """
+  Is null (if `true` is specified) or is not null (if `false` is specified).
+  """
+  isNull: Boolean
+
+  """Less than the specified value."""
+  lessThan: JSON
+
+  """Less than or equal to the specified value."""
+  lessThanOrEqualTo: JSON
+
+  """Equal to the specified value, treating null like an ordinary value."""
+  notDistinctFrom: JSON
+
+  """Not equal to the specified value."""
+  notEqualTo: JSON
+
+  """Not included in the specified list."""
+  notIn: [JSON!]
+}
+
+"""All input for the `linkIdentity` mutation."""
+input LinkIdentityInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  details: JSON
+  identifier: String!
+  service: String!
+}
+
+"""The output of our `linkIdentity` mutation."""
+type LinkIdentityPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: Boolean
+}
+
+"""A belongs-to (forward FK) relation"""
+type MetaBelongsToRelation {
+  fieldName: String
+  isUnique: Boolean!
+  keys: [MetaField!]!
+  references: MetaRefTable!
+  type: String
+}
+
+"""Table constraints"""
+type MetaConstraints {
+  foreignKey: [MetaForeignKeyConstraint!]!
+  primaryKey: MetaPrimaryKeyConstraint
+  unique: [MetaUniqueConstraint!]!
+}
+
+"""Information about a PostgreSQL enum type"""
+type MetaEnum {
+  """The PostgreSQL enum type name"""
+  name: String!
+
+  """Allowed values for this enum"""
+  values: [String!]!
+}
+
+"""Information about a table field/column"""
+type MetaField {
+  """PostgreSQL column name"""
+  columnName: String!
+  description: String
+
+  """Enum metadata if this field has an enum type"""
+  enumValues: MetaEnum
+  hasDefault: Boolean!
+  isForeignKey: Boolean!
+  isNotNull: Boolean!
+  isPrimaryKey: Boolean!
+
+  """Final GraphQL field name"""
+  name: String!
+  type: MetaType!
+}
+
+"""Information about a foreign key constraint"""
+type MetaForeignKeyConstraint {
+  fields: [MetaField!]!
+  name: String!
+  refFields: [MetaField!]
+  refTable: MetaRefTable
+  referencedFields: [String!]!
+  referencedTable: String!
+}
+
+"""A has-one or has-many (reverse FK) relation"""
+type MetaHasRelation {
+  fieldName: String
+  isUnique: Boolean!
+  keys: [MetaField!]!
+  referencedBy: MetaRefTable!
+  type: String
+}
+
+"""i18n metadata for a table with @i18n tag"""
+type MetaI18n {
+  """Fields that are translatable"""
+  translatableFields: [MetaI18nField!]!
+
+  """Name of the translation table"""
+  translationTable: String!
+}
+
+"""A translatable field"""
+type MetaI18nField {
+  """GraphQL field name"""
+  name: String!
+
+  """PostgreSQL column type (text, citext)"""
+  type: String!
+}
+
+"""Information about a database index"""
+type MetaIndex {
+  columns: [String!]!
+  fields: [MetaField!]
+  isPrimary: Boolean!
+  isUnique: Boolean!
+  name: String!
+}
+
+"""Table inflection names"""
+type MetaInflection {
+  allRows: String!
+  conditionType: String!
+  connection: String!
+  createInputType: String!
+  createPayloadType: String!
+  deletePayloadType: String!
+  edge: String!
+  filterType: String
+  orderByType: String!
+  patchType: String
+  tableType: String!
+  updatePayloadType: String
+}
+
+"""A many-to-many relation via junction table"""
+type MetaManyToManyRelation {
+  fieldName: String
+  junctionLeftConstraint: MetaForeignKeyConstraint!
+  junctionLeftKeyAttributes: [MetaField!]!
+  junctionRightConstraint: MetaForeignKeyConstraint!
+  junctionRightKeyAttributes: [MetaField!]!
+  junctionTable: MetaRefTable!
+  leftKeyAttributes: [MetaField!]!
+  rightKeyAttributes: [MetaField!]!
+  rightTable: MetaRefTable!
+  type: String
+}
+
+"""Information about a primary key constraint"""
+type MetaPrimaryKeyConstraint {
+  fields: [MetaField!]!
+  name: String!
+}
+
+"""Table query/mutation names"""
+type MetaQuery {
+  all: String
+  create: String
+  delete: String
+  one: String
+  update: String
+}
+
+"""Realtime metadata for a table with @realtime tag"""
+type MetaRealtime {
+  """The generated subscription field name (e.g. onPostChanged)"""
+  subscriptionFieldName: String!
+}
+
+"""Reference to a related table"""
+type MetaRefTable {
+  name: String!
+}
+
+"""Table relations"""
+type MetaRelations {
+  belongsTo: [MetaBelongsToRelation!]!
+  has: [MetaHasRelation!]!
+  hasMany: [MetaHasRelation!]!
+  hasOne: [MetaHasRelation!]!
+  manyToMany: [MetaManyToManyRelation!]!
+}
+
+"""
+How a client must serialize/parse a scalar — the one field-type detail standard GraphQL introspection cannot describe. Null for plain scalars whose wire format is obvious from gqlType.
+"""
+type MetaScalarEncoding {
+  """For 'vector': declared length, else null."""
+  dimensions: Int
+
+  """For 'ltree': values are dot-separated path strings."""
+  dotPath: Boolean
+
+  """For 'vector': element scalar (e.g. 'float')."""
+  elementType: String
+
+  """For 'geojson': Point/LineString/Polygon/…, else null."""
+  geometrySubtype: String
+
+  """
+  Machine kind: bigint, datetime, date, time, interval, uuid, geojson, point, inet, ltree, vector, bytea, or composite.
+  """
+  kind: String!
+
+  """For 'geojson': spatial reference id, else null."""
+  srid: Int
+}
+
+"""Root meta schema type"""
+type MetaSchema {
+  tables: [MetaTable!]!
+}
+
+"""Provisioning scope metadata for a table"""
+type MetaScope {
+  """SQL name of the entity table for entity scopes, else null"""
+  entityTable: String
+
+  """
+  Inflected scope key column (e.g. databaseId, orgId), null for global tiers
+  """
+  keyColumn: String
+
+  """
+  Provisioning scope: 'platform', 'app', 'database', or an entity scope (e.g. 'org')
+  """
+  scope: String!
+
+  """Provenance of the scope metadata (always 'smartTag')"""
+  source: String!
+
+  """Coarse bucket: 'global', 'database', or 'entity'"""
+  tier: String!
+}
+
+"""Search metadata for a table"""
+type MetaSearch {
+  """Active search algorithms on this table"""
+  algorithms: [String!]!
+
+  """Searchable columns with their algorithm"""
+  columns: [MetaSearchColumn!]!
+
+  """Per-table search configuration"""
+  config: MetaSearchConfig
+
+  """Whether unifiedSearch composite filter is available"""
+  hasUnifiedSearch: Boolean!
+}
+
+"""A searchable column with its algorithm"""
+type MetaSearchColumn {
+  """Search algorithm: tsvector, bm25, trgm, or vector"""
+  algorithm: String!
+
+  """Column name (camelCase)"""
+  name: String!
+}
+
+"""Per-table search configuration from @searchConfig smart tag"""
+type MetaSearchConfig {
+  """Exponential decay factor per day"""
+  boostRecencyDecay: Float
+
+  """Field used for recency decay"""
+  boostRecencyField: String
+
+  """Whether recency boosting is enabled"""
+  boostRecent: Boolean!
+
+  """JSON-encoded per-adapter score weights"""
+  weights: String
+}
+
+"""Storage metadata for a table"""
+type MetaStorage {
+  """GraphQL type name of the plane's buckets table"""
+  bucketsType: String!
+
+  """
+  Computed download-URL field on the files type; null on the buckets side
+  """
+  downloadUrlField: String
+
+  """GraphQL type name of the plane's files table"""
+  filesType: String!
+
+  """Whether this table is a storage buckets table"""
+  isBucketsTable: Boolean!
+
+  """Whether this table is a storage files table"""
+  isFilesTable: Boolean!
+
+  """The plane's GraphQL upload surface"""
+  upload: MetaStorageUpload!
+}
+
+"""
+The GraphQL upload surface of a storage plane, derived from the registry facts the presigned-url plugin emits from
+"""
+type MetaStorageUpload {
+  """Per-file input type inside the bulk input"""
+  bulkFileInputType: String!
+
+  """Per-file payload type inside the bulk payload"""
+  bulkFilePayloadType: String!
+
+  """Input type of the bulk upload mutation"""
+  bulkInputType: String!
+
+  """Root mutation field for bulk upload"""
+  bulkMutation: String!
+
+  """Payload type of the bulk upload mutation"""
+  bulkPayloadType: String!
+
+  """Input type of the single upload mutation"""
+  inputType: String!
+
+  """Root mutation field for single-file upload (e.g. uploadAppFile)"""
+  mutation: String!
+
+  """Payload type of the single upload mutation"""
+  payloadType: String!
+
+  """Whether the upload input requires ownerId (entity-keyed plane)"""
+  requiresOwnerId: Boolean!
+}
+
+"""Information about a database table"""
+type MetaTable {
+  constraints: MetaConstraints!
+  fields: [MetaField!]!
+  foreignKeyConstraints: [MetaForeignKeyConstraint!]!
+
+  """i18n metadata (null if no @i18n tag)"""
+  i18n: MetaI18n
+  indexes: [MetaIndex!]!
+  inflection: MetaInflection!
+
+  """Final GraphQL output type name"""
+  name: String!
+  primaryKeyConstraints: [MetaPrimaryKeyConstraint!]!
+  query: MetaQuery!
+
+  """Realtime metadata (null if no @realtime tag)"""
+  realtime: MetaRealtime
+  relations: MetaRelations!
+  schemaName: String!
+
+  """Provisioning scope metadata (null if no @scope tag)"""
+  scope: MetaScope
+
+  """Search metadata (null if no search configured)"""
+  search: MetaSearch
+
+  """Storage metadata (null if not a storage table)"""
+  storage: MetaStorage
+
+  """PostgreSQL table name"""
+  tableName: String!
+  uniqueConstraints: [MetaUniqueConstraint!]!
+}
+
+"""Information about a PostgreSQL type"""
+type MetaType {
+  """Scalar serialization contract (null for plain scalars)"""
+  encoding: MetaScalarEncoding
+  gqlType: String!
+  hasDefault: Boolean
+  isArray: Boolean!
+  isNotNull: Boolean
+  pgType: String!
+  subtype: String
+}
+
+"""Information about a unique constraint"""
+type MetaUniqueConstraint {
+  fields: [MetaField!]!
+  name: String!
+}
+
+"""All input for the `mintAccessToken` mutation."""
+input MintAccessTokenInput {
+  accessTtl: IntervalInput
+
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  intent: String
+  principalId: UUID
+}
+
+"""The output of our `mintAccessToken` mutation."""
+type MintAccessTokenPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: MintAccessTokenRecord
+}
+
+type MintAccessTokenRecord {
+  accessExpiresAt: Datetime
+  accessToken: String
+  principalUserId: UUID
+  refreshExpiresAt: Datetime
+  refreshToken: String
+  sessionId: UUID
+}
+
+"""
+The root mutation type which contains root level fields which mutate data.
+"""
+type Mutation {
+  approveDevice(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: ApproveDeviceInput!
+  ): ApproveDevicePayload
+  checkPassword(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: CheckPasswordInput!
+  ): CheckPasswordPayload
+  completeMfaChallenge(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: CompleteMfaChallengeInput!
+  ): CompleteMfaChallengePayload
+  confirmDeleteAccount(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: ConfirmDeleteAccountInput!
+  ): ConfirmDeleteAccountPayload
+  confirmTotpSetup(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: ConfirmTotpSetupInput!
+  ): ConfirmTotpSetupPayload
+  createApiKey(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: CreateApiKeyInput!
+  ): CreateApiKeyPayload
+  createChildPrincipal(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: CreateChildPrincipalInput!
+  ): CreateChildPrincipalPayload
+
+  """Creates a single `Email`."""
+  createEmail(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: CreateEmailInput!
+  ): CreateEmailPayload
+  createOrgApiKey(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: CreateOrgApiKeyInput!
+  ): CreateOrgApiKeyPayload
+  createOrgPrincipal(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: CreateOrgPrincipalInput!
+  ): CreateOrgPrincipalPayload
+
+  """Creates a single `PhoneNumber`."""
+  createPhoneNumber(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: CreatePhoneNumberInput!
+  ): CreatePhoneNumberPayload
+  createPrincipal(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: CreatePrincipalInput!
+  ): CreatePrincipalPayload
+  createPrincipalFromPreset(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: CreatePrincipalFromPresetInput!
+  ): CreatePrincipalFromPresetPayload
+
+  """Creates a single `User`."""
+  createUser(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: CreateUserInput!
+  ): CreateUserPayload
+
+  """Deletes a single `Email` using a unique key."""
+  deleteEmail(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: DeleteEmailInput!
+  ): DeleteEmailPayload
+  deleteOrgPrincipal(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: DeleteOrgPrincipalInput!
+  ): DeleteOrgPrincipalPayload
+
+  """Deletes a single `PhoneNumber` using a unique key."""
+  deletePhoneNumber(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: DeletePhoneNumberInput!
+  ): DeletePhoneNumberPayload
+  deletePrincipal(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: DeletePrincipalInput!
+  ): DeletePrincipalPayload
+
+  """Deletes a single `User` using a unique key."""
+  deleteUser(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: DeleteUserInput!
+  ): DeleteUserPayload
+
+  """Deletes a single `WebauthnCredential` using a unique key."""
+  deleteWebauthnCredential(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: DeleteWebauthnCredentialInput!
+  ): DeleteWebauthnCredentialPayload
+  disableEmailMfa(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: DisableEmailMfaInput!
+  ): DisableEmailMfaPayload
+  disableSmsMfa(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: DisableSmsMfaInput!
+  ): DisableSmsMfaPayload
+  disableTotp(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: DisableTotpInput!
+  ): DisableTotpPayload
+  disconnectAccount(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: DisconnectAccountInput!
+  ): DisconnectAccountPayload
+  enableEmailMfa(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: EnableEmailMfaInput!
+  ): EnableEmailMfaPayload
+  enableSmsMfa(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: EnableSmsMfaInput!
+  ): EnableSmsMfaPayload
+  enableTotp(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: EnableTotpInput!
+  ): EnableTotpPayload
+  extendTokenExpires(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: ExtendTokenExpiresInput!
+  ): ExtendTokenExpiresPayload
+  forgotPassword(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: ForgotPasswordInput!
+  ): ForgotPasswordPayload
+  generateBackupCodes(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: GenerateBackupCodesInput!
+  ): GenerateBackupCodesPayload
+  linkIdentity(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: LinkIdentityInput!
+  ): LinkIdentityPayload
+  mintAccessToken(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: MintAccessTokenInput!
+  ): MintAccessTokenPayload
+
+  """
+  Reconcile an S3 bucket for a logical bucket in the database.
+  Records the request on the bucket row via RLS; the bucket's job
+  trigger then enqueues the same storage:provision_bucket job used on
+  INSERT, and repeated requests collapse into one pending job. This is
+  idempotent for an already-reconciled bucket; failures become GraphQL
+  errors.
+  """
+  provisionBucket(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: ProvisionBucketInput!
+  ): ProvisionBucketPayload
+  refreshAccessToken(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: RefreshAccessTokenInput!
+  ): RefreshAccessTokenPayload
+  requestCrossOriginToken(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: RequestCrossOriginTokenInput!
+  ): RequestCrossOriginTokenPayload
+  requestMagicLink(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: RequestMagicLinkInput!
+  ): RequestMagicLinkPayload
+  resetPassword(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: ResetPasswordInput!
+  ): ResetPasswordPayload
+  revokeApiKey(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: RevokeApiKeyInput!
+  ): RevokeApiKeyPayload
+  revokeOrgApiKey(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: RevokeOrgApiKeyInput!
+  ): RevokeOrgApiKeyPayload
+  revokeSession(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: RevokeSessionInput!
+  ): RevokeSessionPayload
+  sendAccountDeletionEmail(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: SendAccountDeletionEmailInput!
+  ): SendAccountDeletionEmailPayload
+  sendMfaChallengeCode(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: SendMfaChallengeCodeInput!
+  ): SendMfaChallengeCodePayload
+  sendPhoneVerificationCode(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: SendPhoneVerificationCodeInput!
+  ): SendPhoneVerificationCodePayload
+  sendSmsOtp(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: SendSmsOtpInput!
+  ): SendSmsOtpPayload
+  sendStepUpCode(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: SendStepUpCodeInput!
+  ): SendStepUpCodePayload
+  sendVerificationEmail(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: SendVerificationEmailInput!
+  ): SendVerificationEmailPayload
+  setPassword(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: SetPasswordInput!
+  ): SetPasswordPayload
+  setPrincipalEntities(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: SetPrincipalEntitiesInput!
+  ): SetPrincipalEntitiesPayload
+  setPrincipalScope(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: SetPrincipalScopeInput!
+  ): SetPrincipalScopePayload
+  signIn(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: SignInInput!
+  ): SignInPayload
+  signInCrossOrigin(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: SignInCrossOriginInput!
+  ): SignInCrossOriginPayload
+  signInMagicLink(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: SignInMagicLinkInput!
+  ): SignInMagicLinkPayload
+  signInSmsOtp(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: SignInSmsOtpInput!
+  ): SignInSmsOtpPayload
+  signOut(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: SignOutInput!
+  ): SignOutPayload
+  signUp(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: SignUpInput!
+  ): SignUpPayload
+  signUpMagicLink(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: SignUpMagicLinkInput!
+  ): SignUpMagicLinkPayload
+  signUpSms(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: SignUpSmsInput!
+  ): SignUpSmsPayload
+
+  """Updates a single `Email` using a unique key and a patch."""
+  updateEmail(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: UpdateEmailInput!
+  ): UpdateEmailPayload
+
+  """Updates a single `PhoneNumber` using a unique key and a patch."""
+  updatePhoneNumber(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: UpdatePhoneNumberInput!
+  ): UpdatePhoneNumberPayload
+  updatePrincipal(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: UpdatePrincipalInput!
+  ): UpdatePrincipalPayload
+
+  """Updates a single `User` using a unique key and a patch."""
+  updateUser(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: UpdateUserInput!
+  ): UpdateUserPayload
+
+  """Updates a single `WebauthnCredential` using a unique key and a patch."""
+  updateWebauthnCredential(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: UpdateWebauthnCredentialInput!
+  ): UpdateWebauthnCredentialPayload
+  verifyEmail(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: VerifyEmailInput!
+  ): VerifyEmailPayload
+  verifyPassword(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: VerifyPasswordInput!
+  ): VerifyPasswordPayload
+  verifyPhone(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: VerifyPhoneInput!
+  ): VerifyPhonePayload
+  verifyStepUpCode(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: VerifyStepUpCodeInput!
+  ): VerifyStepUpCodePayload
+  verifyTotp(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: VerifyTotpInput!
+  ): VerifyTotpPayload
+
+  """Begin registering a passkey for the signed-in user."""
+  webauthnRegisterBegin(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: WebauthnRegisterBeginInput
+  ): WebauthnRegisterBeginPayload
+
+  """Verify the browser's registration response and store the passkey."""
+  webauthnRegisterFinish(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: WebauthnRegisterFinishInput!
+  ): WebauthnRegisterFinishPayload
+
+  """Begin a passkey sign-in (discoverable when signed out)."""
+  webauthnSignInBegin(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: WebauthnSignInBeginInput
+  ): WebauthnSignInBeginPayload
+
+  """Verify the browser's assertion and mint a session."""
+  webauthnSignInFinish(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: WebauthnSignInFinishInput!
+  ): WebauthnSignInFinishPayload
+}
+
+type OrgApiKeyList {
+  accessLevel: String
+  createdAt: Datetime
+  expiresAt: Datetime
+  id: UUID
+  keyId: String
+  lastUsedAt: Datetime
+  mfaLevel: String
+  name: String
+  orgId: UUID
+  principalId: UUID
+  revokedAt: Datetime
+  updatedAt: Datetime
+}
+
+"""A connection to a list of `OrgApiKeyList` values."""
+type OrgApiKeyListConnection {
+  """
+  A list of edges which contains the `OrgApiKeyList` and cursor to aid in pagination.
+  """
+  edges: [OrgApiKeyListEdge]!
+
+  """A list of `OrgApiKeyList` objects."""
+  nodes: [OrgApiKeyList]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """The count of *all* `OrgApiKeyList` you could get from the connection."""
+  totalCount: Int!
+}
+
+"""A `OrgApiKeyList` edge in the connection."""
+type OrgApiKeyListEdge {
+  """A cursor for use in pagination."""
+  cursor: Cursor
+
+  """The `OrgApiKeyList` at the end of the edge."""
+  node: OrgApiKeyList
+}
+
+"""
+A filter to be used against `OrgApiKeyList` object types. All fields are combined with a logical ‘and.’
+"""
+input OrgApiKeyListFilter {
+  """Filter by the object’s `accessLevel` field."""
+  accessLevel: StringFilter
+
+  """Checks for all expressions in this list."""
+  and: [OrgApiKeyListFilter!]
+
+  """Filter by the object’s `createdAt` field."""
+  createdAt: DatetimeFilter
+
+  """Filter by the object’s `expiresAt` field."""
+  expiresAt: DatetimeFilter
+
+  """Filter by the object’s `id` field."""
+  id: UUIDFilter
+
+  """Filter by the object’s `keyId` field."""
+  keyId: StringFilter
+
+  """Filter by the object’s `lastUsedAt` field."""
+  lastUsedAt: DatetimeFilter
+
+  """Filter by the object’s `mfaLevel` field."""
+  mfaLevel: StringFilter
+
+  """Filter by the object’s `name` field."""
+  name: StringFilter
+
+  """Negates the expression."""
+  not: OrgApiKeyListFilter
+
+  """Checks for any expressions in this list."""
+  or: [OrgApiKeyListFilter!]
+
+  """Filter by the object’s `orgId` field."""
+  orgId: UUIDFilter
+
+  """Filter by the object’s `principalId` field."""
+  principalId: UUIDFilter
+
+  """Filter by the object’s `revokedAt` field."""
+  revokedAt: DatetimeFilter
+
+  """Filter by the object’s `updatedAt` field."""
+  updatedAt: DatetimeFilter
+}
+
+"""Methods to use when ordering `OrgApiKeyList`."""
+enum OrgApiKeyListOrderBy {
+  ACCESS_LEVEL_ASC
+  ACCESS_LEVEL_DESC
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  EXPIRES_AT_ASC
+  EXPIRES_AT_DESC
+  ID_ASC
+  ID_DESC
+  KEY_ID_ASC
+  KEY_ID_DESC
+  LAST_USED_AT_ASC
+  LAST_USED_AT_DESC
+  MFA_LEVEL_ASC
+  MFA_LEVEL_DESC
+  NAME_ASC
+  NAME_DESC
+  NATURAL
+  ORG_ID_ASC
+  ORG_ID_DESC
+  PRINCIPAL_ID_ASC
+  PRINCIPAL_ID_DESC
+  REVOKED_AT_ASC
+  REVOKED_AT_DESC
+  UPDATED_AT_ASC
+  UPDATED_AT_DESC
+}
+
+"""Information about pagination in a connection."""
+type PageInfo {
+  """When paginating forwards, the cursor to continue."""
+  endCursor: Cursor
+
+  """When paginating forwards, are there more items?"""
+  hasNextPage: Boolean!
+
+  """When paginating backwards, are there more items?"""
+  hasPreviousPage: Boolean!
+
+  """When paginating backwards, the cursor to continue."""
+  startCursor: Cursor
+}
+
+"""
+User phone numbers with country code, verification, and primary-number management
+"""
+type PhoneNumber {
+  """
+  Country calling code the number was entered under (e.g. +1, +44). Display only: `number` already carries it, and sign-in matches `number`.
+  """
+  cc: String!
+  createdAt: Datetime
+  id: UUID!
+
+  """Whether this is the user's primary phone number"""
+  isPrimary: Boolean!
+
+  """Whether the phone number has been verified via SMS code"""
+  isVerified: Boolean!
+
+  """
+  Optional user-provided label for this phone number (e.g. "Mobile", "Work").
+  """
+  name: String
+
+  """
+  The full number in E.164 form, country calling code included (e.g. +15551234567). This is the value SMS sign-in and MFA match, so it is unique across the table and constrained to that shape.
+  """
+  number: String!
+
+  """Reads a single `User` that is related to this `PhoneNumber`."""
+  owner: User
+  ownerId: UUID!
+  updatedAt: Datetime
+}
+
+"""A connection to a list of `PhoneNumber` values."""
+type PhoneNumberConnection {
+  """
+  A list of edges which contains the `PhoneNumber` and cursor to aid in pagination.
+  """
+  edges: [PhoneNumberEdge]!
+
+  """A list of `PhoneNumber` objects."""
+  nodes: [PhoneNumber]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """The count of *all* `PhoneNumber` you could get from the connection."""
+  totalCount: Int!
+}
+
+"""A `PhoneNumber` edge in the connection."""
+type PhoneNumberEdge {
+  """A cursor for use in pagination."""
+  cursor: Cursor
+
+  """The `PhoneNumber` at the end of the edge."""
+  node: PhoneNumber
+}
+
+"""
+A filter to be used against `PhoneNumber` object types. All fields are combined with a logical ‘and.’
+"""
+input PhoneNumberFilter {
+  """Checks for all expressions in this list."""
+  and: [PhoneNumberFilter!]
+
+  """Filter by the object’s `cc` field."""
+  cc: StringFilter
+
+  """Filter by the object’s `createdAt` field."""
+  createdAt: DatetimeFilter
+
+  """Filter by the object’s `id` field."""
+  id: UUIDFilter
+
+  """Filter by the object’s `isPrimary` field."""
+  isPrimary: BooleanFilter
+
+  """Filter by the object’s `isVerified` field."""
+  isVerified: BooleanFilter
+
+  """Filter by the object’s `name` field."""
+  name: StringFilter
+
+  """Negates the expression."""
+  not: PhoneNumberFilter
+
+  """Filter by the object’s `number` field."""
+  number: StringFilter
+
+  """Checks for any expressions in this list."""
+  or: [PhoneNumberFilter!]
+
+  """Filter by the object’s `owner` relation."""
+  owner: UserFilter
+
+  """Filter by the object’s `ownerId` field."""
+  ownerId: UUIDFilter
+
+  """Filter by the object’s `updatedAt` field."""
+  updatedAt: DatetimeFilter
+}
+
+"""An input for mutations affecting `PhoneNumber`"""
+input PhoneNumberInput {
+  """
+  Country calling code the number was entered under (e.g. +1, +44). Display only: `number` already carries it, and sign-in matches `number`.
+  """
+  cc: String!
+
+  """Whether this is the user's primary phone number"""
+  isPrimary: Boolean
+
+  """
+  Optional user-provided label for this phone number (e.g. "Mobile", "Work").
+  """
+  name: String
+
+  """
+  The full number in E.164 form, country calling code included (e.g. +15551234567). This is the value SMS sign-in and MFA match, so it is unique across the table and constrained to that shape.
+  """
+  number: String!
+  ownerId: UUID
+}
+
+"""Methods to use when ordering `PhoneNumber`."""
+enum PhoneNumberOrderBy {
+  CC_ASC
+  CC_DESC
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  ID_ASC
+  ID_DESC
+  IS_PRIMARY_ASC
+  IS_PRIMARY_DESC
+  IS_VERIFIED_ASC
+  IS_VERIFIED_DESC
+  NAME_ASC
+  NAME_DESC
+  NATURAL
+  NUMBER_ASC
+  NUMBER_DESC
+  OWNER_ID_ASC
+  OWNER_ID_DESC
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+  UPDATED_AT_ASC
+  UPDATED_AT_DESC
+}
+
+"""
+Represents an update to a `PhoneNumber`. Fields that are set will be updated.
+"""
+input PhoneNumberPatch {
+  """Whether this is the user's primary phone number"""
+  isPrimary: Boolean
+
+  """
+  Optional user-provided label for this phone number (e.g. "Mobile", "Work").
+  """
+  name: String
+}
+
+"""Scoped sub-identities (API keys and agents) with precomputed SPRT"""
+type Principal {
+  """
+  Upper bound on the lifetime of API keys minted for this principal; clamps expires_in below auth_settings.api_key_max_duration. NULL means no additional cap
+  """
+  apiKeyMaxDuration: Interval
+
+  """Whether this principal bypasses MFA step-up requirements"""
+  bypassStepUp: Boolean!
+
+  """Reads and enables pagination through a set of `Principal`."""
+  child_principals(
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """The method to use when ordering `Principal`."""
+    orderBy: [PrincipalOrderBy!] = [PRIMARY_KEY_ASC]
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    where: PrincipalFilter
+  ): PrincipalConnection!
+  createdAt: Datetime
+
+  """
+  Session that minted this child principal; NULL for principals created outside a session chain
+  """
+  createdBySessionId: UUID
+
+  """
+  Depth of this principal below its owner-derived root (0 for standing principals), bounded by auth_settings.max_principal_depth
+  """
+  depth: Int!
+
+  """
+  When this ephemeral child principal expires; NULL for standing principals
+  """
+  expiresAt: Datetime
+  id: UUID!
+
+  """Whether this principal is restricted to read-only operations"""
+  isReadOnly: Boolean!
+
+  """
+  Human-readable label for this principal (e.g., billing-bot, ci-deploy-key)
+  """
+  name: String!
+
+  """Reads a single `User` that is related to this `Principal`."""
+  owner: User
+
+  """The human user who owns and manages this principal"""
+  ownerId: UUID!
+
+  """Reads a single `Principal` that is related to this `Principal`."""
+  parentPrincipal: Principal
+
+  """
+  Principal this child principal derives its authority from; NULL for principals that derive from owner_id
+  """
+  parentPrincipalId: UUID
+
+  """Reads and enables pagination through a set of `PrincipalEntity`."""
+  principalEntities(
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """The method to use when ordering `PrincipalEntity`."""
+    orderBy: [PrincipalEntityOrderBy!] = [PRIMARY_KEY_ASC]
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    where: PrincipalEntityFilter
+  ): PrincipalEntityConnection!
+
+  """
+  Reads and enables pagination through a set of `PrincipalScopeOverride`.
+  """
+  principalScopeOverrides(
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """The method to use when ordering `PrincipalScopeOverride`."""
+    orderBy: [PrincipalScopeOverrideOrderBy!] = [PRIMARY_KEY_ASC]
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    where: PrincipalScopeOverrideFilter
+  ): PrincipalScopeOverrideConnection!
+  updatedAt: Datetime
+
+  """Whether this principal inherits admin/owner privileges from the owner"""
+  useAdminOwner: Boolean!
+
+  """Reads a single `User` that is related to this `Principal`."""
+  user: User
+
+  """
+  The user row (type=3 Principal) that represents this principal identity
+  """
+  userId: UUID!
+}
+
+"""A connection to a list of `Principal` values."""
+type PrincipalConnection {
+  """
+  A list of edges which contains the `Principal` and cursor to aid in pagination.
+  """
+  edges: [PrincipalEdge]!
+
+  """A list of `Principal` objects."""
+  nodes: [Principal]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """The count of *all* `Principal` you could get from the connection."""
+  totalCount: Int!
+}
+
+"""A `Principal` edge in the connection."""
+type PrincipalEdge {
+  """A cursor for use in pagination."""
+  cursor: Cursor
+
+  """The `Principal` at the end of the edge."""
+  node: Principal
+}
+
+"""Association table scoping principals to specific organizations"""
+type PrincipalEntity {
+  createdAt: Datetime
+
+  """Reads a single `User` that is related to this `PrincipalEntity`."""
+  entity: User
+
+  """The organization this principal is scoped to"""
+  entityId: UUID!
+  id: UUID!
+
+  """Reads a single `User` that is related to this `PrincipalEntity`."""
+  owner: User
+
+  """Denormalized owner_id from principals table for RLS"""
+  ownerId: UUID!
+
+  """Reads a single `Principal` that is related to this `PrincipalEntity`."""
+  principal: Principal
+
+  """The principal this scoping row belongs to"""
+  principalId: UUID!
+  updatedAt: Datetime
+}
+
+"""A connection to a list of `PrincipalEntity` values."""
+type PrincipalEntityConnection {
+  """
+  A list of edges which contains the `PrincipalEntity` and cursor to aid in pagination.
+  """
+  edges: [PrincipalEntityEdge]!
+
+  """A list of `PrincipalEntity` objects."""
+  nodes: [PrincipalEntity]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """
+  The count of *all* `PrincipalEntity` you could get from the connection.
+  """
+  totalCount: Int!
+}
+
+"""A `PrincipalEntity` edge in the connection."""
+type PrincipalEntityEdge {
+  """A cursor for use in pagination."""
+  cursor: Cursor
+
+  """The `PrincipalEntity` at the end of the edge."""
+  node: PrincipalEntity
+}
+
+"""
+A filter to be used against `PrincipalEntity` object types. All fields are combined with a logical ‘and.’
+"""
+input PrincipalEntityFilter {
+  """Checks for all expressions in this list."""
+  and: [PrincipalEntityFilter!]
+
+  """Filter by the object’s `createdAt` field."""
+  createdAt: DatetimeFilter
+
+  """Filter by the object’s `entity` relation."""
+  entity: UserFilter
+
+  """Filter by the object’s `entityId` field."""
+  entityId: UUIDFilter
+
+  """Filter by the object’s `id` field."""
+  id: UUIDFilter
+
+  """Negates the expression."""
+  not: PrincipalEntityFilter
+
+  """Checks for any expressions in this list."""
+  or: [PrincipalEntityFilter!]
+
+  """Filter by the object’s `owner` relation."""
+  owner: UserFilter
+
+  """Filter by the object’s `ownerId` field."""
+  ownerId: UUIDFilter
+
+  """Filter by the object’s `principal` relation."""
+  principal: PrincipalFilter
+
+  """Filter by the object’s `principalId` field."""
+  principalId: UUIDFilter
+
+  """Filter by the object’s `updatedAt` field."""
+  updatedAt: DatetimeFilter
+}
+
+"""Methods to use when ordering `PrincipalEntity`."""
+enum PrincipalEntityOrderBy {
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  ENTITY_ID_ASC
+  ENTITY_ID_DESC
+  ID_ASC
+  ID_DESC
+  NATURAL
+  OWNER_ID_ASC
+  OWNER_ID_DESC
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+  PRINCIPAL_ID_ASC
+  PRINCIPAL_ID_DESC
+  UPDATED_AT_ASC
+  UPDATED_AT_DESC
+}
+
+"""
+A filter to be used against `Principal` object types. All fields are combined with a logical ‘and.’
+"""
+input PrincipalFilter {
+  """Checks for all expressions in this list."""
+  and: [PrincipalFilter!]
+
+  """Filter by the object’s `apiKeyMaxDuration` field."""
+  apiKeyMaxDuration: IntervalFilter
+
+  """Filter by the object’s `bypassStepUp` field."""
+  bypassStepUp: BooleanFilter
+
+  """Filter by the object’s `child_principals` relation."""
+  child_principals: PrincipalToManyPrincipalFilter
+
+  """`child_principals` exist."""
+  child_principalsExist: Boolean
+
+  """Filter by the object’s `createdAt` field."""
+  createdAt: DatetimeFilter
+
+  """Filter by the object’s `createdBySessionId` field."""
+  createdBySessionId: UUIDFilter
+
+  """Filter by the object’s `depth` field."""
+  depth: IntFilter
+
+  """Filter by the object’s `expiresAt` field."""
+  expiresAt: DatetimeFilter
+
+  """Filter by the object’s `id` field."""
+  id: UUIDFilter
+
+  """Filter by the object’s `isReadOnly` field."""
+  isReadOnly: BooleanFilter
+
+  """Filter by the object’s `name` field."""
+  name: StringFilter
+
+  """Negates the expression."""
+  not: PrincipalFilter
+
+  """Checks for any expressions in this list."""
+  or: [PrincipalFilter!]
+
+  """Filter by the object’s `owner` relation."""
+  owner: UserFilter
+
+  """Filter by the object’s `ownerId` field."""
+  ownerId: UUIDFilter
+
+  """Filter by the object’s `parentPrincipal` relation."""
+  parentPrincipal: PrincipalFilter
+
+  """A related `parentPrincipal` exists."""
+  parentPrincipalExists: Boolean
+
+  """Filter by the object’s `parentPrincipalId` field."""
+  parentPrincipalId: UUIDFilter
+
+  """Filter by the object’s `principalEntities` relation."""
+  principalEntities: PrincipalToManyPrincipalEntityFilter
+
+  """`principalEntities` exist."""
+  principalEntitiesExist: Boolean
+
+  """Filter by the object’s `principalScopeOverrides` relation."""
+  principalScopeOverrides: PrincipalToManyPrincipalScopeOverrideFilter
+
+  """`principalScopeOverrides` exist."""
+  principalScopeOverridesExist: Boolean
+
+  """Filter by the object’s `updatedAt` field."""
+  updatedAt: DatetimeFilter
+
+  """Filter by the object’s `useAdminOwner` field."""
+  useAdminOwner: BooleanFilter
+
+  """Filter by the object’s `user` relation."""
+  user: UserFilter
+
+  """Filter by the object’s `userId` field."""
+  userId: UUIDFilter
+}
+
+"""Methods to use when ordering `Principal`."""
+enum PrincipalOrderBy {
+  API_KEY_MAX_DURATION_ASC
+  API_KEY_MAX_DURATION_DESC
+  BYPASS_STEP_UP_ASC
+  BYPASS_STEP_UP_DESC
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  CREATED_BY_SESSION_ID_ASC
+  CREATED_BY_SESSION_ID_DESC
+  DEPTH_ASC
+  DEPTH_DESC
+  EXPIRES_AT_ASC
+  EXPIRES_AT_DESC
+  ID_ASC
+  ID_DESC
+  IS_READ_ONLY_ASC
+  IS_READ_ONLY_DESC
+  NAME_ASC
+  NAME_DESC
+  NATURAL
+  OWNER_ID_ASC
+  OWNER_ID_DESC
+  PARENT_PRINCIPAL_ID_ASC
+  PARENT_PRINCIPAL_ID_DESC
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+  UPDATED_AT_ASC
+  UPDATED_AT_DESC
+  USER_ID_ASC
+  USER_ID_DESC
+  USE_ADMIN_OWNER_ASC
+  USE_ADMIN_OWNER_DESC
+}
+
+"""
+Per-scope capability overrides for principals. No row = full access; row exists = apply restrictions.
+"""
+type PrincipalScopeOverride {
+  """
+  Optional capability mask; AND-masked with parent capabilities during cascade. NULL means no extra mask.
+  """
+  allowedMask: BitString
+  createdAt: Datetime
+  id: UUID!
+
+  """
+  Whether this scope is active for this principal; false disables all access at this scope
+  """
+  isActive: Boolean!
+
+  """Whether this principal is restricted to read-only at this scope"""
+  isReadOnly: Boolean!
+
+  """The scope level (membership_type) this override restricts"""
+  membershipType: Int!
+
+  """
+  Reads a single `Principal` that is related to this `PrincipalScopeOverride`.
+  """
+  principal: Principal
+
+  """The principal this override applies to"""
+  principalId: UUID!
+  updatedAt: Datetime
+
+  """
+  Whether this principal inherits admin/owner at this scope (default true = inherit from parent)
+  """
+  useAdminOwner: Boolean!
+}
+
+"""A connection to a list of `PrincipalScopeOverride` values."""
+type PrincipalScopeOverrideConnection {
+  """
+  A list of edges which contains the `PrincipalScopeOverride` and cursor to aid in pagination.
+  """
+  edges: [PrincipalScopeOverrideEdge]!
+
+  """A list of `PrincipalScopeOverride` objects."""
+  nodes: [PrincipalScopeOverride]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """
+  The count of *all* `PrincipalScopeOverride` you could get from the connection.
+  """
+  totalCount: Int!
+}
+
+"""A `PrincipalScopeOverride` edge in the connection."""
+type PrincipalScopeOverrideEdge {
+  """A cursor for use in pagination."""
+  cursor: Cursor
+
+  """The `PrincipalScopeOverride` at the end of the edge."""
+  node: PrincipalScopeOverride
+}
+
+"""
+A filter to be used against `PrincipalScopeOverride` object types. All fields are combined with a logical ‘and.’
+"""
+input PrincipalScopeOverrideFilter {
+  """Filter by the object’s `allowedMask` field."""
+  allowedMask: BitStringFilter
+
+  """Checks for all expressions in this list."""
+  and: [PrincipalScopeOverrideFilter!]
+
+  """Filter by the object’s `createdAt` field."""
+  createdAt: DatetimeFilter
+
+  """Filter by the object’s `id` field."""
+  id: UUIDFilter
+
+  """Filter by the object’s `isActive` field."""
+  isActive: BooleanFilter
+
+  """Filter by the object’s `isReadOnly` field."""
+  isReadOnly: BooleanFilter
+
+  """Filter by the object’s `membershipType` field."""
+  membershipType: IntFilter
+
+  """Negates the expression."""
+  not: PrincipalScopeOverrideFilter
+
+  """Checks for any expressions in this list."""
+  or: [PrincipalScopeOverrideFilter!]
+
+  """Filter by the object’s `principal` relation."""
+  principal: PrincipalFilter
+
+  """Filter by the object’s `principalId` field."""
+  principalId: UUIDFilter
+
+  """Filter by the object’s `updatedAt` field."""
+  updatedAt: DatetimeFilter
+
+  """Filter by the object’s `useAdminOwner` field."""
+  useAdminOwner: BooleanFilter
+}
+
+"""Methods to use when ordering `PrincipalScopeOverride`."""
+enum PrincipalScopeOverrideOrderBy {
+  ALLOWED_MASK_ASC
+  ALLOWED_MASK_DESC
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  ID_ASC
+  ID_DESC
+  IS_ACTIVE_ASC
+  IS_ACTIVE_DESC
+  IS_READ_ONLY_ASC
+  IS_READ_ONLY_DESC
+  MEMBERSHIP_TYPE_ASC
+  MEMBERSHIP_TYPE_DESC
+  NATURAL
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+  PRINCIPAL_ID_ASC
+  PRINCIPAL_ID_DESC
+  UPDATED_AT_ASC
+  UPDATED_AT_DESC
+  USE_ADMIN_OWNER_ASC
+  USE_ADMIN_OWNER_DESC
+}
+
+"""
+A filter to be used against many `PrincipalEntity` object types. All fields are combined with a logical ‘and.’
+"""
+input PrincipalToManyPrincipalEntityFilter {
+  """Filters to entities where every related entity matches."""
+  every: PrincipalEntityFilter
+
+  """Filters to entities where no related entity matches."""
+  none: PrincipalEntityFilter
+
+  """Filters to entities where at least one related entity matches."""
+  some: PrincipalEntityFilter
+}
+
+"""
+A filter to be used against many `Principal` object types. All fields are combined with a logical ‘and.’
+"""
+input PrincipalToManyPrincipalFilter {
+  """Filters to entities where every related entity matches."""
+  every: PrincipalFilter
+
+  """Filters to entities where no related entity matches."""
+  none: PrincipalFilter
+
+  """Filters to entities where at least one related entity matches."""
+  some: PrincipalFilter
+}
+
+"""
+A filter to be used against many `PrincipalScopeOverride` object types. All fields are combined with a logical ‘and.’
+"""
+input PrincipalToManyPrincipalScopeOverrideFilter {
+  """Filters to entities where every related entity matches."""
+  every: PrincipalScopeOverrideFilter
+
+  """Filters to entities where no related entity matches."""
+  none: PrincipalScopeOverrideFilter
+
+  """Filters to entities where at least one related entity matches."""
+  some: PrincipalScopeOverrideFilter
+}
+
+input ProvisionBucketInput {
+  """The logical bucket key (e.g., "public", "private")"""
+  bucketKey: String!
+
+  """
+  Owner entity ID for entity-scoped bucket provisioning.
+  Omit for app-level (database-wide) storage.
+  """
+  ownerId: UUID
+}
+
+type ProvisionBucketPayload {
+  """The logical bucket row whose reconciliation was requested."""
+  bucketId: UUID!
+  bucketKey: String!
+
+  """
+  The physical bucket name already recorded, or null when reconciliation has not completed.
+  """
+  physicalName: String
+
+  """When reconciliation was last requested for this bucket."""
+  provisionRequestedAt: Datetime!
+}
+
+"""The root query type which gives access points into the data universe."""
+type Query {
+  """
+  Metadata about the database schema, including tables, fields, indexes, and constraints. Useful for code generation tools.
+  """
+  _meta: MetaSchema
+
+  """Reads and enables pagination through a set of `AuditLogAuth`."""
+  auditLogAuths(
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """The method to use when ordering `AuditLogAuth`."""
+    orderBy: [AuditLogAuthOrderBy!] = [PRIMARY_KEY_ASC]
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    where: AuditLogAuthFilter
+  ): AuditLogAuthConnection
+  currentIpAddress: InternetAddress
+  currentUser: User
+  currentUserAgent: String
+  currentUserId: UUID
+
+  """Reads and enables pagination through a set of `Email`."""
+  emails(
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """The method to use when ordering `Email`."""
+    orderBy: [EmailOrderBy!] = [PRIMARY_KEY_ASC]
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    where: EmailFilter
+  ): EmailConnection
+  getMfaStatus: GetMfaStatusRecord
+
+  """Reads and enables pagination through a set of `IdentityProvider`."""
+  identityProviders(
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """The method to use when ordering `IdentityProvider`."""
+    orderBy: [IdentityProviderOrderBy!] = [NATURAL]
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    where: IdentityProviderFilter
+  ): IdentityProviderConnection
+
+  """Reads and enables pagination through a set of `OrgApiKeyList`."""
+  orgApiKeyLists(
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """The method to use when ordering `OrgApiKeyList`."""
+    orderBy: [OrgApiKeyListOrderBy!] = [NATURAL]
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    where: OrgApiKeyListFilter
+  ): OrgApiKeyListConnection
+
+  """Reads and enables pagination through a set of `PhoneNumber`."""
+  phoneNumbers(
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """The method to use when ordering `PhoneNumber`."""
+    orderBy: [PhoneNumberOrderBy!] = [PRIMARY_KEY_ASC]
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    where: PhoneNumberFilter
+  ): PhoneNumberConnection
+
+  """Reads and enables pagination through a set of `PrincipalEntity`."""
+  principalEntities(
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """The method to use when ordering `PrincipalEntity`."""
+    orderBy: [PrincipalEntityOrderBy!] = [PRIMARY_KEY_ASC]
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    where: PrincipalEntityFilter
+  ): PrincipalEntityConnection
+
+  """
+  Reads and enables pagination through a set of `PrincipalScopeOverride`.
+  """
+  principalScopeOverrides(
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """The method to use when ordering `PrincipalScopeOverride`."""
+    orderBy: [PrincipalScopeOverrideOrderBy!] = [PRIMARY_KEY_ASC]
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    where: PrincipalScopeOverrideFilter
+  ): PrincipalScopeOverrideConnection
+
+  """Reads and enables pagination through a set of `Principal`."""
+  principals(
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """The method to use when ordering `Principal`."""
+    orderBy: [PrincipalOrderBy!] = [PRIMARY_KEY_ASC]
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    where: PrincipalFilter
+  ): PrincipalConnection
+  requireStepUp(stepUpType: String): Boolean
+
+  """Reads and enables pagination through a set of `UserConnectedAccount`."""
+  userConnectedAccounts(
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """The method to use when ordering `UserConnectedAccount`."""
+    orderBy: [UserConnectedAccountOrderBy!] = [NATURAL]
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    where: UserConnectedAccountFilter
+  ): UserConnectedAccountConnection
+
+  """Reads and enables pagination through a set of `UserSettingsSecurity`."""
+  userSettingsSecurities(
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """The method to use when ordering `UserSettingsSecurity`."""
+    orderBy: [UserSettingsSecurityOrderBy!] = [PRIMARY_KEY_ASC]
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    where: UserSettingsSecurityFilter
+  ): UserSettingsSecurityConnection
+
+  """Reads and enables pagination through a set of `User`."""
+  users(
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """The method to use when ordering `User`."""
+    orderBy: [UserOrderBy!] = [PRIMARY_KEY_ASC]
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    where: UserFilter
+  ): UserConnection
+
+  """Reads and enables pagination through a set of `WebauthnCredential`."""
+  webauthnCredentials(
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """The method to use when ordering `WebauthnCredential`."""
+    orderBy: [WebauthnCredentialOrderBy!] = [PRIMARY_KEY_ASC]
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    where: WebauthnCredentialFilter
+  ): WebauthnCredentialConnection
+}
+
+"""All input for the `refreshAccessToken` mutation."""
+input RefreshAccessTokenInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  token: String
+}
+
+"""The output of our `refreshAccessToken` mutation."""
+type RefreshAccessTokenPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: RefreshAccessTokenRecord
+}
+
+type RefreshAccessTokenRecord {
+  accessExpiresAt: Datetime
+  accessToken: String
+  principalUserId: UUID
+  refreshExpiresAt: Datetime
+  refreshToken: String
+  sessionId: UUID
+}
+
+"""All input for the `requestCrossOriginToken` mutation."""
+input RequestCrossOriginTokenInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  email: String
+  origin: String
+  password: String
+  rememberMe: Boolean
+}
+
+"""The output of our `requestCrossOriginToken` mutation."""
+type RequestCrossOriginTokenPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: String
+}
+
+"""All input for the `requestMagicLink` mutation."""
+input RequestMagicLinkInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  email: String
+}
+
+"""The output of our `requestMagicLink` mutation."""
+type RequestMagicLinkPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+}
+
+"""All input for the `resetPassword` mutation."""
+input ResetPasswordInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  newPassword: String
+  resetToken: String
+  roleId: UUID
+}
+
+"""The output of our `resetPassword` mutation."""
+type ResetPasswordPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: Boolean
+}
+
+"""All input for the `revokeApiKey` mutation."""
+input RevokeApiKeyInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  keyId: UUID!
+}
+
+"""The output of our `revokeApiKey` mutation."""
+type RevokeApiKeyPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: Boolean
+}
+
+"""All input for the `revokeOrgApiKey` mutation."""
+input RevokeOrgApiKeyInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  keyId: UUID!
+  orgId: UUID!
+}
+
+"""The output of our `revokeOrgApiKey` mutation."""
+type RevokeOrgApiKeyPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: Boolean
+}
+
+"""All input for the `revokeSession` mutation."""
+input RevokeSessionInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  sessionId: UUID!
+}
+
+"""The output of our `revokeSession` mutation."""
+type RevokeSessionPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: Boolean
+}
+
+"""
+A filter to be used against `RoleType` object types. All fields are combined with a logical ‘and.’
+"""
+input RoleTypeFilter {
+  """Checks for all expressions in this list."""
+  and: [RoleTypeFilter!]
+
+  """Filter by the object’s `id` field."""
+  id: IntFilter
+
+  """Filter by the object’s `name` field."""
+  name: StringFilter
+
+  """Negates the expression."""
+  not: RoleTypeFilter
+
+  """Checks for any expressions in this list."""
+  or: [RoleTypeFilter!]
+}
+
+"""All input for the `sendAccountDeletionEmail` mutation."""
+input SendAccountDeletionEmailInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+}
+
+"""The output of our `sendAccountDeletionEmail` mutation."""
+type SendAccountDeletionEmailPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: Boolean
+}
+
+"""All input for the `sendMfaChallengeCode` mutation."""
+input SendMfaChallengeCodeInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  mfaChallengeToken: String
+  mfaMethod: String
+  userId: UUID
+}
+
+"""The output of our `sendMfaChallengeCode` mutation."""
+type SendMfaChallengeCodePayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: Boolean
+}
+
+"""All input for the `sendPhoneVerificationCode` mutation."""
+input SendPhoneVerificationCodeInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  phone: String
+}
+
+"""The output of our `sendPhoneVerificationCode` mutation."""
+type SendPhoneVerificationCodePayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: Boolean
+}
+
+"""All input for the `sendSmsOtp` mutation."""
+input SendSmsOtpInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  phone: String
+}
+
+"""The output of our `sendSmsOtp` mutation."""
+type SendSmsOtpPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: Boolean
+}
+
+"""All input for the `sendStepUpCode` mutation."""
+input SendStepUpCodeInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  method: String
+}
+
+"""The output of our `sendStepUpCode` mutation."""
+type SendStepUpCodePayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: String
+}
+
+"""All input for the `sendVerificationEmail` mutation."""
+input SendVerificationEmailInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  email: String
+}
+
+"""The output of our `sendVerificationEmail` mutation."""
+type SendVerificationEmailPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: Boolean
+}
+
+"""All input for the `setPassword` mutation."""
+input SetPasswordInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  currentPassword: String
+  newPassword: String
+}
+
+"""The output of our `setPassword` mutation."""
+type SetPasswordPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: Boolean
+}
+
+"""All input for the `setPrincipalEntities` mutation."""
+input SetPrincipalEntitiesInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  entityIds: [UUID]
+  principalId: UUID
+}
+
+"""The output of our `setPrincipalEntities` mutation."""
+type SetPrincipalEntitiesPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: Boolean
+}
+
+"""All input for the `setPrincipalScope` mutation."""
+input SetPrincipalScopeInput {
+  allowedMask: BitString
+
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  isActive: Boolean
+  isReadOnly: Boolean
+  membershipType: Int
+  principalId: UUID
+  useAdminOwner: Boolean
+}
+
+"""The output of our `setPrincipalScope` mutation."""
+type SetPrincipalScopePayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: Boolean
+}
+
+"""All input for the `signInCrossOrigin` mutation."""
+input SignInCrossOriginInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  credentialKind: String
+  token: String
+}
+
+"""The output of our `signInCrossOrigin` mutation."""
+type SignInCrossOriginPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: SignInCrossOriginRecord
+}
+
+type SignInCrossOriginRecord {
+  accessToken: String
+  accessTokenExpiresAt: Datetime
+  id: UUID
+  isVerified: Boolean
+  totpEnabled: Boolean
+  userId: UUID
+}
+
+"""All input for the `signIn` mutation."""
+input SignInInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  credentialKind: String
+  csrfToken: String
+  deviceToken: String
+  email: String
+  password: String
+  rememberMe: Boolean
+}
+
+"""All input for the `signInMagicLink` mutation."""
+input SignInMagicLinkInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  credentialKind: String
+  deviceToken: String
+  rememberMe: Boolean
+  token: String
+}
+
+"""The output of our `signInMagicLink` mutation."""
+type SignInMagicLinkPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: SignInMagicLinkRecord
+}
+
+type SignInMagicLinkRecord {
+  accessToken: String
+  accessTokenExpiresAt: Datetime
+  deviceApprovalRequired: Boolean
+  mfaChallengeToken: String
+  mfaRequired: Boolean
+  outDeviceToken: String
+  userId: UUID
+}
+
+"""The output of our `signIn` mutation."""
+type SignInPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: SignInRecord
+}
+
+type SignInRecord {
+  accessToken: String
+  accessTokenExpiresAt: Datetime
+  deviceApprovalRequired: Boolean
+  id: UUID
+  isVerified: Boolean
+  mfaChallengeToken: String
+  mfaRequired: Boolean
+  mfaSetupRequired: Boolean
+  outDeviceToken: String
+  totpEnabled: Boolean
+  userId: UUID
+}
+
+"""All input for the `signInSmsOtp` mutation."""
+input SignInSmsOtpInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  code: String
+  credentialKind: String
+  deviceToken: String
+  phone: String
+  rememberMe: Boolean
+}
+
+"""The output of our `signInSmsOtp` mutation."""
+type SignInSmsOtpPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: SignInSmsOtpRecord
+}
+
+type SignInSmsOtpRecord {
+  accessToken: String
+  accessTokenExpiresAt: Datetime
+  deviceApprovalRequired: Boolean
+  mfaChallengeToken: String
+  mfaRequired: Boolean
+  outDeviceToken: String
+  userId: UUID
+}
+
+"""All input for the `signOut` mutation."""
+input SignOutInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+}
+
+"""The output of our `signOut` mutation."""
+type SignOutPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+}
+
+"""All input for the `signUp` mutation."""
+input SignUpInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  csrfToken: String
+  email: String
+  inviteToken: String
+  password: String
+}
+
+"""All input for the `signUpMagicLink` mutation."""
+input SignUpMagicLinkInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  credentialKind: String
+  deviceToken: String
+  inviteToken: String
+  rememberMe: Boolean
+  token: String
+}
+
+"""The output of our `signUpMagicLink` mutation."""
+type SignUpMagicLinkPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: SignUpMagicLinkRecord
+}
+
+type SignUpMagicLinkRecord {
+  accessToken: String
+  accessTokenExpiresAt: Datetime
+  outDeviceToken: String
+  userId: UUID
+}
+
+"""The output of our `signUp` mutation."""
+type SignUpPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+}
+
+"""All input for the `signUpSms` mutation."""
+input SignUpSmsInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  code: String
+  credentialKind: String
+  deviceToken: String
+  inviteToken: String
+  phone: String
+  rememberMe: Boolean
+}
+
+"""The output of our `signUpSms` mutation."""
+type SignUpSmsPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: SignUpSmsRecord
+}
+
+type SignUpSmsRecord {
+  accessToken: String
+  accessTokenExpiresAt: Datetime
+  outDeviceToken: String
+  userId: UUID
+}
+
+"""
+A filter to be used against String fields. All fields are combined with a logical ‘and.’
+"""
+input StringFilter {
+  """
+  Not equal to the specified value, treating null like an ordinary value.
+  """
+  distinctFrom: String
+
+  """
+  Not equal to the specified value, treating null like an ordinary value (case-insensitive).
+  """
+  distinctFromInsensitive: String
+
+  """Ends with the specified string (case-sensitive)."""
+  endsWith: String
+
+  """Ends with the specified string (case-insensitive)."""
+  endsWithInsensitive: String
+
+  """Equal to the specified value."""
+  equalTo: String
+
+  """Equal to the specified value (case-insensitive)."""
+  equalToInsensitive: String
+
+  """Greater than the specified value."""
+  greaterThan: String
+
+  """Greater than the specified value (case-insensitive)."""
+  greaterThanInsensitive: String
+
+  """Greater than or equal to the specified value."""
+  greaterThanOrEqualTo: String
+
+  """Greater than or equal to the specified value (case-insensitive)."""
+  greaterThanOrEqualToInsensitive: String
+
+  """Included in the specified list."""
+  in: [String!]
+
+  """Included in the specified list (case-insensitive)."""
+  inInsensitive: [String!]
+
+  """Contains the specified string (case-sensitive)."""
+  includes: String
+
+  """Contains the specified string (case-insensitive)."""
+  includesInsensitive: String
+
+  """
+  Is null (if `true` is specified) or is not null (if `false` is specified).
+  """
+  isNull: Boolean
+
+  """Less than the specified value."""
+  lessThan: String
+
+  """Less than the specified value (case-insensitive)."""
+  lessThanInsensitive: String
+
+  """Less than or equal to the specified value."""
+  lessThanOrEqualTo: String
+
+  """Less than or equal to the specified value (case-insensitive)."""
+  lessThanOrEqualToInsensitive: String
+
+  """
+  Matches the specified pattern (case-sensitive). An underscore (_) matches any single character; a percent sign (%) matches any sequence of zero or more characters.
+  """
+  like: String
+
+  """
+  Matches the specified pattern (case-insensitive). An underscore (_) matches any single character; a percent sign (%) matches any sequence of zero or more characters.
+  """
+  likeInsensitive: String
+
+  """Equal to the specified value, treating null like an ordinary value."""
+  notDistinctFrom: String
+
+  """
+  Equal to the specified value, treating null like an ordinary value (case-insensitive).
+  """
+  notDistinctFromInsensitive: String
+
+  """Does not end with the specified string (case-sensitive)."""
+  notEndsWith: String
+
+  """Does not end with the specified string (case-insensitive)."""
+  notEndsWithInsensitive: String
+
+  """Not equal to the specified value."""
+  notEqualTo: String
+
+  """Not equal to the specified value (case-insensitive)."""
+  notEqualToInsensitive: String
+
+  """Not included in the specified list."""
+  notIn: [String!]
+
+  """Not included in the specified list (case-insensitive)."""
+  notInInsensitive: [String!]
+
+  """Does not contain the specified string (case-sensitive)."""
+  notIncludes: String
+
+  """Does not contain the specified string (case-insensitive)."""
+  notIncludesInsensitive: String
+
+  """
+  Does not match the specified pattern (case-sensitive). An underscore (_) matches any single character; a percent sign (%) matches any sequence of zero or more characters.
+  """
+  notLike: String
+
+  """
+  Does not match the specified pattern (case-insensitive). An underscore (_) matches any single character; a percent sign (%) matches any sequence of zero or more characters.
+  """
+  notLikeInsensitive: String
+
+  """Does not start with the specified string (case-sensitive)."""
+  notStartsWith: String
+
+  """Does not start with the specified string (case-insensitive)."""
+  notStartsWithInsensitive: String
+
+  """Starts with the specified string (case-sensitive)."""
+  startsWith: String
+
+  """Starts with the specified string (case-insensitive)."""
+  startsWithInsensitive: String
+}
+
+"""
+A filter to be used against String List fields. All fields are combined with a logical ‘and.’
+"""
+input StringListFilter {
+  """Any array item is equal to the specified value."""
+  anyEqualTo: String
+
+  """Any array item is greater than the specified value."""
+  anyGreaterThan: String
+
+  """Any array item is greater than or equal to the specified value."""
+  anyGreaterThanOrEqualTo: String
+
+  """Any array item is less than the specified value."""
+  anyLessThan: String
+
+  """Any array item is less than or equal to the specified value."""
+  anyLessThanOrEqualTo: String
+
+  """Any array item is not equal to the specified value."""
+  anyNotEqualTo: String
+
+  """Contained by the specified list of values."""
+  containedBy: [String]
+
+  """Contains the specified list of values."""
+  contains: [String]
+
+  """
+  Not equal to the specified value, treating null like an ordinary value.
+  """
+  distinctFrom: [String]
+
+  """Equal to the specified value."""
+  equalTo: [String]
+
+  """Greater than the specified value."""
+  greaterThan: [String]
+
+  """Greater than or equal to the specified value."""
+  greaterThanOrEqualTo: [String]
+
+  """
+  Is null (if `true` is specified) or is not null (if `false` is specified).
+  """
+  isNull: Boolean
+
+  """Less than the specified value."""
+  lessThan: [String]
+
+  """Less than or equal to the specified value."""
+  lessThanOrEqualTo: [String]
+
+  """Equal to the specified value, treating null like an ordinary value."""
+  notDistinctFrom: [String]
+
+  """Not equal to the specified value."""
+  notEqualTo: [String]
+
+  """Overlaps the specified list of values."""
+  overlaps: [String]
+}
+
+"""
+A filter to be used against String fields with pg_trgm support. All fields are combined with a logical ‘and.’
+"""
+input StringTrgmFilter {
+  """
+  Not equal to the specified value, treating null like an ordinary value.
+  """
+  distinctFrom: String
+
+  """
+  Not equal to the specified value, treating null like an ordinary value (case-insensitive).
+  """
+  distinctFromInsensitive: String
+
+  """Ends with the specified string (case-sensitive)."""
+  endsWith: String
+
+  """Ends with the specified string (case-insensitive)."""
+  endsWithInsensitive: String
+
+  """Equal to the specified value."""
+  equalTo: String
+
+  """Equal to the specified value (case-insensitive)."""
+  equalToInsensitive: String
+
+  """Greater than the specified value."""
+  greaterThan: String
+
+  """Greater than the specified value (case-insensitive)."""
+  greaterThanInsensitive: String
+
+  """Greater than or equal to the specified value."""
+  greaterThanOrEqualTo: String
+
+  """Greater than or equal to the specified value (case-insensitive)."""
+  greaterThanOrEqualToInsensitive: String
+
+  """Included in the specified list."""
+  in: [String!]
+
+  """Included in the specified list (case-insensitive)."""
+  inInsensitive: [String!]
+
+  """Contains the specified string (case-sensitive)."""
+  includes: String
+
+  """Contains the specified string (case-insensitive)."""
+  includesInsensitive: String
+
+  """
+  Is null (if `true` is specified) or is not null (if `false` is specified).
+  """
+  isNull: Boolean
+
+  """Less than the specified value."""
+  lessThan: String
+
+  """Less than the specified value (case-insensitive)."""
+  lessThanInsensitive: String
+
+  """Less than or equal to the specified value."""
+  lessThanOrEqualTo: String
+
+  """Less than or equal to the specified value (case-insensitive)."""
+  lessThanOrEqualToInsensitive: String
+
+  """
+  Matches the specified pattern (case-sensitive). An underscore (_) matches any single character; a percent sign (%) matches any sequence of zero or more characters.
+  """
+  like: String
+
+  """
+  Matches the specified pattern (case-insensitive). An underscore (_) matches any single character; a percent sign (%) matches any sequence of zero or more characters.
+  """
+  likeInsensitive: String
+
+  """Equal to the specified value, treating null like an ordinary value."""
+  notDistinctFrom: String
+
+  """
+  Equal to the specified value, treating null like an ordinary value (case-insensitive).
+  """
+  notDistinctFromInsensitive: String
+
+  """Does not end with the specified string (case-sensitive)."""
+  notEndsWith: String
+
+  """Does not end with the specified string (case-insensitive)."""
+  notEndsWithInsensitive: String
+
+  """Not equal to the specified value."""
+  notEqualTo: String
+
+  """Not equal to the specified value (case-insensitive)."""
+  notEqualToInsensitive: String
+
+  """Not included in the specified list."""
+  notIn: [String!]
+
+  """Not included in the specified list (case-insensitive)."""
+  notInInsensitive: [String!]
+
+  """Does not contain the specified string (case-sensitive)."""
+  notIncludes: String
+
+  """Does not contain the specified string (case-insensitive)."""
+  notIncludesInsensitive: String
+
+  """
+  Does not match the specified pattern (case-sensitive). An underscore (_) matches any single character; a percent sign (%) matches any sequence of zero or more characters.
+  """
+  notLike: String
+
+  """
+  Does not match the specified pattern (case-insensitive). An underscore (_) matches any single character; a percent sign (%) matches any sequence of zero or more characters.
+  """
+  notLikeInsensitive: String
+
+  """Does not start with the specified string (case-sensitive)."""
+  notStartsWith: String
+
+  """Does not start with the specified string (case-insensitive)."""
+  notStartsWithInsensitive: String
+
+  """
+  Fuzzy matches using pg_trgm trigram similarity. Tolerates typos and misspellings.
+  """
+  similarTo: TrgmSearchInput
+
+  """Starts with the specified string (case-sensitive)."""
+  startsWith: String
+
+  """Starts with the specified string (case-insensitive)."""
+  startsWithInsensitive: String
+
+  """
+  Fuzzy matches using pg_trgm word_similarity. Finds the best matching substring within the column value.
+  """
+  wordSimilarTo: TrgmSearchInput
+}
+
+"""
+Input for pg_trgm fuzzy text matching. Provide a search value and optional similarity threshold.
+"""
+input TrgmSearchInput {
+  """
+  Minimum similarity threshold (0.0 to 1.0). Higher = stricter matching. Default is 0.3.
+  """
+  threshold: Float
+
+  """The text to fuzzy-match against. Typos and misspellings are tolerated."""
+  value: String!
+}
+
+"""
+A universally unique identifier as defined by [RFC 4122](https://tools.ietf.org/html/rfc4122).
+"""
+scalar UUID
+
+"""
+A filter to be used against UUID fields. All fields are combined with a logical ‘and.’
+"""
+input UUIDFilter {
+  """
+  Not equal to the specified value, treating null like an ordinary value.
+  """
+  distinctFrom: UUID
+
+  """Equal to the specified value."""
+  equalTo: UUID
+
+  """Greater than the specified value."""
+  greaterThan: UUID
+
+  """Greater than or equal to the specified value."""
+  greaterThanOrEqualTo: UUID
+
+  """Included in the specified list."""
+  in: [UUID!]
+
+  """
+  Is null (if `true` is specified) or is not null (if `false` is specified).
+  """
+  isNull: Boolean
+
+  """Less than the specified value."""
+  lessThan: UUID
+
+  """Less than or equal to the specified value."""
+  lessThanOrEqualTo: UUID
+
+  """Equal to the specified value, treating null like an ordinary value."""
+  notDistinctFrom: UUID
+
+  """Not equal to the specified value."""
+  notEqualTo: UUID
+
+  """Not included in the specified list."""
+  notIn: [UUID!]
+}
+
+"""All input for the `updateEmail` mutation."""
+input UpdateEmailInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+
+  """
+  An object where the defined keys will be set on the `Email` being updated.
+  """
+  emailPatch: EmailPatch!
+  id: UUID!
+}
+
+"""The output of our update `Email` mutation."""
+type UpdateEmailPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The `Email` that was updated by this mutation."""
+  email: Email
+
+  """An edge for our `Email`. May be used by Relay 1."""
+  emailEdge(
+    """The method to use when ordering `Email`."""
+    orderBy: [EmailOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): EmailEdge
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+}
+
+"""All input for the `updatePhoneNumber` mutation."""
+input UpdatePhoneNumberInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  id: UUID!
+
+  """
+  An object where the defined keys will be set on the `PhoneNumber` being updated.
+  """
+  phoneNumberPatch: PhoneNumberPatch!
+}
+
+"""The output of our update `PhoneNumber` mutation."""
+type UpdatePhoneNumberPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The `PhoneNumber` that was updated by this mutation."""
+  phoneNumber: PhoneNumber
+
+  """An edge for our `PhoneNumber`. May be used by Relay 1."""
+  phoneNumberEdge(
+    """The method to use when ordering `PhoneNumber`."""
+    orderBy: [PhoneNumberOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): PhoneNumberEdge
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+}
+
+"""All input for the `updatePrincipal` mutation."""
+input UpdatePrincipalInput {
+  apiKeyMaxDuration: IntervalInput
+  bypassStepUp: Boolean
+
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  isReadOnly: Boolean
+  name: String
+  principalId: UUID
+  useAdminOwner: Boolean
+}
+
+"""The output of our `updatePrincipal` mutation."""
+type UpdatePrincipalPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: Boolean
+}
+
+"""All input for the `updateUser` mutation."""
+input UpdateUserInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  id: UUID!
+
+  """
+  An object where the defined keys will be set on the `User` being updated.
+  """
+  userPatch: UserPatch!
+}
+
+"""The output of our update `User` mutation."""
+type UpdateUserPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """The `User` that was updated by this mutation."""
+  user: User
+
+  """An edge for our `User`. May be used by Relay 1."""
+  userEdge(
+    """The method to use when ordering `User`."""
+    orderBy: [UserOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): UserEdge
+}
+
+"""All input for the `updateWebauthnCredential` mutation."""
+input UpdateWebauthnCredentialInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  id: UUID!
+
+  """
+  An object where the defined keys will be set on the `WebauthnCredential` being updated.
+  """
+  webauthnCredentialPatch: WebauthnCredentialPatch!
+}
+
+"""The output of our update `WebauthnCredential` mutation."""
+type UpdateWebauthnCredentialPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """The `WebauthnCredential` that was updated by this mutation."""
+  webauthnCredential: WebauthnCredential
+
+  """An edge for our `WebauthnCredential`. May be used by Relay 1."""
+  webauthnCredentialEdge(
+    """The method to use when ordering `WebauthnCredential`."""
+    orderBy: [WebauthnCredentialOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): WebauthnCredentialEdge
+}
+
+"""The `Upload` scalar type represents a file upload."""
+scalar Upload
+
+type User {
+  """Reads and enables pagination through a set of `AuditLogAuth`."""
+  authAuditLog(
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """The method to use when ordering `AuditLogAuth`."""
+    orderBy: [AuditLogAuthOrderBy!] = [PRIMARY_KEY_ASC]
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    where: AuditLogAuthFilter
+  ): AuditLogAuthConnection!
+  createdAt: Datetime
+  displayName: String
+
+  """
+  TRGM similarity when searching `displayName`. Returns null when no trgm search filter is active.
+  """
+  displayNameTrgmSimilarity: Float
+
+  """Reads and enables pagination through a set of `Email`."""
+  emails(
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """The method to use when ordering `Email`."""
+    orderBy: [EmailOrderBy!] = [PRIMARY_KEY_ASC]
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    where: EmailFilter
+  ): EmailConnection!
+  id: UUID!
+
+  """Reads a single `UserSettingsSecurity` that is related to this `User`."""
+  ownedUserSettingsSecurity: UserSettingsSecurity
+
+  """Reads and enables pagination through a set of `PhoneNumber`."""
+  phoneNumbers(
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """The method to use when ordering `PhoneNumber`."""
+    orderBy: [PhoneNumberOrderBy!] = [PRIMARY_KEY_ASC]
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    where: PhoneNumberFilter
+  ): PhoneNumberConnection!
+
+  """Reads and enables pagination through a set of `Principal`."""
+  principals(
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """The method to use when ordering `Principal`."""
+    orderBy: [PrincipalOrderBy!] = [PRIMARY_KEY_ASC]
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    where: PrincipalFilter
+  ): PrincipalConnection!
+  profilePicture: ConstructiveInternalTypeImage
+
+  """Reads and enables pagination through a set of `PrincipalEntity`."""
+  scopedPrincipals(
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """The method to use when ordering `PrincipalEntity`."""
+    orderBy: [PrincipalEntityOrderBy!] = [PRIMARY_KEY_ASC]
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    where: PrincipalEntityFilter
+  ): PrincipalEntityConnection!
+
+  """
+  Composite search relevance score (0..1, higher = more relevant). Computed using Reciprocal Rank Fusion (RRF) across all active search signals. Supports per-table weight customization via @searchConfig smart tag. Returns null when no search filters are active.
+  """
+  searchScore: Float
+  searchTsv: FullText
+
+  """
+  TSV rank when searching `searchTsv`. Returns null when no tsv search filter is active.
+  """
+  searchTsvRank: Float
+  type: Int!
+  updatedAt: Datetime
+  username: String
+
+  """Reads and enables pagination through a set of `WebauthnCredential`."""
+  webauthnCredentials(
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """The method to use when ordering `WebauthnCredential`."""
+    orderBy: [WebauthnCredentialOrderBy!] = [PRIMARY_KEY_ASC]
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    where: WebauthnCredentialFilter
+  ): WebauthnCredentialConnection!
+}
+
+type UserConnectedAccount {
+  createdAt: Datetime
+  details: JSON
+  id: UUID
+  identifier: String
+  isVerified: Boolean
+  ownerId: UUID
+  service: String
+  updatedAt: Datetime
+}
+
+"""A connection to a list of `UserConnectedAccount` values."""
+type UserConnectedAccountConnection {
+  """
+  A list of edges which contains the `UserConnectedAccount` and cursor to aid in pagination.
+  """
+  edges: [UserConnectedAccountEdge]!
+
+  """A list of `UserConnectedAccount` objects."""
+  nodes: [UserConnectedAccount]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """
+  The count of *all* `UserConnectedAccount` you could get from the connection.
+  """
+  totalCount: Int!
+}
+
+"""A `UserConnectedAccount` edge in the connection."""
+type UserConnectedAccountEdge {
+  """A cursor for use in pagination."""
+  cursor: Cursor
+
+  """The `UserConnectedAccount` at the end of the edge."""
+  node: UserConnectedAccount
+}
+
+"""
+A filter to be used against `UserConnectedAccount` object types. All fields are combined with a logical ‘and.’
+"""
+input UserConnectedAccountFilter {
+  """Checks for all expressions in this list."""
+  and: [UserConnectedAccountFilter!]
+
+  """Filter by the object’s `createdAt` field."""
+  createdAt: DatetimeFilter
+
+  """Filter by the object’s `details` field."""
+  details: JSONFilter
+
+  """Filter by the object’s `id` field."""
+  id: UUIDFilter
+
+  """Filter by the object’s `identifier` field."""
+  identifier: StringFilter
+
+  """Filter by the object’s `isVerified` field."""
+  isVerified: BooleanFilter
+
+  """Negates the expression."""
+  not: UserConnectedAccountFilter
+
+  """Checks for any expressions in this list."""
+  or: [UserConnectedAccountFilter!]
+
+  """Filter by the object’s `ownerId` field."""
+  ownerId: UUIDFilter
+
+  """Filter by the object’s `service` field."""
+  service: StringFilter
+
+  """Filter by the object’s `updatedAt` field."""
+  updatedAt: DatetimeFilter
+}
+
+"""Methods to use when ordering `UserConnectedAccount`."""
+enum UserConnectedAccountOrderBy {
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  DETAILS_ASC
+  DETAILS_DESC
+  IDENTIFIER_ASC
+  IDENTIFIER_DESC
+  ID_ASC
+  ID_DESC
+  IS_VERIFIED_ASC
+  IS_VERIFIED_DESC
+  NATURAL
+  OWNER_ID_ASC
+  OWNER_ID_DESC
+  SERVICE_ASC
+  SERVICE_DESC
+  UPDATED_AT_ASC
+  UPDATED_AT_DESC
+}
+
+"""A connection to a list of `User` values."""
+type UserConnection {
+  """
+  A list of edges which contains the `User` and cursor to aid in pagination.
+  """
+  edges: [UserEdge]!
+
+  """A list of `User` objects."""
+  nodes: [User]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """The count of *all* `User` you could get from the connection."""
+  totalCount: Int!
+}
+
+"""A `User` edge in the connection."""
+type UserEdge {
+  """A cursor for use in pagination."""
+  cursor: Cursor
+
+  """The `User` at the end of the edge."""
+  node: User
+}
+
+"""
+A filter to be used against `User` object types. All fields are combined with a logical ‘and.’
+"""
+input UserFilter {
+  """Checks for all expressions in this list."""
+  and: [UserFilter!]
+
+  """Filter by the object’s `authAuditLog` relation."""
+  authAuditLog: UserToManyAuditLogAuthFilter
+
+  """`authAuditLog` exist."""
+  authAuditLogExist: Boolean
+
+  """Filter by the object’s `createdAt` field."""
+  createdAt: DatetimeFilter
+
+  """Filter by the object’s `displayName` field."""
+  displayName: StringTrgmFilter
+
+  """Filter by the object’s `emails` relation."""
+  emails: UserToManyEmailFilter
+
+  """`emails` exist."""
+  emailsExist: Boolean
+
+  """Filter by the object’s `id` field."""
+  id: UUIDFilter
+
+  """Negates the expression."""
+  not: UserFilter
+
+  """Checks for any expressions in this list."""
+  or: [UserFilter!]
+
+  """Filter by the object’s `ownedUserSettingsSecurity` relation."""
+  ownedUserSettingsSecurity: UserSettingsSecurityFilter
+
+  """A related `ownedUserSettingsSecurity` exists."""
+  ownedUserSettingsSecurityExists: Boolean
+
+  """Filter by the object’s `phoneNumbers` relation."""
+  phoneNumbers: UserToManyPhoneNumberFilter
+
+  """`phoneNumbers` exist."""
+  phoneNumbersExist: Boolean
+
+  """Filter by the object’s `principals` relation."""
+  principals: UserToManyPrincipalFilter
+
+  """`principals` exist."""
+  principalsExist: Boolean
+
+  """Filter by the object’s `profilePicture` field."""
+  profilePicture: ConstructiveInternalTypeImageFilter
+
+  """Filter by the object’s `roleType` relation."""
+  roleType: RoleTypeFilter
+
+  """Filter by the object’s `scopedPrincipals` relation."""
+  scopedPrincipals: UserToManyPrincipalEntityFilter
+
+  """`scopedPrincipals` exist."""
+  scopedPrincipalsExist: Boolean
+
+  """Filter by the object’s `searchTsv` field."""
+  searchTsv: FullTextFilter
+
+  """TRGM search on the `display_name` column."""
+  trgmDisplayName: TrgmSearchInput
+
+  """TSV search on the `search_tsv` column."""
+  tsvSearchTsv: String
+
+  """Filter by the object’s `type` field."""
+  type: IntFilter
+
+  """
+  Composite unified search. Provide a search string and it will be dispatched to
+  all text-compatible search algorithms (tsvector, BM25, pg_trgm)
+  simultaneously. When the LLM plugin is active, pgvector also participates via
+  auto-embedding. Rows matching ANY algorithm are returned. All matching score
+  fields are populated.
+  """
+  unifiedSearch: String
+
+  """Filter by the object’s `updatedAt` field."""
+  updatedAt: DatetimeFilter
+
+  """Filter by the object’s `username` field."""
+  username: StringTrgmFilter
+
+  """Filter by the object’s `webauthnCredentials` relation."""
+  webauthnCredentials: UserToManyWebauthnCredentialFilter
+
+  """`webauthnCredentials` exist."""
+  webauthnCredentialsExist: Boolean
+}
+
+"""An input for mutations affecting `User`"""
+input UserInput {
+  displayName: String
+  profilePicture: ConstructiveInternalTypeImage
+  type: Int
+  username: String
+}
+
+"""Methods to use when ordering `User`."""
+enum UserOrderBy {
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  DISPLAY_NAME_ASC
+  DISPLAY_NAME_DESC
+  DISPLAY_NAME_TRGM_SIMILARITY_ASC
+  DISPLAY_NAME_TRGM_SIMILARITY_DESC
+  ID_ASC
+  ID_DESC
+  NATURAL
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+  PROFILE_PICTURE_ASC
+  PROFILE_PICTURE_DESC
+  SEARCH_SCORE_ASC
+  SEARCH_SCORE_DESC
+  SEARCH_TSV_ASC
+  SEARCH_TSV_DESC
+  SEARCH_TSV_RANK_ASC
+  SEARCH_TSV_RANK_DESC
+  TYPE_ASC
+  TYPE_DESC
+  UPDATED_AT_ASC
+  UPDATED_AT_DESC
+  USERNAME_ASC
+  USERNAME_DESC
+}
+
+"""Represents an update to a `User`. Fields that are set will be updated."""
+input UserPatch {
+  displayName: String
+  profilePicture: ConstructiveInternalTypeImage
+
+  """File upload for the `profilePicture` field."""
+  profilePictureUpload: Upload
+  username: String
+}
+
+"""
+Per-user security settings for MFA configuration (separate from user_settings preferences)
+"""
+type UserSettingsSecurity {
+  """Number of remaining unused backup codes"""
+  backupCodesCount: Int!
+  createdAt: Datetime
+
+  """Whether email-based MFA codes are active for this user"""
+  emailMfaEnabled: Boolean!
+  id: UUID!
+
+  """When the first MFA method was enabled"""
+  mfaEnrolledAt: Datetime
+
+  """When MFA was last successfully verified"""
+  mfaLastUsedAt: Datetime
+
+  """Reads a single `User` that is related to this `UserSettingsSecurity`."""
+  owner: User
+  ownerId: UUID!
+
+  """Whether SMS-based MFA codes are active for this user"""
+  smsMfaEnabled: Boolean!
+
+  """Whether TOTP (authenticator app) MFA is active for this user"""
+  totpEnabled: Boolean!
+  updatedAt: Datetime
+}
+
+"""A connection to a list of `UserSettingsSecurity` values."""
+type UserSettingsSecurityConnection {
+  """
+  A list of edges which contains the `UserSettingsSecurity` and cursor to aid in pagination.
+  """
+  edges: [UserSettingsSecurityEdge]!
+
+  """A list of `UserSettingsSecurity` objects."""
+  nodes: [UserSettingsSecurity]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """
+  The count of *all* `UserSettingsSecurity` you could get from the connection.
+  """
+  totalCount: Int!
+}
+
+"""A `UserSettingsSecurity` edge in the connection."""
+type UserSettingsSecurityEdge {
+  """A cursor for use in pagination."""
+  cursor: Cursor
+
+  """The `UserSettingsSecurity` at the end of the edge."""
+  node: UserSettingsSecurity
+}
+
+"""
+A filter to be used against `UserSettingsSecurity` object types. All fields are combined with a logical ‘and.’
+"""
+input UserSettingsSecurityFilter {
+  """Checks for all expressions in this list."""
+  and: [UserSettingsSecurityFilter!]
+
+  """Filter by the object’s `backupCodesCount` field."""
+  backupCodesCount: IntFilter
+
+  """Filter by the object’s `createdAt` field."""
+  createdAt: DatetimeFilter
+
+  """Filter by the object’s `emailMfaEnabled` field."""
+  emailMfaEnabled: BooleanFilter
+
+  """Filter by the object’s `id` field."""
+  id: UUIDFilter
+
+  """Filter by the object’s `mfaEnrolledAt` field."""
+  mfaEnrolledAt: DatetimeFilter
+
+  """Filter by the object’s `mfaLastUsedAt` field."""
+  mfaLastUsedAt: DatetimeFilter
+
+  """Negates the expression."""
+  not: UserSettingsSecurityFilter
+
+  """Checks for any expressions in this list."""
+  or: [UserSettingsSecurityFilter!]
+
+  """Filter by the object’s `owner` relation."""
+  owner: UserFilter
+
+  """Filter by the object’s `ownerId` field."""
+  ownerId: UUIDFilter
+
+  """Filter by the object’s `smsMfaEnabled` field."""
+  smsMfaEnabled: BooleanFilter
+
+  """Filter by the object’s `totpEnabled` field."""
+  totpEnabled: BooleanFilter
+
+  """Filter by the object’s `updatedAt` field."""
+  updatedAt: DatetimeFilter
+}
+
+"""Methods to use when ordering `UserSettingsSecurity`."""
+enum UserSettingsSecurityOrderBy {
+  BACKUP_CODES_COUNT_ASC
+  BACKUP_CODES_COUNT_DESC
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  EMAIL_MFA_ENABLED_ASC
+  EMAIL_MFA_ENABLED_DESC
+  ID_ASC
+  ID_DESC
+  MFA_ENROLLED_AT_ASC
+  MFA_ENROLLED_AT_DESC
+  MFA_LAST_USED_AT_ASC
+  MFA_LAST_USED_AT_DESC
+  NATURAL
+  OWNER_ID_ASC
+  OWNER_ID_DESC
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+  SMS_MFA_ENABLED_ASC
+  SMS_MFA_ENABLED_DESC
+  TOTP_ENABLED_ASC
+  TOTP_ENABLED_DESC
+  UPDATED_AT_ASC
+  UPDATED_AT_DESC
+}
+
+"""
+A filter to be used against many `AuditLogAuth` object types. All fields are combined with a logical ‘and.’
+"""
+input UserToManyAuditLogAuthFilter {
+  """Filters to entities where every related entity matches."""
+  every: AuditLogAuthFilter
+
+  """Filters to entities where no related entity matches."""
+  none: AuditLogAuthFilter
+
+  """Filters to entities where at least one related entity matches."""
+  some: AuditLogAuthFilter
+}
+
+"""
+A filter to be used against many `Email` object types. All fields are combined with a logical ‘and.’
+"""
+input UserToManyEmailFilter {
+  """Filters to entities where every related entity matches."""
+  every: EmailFilter
+
+  """Filters to entities where no related entity matches."""
+  none: EmailFilter
+
+  """Filters to entities where at least one related entity matches."""
+  some: EmailFilter
+}
+
+"""
+A filter to be used against many `PhoneNumber` object types. All fields are combined with a logical ‘and.’
+"""
+input UserToManyPhoneNumberFilter {
+  """Filters to entities where every related entity matches."""
+  every: PhoneNumberFilter
+
+  """Filters to entities where no related entity matches."""
+  none: PhoneNumberFilter
+
+  """Filters to entities where at least one related entity matches."""
+  some: PhoneNumberFilter
+}
+
+"""
+A filter to be used against many `PrincipalEntity` object types. All fields are combined with a logical ‘and.’
+"""
+input UserToManyPrincipalEntityFilter {
+  """Filters to entities where every related entity matches."""
+  every: PrincipalEntityFilter
+
+  """Filters to entities where no related entity matches."""
+  none: PrincipalEntityFilter
+
+  """Filters to entities where at least one related entity matches."""
+  some: PrincipalEntityFilter
+}
+
+"""
+A filter to be used against many `Principal` object types. All fields are combined with a logical ‘and.’
+"""
+input UserToManyPrincipalFilter {
+  """Filters to entities where every related entity matches."""
+  every: PrincipalFilter
+
+  """Filters to entities where no related entity matches."""
+  none: PrincipalFilter
+
+  """Filters to entities where at least one related entity matches."""
+  some: PrincipalFilter
+}
+
+"""
+A filter to be used against many `WebauthnCredential` object types. All fields are combined with a logical ‘and.’
+"""
+input UserToManyWebauthnCredentialFilter {
+  """Filters to entities where every related entity matches."""
+  every: WebauthnCredentialFilter
+
+  """Filters to entities where no related entity matches."""
+  none: WebauthnCredentialFilter
+
+  """Filters to entities where at least one related entity matches."""
+  some: WebauthnCredentialFilter
+}
+
+"""All input for the `verifyEmail` mutation."""
+input VerifyEmailInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  emailId: UUID
+  token: String
+}
+
+"""The output of our `verifyEmail` mutation."""
+type VerifyEmailPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: Boolean
+}
+
+"""All input for the `verifyPassword` mutation."""
+input VerifyPasswordInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  password: String!
+}
+
+"""The output of our `verifyPassword` mutation."""
+type VerifyPasswordPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: Boolean
+}
+
+"""All input for the `verifyPhone` mutation."""
+input VerifyPhoneInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  code: String
+  phone: String
+}
+
+"""The output of our `verifyPhone` mutation."""
+type VerifyPhonePayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: Boolean
+}
+
+"""All input for the `verifyStepUpCode` mutation."""
+input VerifyStepUpCodeInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  code: String!
+}
+
+"""The output of our `verifyStepUpCode` mutation."""
+type VerifyStepUpCodePayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: Boolean
+}
+
+"""All input for the `verifyTotp` mutation."""
+input VerifyTotpInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  totpValue: String!
+}
+
+"""The output of our `verifyTotp` mutation."""
+type VerifyTotpPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+  result: Boolean
+}
+
+"""
+WebAuthn/passkey credentials owned by users. One row per registered authenticator (security key, device biometric, synced passkey). Schema mirrors SimpleWebAuthn's canonical Passkey object.
+"""
+type WebauthnCredential {
+  """
+  Whether this credential is eligible for backup (syncing) per the authenticator's flags at registration.
+  """
+  backupEligible: Boolean!
+
+  """Current backup state; updated on each successful sign-in assertion."""
+  backupState: Boolean!
+  createdAt: Datetime
+
+  """
+  Either 'singleDevice' (hardware-bound) or 'multiDevice' (synced passkey). Enforced by CHECK constraint below.
+  """
+  credentialDeviceType: String!
+
+  """
+  Base64url-encoded credential ID returned by the authenticator. Globally unique per WebAuthn spec.
+  """
+  credentialId: String!
+  id: UUID!
+
+  """
+  Timestamp of the most recent successful sign-in assertion using this credential.
+  """
+  lastUsedAt: Datetime
+
+  """
+  User-provided label for this credential (e.g. "YubiKey 5C", "iPhone 15"). Renamed via rename_passkey.
+  """
+  name: String
+
+  """Reads a single `User` that is related to this `WebauthnCredential`."""
+  owner: User
+  ownerId: UUID!
+
+  """COSE-encoded public key bytes from the authenticator attestation."""
+  publicKey: Base64EncodedBinary!
+
+  """
+  Monotonic signature counter. Strict-increase check during sign-in detects cloned credentials. 0 means the authenticator does not implement a counter.
+  """
+  signCount: BigInt!
+
+  """
+  Authenticator transport hints (e.g. usb, nfc, ble, internal, hybrid). Used to hint browser UI during sign-in.
+  """
+  transports: [String]
+  updatedAt: Datetime
+
+  """
+  Random per-user handle sent to authenticators as user.id. Privacy-preserving; NOT the internal user UUID.
+  """
+  webauthnUserId: String!
+}
+
+"""A connection to a list of `WebauthnCredential` values."""
+type WebauthnCredentialConnection {
+  """
+  A list of edges which contains the `WebauthnCredential` and cursor to aid in pagination.
+  """
+  edges: [WebauthnCredentialEdge]!
+
+  """A list of `WebauthnCredential` objects."""
+  nodes: [WebauthnCredential]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """
+  The count of *all* `WebauthnCredential` you could get from the connection.
+  """
+  totalCount: Int!
+}
+
+"""A `WebauthnCredential` edge in the connection."""
+type WebauthnCredentialEdge {
+  """A cursor for use in pagination."""
+  cursor: Cursor
+
+  """The `WebauthnCredential` at the end of the edge."""
+  node: WebauthnCredential
+}
+
+"""
+A filter to be used against `WebauthnCredential` object types. All fields are combined with a logical ‘and.’
+"""
+input WebauthnCredentialFilter {
+  """Checks for all expressions in this list."""
+  and: [WebauthnCredentialFilter!]
+
+  """Filter by the object’s `backupEligible` field."""
+  backupEligible: BooleanFilter
+
+  """Filter by the object’s `backupState` field."""
+  backupState: BooleanFilter
+
+  """Filter by the object’s `createdAt` field."""
+  createdAt: DatetimeFilter
+
+  """Filter by the object’s `credentialDeviceType` field."""
+  credentialDeviceType: StringFilter
+
+  """Filter by the object’s `credentialId` field."""
+  credentialId: StringFilter
+
+  """Filter by the object’s `id` field."""
+  id: UUIDFilter
+
+  """Filter by the object’s `lastUsedAt` field."""
+  lastUsedAt: DatetimeFilter
+
+  """Filter by the object’s `name` field."""
+  name: StringFilter
+
+  """Negates the expression."""
+  not: WebauthnCredentialFilter
+
+  """Checks for any expressions in this list."""
+  or: [WebauthnCredentialFilter!]
+
+  """Filter by the object’s `owner` relation."""
+  owner: UserFilter
+
+  """Filter by the object’s `ownerId` field."""
+  ownerId: UUIDFilter
+
+  """Filter by the object’s `publicKey` field."""
+  publicKey: Base64EncodedBinaryFilter
+
+  """Filter by the object’s `signCount` field."""
+  signCount: BigIntFilter
+
+  """Filter by the object’s `transports` field."""
+  transports: StringListFilter
+
+  """Filter by the object’s `updatedAt` field."""
+  updatedAt: DatetimeFilter
+
+  """Filter by the object’s `webauthnUserId` field."""
+  webauthnUserId: StringFilter
+}
+
+"""Methods to use when ordering `WebauthnCredential`."""
+enum WebauthnCredentialOrderBy {
+  BACKUP_ELIGIBLE_ASC
+  BACKUP_ELIGIBLE_DESC
+  BACKUP_STATE_ASC
+  BACKUP_STATE_DESC
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  CREDENTIAL_DEVICE_TYPE_ASC
+  CREDENTIAL_DEVICE_TYPE_DESC
+  CREDENTIAL_ID_ASC
+  CREDENTIAL_ID_DESC
+  ID_ASC
+  ID_DESC
+  LAST_USED_AT_ASC
+  LAST_USED_AT_DESC
+  NAME_ASC
+  NAME_DESC
+  NATURAL
+  OWNER_ID_ASC
+  OWNER_ID_DESC
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+  PUBLIC_KEY_ASC
+  PUBLIC_KEY_DESC
+  SIGN_COUNT_ASC
+  SIGN_COUNT_DESC
+  TRANSPORTS_ASC
+  TRANSPORTS_DESC
+  UPDATED_AT_ASC
+  UPDATED_AT_DESC
+  WEBAUTHN_USER_ID_ASC
+  WEBAUTHN_USER_ID_DESC
+}
+
+"""
+Represents an update to a `WebauthnCredential`. Fields that are set will be updated.
+"""
+input WebauthnCredentialPatch {
+  """
+  User-provided label for this credential (e.g. "YubiKey 5C", "iPhone 15"). Renamed via rename_passkey.
+  """
+  name: String
+}
+
+input WebauthnRegisterBeginInput {
+  clientMutationId: String
+}
+
+type WebauthnRegisterBeginPayload {
+  """
+  PublicKeyCredentialCreationOptionsJSON for navigator.credentials.create().
+  """
+  options: JSON!
+
+  """The user handle to echo back to webauthnRegisterFinish."""
+  webauthnUserId: String!
+}
+
+input WebauthnRegisterFinishInput {
+  """A label for the passkey."""
+  name: String
+
+  """The browser's RegistrationResponseJSON."""
+  response: JSON!
+  webauthnUserId: String!
+}
+
+type WebauthnRegisterFinishPayload {
+  credentialId: String!
+}
+
+input WebauthnSignInBeginInput {
+  clientMutationId: String
+}
+
+type WebauthnSignInBeginPayload {
+  """Names the pending challenge; echo it back to webauthnSignInFinish."""
+  challengeId: UUID!
+
+  """PublicKeyCredentialRequestOptionsJSON for navigator.credentials.get()."""
+  options: JSON!
+}
+
+input WebauthnSignInFinishInput {
+  challengeId: UUID!
+
+  """The browser's AuthenticationResponseJSON."""
+  response: JSON!
+}
+
+type WebauthnSignInFinishPayload {
+  accessToken: String!
+  accessTokenExpiresAt: Datetime!
+  userId: UUID!
+}
