@@ -245,7 +245,7 @@ pnpm run configure-orgs    # every member may create organizations
   lists the deep links a desktop or mobile app may have the hosted Google and
   magic-link pages hand a sign-in back to (constructive-db #4155); listing any
   also allows loopback on any port. Unset leaves the tenant's list, empty by
-  default.
+  default; set but empty clears it.
 - **orgs:** through the tenant's admin GraphQL. New members arrive approved +
   verified (their membership is active), and `create_entity` joins the default
   capability panel every new member inherits. **LOCAL WORKAROUND:** the panel's

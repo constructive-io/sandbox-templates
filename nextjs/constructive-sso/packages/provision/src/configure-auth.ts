@@ -36,7 +36,7 @@
  *                                   listed, loopback (http://127.0.0.1 on any
  *                                   port) is accepted too. Unset keeps the
  *                                   tenant's list, empty by default: no native
- *                                   hand-off.
+ *                                   hand-off. Set but empty clears the list.
  */
 
 import { Client } from 'pg';
@@ -104,7 +104,8 @@ async function main(): Promise<void> {
       throw new Error(`tenant ${DATABASE_ID} has ${current.rowCount} auth settings rows, not one`);
     }
     const row = current.rows[0] as Record<string, unknown>;
-    const changed: { column: string; value: boolean | string | string[] | null; cast: string }[] = Object.keys(POLICY)
+    type Change = { column: string; value: boolean | string | string[] | null; cast: string };
+    const changed: Change[] = Object.keys(POLICY)
       .filter((column) => row[column] !== POLICY[column])
       .map((column) => ({ column, value: POLICY[column], cast: '' }));
     if (STEP_UP_WINDOW) {
@@ -120,10 +121,9 @@ async function main(): Promise<void> {
       }
     }
     if (NATIVE_REDIRECT_URIS) {
-      const current = (await client.query(`SELECT native_redirect_uris FROM ${settings}`)).rows[0] as {
-        native_redirect_uris: string[] | null;
-      };
-      if (JSON.stringify(current.native_redirect_uris ?? []) !== JSON.stringify(NATIVE_REDIRECT_URIS)) {
+      const { rows } = await client.query(`SELECT native_redirect_uris FROM ${settings}`);
+      const listed = (rows[0] as { native_redirect_uris: string[] | null }).native_redirect_uris ?? [];
+      if (JSON.stringify(listed) !== JSON.stringify(NATIVE_REDIRECT_URIS)) {
         changed.push({ column: 'native_redirect_uris', value: NATIVE_REDIRECT_URIS, cast: '::text[]' });
       }
     }

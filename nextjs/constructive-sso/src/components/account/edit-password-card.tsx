@@ -57,6 +57,7 @@ export const EditPasswordCard: CardComponent<EditPasswordCardProps> = ({ onSucce
 				setStepUp(true);
 				return;
 			}
+			verifiedRetry.current = false;
 			console.error('Failed to set password:', err);
 			showErrorToast({
 				message: 'Failed to update password',

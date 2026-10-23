@@ -5,9 +5,12 @@ import { TokenManager } from '@/lib/auth/token-manager';
 import { reconfigureSdkClients } from '@/components/app-provider';
 import { useAuthActions } from '@/store/app-store';
 import { getSSOGatewayOrigin } from '@/app-config';
+import { showErrorToast } from '@/components/ui/toast';
 import { useSignOutMutation } from '@sdk/auth';
 
 import { authKeys } from '../query-keys';
+
+const SIGN_OUT_FAILED = 'The server didn’t answer, so you are still signed in. Try again.';
 
 /**
  * Logout hook using SDK-generated mutation
@@ -32,17 +35,23 @@ export function useLogout() {
 			// SSO lane: revoke the gateway credential and expire the session
 			// cookie. This is the sign-out: the gateway's own /logout only signs
 			// out on a POST from its own form (CSRF-checked), so nothing here can
-			// hand the job to it.
+			// hand the job to it. If it fails the session is still live, so the
+			// app stays put and says so rather than showing the sign-in page.
+			let response: Response;
 			try {
-				await fetch('/api/auth/sign-out', {
+				response = await fetch('/api/auth/sign-out', {
 					method: 'POST',
 					credentials: 'include',
 					headers: { 'content-type': 'application/json' },
 					body: '{}'
 				});
 			} catch {
-				// Fall through to the gateway handoff
+				throw new Error(SIGN_OUT_FAILED);
 			}
+			if (!response.ok) throw new Error(SIGN_OUT_FAILED);
+		},
+		onError: () => {
+			showErrorToast({ message: 'Couldn’t sign out', description: SIGN_OUT_FAILED });
 		},
 		onSuccess: () => {
 			// This state flip is a handoff, not a signed-out visit: tell the
