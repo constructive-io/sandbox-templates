@@ -5,9 +5,12 @@ import { TokenManager } from '@/lib/auth/token-manager';
 import { reconfigureSdkClients } from '@/components/app-provider';
 import { useAuthActions } from '@/store/app-store';
 import { getSSOGatewayOrigin } from '@/app-config';
+import { showErrorToast } from '@/components/ui/toast';
 import { useSignOutMutation } from '@sdk/auth';
 
 import { authKeys } from '../query-keys';
+
+const SIGN_OUT_FAILED = 'The server didn’t answer, so you are still signed in. Try again.';
 
 /**
  * Logout hook using SDK-generated mutation
@@ -29,19 +32,26 @@ export function useLogout() {
 			} catch {
 				// Server-side logout failed, but we still clear local state
 			}
-			// SSO lane: revoke the gateway credential and expire the BFF session
-			// cookie. Best-effort too — the gateway /logout handoff below revokes
-			// and clears cookies itself.
+			// SSO lane: revoke the gateway credential and expire the session
+			// cookie. This is the sign-out: the gateway's own /logout only signs
+			// out on a POST from its own form (CSRF-checked), so nothing here can
+			// hand the job to it. If it fails the session is still live, so the
+			// app stays put and says so rather than showing the sign-in page.
+			let response: Response;
 			try {
-				await fetch('/api/auth/sign-out', {
+				response = await fetch('/api/auth/sign-out', {
 					method: 'POST',
 					credentials: 'include',
 					headers: { 'content-type': 'application/json' },
 					body: '{}'
 				});
 			} catch {
-				// Fall through to the gateway handoff
+				throw new Error(SIGN_OUT_FAILED);
 			}
+			if (!response.ok) throw new Error(SIGN_OUT_FAILED);
+		},
+		onError: () => {
+			showErrorToast({ message: 'Couldn’t sign out', description: SIGN_OUT_FAILED });
 		},
 		onSuccess: () => {
 			// This state flip is a handoff, not a signed-out visit: tell the
@@ -66,21 +76,17 @@ export function useLogout() {
 				// storage-less tab: nothing to retire
 			}
 
-			// Hand the browser to the gateway's own /logout page: it revokes the
-			// session and clears the cookies that carried it (gateway `token` plus
-			// the challenge cookie — cookies are host-scoped, so an SPA route here
-			// can't reliably retire them), then redirects to the mantra sign-in
-			// page (`next` is resolved relative to the gateway). This must be a
-			// hard navigation: the goal is to land ON the mantra page with every
-			// session cookie gone, not to bounce through this app's auth state.
+			// The session is already revoked and its cookie gone, so go straight
+			// to the gateway's sign-in page. Not via its /logout: a GET there only
+			// asks "Sign out?" again, which would make a signed-out user click
+			// twice. This must be a hard navigation, to land ON the mantra page
+			// rather than bounce through this app's auth state.
 			//
 			// That sign-in page carries its own `next=/`: without one, every lane
 			// on it (password, phone, SSO) falls back to `/login` and a fresh sign-in
 			// lands on mantra's "Signed in" card instead of the gateway root, whose
 			// app-origin redirect is what brings the browser back into this app.
-			window.location.assign(
-				`${getSSOGatewayOrigin()}/logout?next=${encodeURIComponent('/login?next=/')}`
-			);
+			window.location.assign(`${getSSOGatewayOrigin()}/login?next=${encodeURIComponent('/')}`);
 		},
 	});
 }

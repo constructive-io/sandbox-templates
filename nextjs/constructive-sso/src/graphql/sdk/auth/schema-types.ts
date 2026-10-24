@@ -1099,11 +1099,6 @@ export interface RevokeOrgApiKeyInput {
   keyId: string;
   orgId: string;
 }
-export interface SetPasswordInput {
-  clientMutationId?: string;
-  currentPassword?: string;
-  newPassword?: string;
-}
 export interface VerifyEmailInput {
   clientMutationId?: string;
   emailId?: string;
@@ -1113,11 +1108,6 @@ export interface VerifyPhoneInput {
   clientMutationId?: string;
   phone?: string;
   code?: string;
-}
-export interface RequestMagicLinkInput {
-  clientMutationId?: string;
-  email?: string;
-  next?: string;
 }
 export interface ResetPasswordInput {
   clientMutationId?: string;
@@ -1130,6 +1120,19 @@ export interface SendMfaChallengeCodeInput {
   userId?: string;
   mfaChallengeToken?: string;
   mfaMethod?: string;
+}
+export interface SetPasswordInput {
+  clientMutationId?: string;
+  currentPassword?: string;
+  newPassword?: string;
+  signOutOtherSessions?: boolean;
+}
+export interface RequestMagicLinkInput {
+  clientMutationId?: string;
+  email?: string;
+  next?: string;
+  nativeRedirectUri?: string;
+  codeChallenge?: string;
 }
 export interface SignUpInput {
   clientMutationId?: string;
@@ -1155,13 +1158,11 @@ export interface SignInCrossOriginInput {
   token?: string;
   credentialKind?: string;
 }
-export interface SignUpMagicLinkInput {
+export interface ExchangeNativeHandoffInput {
   clientMutationId?: string;
-  token?: string;
+  code?: string;
+  codeVerifier?: string;
   credentialKind?: string;
-  rememberMe?: boolean;
-  deviceToken?: string;
-  inviteToken?: string;
 }
 export interface SignUpSmsInput {
   clientMutationId?: string;
@@ -1172,17 +1173,25 @@ export interface SignUpSmsInput {
   deviceToken?: string;
   inviteToken?: string;
 }
-export interface SignInMagicLinkInput {
+export interface SignUpMagicLinkInput {
   clientMutationId?: string;
   token?: string;
   credentialKind?: string;
   rememberMe?: boolean;
   deviceToken?: string;
+  inviteToken?: string;
 }
 export interface SignInSmsOtpInput {
   clientMutationId?: string;
   phone?: string;
   code?: string;
+  credentialKind?: string;
+  rememberMe?: boolean;
+  deviceToken?: string;
+}
+export interface SignInMagicLinkInput {
+  clientMutationId?: string;
+  token?: string;
   credentialKind?: string;
   rememberMe?: boolean;
   deviceToken?: string;
@@ -1633,10 +1642,6 @@ export interface RevokeOrgApiKeyPayload {
   clientMutationId?: string | null;
   result?: boolean | null;
 }
-export interface SetPasswordPayload {
-  clientMutationId?: string | null;
-  result?: boolean | null;
-}
 export interface VerifyEmailPayload {
   clientMutationId?: string | null;
   result?: boolean | null;
@@ -1645,9 +1650,6 @@ export interface VerifyPhonePayload {
   clientMutationId?: string | null;
   result?: boolean | null;
 }
-export interface RequestMagicLinkPayload {
-  clientMutationId?: string | null;
-}
 export interface ResetPasswordPayload {
   clientMutationId?: string | null;
   result?: boolean | null;
@@ -1655,6 +1657,13 @@ export interface ResetPasswordPayload {
 export interface SendMfaChallengeCodePayload {
   clientMutationId?: string | null;
   result?: boolean | null;
+}
+export interface SetPasswordPayload {
+  clientMutationId?: string | null;
+  result?: boolean | null;
+}
+export interface RequestMagicLinkPayload {
+  clientMutationId?: string | null;
 }
 export interface SignUpPayload {
   clientMutationId?: string | null;
@@ -1671,21 +1680,25 @@ export interface SignInCrossOriginPayload {
   clientMutationId?: string | null;
   result?: SignInCrossOriginRecord | null;
 }
-export interface SignUpMagicLinkPayload {
+export interface ExchangeNativeHandoffPayload {
   clientMutationId?: string | null;
-  result?: SignUpMagicLinkRecord | null;
+  result?: ExchangeNativeHandoffRecord | null;
 }
 export interface SignUpSmsPayload {
   clientMutationId?: string | null;
   result?: SignUpSmsRecord | null;
 }
-export interface SignInMagicLinkPayload {
+export interface SignUpMagicLinkPayload {
   clientMutationId?: string | null;
-  result?: SignInMagicLinkRecord | null;
+  result?: SignUpMagicLinkRecord | null;
 }
 export interface SignInSmsOtpPayload {
   clientMutationId?: string | null;
   result?: SignInSmsOtpRecord | null;
+}
+export interface SignInMagicLinkPayload {
+  clientMutationId?: string | null;
+  result?: SignInMagicLinkRecord | null;
 }
 export interface CompleteMfaChallengePayload {
   clientMutationId?: string | null;
@@ -1971,11 +1984,13 @@ export interface SignInCrossOriginRecord {
   isVerified?: boolean | null;
   totpEnabled?: boolean | null;
 }
-export interface SignUpMagicLinkRecord {
+export interface ExchangeNativeHandoffRecord {
+  id?: string | null;
   userId?: string | null;
   accessToken?: string | null;
   accessTokenExpiresAt?: string | null;
-  outDeviceToken?: string | null;
+  isVerified?: boolean | null;
+  totpEnabled?: boolean | null;
 }
 export interface SignUpSmsRecord {
   userId?: string | null;
@@ -1983,14 +1998,13 @@ export interface SignUpSmsRecord {
   accessTokenExpiresAt?: string | null;
   outDeviceToken?: string | null;
 }
-export interface SignInMagicLinkRecord {
+export interface SignUpMagicLinkRecord {
   userId?: string | null;
   accessToken?: string | null;
   accessTokenExpiresAt?: string | null;
+  nativeRedirectUri?: string | null;
+  codeChallenge?: string | null;
   outDeviceToken?: string | null;
-  deviceApprovalRequired?: boolean | null;
-  mfaRequired?: boolean | null;
-  mfaChallengeToken?: string | null;
 }
 export interface SignInSmsOtpRecord {
   userId?: string | null;
@@ -2000,6 +2014,17 @@ export interface SignInSmsOtpRecord {
   deviceApprovalRequired?: boolean | null;
   mfaRequired?: boolean | null;
   mfaChallengeToken?: string | null;
+}
+export interface SignInMagicLinkRecord {
+  userId?: string | null;
+  accessToken?: string | null;
+  accessTokenExpiresAt?: string | null;
+  outDeviceToken?: string | null;
+  deviceApprovalRequired?: boolean | null;
+  mfaRequired?: boolean | null;
+  mfaChallengeToken?: string | null;
+  nativeRedirectUri?: string | null;
+  codeChallenge?: string | null;
 }
 export interface CompleteMfaChallengeRecord {
   id?: string | null;

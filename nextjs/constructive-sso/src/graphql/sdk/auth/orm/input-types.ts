@@ -1845,11 +1845,6 @@ export interface RevokeOrgApiKeyInput {
   keyId: string;
   orgId: string;
 }
-export interface SetPasswordInput {
-  clientMutationId?: string;
-  currentPassword?: string;
-  newPassword?: string;
-}
 export interface VerifyEmailInput {
   clientMutationId?: string;
   emailId?: string;
@@ -1859,11 +1854,6 @@ export interface VerifyPhoneInput {
   clientMutationId?: string;
   phone?: string;
   code?: string;
-}
-export interface RequestMagicLinkInput {
-  clientMutationId?: string;
-  email?: string;
-  next?: string;
 }
 export interface ResetPasswordInput {
   clientMutationId?: string;
@@ -1876,6 +1866,19 @@ export interface SendMfaChallengeCodeInput {
   userId?: string;
   mfaChallengeToken?: string;
   mfaMethod?: string;
+}
+export interface SetPasswordInput {
+  clientMutationId?: string;
+  currentPassword?: string;
+  newPassword?: string;
+  signOutOtherSessions?: boolean;
+}
+export interface RequestMagicLinkInput {
+  clientMutationId?: string;
+  email?: string;
+  next?: string;
+  nativeRedirectUri?: string;
+  codeChallenge?: string;
 }
 export interface SignUpInput {
   clientMutationId?: string;
@@ -1901,13 +1904,11 @@ export interface SignInCrossOriginInput {
   token?: string;
   credentialKind?: string;
 }
-export interface SignUpMagicLinkInput {
+export interface ExchangeNativeHandoffInput {
   clientMutationId?: string;
-  token?: string;
+  code?: string;
+  codeVerifier?: string;
   credentialKind?: string;
-  rememberMe?: boolean;
-  deviceToken?: string;
-  inviteToken?: string;
 }
 export interface SignUpSmsInput {
   clientMutationId?: string;
@@ -1918,17 +1919,25 @@ export interface SignUpSmsInput {
   deviceToken?: string;
   inviteToken?: string;
 }
-export interface SignInMagicLinkInput {
+export interface SignUpMagicLinkInput {
   clientMutationId?: string;
   token?: string;
   credentialKind?: string;
   rememberMe?: boolean;
   deviceToken?: string;
+  inviteToken?: string;
 }
 export interface SignInSmsOtpInput {
   clientMutationId?: string;
   phone?: string;
   code?: string;
+  credentialKind?: string;
+  rememberMe?: boolean;
+  deviceToken?: string;
+}
+export interface SignInMagicLinkInput {
+  clientMutationId?: string;
+  token?: string;
   credentialKind?: string;
   rememberMe?: boolean;
   deviceToken?: string;
@@ -3263,14 +3272,6 @@ export type RevokeOrgApiKeyPayloadSelect = {
   clientMutationId?: boolean;
   result?: boolean;
 };
-export interface SetPasswordPayload {
-  clientMutationId?: string | null;
-  result?: boolean | null;
-}
-export type SetPasswordPayloadSelect = {
-  clientMutationId?: boolean;
-  result?: boolean;
-};
 export interface VerifyEmailPayload {
   clientMutationId?: string | null;
   result?: boolean | null;
@@ -3287,12 +3288,6 @@ export type VerifyPhonePayloadSelect = {
   clientMutationId?: boolean;
   result?: boolean;
 };
-export interface RequestMagicLinkPayload {
-  clientMutationId?: string | null;
-}
-export type RequestMagicLinkPayloadSelect = {
-  clientMutationId?: boolean;
-};
 export interface ResetPasswordPayload {
   clientMutationId?: string | null;
   result?: boolean | null;
@@ -3308,6 +3303,20 @@ export interface SendMfaChallengeCodePayload {
 export type SendMfaChallengeCodePayloadSelect = {
   clientMutationId?: boolean;
   result?: boolean;
+};
+export interface SetPasswordPayload {
+  clientMutationId?: string | null;
+  result?: boolean | null;
+}
+export type SetPasswordPayloadSelect = {
+  clientMutationId?: boolean;
+  result?: boolean;
+};
+export interface RequestMagicLinkPayload {
+  clientMutationId?: string | null;
+}
+export type RequestMagicLinkPayloadSelect = {
+  clientMutationId?: boolean;
 };
 export interface SignUpPayload {
   clientMutationId?: string | null;
@@ -3343,14 +3352,14 @@ export type SignInCrossOriginPayloadSelect = {
     select: SignInCrossOriginRecordSelect;
   };
 };
-export interface SignUpMagicLinkPayload {
+export interface ExchangeNativeHandoffPayload {
   clientMutationId?: string | null;
-  result?: SignUpMagicLinkRecord | null;
+  result?: ExchangeNativeHandoffRecord | null;
 }
-export type SignUpMagicLinkPayloadSelect = {
+export type ExchangeNativeHandoffPayloadSelect = {
   clientMutationId?: boolean;
   result?: {
-    select: SignUpMagicLinkRecordSelect;
+    select: ExchangeNativeHandoffRecordSelect;
   };
 };
 export interface SignUpSmsPayload {
@@ -3363,14 +3372,14 @@ export type SignUpSmsPayloadSelect = {
     select: SignUpSmsRecordSelect;
   };
 };
-export interface SignInMagicLinkPayload {
+export interface SignUpMagicLinkPayload {
   clientMutationId?: string | null;
-  result?: SignInMagicLinkRecord | null;
+  result?: SignUpMagicLinkRecord | null;
 }
-export type SignInMagicLinkPayloadSelect = {
+export type SignUpMagicLinkPayloadSelect = {
   clientMutationId?: boolean;
   result?: {
-    select: SignInMagicLinkRecordSelect;
+    select: SignUpMagicLinkRecordSelect;
   };
 };
 export interface SignInSmsOtpPayload {
@@ -3381,6 +3390,16 @@ export type SignInSmsOtpPayloadSelect = {
   clientMutationId?: boolean;
   result?: {
     select: SignInSmsOtpRecordSelect;
+  };
+};
+export interface SignInMagicLinkPayload {
+  clientMutationId?: string | null;
+  result?: SignInMagicLinkRecord | null;
+}
+export type SignInMagicLinkPayloadSelect = {
+  clientMutationId?: boolean;
+  result?: {
+    select: SignInMagicLinkRecordSelect;
   };
 };
 export interface CompleteMfaChallengePayload {
@@ -3769,17 +3788,21 @@ export type SignInCrossOriginRecordSelect = {
   isVerified?: boolean;
   totpEnabled?: boolean;
 };
-export interface SignUpMagicLinkRecord {
+export interface ExchangeNativeHandoffRecord {
+  id?: string | null;
   userId?: string | null;
   accessToken?: string | null;
   accessTokenExpiresAt?: string | null;
-  outDeviceToken?: string | null;
+  isVerified?: boolean | null;
+  totpEnabled?: boolean | null;
 }
-export type SignUpMagicLinkRecordSelect = {
+export type ExchangeNativeHandoffRecordSelect = {
+  id?: boolean;
   userId?: boolean;
   accessToken?: boolean;
   accessTokenExpiresAt?: boolean;
-  outDeviceToken?: boolean;
+  isVerified?: boolean;
+  totpEnabled?: boolean;
 };
 export interface SignUpSmsRecord {
   userId?: string | null;
@@ -3793,23 +3816,21 @@ export type SignUpSmsRecordSelect = {
   accessTokenExpiresAt?: boolean;
   outDeviceToken?: boolean;
 };
-export interface SignInMagicLinkRecord {
+export interface SignUpMagicLinkRecord {
   userId?: string | null;
   accessToken?: string | null;
   accessTokenExpiresAt?: string | null;
+  nativeRedirectUri?: string | null;
+  codeChallenge?: string | null;
   outDeviceToken?: string | null;
-  deviceApprovalRequired?: boolean | null;
-  mfaRequired?: boolean | null;
-  mfaChallengeToken?: string | null;
 }
-export type SignInMagicLinkRecordSelect = {
+export type SignUpMagicLinkRecordSelect = {
   userId?: boolean;
   accessToken?: boolean;
   accessTokenExpiresAt?: boolean;
+  nativeRedirectUri?: boolean;
+  codeChallenge?: boolean;
   outDeviceToken?: boolean;
-  deviceApprovalRequired?: boolean;
-  mfaRequired?: boolean;
-  mfaChallengeToken?: boolean;
 };
 export interface SignInSmsOtpRecord {
   userId?: string | null;
@@ -3828,6 +3849,28 @@ export type SignInSmsOtpRecordSelect = {
   deviceApprovalRequired?: boolean;
   mfaRequired?: boolean;
   mfaChallengeToken?: boolean;
+};
+export interface SignInMagicLinkRecord {
+  userId?: string | null;
+  accessToken?: string | null;
+  accessTokenExpiresAt?: string | null;
+  outDeviceToken?: string | null;
+  deviceApprovalRequired?: boolean | null;
+  mfaRequired?: boolean | null;
+  mfaChallengeToken?: string | null;
+  nativeRedirectUri?: string | null;
+  codeChallenge?: string | null;
+}
+export type SignInMagicLinkRecordSelect = {
+  userId?: boolean;
+  accessToken?: boolean;
+  accessTokenExpiresAt?: boolean;
+  outDeviceToken?: boolean;
+  deviceApprovalRequired?: boolean;
+  mfaRequired?: boolean;
+  mfaChallengeToken?: boolean;
+  nativeRedirectUri?: boolean;
+  codeChallenge?: boolean;
 };
 export interface CompleteMfaChallengeRecord {
   id?: string | null;

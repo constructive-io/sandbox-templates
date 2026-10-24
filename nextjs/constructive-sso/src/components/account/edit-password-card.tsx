@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { StepUpCodeForm } from '@/components/auth/step-up-code-form';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { InputGroup, InputGroupInput } from '@/components/ui/input-group';
@@ -8,6 +9,7 @@ import type { CardComponent } from '@/components/ui/stack';
 import { showErrorToast, showSuccessToast } from '@/components/ui/toast';
 import { Loader2 } from 'lucide-react';
 
+import { isCodeStepUp } from '@/lib/auth/step-up';
 import { useSetPasswordMutation } from '@sdk/auth';
 
 export type EditPasswordCardProps = {
@@ -18,6 +20,15 @@ export const EditPasswordCard: CardComponent<EditPasswordCardProps> = ({ onSucce
 	const [currentPassword, setCurrentPassword] = useState('');
 	const [newPassword, setNewPassword] = useState('');
 	const [confirmPassword, setConfirmPassword] = useState('');
+	// A password change is a step-up-guarded write: the tenant refuses a session
+	// that has not authenticated within its step-up window with
+	// STEP_UP_REQUIRED_FRESH_AUTH, so the card swaps to the code step — a
+	// verified code counts as a fresh authentication — and retries once it is
+	// accepted.
+	const [stepUp, setStepUp] = useState(false);
+	// Set once a code was accepted: a second step-up refusal after that is a
+	// fault to show, not another prompt to loop on.
+	const verifiedRetry = useRef(false);
 
 	const { mutateAsync: setPassword, isPending: isSettingPassword, error } = useSetPasswordMutation({
 		selection: { fields: { result: true } },
@@ -42,6 +53,11 @@ export const EditPasswordCard: CardComponent<EditPasswordCardProps> = ({ onSucce
 			onSuccess?.();
 			card.close();
 		} catch (err) {
+			if (isCodeStepUp(err) && !verifiedRetry.current) {
+				setStepUp(true);
+				return;
+			}
+			verifiedRetry.current = false;
 			console.error('Failed to set password:', err);
 			showErrorToast({
 				message: 'Failed to update password',
@@ -49,6 +65,23 @@ export const EditPasswordCard: CardComponent<EditPasswordCardProps> = ({ onSucce
 			});
 		}
 	};
+
+	if (stepUp) {
+		return (
+			<div className='space-y-4 p-4'>
+				<p className='text-muted-foreground text-sm'>Changing your password needs a fresh check that it’s you.</p>
+				<StepUpCodeForm
+					busy={isSettingPassword}
+					busyLabel='Saving…'
+					onCancel={() => card.close()}
+					onVerified={async () => {
+						verifiedRetry.current = true;
+						await handleSave();
+					}}
+				/>
+			</div>
+		);
+	}
 
 	return (
 		<div className='flex h-full flex-col'>
