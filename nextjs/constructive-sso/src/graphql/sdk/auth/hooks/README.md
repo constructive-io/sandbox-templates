@@ -148,7 +148,7 @@ function App() {
 | `useMintAccessTokenMutation` | Mutation | mintAccessToken |
 | `useCreateOrgApiKeyMutation` | Mutation | createOrgApiKey |
 | `useSetPrincipalScopeMutation` | Mutation | setPrincipalScope |
-| `useCreateApiKeyMutation` | Mutation | createApiKey |
+| `useCreateApiKeyMutation` | Mutation | Mint an API key for the current user; the plaintext key is returned once. access_level: full_access (default) or read_only. mfa_level: none (default) or verified; verified needs a fresh MFA proof on the calling session. A key minted while authenticated by another API key never outlives that key. |
 | `useCreateChildPrincipalMutation` | Mutation | createChildPrincipal |
 | `useProvisionBucketMutation` | Mutation | Reconcile an S3 bucket for a logical bucket in the database.
 Records the request on the bucket row via RLS; the bucket's job
@@ -1042,7 +1042,7 @@ setPrincipalScope
 
 ### `useCreateApiKeyMutation`
 
-createApiKey
+Mint an API key for the current user; the plaintext key is returned once. access_level: full_access (default) or read_only. mfa_level: none (default) or verified; verified needs a fresh MFA proof on the calling session. A key minted while authenticated by another API key never outlives that key.
 
 - **Type:** mutation
 - **Arguments:**
