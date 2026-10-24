@@ -239,7 +239,9 @@ pnpm run configure-orgs    # every member may create organizations
   never meets the guard. Optional **`STEP_UP_WINDOW`** (a Postgres interval,
   e.g. `'2 minutes'`) sets how recently a session must have signed in or
   verified a code before a step-up-guarded write — deleting an organization
-  (`STEP_UP_REQUIRED_FRESH_AUTH`, planning#2297) or adding a phone. Unset
+  (`STEP_UP_REQUIRED_FRESH_AUTH`, planning#2297), adding a phone, changing
+  the password, creating an API key, or turning a second factor on or off
+  (constructive-db #4163). Unset
   keeps the tenant default of 30 minutes; shorten it to see the app's step-up
   dialog without waiting. Optional **`NATIVE_REDIRECT_URIS`** (comma-separated)
   lists the deep links a desktop or mobile app may have the hosted Google and

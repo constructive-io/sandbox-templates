@@ -25,7 +25,8 @@
  *                                   interval): how recently a session must have
  *                                   signed in or verified a code before a
  *                                   step-up-guarded write (deleting an
- *                                   organization, adding a phone). Unset keeps
+ *                                   organization, adding a phone, changing the
+ *                                   password, an API key, a second factor). Unset keeps
  *                                   the tenant default, 30 minutes; shorten it
  *                                   to see the step-up prompt without waiting.
  *   NATIVE_REDIRECT_URIS='myapp://auth'
