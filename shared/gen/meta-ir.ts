@@ -176,9 +176,9 @@ export type ResourceIR = {
 	 * Keys a create fills with the signed-in user's id (also their personal org).
 	 * Decided, highest first, by the AppSpec hint `default: "$currentUserId"`
 	 * (or `required: false` to opt out), then by `_meta` `isRequiredOnCreate`.
-	 * Without either, the fallback is the contract's hidden system keys
-	 * (`ownerId`, `entityId`, the scope's `keyColumn`) that are NOT NULL with
-	 * no default.
+	 * Without either, the fallback is the contract's hidden system keys (the
+	 * scope's `keyColumn`, and an `ownerId` or `entityId` that points at the
+	 * users table or at no table `_meta` shows) that are NOT NULL with no default.
 	 */
 	userKeys: string[];
 	/** Writable on create only: left out of updates. */
@@ -208,8 +208,10 @@ export type MetaModel = {
 // ---------------------------------------------------------------------------
 
 // The contract's system fields, matched across camelCase and snake_case.
-const HIDDEN_SYSTEM_KEYS = new Set(['id', 'ownerid', 'entityid']);
 const READ_ONLY_SYSTEM_KEYS = new Set(['createdat', 'updatedat']);
+// The contract's owner keys, and the platform table they point at when `_meta` shows the key.
+const OWNER_KEYS = new Set(['ownerid', 'entityid']);
+const USERS_TABLE = new Set(['user', 'users']);
 
 // Generic vocabulary for choosing inputs and a title column. These are UX
 // hints that apply to any schema, never a reference to a particular table.
@@ -244,7 +246,8 @@ type TableInfo = {
 	kind: 'entity' | 'junction' | 'storage';
 	systemHidden: Set<string>;
 	systemReadOnly: Set<string>;
-	foreignKeys: Array<{ key: string; target: TableInfo | undefined }>;
+	/** `references`: the table name `_meta` gives, when it gives one. */
+	foreignKeys: Array<{ key: string; target: TableInfo | undefined; references?: string }>;
 };
 
 function primaryKeyOf(table: MetaTable): string | null {
@@ -345,7 +348,7 @@ export function buildMetaModel(tables: MetaTable[]): MetaModel {
 		const systemReadOnly = new Set<string>();
 		for (const field of meta.fields ?? []) {
 			const key = normalizeKey(field.name);
-			if (HIDDEN_SYSTEM_KEYS.has(key) || field.name === scopeKey) systemHidden.add(field.name);
+			if (key === 'id' || field.name === scopeKey) systemHidden.add(field.name);
 			else if (READ_ONLY_SYSTEM_KEYS.has(key)) systemReadOnly.add(field.name);
 		}
 		infos.push({
@@ -377,18 +380,29 @@ export function buildMetaModel(tables: MetaTable[]): MetaModel {
 		for (const relation of info.meta.relations?.belongsTo ?? []) {
 			if (relation.keys.length !== 1 || seen.has(relation.keys[0].name)) continue;
 			seen.add(relation.keys[0].name);
-			info.foreignKeys.push({ key: relation.keys[0].name, target: resolve(relation.references.name) });
+			const references = relation.references.name;
+			info.foreignKeys.push({ key: relation.keys[0].name, target: resolve(references), references });
 		}
 		for (const constraint of info.meta.constraints?.foreignKey ?? []) {
 			if (constraint.fields.length !== 1 || seen.has(constraint.fields[0].name)) continue;
 			seen.add(constraint.fields[0].name);
-			info.foreignKeys.push({ key: constraint.fields[0].name, target: resolve(constraint.refTable.name) });
+			const references = constraint.refTable.name;
+			info.foreignKeys.push({ key: constraint.fields[0].name, target: resolve(references), references });
 		}
 		for (const field of info.meta.fields ?? []) {
 			if (field.isForeignKey && !seen.has(field.name)) {
 				seen.add(field.name);
 				info.foreignKeys.push({ key: field.name, target: undefined });
 			}
+		}
+
+		// An owner or entity key belongs to the signed-in user (hidden, filled on create) when it
+		// points at the users table, or when `_meta` shows no table it points at, so only its name
+		// tells. A key to an app table (`pets.owner_id → owners`) is a belongs-to like any other.
+		for (const field of info.meta.fields ?? []) {
+			if (!OWNER_KEYS.has(normalizeKey(field.name))) continue;
+			const references = info.foreignKeys.find((fk) => fk.key === field.name)?.references;
+			if (!references || USERS_TABLE.has(normalizeKey(references))) info.systemHidden.add(field.name);
 		}
 	}
 

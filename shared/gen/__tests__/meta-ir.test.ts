@@ -427,6 +427,36 @@ describe('fields', () => {
 		assert.deepEqual(resource(resources, 'contacts').userKeys, [], 'ownerId has a default');
 	});
 
+	it('fills an owner key with the user only when it points at users or at no table, and lets one to an app table be picked', () => {
+		const id = column('id', 'UUID', 'uuid', { hasDefault: true, isPrimaryKey: true });
+		const table = (name: string, all: string, keys: Record<string, string | null> = {}): MetaTable => ({
+			name,
+			query: { all, create: `create${name}` },
+			inflection: { tableType: name },
+			fields: [id, column('name', 'String', 'text'), ...Object.entries(keys).map(([key, to]) => column(key, 'UUID', 'uuid', { isForeignKey: Boolean(to) }))],
+			relations: {
+				belongsTo: Object.entries(keys)
+					.filter((entry): entry is [string, string] => entry[1] !== null)
+					.map(([key, to]) => ({ fieldName: to, keys: [{ name: key }], references: { name: to } })),
+			},
+		});
+		const { resources } = buildMetaModel([
+			table('User', 'users'),
+			table('Owner', 'owners'),
+			table('Pet', 'pets', { ownerId: 'Owner', entityId: 'User' }),
+			table('Vet', 'vets', { ownerId: null }),
+		]);
+
+		const pets = resource(resources, 'pets');
+		assert.deepEqual(field(pets, 'ownerId').relation, { resource: 'owners' });
+		assert.ok(pets.formFields.includes('ownerId'), 'a key to an app table is picked in the form');
+		assert.equal(field(pets, 'entityId').hidden, true);
+		assert.deepEqual(pets.userKeys, ['entityId']);
+		const vets = resource(resources, 'vets');
+		assert.equal(field(vets, 'ownerId').hidden, true);
+		assert.deepEqual(vets.userKeys, ['ownerId'], 'no foreign key: matched by its name, as before');
+	});
+
 	it('resolves belongs-to keys whose references use the SQL table name', () => {
 		const contacts = resource(buildMetaModel(loadTables()).resources, 'contacts');
 		const company = field(contacts, 'companyId');
