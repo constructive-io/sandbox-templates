@@ -172,7 +172,7 @@ export function ChildList({ parentId }: { parentId: string }) {
 5. **Make it the home page.** When the block is what the app is for (conversations in an agent app, a board in a task app), it is the screen people land on:
    - Delete the first line (`// @generated …`) of `src/app/(app)/page.tsx`, so the generator leaves it alone, and build the domain screen in that file, at `/`. Don't redirect: the home row stays marked as the current page only at `/`. A route of its own with a `customNav` entry is not enough, since people land on `/`.
    - Rename the home row in `src/config/nav.ts`: `homeNav = { label: '<Screen name>', icon: <Icon> }`. Further domain screens go in `customNav`, right below it, so the domain screens come first in the sidebar.
-   - The generated table pages stay under "Data". For the old dashboard as a secondary page, copy its body to `src/app/(app)/overview/page.tsx` and add `{ label: 'Overview', href: '/overview', icon: … }` to `customNav`. Otherwise drop it.
+   - The generated table pages stay under "Data". For the old dashboard as a secondary page, copy the file to `src/app/(app)/overview/page.tsx`, delete the copy's first line (`// @generated …`) too, and add `{ label: 'Overview', href: '/overview', icon: … }` to `customNav`. Otherwise drop it.
 
 ## Adding UI
 

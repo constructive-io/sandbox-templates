@@ -3,9 +3,9 @@
 // fixtures' blueprints plus one new table and one new column.
 
 import assert from 'node:assert/strict';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { afterEach, beforeEach, describe, it } from 'node:test';
 
 import type { AppSpec } from '../app-spec.ts';
@@ -132,6 +132,20 @@ describe('gen:resources on an evolved database', () => {
 		assert.match(dropped.hints[2]?.message ?? '', /remove notes, which the table no longer has/);
 		assert.ok(!readFileSync(join(root, 'src/resources/index.ts'), 'utf8').includes('donations'));
 		assert.deepEqual(runGen({ root, tables: tables('food-bank/meta.json'), spec: foodBankSpec, emitter }).hints, []);
+	});
+
+	it('keeps a whole-file copy of a generated page, since the generator never wrote it', () => {
+		runGen({ root, tables: tables('food-bank/meta.json'), spec: foodBankSpec, emitter });
+		// The old dashboard kept as a secondary page, copied with its header still on.
+		const copy = join(root, 'src/app/(app)/overview/page.tsx');
+		mkdirSync(dirname(copy), { recursive: true });
+		copyFileSync(join(root, 'src/app/(app)/page.tsx'), copy);
+		takeOwnership(root, 'src/app/(app)/page.tsx');
+		const copied = readFileSync(copy, 'utf8');
+
+		const second = runGen({ root, tables: tables('food-bank/meta.json'), spec: foodBankSpec, emitter });
+		assert.deepEqual(second.files.removed, []);
+		assert.equal(readFileSync(copy, 'utf8'), copied);
 	});
 
 	it('lists what the spec names and the database lacks, so the caller can tell the two disagree', () => {

@@ -77,8 +77,9 @@ export interface Emitter {
 	/** URL path of a resource's list page. */
 	route(resource: ResourceIR): string;
 	/**
-	 * Directories (relative to the app root) where a generated file that is no
-	 * longer emitted gets removed, e.g. the route folder of a dropped table.
+	 * Directories (relative to the app root) where a generated file that the
+	 * last run emitted and this one doesn't gets removed, e.g. the route folder
+	 * of a dropped table.
 	 */
 	readonly pruneRoots: readonly string[];
 	/**
@@ -100,7 +101,7 @@ export type WriteReport = {
 	skipped: string[];
 	/** Edited by hand with the header still in place: left alone, so the edit isn't lost. */
 	modified: string[];
-	/** Generated files for resources that no longer exist. */
+	/** Generated files the last run emitted and this one doesn't, e.g. of a dropped table. */
 	removed: string[];
 };
 
@@ -184,6 +185,9 @@ export function writeGenerated(
 				report.modified.push(path);
 				continue;
 			}
+			// Only a file the last run emitted is pruned. One it never wrote, such as a copy
+			// of a generated page that kept the header, belongs to the app.
+			if (!Object.hasOwn(previous, path)) continue;
 			if (!options.dryRun) {
 				rmSync(abs);
 				removeEmptyDirs(root, toPosix(dirname(path)), toPosix(relative(root, join(root, pruneRoot))));
