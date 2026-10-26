@@ -7,7 +7,9 @@
 //
 // The written header also carries a hash of the body. A file edited without
 // deleting the header no longer matches it: the generator leaves that file
-// alone too, and reports it as modified, so a hand edit is never lost.
+// alone too, and reports it as modified, so a hand edit is never lost. A
+// header whose hash is missing or garbled counts as modified as well, unless
+// the body still matches the hash the last run recorded for that path.
 
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmdirSync, rmSync, writeFileSync } from 'node:fs';
@@ -56,12 +58,17 @@ export function stampGenerated(content: string): string {
 	return `${GENERATED_HEADER} (body sha256:${bodyHash(body)})\n${body}`;
 }
 
-/** owned: header deleted. modified: header kept, body edited since it was written. pristine: as generated. */
-export function generatedState(content: string): 'owned' | 'modified' | 'pristine' {
+/**
+ * owned: header deleted. modified: header kept, body edited since it was written. pristine: as generated.
+ * `recorded` is the body hash the last run recorded for the file, which stands in for a header whose hash
+ * is missing or garbled.
+ */
+export function generatedState(content: string, recorded?: string): 'owned' | 'modified' | 'pristine' {
 	const [firstLine, body] = split(content);
 	if (!firstLine.startsWith(GENERATED_HEADER)) return 'owned';
 	const hashed = HASHED_HEADER.exec(firstLine);
-	return hashed && hashed[1] === GENERATED_HEADER && hashed[2] !== bodyHash(body) ? 'modified' : 'pristine';
+	const expected = hashed && hashed[1] === GENERATED_HEADER ? hashed[2] : recorded;
+	return expected === bodyHash(body) ? 'pristine' : 'modified';
 }
 
 export interface Emitter {
@@ -137,6 +144,8 @@ export function writeGenerated(
 	root: string,
 	files: EmittedFile[],
 	pruneRoots: readonly string[],
+	/** Body hash of every file the last run emitted, by path. */
+	previous: Readonly<Record<string, string>>,
 	options: { dryRun?: boolean } = {},
 ): WriteReport {
 	const report: WriteReport = { written: [], unchanged: [], skipped: [], modified: [], removed: [] };
@@ -148,7 +157,7 @@ export function writeGenerated(
 		const abs = join(root, file.path);
 		if (existsSync(abs)) {
 			const current = readFileSync(abs, 'utf8');
-			const state = generatedState(current);
+			const state = generatedState(current, previous[file.path]);
 			if (state !== 'pristine') {
 				report[state === 'owned' ? 'skipped' : 'modified'].push(file.path);
 				continue;
@@ -169,7 +178,7 @@ export function writeGenerated(
 		for (const path of listFiles(root, pruneRoot)) {
 			if (emitted.has(path)) continue;
 			const abs = join(root, path);
-			const state = generatedState(readFileSync(abs, 'utf8'));
+			const state = generatedState(readFileSync(abs, 'utf8'), previous[path]);
 			if (state === 'owned') continue;
 			if (state === 'modified') {
 				report.modified.push(path);

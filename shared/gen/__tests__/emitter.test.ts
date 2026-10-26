@@ -7,9 +7,10 @@ import { afterEach, beforeEach, describe, it } from 'node:test';
 import ts from 'typescript';
 
 import { applySpec as applyAppSpec, type AppSpec } from '../app-spec.ts';
-import { clearDerived, stampGenerated, writeGenerated } from '../emitter.ts';
+import { clearDerived, GENERATED_HEADER, stampGenerated } from '../emitter.ts';
 import { emitter } from '../emitters/nextjs.ts';
 import { buildMetaModel, parseMetaDocument, type MetaTable } from '../meta-ir.ts';
+import { runGen } from '../run.ts';
 
 const FIXTURE = join(import.meta.dirname, '__fixtures__', 'crm-meta.json');
 const NEXTJS_SHELL = join(import.meta.dirname, '..', '..', '..', 'nextjs', 'app');
@@ -22,8 +23,7 @@ function tables(): MetaTable[] {
 const withoutHeader = (content: string) => content.slice(content.indexOf('\n') + 1);
 
 function generate(root: string, metaTables = tables(), name = 'CRM') {
-	const files = emitter.emit(applyAppSpec(buildMetaModel(metaTables), { version: 1, name, backend: { kind: 'blueprint', slug: 'crm' } }));
-	return writeGenerated(root, files, emitter.pruneRoots);
+	return runGen({ root, tables: metaTables, spec: { version: 1, name, backend: { kind: 'blueprint', slug: 'crm' } }, emitter }).files;
 }
 
 describe('generated file ownership', () => {
@@ -82,6 +82,23 @@ describe('generated file ownership', () => {
 		);
 		assert.ok(dropped.modified.includes('src/resources/deals.ts'), 'not pruned either');
 		assert.ok(existsSync(path));
+	});
+
+	it('treats a header without its hash as an edit, unless the body is still what the last run wrote', () => {
+		generate(root);
+		const dropHash = (path: string, edit = (body: string) => body) => {
+			const abs = join(root, path);
+			writeFileSync(abs, `${GENERATED_HEADER}\n${edit(withoutHeader(readFileSync(abs, 'utf8')))}`);
+		};
+		dropHash('src/resources/deals.ts', (body) => body.replace("label: 'Deals'", "label: 'Pipeline'"));
+		dropHash('src/config/app.ts');
+		const edited = readFileSync(join(root, 'src/resources/deals.ts'), 'utf8');
+
+		const report = generate(root, tables(), 'Renamed');
+		assert.ok(report.modified.includes('src/resources/deals.ts'));
+		assert.equal(readFileSync(join(root, 'src/resources/deals.ts'), 'utf8'), edited);
+		assert.ok(report.written.includes('src/config/app.ts'));
+		assert.match(readFileSync(join(root, 'src/config/app.ts'), 'utf8'), /^\/\/ @generated .*\(body sha256:[0-9a-f]{12}\)\n[\s\S]*'Renamed'/);
 	});
 
 	it('clears the route types Next derived, which still import the removed pages', () => {

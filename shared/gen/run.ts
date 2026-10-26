@@ -83,7 +83,7 @@ export function runGen(options: RunOptions): GenSummary {
 	const saved = readState(root);
 	// An app that never ran the generator still has the shell's files, which are the output for no tables.
 	const previous = saved ?? stateOf(emitter.emit(applySpec(buildMetaModel([]))), applySpec(buildMetaModel([])));
-	const report = writeGenerated(root, files, emitter.pruneRoots, { dryRun });
+	const report = writeGenerated(root, files, emitter.pruneRoots, previous.files, { dryRun });
 	const changed = report.written.length > 0 || report.removed.length > 0;
 	const cleared = changed ? clearDerived(root, emitter.derivedPaths, { dryRun }) : [];
 	const next = stateOf(files, model);
@@ -232,7 +232,7 @@ function buildHints(
 	const leftovers = new Set([...report.modified, ...Object.keys(previous.files), ...previous.kept]);
 	for (const path of [...leftovers].sort()) {
 		if (emitted.has(path) || report.removed.includes(path) || !existsSync(join(root, path))) continue;
-		const state = generatedState(readFileSync(join(root, path), 'utf8'));
+		const state = generatedState(readFileSync(join(root, path), 'utf8'), previous.files[path]);
 		const generatedBefore = path in previous.files || !hasState;
 		if (state === 'pristine' || (state === 'owned' && !generatedBefore && !previous.kept.includes(path))) continue;
 		kept.push(path);
