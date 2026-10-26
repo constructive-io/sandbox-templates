@@ -392,36 +392,23 @@ export function buildMetaModel(tables: MetaTable[]): MetaModel {
 		}
 	}
 
-	// Junction tables: named by a many-to-many relation, or nothing but two
-	// foreign keys. A named junction that also needs a value of its own (a
-	// required non-key column) can't be written by linking, so it stays an entity.
-	const namedJunctions = new Set<TableInfo>();
-	for (const info of infos) {
-		for (const relation of info.meta.relations?.manyToMany ?? []) {
-			const junction = resolve(relation.junctionTable.name);
-			if (junction) namedJunctions.add(junction);
-		}
-	}
+	// Junction tables: two foreign keys to two different entities and nothing
+	// else but system fields. A table with a value of its own (an optional or
+	// defaulted grade on an enrollment) stays an entity, even when `_meta` flags
+	// it or a many-to-many relation names it: linking can't show or edit that
+	// value. `_meta` can still rule a junction out (`isJunction: false`).
 	const junctionLinks = new Map<TableInfo, [{ key: string; target: TableInfo }, { key: string; target: TableInfo }]>();
 	for (const info of infos) {
-		if (info.kind !== 'entity') continue;
+		if (info.kind !== 'entity' || info.meta.isJunction === false) continue;
 		const ownFields = (info.meta.fields ?? []).filter(
 			(field) => !info.systemHidden.has(field.name) && !info.systemReadOnly.has(field.name),
 		);
 		const keys = info.foreignKeys.filter(
 			(fk) => fk.target && fk.target.kind === 'entity' && ownFields.some((field) => field.name === fk.key),
 		) as Array<{ key: string; target: TableInfo }>;
-		if (info.meta.isJunction === false) continue;
-		if (keys.length !== 2 || keys[0].target === keys[1].target) continue;
-		const extra = ownFields.filter((field) => !keys.some((fk) => fk.key === field.name));
-		const isJunction =
-			info.meta.isJunction === true ||
-			extra.length === 0 ||
-			(namedJunctions.has(info) && !extra.some(isRequired));
-		if (isJunction) {
-			info.kind = 'junction';
-			junctionLinks.set(info, [keys[0], keys[1]]);
-		}
+		if (keys.length !== 2 || keys[0].target === keys[1].target || ownFields.length !== 2) continue;
+		info.kind = 'junction';
+		junctionLinks.set(info, [keys[0], keys[1]]);
 	}
 
 	const resources: ResourceIR[] = [];

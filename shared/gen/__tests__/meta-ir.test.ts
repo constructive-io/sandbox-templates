@@ -31,6 +31,11 @@ function field(ir: ResourceIR, name: string) {
 	return found;
 }
 
+/** A `_meta` field: NOT NULL with no default unless `more` says otherwise. */
+function column(name: string, gqlType: string, pgType: string, more: Partial<MetaField> = {}): MetaField {
+	return { name, isNotNull: true, hasDefault: false, type: { gqlType, isArray: false, pgType }, ...more };
+}
+
 describe('a real custom database (food bank)', () => {
 	const tables = () => parseMetaDocument(JSON.parse(readFileSync(join(FOOD_BANK, 'meta.json'), 'utf8')));
 	const spec = JSON.parse(readFileSync(join(FOOD_BANK, 'app-spec.json'), 'utf8')) as AppSpec;
@@ -297,6 +302,53 @@ describe('junction tables', () => {
 		const { resources, junctions } = buildMetaModel(tables);
 		assert.equal(junctions.length, 1);
 		assert.ok(!resources.some((ir) => ir.table === 'ContactTag'));
+	});
+
+	/** students and courses linked by enrollments(studentId, courseId, ...extra), which `_meta` flags and names as a junction. */
+	function enrollments(extra: MetaField[]): MetaTable[] {
+		const id = column('id', 'UUID', 'uuid', { hasDefault: true, isPrimaryKey: true });
+		const entity = (name: string, all: string, other: string): MetaTable => ({
+			name,
+			query: { all, create: `create${name}` },
+			inflection: { tableType: name },
+			fields: [id, column('name', 'String', 'text')],
+			relations: { manyToMany: [{ fieldName: other, junctionTable: { name: 'enrollments' }, rightTable: { name: other } }] },
+		});
+		return [
+			entity('Student', 'students', 'courses'),
+			entity('Course', 'courses', 'students'),
+			{
+				name: 'Enrollment',
+				tableName: 'enrollments',
+				isJunction: true,
+				query: { all: 'enrollments', create: 'createEnrollment' },
+				inflection: { tableType: 'Enrollment' },
+				fields: [id, column('studentId', 'UUID', 'uuid', { isForeignKey: true }), column('courseId', 'UUID', 'uuid', { isForeignKey: true }), ...extra],
+				relations: {
+					belongsTo: [
+						{ fieldName: 'student', keys: [{ name: 'studentId' }], references: { name: 'Student' } },
+						{ fieldName: 'course', keys: [{ name: 'courseId' }], references: { name: 'Course' } },
+					],
+				},
+			},
+		];
+	}
+
+	it('gives a two-key table with a value of its own a page, even when _meta calls it a junction', () => {
+		for (const grade of [
+			column('grade', 'String', 'text', { isNotNull: false }),
+			column('grade', 'String', 'text', { hasDefault: true }),
+		]) {
+			const { resources, junctions } = buildMetaModel(enrollments([grade]));
+			assert.deepEqual(junctions, []);
+			const ir = resource(resources, 'enrollments');
+			assert.ok(ir.formFields.includes('grade'), 'grade can be seen and edited');
+			assert.equal(field(ir, 'studentId').input, 'relation');
+		}
+
+		const link = buildMetaModel(enrollments([]));
+		assert.deepEqual(link.junctions, [{ table: 'Enrollment', between: ['students', 'courses'] }], 'a pure link table is still chips');
+		assert.deepEqual(field(resource(link.resources, 'students'), 'courses').relation, { resource: 'courses', many: true });
 	});
 
 	it('keeps a named junction that needs its own value as an entity', () => {
