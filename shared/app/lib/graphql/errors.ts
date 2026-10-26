@@ -16,8 +16,9 @@ export const UNAVAILABLE_MESSAGE = "This app's database is unavailable.";
 export const OUTDATED_MESSAGE = 'This screen is out of date with the database; ask to rebuild the app.';
 export const SESSION_EXPIRED_MESSAGE = 'Your session has expired. Sign in again.';
 
-/** A rejected or expired token, by code or wording. */
-export const AUTH_ERROR = /UNAUTHENTICATED|jwt expired|invalid token|token.*expired/i;
+// An expired token, in the words of the JWT library. A rejected token comes as a 401 or
+// UNAUTHENTICATED; other wording about tokens (a password reset's) is a domain error.
+const JWT_EXPIRED = /\bjwt expired\b/i;
 
 // The API answers these when the app's queries name what the database no longer has.
 const OUTDATED_TEXT = [
@@ -41,7 +42,7 @@ export function failureKind(errors: readonly RequestError[]): FailureKind {
 	if (errors.some((e) => codeOf(e) === 'ACCESS_SUSPENDED' || (statusOf(e) === 403 && (!codeOf(e) || codeOf(e) === 'HTTP_ERROR')))) {
 		return 'unavailable';
 	}
-	if (errors.some((e) => statusOf(e) === 401 || codeOf(e) === 'UNAUTHENTICATED' || AUTH_ERROR.test(`${codeOf(e)} ${e.message ?? ''}`))) {
+	if (errors.some((e) => statusOf(e) === 401 || codeOf(e) === 'UNAUTHENTICATED' || JWT_EXPIRED.test(e.message ?? ''))) {
 		return 'signed-out';
 	}
 	if (errors.some((e) => OUTDATED_CODES.has(codeOf(e)) || OUTDATED_TEXT.some((pattern) => pattern.test(e.message ?? '')))) {

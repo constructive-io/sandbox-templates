@@ -20,7 +20,11 @@ describe('failureKind', () => {
 			[{ message: 'HTTP 403: Forbidden', extensions: { code: 'HTTP_ERROR', httpStatus: 403 } }, 'unavailable'],
 			[{ message: 'Forbidden', extensions: { code: 'FORBIDDEN', httpStatus: 403 } }, 'other'],
 			[{ message: 'HTTP 401: Unauthorized', extensions: { code: 'HTTP_ERROR', httpStatus: 401 } }, 'signed-out'],
+			[{ message: 'Not signed in', extensions: { code: 'UNAUTHENTICATED' } }, 'signed-out'],
 			[{ message: 'jwt expired' }, 'signed-out'],
+			// A domain error that mentions a token is not about the session.
+			[{ message: 'invalid token for password reset' }, 'other'],
+			[{ message: 'The invite token expired.' }, 'other'],
 			[{ message: 'Cannot query field "notes" on type "Shift". Did you mean "note"?' }, 'outdated'],
 			[{ message: 'Field "notes" is not defined by type "ShiftPatch".' }, 'outdated'],
 			[{ message: 'Value "FULL" does not exist in "ShiftStatus" enum.' }, 'outdated'],

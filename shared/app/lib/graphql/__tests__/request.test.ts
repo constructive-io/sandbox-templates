@@ -52,6 +52,17 @@ describe('graphqlRequest refused by the server', () => {
 		assert.notEqual(storage.getItem(TOKEN_STORAGE_KEY), null, 'signing in again would not help');
 	});
 
+	it('keeps the session and the server\'s text for a domain error that mentions a token', async () => {
+		signIn('2999-01-01T00:00:00Z');
+		const body = { errors: [{ message: 'invalid token for password reset' }] };
+		mock.method(globalThis, 'fetch', async () => new Response(JSON.stringify(body)));
+
+		const result = await graphqlRequest('http://api.test/graphql', 'mutation { resetPassword }');
+
+		assert.equal(result.errors?.[0].message, 'invalid token for password reset');
+		assert.notEqual(storage.getItem(TOKEN_STORAGE_KEY), null);
+	});
+
 	it('names a 403 without a body, and signs out only on a 401', async () => {
 		signIn('2999-01-01T00:00:00Z');
 		mock.method(globalThis, 'fetch', async () => new Response('Forbidden', { status: 403, statusText: 'Forbidden' }));
