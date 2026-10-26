@@ -29,7 +29,7 @@ jobs:
       # The blocks commit whose registry items this template is built against.
       # The registry is built from it and served locally, so CI never depends
       # on what the public Pages registry serves today. Bump it with the kit.
-      BLOCKS_REF: 734b33b5523730a6f48081b3a8537402b99112cf
+      BLOCKS_REF: 3c3bab0672957d00eff7a8a7796e4a5dc18b1c2e
       # Not REGISTRY_URL: shadcn reads that name as the base URL of its own registry.
       BLOCKS_REGISTRY_URL: http://127.0.0.1:4005/r/{name}.json
     steps:
