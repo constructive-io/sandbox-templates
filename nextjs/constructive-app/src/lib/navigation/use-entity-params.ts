@@ -1,9 +1,11 @@
 /**
  * Entity Params Hook - URL-based entity state management
  *
- * This hook provides a clean interface for reading entity IDs from URL path params
- * and validating them against available data. It serves as the source of truth
- * for entity selection, replacing Zustand-based entity state.
+ * This hook provides a clean interface for reading entity IDs from the orgId
+ * search param and validating them against available data. It serves as the
+ * source of truth for entity selection, replacing Zustand-based entity state.
+ * The app is a static export, so entity IDs travel in search params, not in
+ * dynamic path segments.
  *
  * Benefits:
  * - URL is shareable and bookmarkable
@@ -15,12 +17,12 @@
  *
  * Routes:
  * - `/` - Root level (organizations list)
- * - `/orgs/[orgId]/*` - Organization level
+ * - `/orgs/*?orgId=...` - Organization level
  */
 'use client';
 
 import { useMemo } from 'react';
-import { useParams } from 'next/navigation';
+import { parseAsString, useQueryState } from 'nuqs';
 
 import {
 	useOrganizations,
@@ -120,10 +122,8 @@ function transformOrganization(org: OrganizationWithRole): Organization {
 }
 
 export function useEntityParams(): UseEntityParamsResult {
-	const params = useParams();
-
-	// Extract entity IDs from URL path params
-	const orgId = (params?.orgId as string) ?? null;
+	// Extract the entity ID from the orgId search param
+	const [orgId] = useQueryState('orgId', parseAsString);
 
 	// Get organizations from GraphQL
 	const { organizations: rawOrganizations, isLoading: isOrgsLoading } = useOrganizations();
