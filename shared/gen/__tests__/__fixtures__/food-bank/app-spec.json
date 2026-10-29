@@ -1,0 +1,199 @@
+{
+	"version": 1,
+	"name": "Food Bank Shifts",
+	"tagline": "Volunteer scheduling",
+	"backend": {
+		"kind": "custom",
+		"entities": [
+			{
+				"name": "locations",
+				"fields": [
+					{
+						"name": "name",
+						"type": "text",
+						"required": true
+					},
+					{
+						"name": "address",
+						"type": "long_text"
+					},
+					{
+						"name": "capacity",
+						"type": "integer"
+					}
+				]
+			},
+			{
+				"name": "volunteers",
+				"fields": [
+					{
+						"name": "full_name",
+						"type": "text",
+						"required": true,
+						"label": "Name"
+					},
+					{
+						"name": "email",
+						"type": "email"
+					},
+					{
+						"name": "phone",
+						"type": "text"
+					},
+					{
+						"name": "active",
+						"type": "boolean",
+						"default": true
+					}
+				]
+			},
+			{
+				"name": "shifts",
+				"fields": [
+					{
+						"name": "title",
+						"type": "text",
+						"required": true
+					},
+					{
+						"name": "starts_at",
+						"type": "timestamp",
+						"required": true,
+						"label": "Starts"
+					},
+					{
+						"name": "ends_at",
+						"type": "timestamp",
+						"required": true,
+						"label": "Ends"
+					},
+					{
+						"name": "slots",
+						"type": "integer"
+					}
+				],
+				"belongsTo": [
+					{
+						"field": "location_id",
+						"to": "locations",
+						"onDelete": "cascade",
+						"label": "Location"
+					}
+				]
+			}
+		],
+		"links": [
+			{
+				"name": "shift_signups",
+				"between": [
+					"shifts",
+					"volunteers"
+				]
+			}
+		]
+	},
+	"seed": {
+		"locations": [
+			{
+				"name": "Main pantry",
+				"address": "12 Elm Street",
+				"capacity": 20
+			},
+			{
+				"name": "Eastside depot",
+				"address": "88 Harbor Road",
+				"capacity": 8
+			}
+		],
+		"volunteers": [
+			{
+				"full_name": "Ana Lima",
+				"email": "ana@example.com"
+			},
+			{
+				"full_name": "Sam Okafor",
+				"email": "sam@example.com",
+				"phone": "555-0102"
+			}
+		],
+		"shifts": [
+			{
+				"title": "Morning sorting",
+				"starts_at": "2026-10-20T09:00:00Z",
+				"ends_at": "2026-10-20T12:00:00Z",
+				"slots": 6,
+				"location_id": "@locations[0]"
+			},
+			{
+				"title": "Delivery run",
+				"starts_at": "2026-10-21T13:00:00Z",
+				"ends_at": "2026-10-21T16:00:00Z",
+				"slots": 3,
+				"location_id": "@locations[1]"
+			}
+		]
+	},
+	"ui": {
+		"nav": [
+			"shifts",
+			"volunteers",
+			"locations"
+		],
+		"resources": {
+			"shifts": {
+				"icon": "calendar-clock",
+				"columns": [
+					"title",
+					"starts_at",
+					"ends_at",
+					"location_id",
+					"status"
+				],
+				"fields": {
+					"status": {
+						"options": [
+							"open",
+							"full",
+							"cancelled"
+						]
+					},
+					"slots": {
+						"description": "How many volunteers this shift needs."
+					}
+				}
+			},
+			"volunteers": {
+				"icon": "users"
+			},
+			"locations": {
+				"icon": "map-pin"
+			}
+		},
+		"dashboard": {
+			"tiles": [
+				{
+					"kind": "count",
+					"resource": "shifts",
+					"label": "Shifts"
+				},
+				{
+					"kind": "count",
+					"resource": "volunteers",
+					"label": "Active volunteers",
+					"filters": {
+						"active": true
+					}
+				},
+				{
+					"kind": "count",
+					"resource": "locations"
+				},
+				{
+					"kind": "recent",
+					"resource": "shifts",
+					"limit": 5
+				}
+			]
+		}
+	}
+}

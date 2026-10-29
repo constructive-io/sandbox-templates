@@ -1,0 +1,100 @@
+name: app template
+
+on:
+  pull_request:
+    paths:
+      - 'shared/**'
+      - 'nextjs/app/**'
+      - 'scripts/**'
+      - 'package.json'
+      - 'tsconfig.json'
+      - '.github/workflows/app-template.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'shared/**'
+      - 'nextjs/app/**'
+      - 'scripts/**'
+      - 'package.json'
+      - 'tsconfig.json'
+      - '.github/workflows/app-template.yml'
+
+jobs:
+  nextjs-app:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      APP_DIR: ${{ github.workspace }}/../composed-app
+      FIXTURES: ${{ github.workspace }}/shared/gen/__tests__/__fixtures__
+      # The blocks commit whose registry items this template is built against.
+      # The registry is built from it and served locally, so CI never depends
+      # on what the public Pages registry serves today. Bump it with the kit.
+      BLOCKS_REF: 3c3bab0672957d00eff7a8a7796e4a5dc18b1c2e
+      # Not REGISTRY_URL: shadcn reads that name as the base URL of its own registry.
+      BLOCKS_REGISTRY_URL: http://127.0.0.1:4005/r/{name}.json
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        with:
+          repository: constructive-io/blocks
+          ref: ${{ env.BLOCKS_REF }}
+          path: .blocks
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.30.2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install the repository tooling
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Build the blocks registry at the pinned commit
+        working-directory: .blocks
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm --filter @constructive-io/registry build
+
+      - name: Serve the registry
+        run: |
+          nohup python3 -m http.server 4005 --bind 127.0.0.1 --directory .blocks/apps/registry/public > registry.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:4005/r/registry.json > /dev/null && exit 0; sleep 1; done
+          cat registry.log; exit 1
+
+      - name: Unit tests
+        run: pnpm test
+
+      - name: Type-check the generator and scripts
+        run: pnpm typecheck
+
+      - name: Compose nextjs/app
+        run: node --experimental-strip-types scripts/compose.ts --template nextjs/app --out "$APP_DIR" --registry-url "$BLOCKS_REGISTRY_URL"
+
+      - name: Type-check the composed app (stub SDK, no tables)
+        working-directory: ${{ env.APP_DIR }}
+        run: pnpm lint:types
+
+      - name: Build the composed app (stub SDK, no tables)
+        working-directory: ${{ env.APP_DIR }}
+        run: pnpm build
+
+      # Each fixture is a real database: its _meta plus the SDL of its auth and
+      # app planes, so codegen runs offline. Fixtures run in sequence in the same
+      # app, which also exercises pruning the previous fixture's generated files.
+      - name: Generate the SDK and resources from each fixture, then type-check
+        working-directory: ${{ env.APP_DIR }}
+        run: |
+          set -euo pipefail
+          for fixture in "$FIXTURES"/*/; do
+            name="$(basename "$fixture")"
+            echo "::group::$name"
+            CODEGEN_APP_SCHEMA_FILE="$fixture/app.graphql" CODEGEN_AUTH_SCHEMA_FILE="$fixture/auth.graphql" pnpm codegen
+            spec=()
+            if [ -f "$fixture/app-spec.json" ]; then spec=(--spec "$fixture/app-spec.json"); fi
+            pnpm --silent gen:resources --meta "$fixture/meta.json" "${spec[@]}"
+            pnpm lint:types
+            echo "::endgroup::"
+          done
