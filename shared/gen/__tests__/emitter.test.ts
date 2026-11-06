@@ -192,6 +192,17 @@ export type QueryResult<T> =
 	});
 });
 
+describe('person labels', () => {
+	it('emits the computed label as a display field while selecting only real columns', () => {
+		const files = emitter.emit(applyAppSpec(buildMetaModel(tables())));
+		const contacts = files.find((file) => file.path === 'src/resources/contacts.ts')?.content ?? '';
+		assert.match(contacts, /titleField: 'fullName'/);
+		assert.match(contacts, /fullName: \{ name: 'fullName', label: 'Full name', input: 'text', readOnly: true \}/);
+		assert.match(contacts, /compositeTitle: \{ name: 'fullName', fields: \['firstName', 'lastName'\] \}/);
+		assert.doesNotMatch(contacts, /fullName: true/);
+	});
+});
+
 describe('AppSpec text in generated code', () => {
 	const HOSTILE = `Bob's "quoted" \\ </script>\nline\r\u2028\u2029 \${x} 😀`;
 	const spec: AppSpec = {

@@ -74,6 +74,26 @@ describe('ormSource', () => {
 		assert.deepEqual(calls[1].args.data, { amount: '99' });
 	});
 
+	it('labels same-given-name people distinctly on both list and detail reads', async () => {
+		const calls: Call[] = [];
+		const alice = { id: 'a', firstName: ' Alice ', lastName: 'Chen' };
+		const otherAlice = { id: 'b', firstName: 'Alice', lastName: 'Jones' };
+		const soloName = { id: 'c', firstName: 'Sofia', lastName: null };
+		const rows = [alice, otherAlice, soloName];
+		const model = fakeModel(calls, (_, { where }) => ({
+			contacts: { nodes: where?.id ? rows.filter((row) => row.id === where.id.equalTo) : rows },
+		}));
+		const source = ormSource(model, {
+			select: { id: true, firstName: true, lastName: true } as never,
+			compositeTitle: { name: 'fullName', fields: ['firstName', 'lastName'] },
+		});
+		const result = await source.list({ offset: 0, limit: 20, sort: { field: 'fullName', direction: 'asc' } });
+		assert.deepEqual(result.rows.map((row) => row.fullName), ['Alice Chen', 'Alice Jones', 'Sofia']);
+		assert.equal((await source.get('b'))?.fullName, 'Alice Jones');
+		assert.deepEqual(calls[0].args.orderBy, ['FIRST_NAME_ASC', 'LAST_NAME_ASC', 'PRIMARY_KEY_ASC']);
+		assert.ok(!('fullName' in calls[0].args.select));
+	});
+
 	it('reads and creates through an insert-only ORM model, while rejecting unsupported writes', async () => {
 		const calls: Call[] = [];
 		const model = fakeModel(calls, (method) =>

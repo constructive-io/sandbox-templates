@@ -81,6 +81,11 @@ function resourceModule(ir: ResourceIR): EmittedFile {
 				]),
 			)
 		: undefined;
+	const fieldConfigs = Object.fromEntries(fields.map((field) => [field.name, fieldConfig(field)]));
+	if (ir.compositeTitle) {
+		const { name } = ir.compositeTitle;
+		fieldConfigs[name] = { name, label: 'Full name', input: 'text', readOnly: true };
+	}
 	const definition = {
 		name: ir.name,
 		label: ir.label,
@@ -91,10 +96,10 @@ function resourceModule(ir: ResourceIR): EmittedFile {
 		operations: Object.values(ir.operations).every(Boolean) ? undefined : ir.operations,
 		columns: ir.columns,
 		formFields: ir.formFields,
-		detailFields: ir.detailFields,
+		detailFields: ir.detailFields ?? (ir.compositeTitle ? fields.filter((field) => !field.hidden).map((field) => field.name) : undefined),
 		searchFields: ir.searchFields,
 		defaultSort: ir.defaultSort,
-		fields: Object.fromEntries(fields.map((field) => [field.name, fieldConfig(field)])),
+		fields: fieldConfigs,
 		source: code(
 			`ormSource(db.${ir.model}, ${tsLiteral(
 				{
@@ -102,6 +107,7 @@ function resourceModule(ir: ResourceIR): EmittedFile {
 					primaryKey: ir.primaryKey === 'id' ? undefined : ir.primaryKey,
 					searchFields: ir.searchFields.length ? ir.searchFields : undefined,
 					bigNumbers: ir.bigNumbers.length ? ir.bigNumbers : undefined,
+					compositeTitle: ir.compositeTitle,
 					userKeys: ir.userKeys.length ? ir.userKeys : undefined,
 					currentUserId: ir.userKeys.length ? code('currentUserId') : undefined,
 					createDefaults: Object.keys(ir.createDefaults).length ? ir.createDefaults : undefined,
