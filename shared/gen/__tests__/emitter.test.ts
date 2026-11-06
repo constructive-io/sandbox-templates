@@ -231,6 +231,21 @@ describe('create form date defaults', () => {
 });
 
 describe('person labels', () => {
+	it('uses a full name in related fields when the AppSpec titles a person by one name part', () => {
+		const app = applyAppSpec(buildMetaModel(tables()), {
+			version: 1,
+			name: 'VC CRM',
+			backend: { kind: 'blueprint', slug: 'agentic_crm' },
+			ui: { resources: { contacts: { titleField: 'first_name' } } },
+		});
+		const files = emitter.emit(app);
+		const contacts = files.find((file) => file.path === 'src/resources/contacts.ts')!.content;
+		const deals = files.find((file) => file.path === 'src/resources/deals.ts')!.content;
+		assert.match(contacts, /titleField: 'firstName'/);
+		assert.match(contacts, /compositeTitle: \{ name: 'fullName', fields: \['firstName', 'lastName'\] \}/);
+		assert.match(deals, /relation: \{ resource: 'contacts', labelField: 'fullName' \}/);
+	});
+
 	it('emits the computed label as a display field while selecting only real columns', () => {
 		const files = emitter.emit(applyAppSpec(buildMetaModel(tables())));
 		const contacts = files.find((file) => file.path === 'src/resources/contacts.ts')?.content ?? '';
