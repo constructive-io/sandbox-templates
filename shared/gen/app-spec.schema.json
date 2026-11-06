@@ -57,8 +57,12 @@
 			"anyOf": [{ "type": "string" }, { "type": "number" }, { "type": "boolean" }, { "type": "null" }]
 		},
 		"seedValue": {
-			"description": "A scalar value. A foreign key names another seeded row with \"@<table>[<index>]\".",
-			"$ref": "#/$defs/scalar"
+			"description": "A column value, or a foreign-key reference \"@<table>[<index>]\". An array or object is a value for a JSON or array column; the seed step does not create a nested related row.",
+			"anyOf": [
+				{ "$ref": "#/$defs/scalar" },
+				{ "type": "array" },
+				{ "type": "object" }
+			]
 		},
 		"blueprintBackend": {
 			"type": "object",
