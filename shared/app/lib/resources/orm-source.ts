@@ -16,19 +16,19 @@ type Row = Record<string, unknown>;
 
 type Executable = { execute(): Promise<QueryResult<unknown>> };
 
-/** The CRUD surface every generated ORM model has. */
+/** Every exposed resource can list rows. Its write methods depend on the schema. */
 export type OrmModel = {
 	findMany(args: any): Executable;
-	create(args: any): Executable;
-	update(args: any): Executable;
-	delete(args: any): Executable;
+	create?(args: any): Executable;
+	update?(args: any): Executable;
+	delete?(args: any): Executable;
 };
 
 /** The model's select type, so a typo in a generated config fails type checking. */
 export type SelectOf<M> = M extends { findMany(args: infer A): unknown } ? (A extends { select: infer S } ? S : never) : never;
 
 export type ManyToManyLink = {
-	junction: OrmModel;
+	junction: OrmModel & Required<Pick<OrmModel, 'create' | 'delete'>>;
 	/** Primary key of the junction rows. */
 	primaryKey?: string;
 	/** Junction column pointing at this resource. */
@@ -37,6 +37,8 @@ export type ManyToManyLink = {
 	targetKey: string;
 };
 
+type CompositeTitle = { name: string; fields: readonly [string, string] };
+
 export type OrmSourceOptions<M extends OrmModel> = {
 	select: SelectOf<M>;
 	primaryKey?: string;
@@ -44,6 +46,8 @@ export type OrmSourceOptions<M extends OrmModel> = {
 	searchFields?: readonly string[];
 	/** BigInt/BigFloat fields: strings on the wire, numbers in rows. */
 	bigNumbers?: readonly string[];
+	/** A display-only label joined from two real name fields. */
+	compositeTitle?: CompositeTitle;
 	/** Required owner or entity keys a create fills with the signed-in user's id when the form has none. */
 	userKeys?: readonly string[];
 	currentUserId?: () => string | null;
@@ -77,7 +81,7 @@ function filterFor(value: unknown): Record<string, unknown> {
 /** The findMany arguments for one page of the kit's list query. */
 export function listArgs(
 	query: ListQuery,
-	options: { select: unknown; primaryKey?: string; searchFields?: readonly string[]; bigNumbers?: readonly string[] },
+	options: { select: unknown; primaryKey?: string; searchFields?: readonly string[]; bigNumbers?: readonly string[]; compositeTitle?: CompositeTitle },
 ) {
 	const primaryKey = options.primaryKey ?? 'id';
 	const conditions: Record<string, unknown>[] = [];
@@ -90,7 +94,12 @@ export function listArgs(
 		conditions.push({ [field]: filterFor(toWireValue(field, value, options.bigNumbers)) });
 	}
 	const orderBy: string[] = [];
-	if (query.sort) orderBy.push(orderByValue(query.sort.field, query.sort.direction));
+	if (query.sort) {
+		const { field, direction } = query.sort;
+		const title = options.compositeTitle;
+		const fields = title?.name === field ? title.fields : [field];
+		for (const key of fields) orderBy.push(orderByValue(key, direction));
+	}
 	// A stable tiebreaker keeps offset pages from repeating or skipping rows.
 	if (query.sort?.field !== primaryKey) orderBy.push('PRIMARY_KEY_ASC');
 	return {
@@ -108,12 +117,18 @@ function toWireValue(field: string, value: unknown, bigNumbers: readonly string[
 	return typeof value === 'number' ? String(value) : value;
 }
 
-function fromWire(row: Row, bigNumbers: readonly string[]): Row {
-	if (!bigNumbers.length) return row;
+function fromWire(row: Row, bigNumbers: readonly string[], title?: CompositeTitle): Row {
+	if (!bigNumbers.length && !title) return row;
 	const out = { ...row };
 	for (const field of bigNumbers) {
 		const value = out[field];
 		if (typeof value === 'string' && value.trim() !== '' && Number.isFinite(Number(value))) out[field] = Number(value);
+	}
+	if (title) {
+		out[title.name] = title.fields
+			.map((key) => typeof row[key] === 'string' ? row[key].trim() : '')
+			.filter(Boolean)
+			.join(' ');
 	}
 	return out;
 }
@@ -219,6 +234,7 @@ export function ormSource<M extends OrmModel>(model: M, options: OrmSourceOption
 	const select = options.select as Row;
 	const bigNumbers = options.bigNumbers ?? [];
 	const links = options.manyToMany ?? {};
+	const readRow = (row: Row) => fromWire(row, bigNumbers, options.compositeTitle);
 
 	const writable = (values: Partial<Row>, mode: 'create' | 'update') => {
 		const data: Row = {};
@@ -250,17 +266,18 @@ export function ormSource<M extends OrmModel>(model: M, options: OrmSourceOption
 		async list(query) {
 			const data = await run(model.findMany(listArgs(query, { ...options, primaryKey })));
 			const connection = unwrap(data, 1) as { nodes?: Row[]; totalCount?: number } | null;
-			const rows = (connection?.nodes ?? []).map((row) => fromWire(row, bigNumbers));
+			const rows = (connection?.nodes ?? []).map(readRow);
 			return { rows, totalCount: connection?.totalCount ?? rows.length };
 		},
 
 		async get(id) {
 			const data = await run(model.findMany({ select, where: { [primaryKey]: { equalTo: id } }, first: 1 }));
 			const row = (unwrap(data, 1) as { nodes?: Row[] } | null)?.nodes?.[0];
-			return row ? fromWire(row, bigNumbers) : null;
+			return row ? readRow(row) : null;
 		},
 
 		async create(values) {
+			if (!model.create) throw new Error('This resource doesn’t allow new records.');
 			const input = writable(values, 'create');
 			for (const [key, value] of Object.entries(options.createDefaults ?? {})) {
 				if (input[key] == null || input[key] === '') input[key] = value;
@@ -268,26 +285,25 @@ export function ormSource<M extends OrmModel>(model: M, options: OrmSourceOption
 			const userId = options.currentUserId?.();
 			for (const key of options.userKeys ?? []) if (input[key] == null && userId) input[key] = userId;
 			const data = await run(model.create({ data: input, select }), Object.keys(select));
-			const row = fromWire((unwrap(data, 2) as Row | null) ?? {}, bigNumbers);
+			const row = readRow((unwrap(data, 2) as Row | null) ?? {});
 			await linkFrom(String(row[primaryKey]), values);
 			return row;
 		},
 
 		async update(id, patch) {
+			if (!model.update) throw new Error('This resource doesn’t allow edits.');
 			const input = writable(patch, 'update');
 			for (const key of options.createOnly ?? []) delete input[key];
 			// The API rejects an empty patch; a change to links alone only touches the junction.
 			const row = Object.keys(input).length
-				? fromWire(
-						(unwrap(await run(model.update({ where: { [primaryKey]: id }, data: input, select }), Object.keys(select)), 2) as Row | null) ?? {},
-						bigNumbers,
-					)
+				? readRow((unwrap(await run(model.update({ where: { [primaryKey]: id }, data: input, select }), Object.keys(select)), 2) as Row | null) ?? {})
 				: ((await source.get(id)) ?? { [primaryKey]: id });
 			await linkFrom(id, patch);
 			return row;
 		},
 
 		async remove(id) {
+			if (!model.delete) throw new Error('This resource doesn’t allow deletions.');
 			await run(model.delete({ where: { [primaryKey]: id }, select: { [primaryKey]: true } }));
 		},
 	};

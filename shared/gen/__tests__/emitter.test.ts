@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { afterEach, beforeEach, describe, it } from 'node:test';
 
 import ts from 'typescript';
@@ -9,7 +9,7 @@ import ts from 'typescript';
 import { applySpec as applyAppSpec, type AppSpec } from '../app-spec.ts';
 import { clearDerived, GENERATED_HEADER, stampGenerated } from '../emitter.ts';
 import { emitter } from '../emitters/nextjs.ts';
-import { buildMetaModel, parseMetaDocument, type MetaTable } from '../meta-ir.ts';
+import { buildMetaModel, parseMetaDocument, type MetaField, type MetaTable } from '../meta-ir.ts';
 import { runGen } from '../run.ts';
 
 const FIXTURE = join(import.meta.dirname, '__fixtures__', 'crm-meta.json');
@@ -126,6 +126,133 @@ describe('search', () => {
 		const files = emitter.emit(applyAppSpec(buildMetaModel(metaTables)));
 		const tags = files.find((file) => file.path === 'src/resources/tags.ts')?.content ?? '';
 		assert.match(tags, /\n\tsearchFields: \[\],\n/);
+	});
+});
+
+describe('resources with restricted operations', () => {
+	it('emits insert-only list and detail pages with a source compatible with the ORM model', () => {
+		const audit: MetaTable = {
+			name: 'AuditEvent',
+			query: { all: 'auditEvents', one: 'auditEvent', create: 'createAuditEvent' },
+			fields: [{ name: 'id', isPrimaryKey: true, type: { gqlType: 'UUID', pgType: 'uuid', isArray: false } }],
+		};
+		const files = emitter.emit(applyAppSpec(buildMetaModel([audit])));
+		const resource = files.find((file) => file.path === 'src/resources/audit-events.ts');
+		assert.ok(resource);
+		assert.match(resource.content, /operations: \{ create: true, update: false, delete: false \}/);
+		assert.ok(files.some((file) => file.path === 'src/app/(app)/audit-events/page.tsx'));
+		assert.ok(files.some((file) => file.path === 'src/app/(app)/audit-events/[id]/page.tsx'));
+
+		const root = mkdtempSync(join(tmpdir(), 'gen-insert-only-'));
+		try {
+			const resourcePath = join(root, 'audit-events.ts');
+			writeFileSync(resourcePath, resource.content);
+			writeFileSync(join(root, 'db.d.ts'), `
+declare function findMany(args: { select: { id?: true } }): { execute(): Promise<{ ok: true; data: unknown }> };
+declare function create(args: { data: {}; select: { id?: true } }): ReturnType<typeof findMany>;
+export declare const db: { auditEvent: { findMany: typeof findMany; create: typeof create } };
+`);
+			writeFileSync(join(root, 'kit.d.ts'), `
+type Row = Record<string, unknown>;
+export type ListQuery = { search?: string; sort?: { field: string; direction: 'asc' | 'desc' }; offset: number; limit: number; filters?: Row };
+export interface ResourceSource<T extends Row> {
+	list(query: ListQuery): Promise<{ rows: T[]; totalCount: number }>;
+	get(id: string): Promise<T | null>;
+	create(values: Partial<T>): Promise<T>;
+	update(id: string, patch: Partial<T>): Promise<T>;
+	remove(id: string): Promise<void>;
+	link?(id: string, field: string, targetIds: string[]): Promise<void>;
+	linked?(id: string, field: string): Promise<string[]>;
+}
+export declare function defineResource<T extends { source: ResourceSource<Row> }>(resource: T): T;
+`);
+			writeFileSync(join(root, 'runtime.d.ts'), `
+export type QueryResult<T> =
+	| { ok: true; data: T }
+	| { ok: false; errors: Array<{ message: string; extensions?: Record<string, unknown> }> };
+`);
+			const program = ts.createProgram([resourcePath], {
+				target: ts.ScriptTarget.ES2023,
+				module: ts.ModuleKind.NodeNext,
+				allowImportingTsExtensions: true,
+				noEmit: true,
+				strict: true,
+				types: [],
+				paths: {
+					'@/components/ui/resource-kit': [join(root, 'kit.d.ts')],
+					'@/lib/graphql/db': [join(root, 'db.d.ts')],
+					'@/lib/resources/orm-source': [resolve(import.meta.dirname, '../../app/lib/resources/orm-source.ts')],
+					'@constructive-io/graphql-query/runtime': [join(root, 'runtime.d.ts')],
+				},
+			});
+			assert.deepEqual(ts.getPreEmitDiagnostics(program).map((d) => ts.flattenDiagnosticMessageText(d.messageText, '\n')), []);
+		} finally {
+			rmSync(root, { recursive: true, force: true });
+		}
+	});
+});
+
+describe('create form date defaults', () => {
+	it('prefills required writable dates and times, honoring database and AppSpec defaults', () => {
+		const temporal = (name: string, gqlType: 'Date' | 'Datetime', extra?: Partial<MetaField>): MetaField => ({
+			name,
+			isNotNull: true,
+			type: { gqlType, pgType: gqlType === 'Date' ? 'date' : 'timestamptz', isArray: false },
+			...extra,
+		});
+		const table: MetaTable = {
+			name: 'Interaction',
+			query: { all: 'interactions', create: 'createInteraction' },
+			fields: [
+				{ name: 'id', isPrimaryKey: true, type: { gqlType: 'UUID', pgType: 'uuid', isArray: false } },
+				temporal('occurredAt', 'Datetime'),
+				temporal('eventDate', 'Date'),
+				temporal('serverTime', 'Datetime', { hasDefault: true }),
+				temporal('optionalTime', 'Datetime', { isNotNull: false }),
+				temporal('frozenTime', 'Datetime', { isWritableOnCreate: false }),
+				temporal('fixedDate', 'Date'),
+			],
+		};
+		const spec: AppSpec = {
+			version: 1,
+			name: 'Interactions',
+			backend: { kind: 'blueprint', slug: 'crm' },
+			ui: { resources: { interactions: { fields: { fixedDate: { default: '2026-11-06' } } } } },
+		};
+		const emit = () => emitter.emit(applyAppSpec(buildMetaModel([table]), spec)).find((file) => file.path === 'src/resources/interactions.ts')!.content;
+		const contents = emit();
+		assert.match(contents, /occurredAt: \{[^}]*createDefault: 'now'/);
+		assert.match(contents, /eventDate: \{[^}]*createDefault: 'now'/);
+		assert.equal(contents.match(/createDefault: 'now'/g)?.length, 2);
+		assert.match(contents, /createDefaults: \{ fixedDate: '2026-11-06' \}/);
+		table.query = { all: 'interactions' };
+		assert.doesNotMatch(emit(), /createDefault: 'now'/);
+	});
+});
+
+describe('person labels', () => {
+	it('uses a full name in related fields when the AppSpec titles a person by one name part', () => {
+		const app = applyAppSpec(buildMetaModel(tables()), {
+			version: 1,
+			name: 'VC CRM',
+			backend: { kind: 'blueprint', slug: 'agentic_crm' },
+			ui: { resources: { contacts: { titleField: 'first_name' } } },
+		});
+		const files = emitter.emit(app);
+		const contacts = files.find((file) => file.path === 'src/resources/contacts.ts')!.content;
+		const deals = files.find((file) => file.path === 'src/resources/deals.ts')!.content;
+		assert.match(contacts, /titleField: 'firstName'/);
+		assert.match(contacts, /compositeTitle: \{ name: 'fullName', fields: \['firstName', 'lastName'\] \}/);
+		assert.match(deals, /relation: \{ resource: 'contacts', labelField: 'fullName' \}/);
+	});
+
+	it('emits the computed label as a display field while selecting only real columns', () => {
+		const files = emitter.emit(applyAppSpec(buildMetaModel(tables())));
+		const contacts = files.find((file) => file.path === 'src/resources/contacts.ts')?.content ?? '';
+		assert.match(contacts, /titleField: 'fullName'/);
+		assert.match(contacts, /fullName: \{ name: 'fullName', label: 'Full name', input: 'text', readOnly: true \}/);
+		assert.match(contacts, /compositeTitle: \{ name: 'fullName', fields: \['firstName', 'lastName'\] \}/);
+		assert.doesNotMatch(contacts, /fullName: true/);
 	});
 });
 

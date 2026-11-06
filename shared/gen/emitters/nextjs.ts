@@ -42,7 +42,7 @@ function file(path: string, subject: FileSubject, body: string): EmittedFile {
 	return { path, subject, content: `${GENERATED_HEADER}\n${body.trimEnd()}\n` };
 }
 
-function fieldConfig(field: FieldIR): Record<string, unknown> {
+function fieldConfig(field: FieldIR, canCreate: boolean, relationLabels: ReadonlyMap<string, string>): Record<string, unknown> {
 	return {
 		name: field.name,
 		label: field.label,
@@ -57,11 +57,14 @@ function fieldConfig(field: FieldIR): Record<string, unknown> {
 			label: option.label,
 			tone: option.tone === 'neutral' ? undefined : option.tone,
 		})),
-		relation: field.relation,
+		relation: field.relation && { ...field.relation, labelField: relationLabels.get(field.relation.resource) },
+		createDefault:
+			canCreate && field.required && !field.hidden && !field.readOnly &&
+			(field.input === 'date' || field.input === 'datetime') ? field.createDefault : undefined,
 	};
 }
 
-function resourceModule(ir: ResourceIR): EmittedFile {
+function resourceModule(ir: ResourceIR, relationLabels: ReadonlyMap<string, string>): EmittedFile {
 	const fields = ir.fields.filter((field) => field.selectable || field.relation?.many);
 	const select = Object.fromEntries(
 		[ir.primaryKey, ...fields.filter((f) => f.selectable && f.name !== ir.primaryKey).map((f) => f.name)].map(
@@ -81,6 +84,11 @@ function resourceModule(ir: ResourceIR): EmittedFile {
 				]),
 			)
 		: undefined;
+	const fieldConfigs = Object.fromEntries(fields.map((field) => [field.name, fieldConfig(field, ir.operations.create, relationLabels)]));
+	if (ir.compositeTitle) {
+		const { name } = ir.compositeTitle;
+		fieldConfigs[name] = { name, label: 'Full name', input: 'text', readOnly: true };
+	}
 	const definition = {
 		name: ir.name,
 		label: ir.label,
@@ -88,12 +96,13 @@ function resourceModule(ir: ResourceIR): EmittedFile {
 		icon: ir.icon,
 		primaryKey: ir.primaryKey,
 		titleField: ir.titleField,
+		operations: Object.values(ir.operations).every(Boolean) ? undefined : ir.operations,
 		columns: ir.columns,
 		formFields: ir.formFields,
-		detailFields: ir.detailFields,
+		detailFields: ir.detailFields ?? (ir.compositeTitle ? fields.filter((field) => !field.hidden).map((field) => field.name) : undefined),
 		searchFields: ir.searchFields,
 		defaultSort: ir.defaultSort,
-		fields: Object.fromEntries(fields.map((field) => [field.name, fieldConfig(field)])),
+		fields: fieldConfigs,
 		source: code(
 			`ormSource(db.${ir.model}, ${tsLiteral(
 				{
@@ -101,6 +110,7 @@ function resourceModule(ir: ResourceIR): EmittedFile {
 					primaryKey: ir.primaryKey === 'id' ? undefined : ir.primaryKey,
 					searchFields: ir.searchFields.length ? ir.searchFields : undefined,
 					bigNumbers: ir.bigNumbers.length ? ir.bigNumbers : undefined,
+					compositeTitle: ir.compositeTitle,
 					userKeys: ir.userKeys.length ? ir.userKeys : undefined,
 					currentUserId: ir.userKeys.length ? code('currentUserId') : undefined,
 					createDefaults: Object.keys(ir.createDefaults).length ? ir.createDefaults : undefined,
@@ -266,11 +276,16 @@ export const emitter: Emitter = {
 	sdkInputTypes: 'src/graphql/sdk/app/orm/input-types.ts',
 	route: (ir) => `/${routeSegment(ir)}`,
 	emit(model) {
+		const relationLabels = new Map<string, string>();
+		for (const resource of model.resources) {
+			const label = resource.compositeTitle;
+			if (label && label.name !== resource.titleField) relationLabels.set(resource.name, label.name);
+		}
 		return [
 			appConfigModule(model),
 			registryModule(model),
 			dashboardPage(model),
-			...model.resources.flatMap((ir) => [resourceModule(ir), listPage(ir), detailPage(ir)]),
+			...model.resources.flatMap((ir) => [resourceModule(ir, relationLabels), listPage(ir), detailPage(ir)]),
 		];
 	},
 };

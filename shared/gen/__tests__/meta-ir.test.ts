@@ -296,6 +296,16 @@ describe('junction tables', () => {
 		assert.deepEqual(field(resource(resources, 'tags'), 'contacts').relation, { resource: 'contacts', many: true });
 	});
 
+	it('keeps a two-key table without both link mutations as its own resource', () => {
+		const tables = loadTables();
+		const link = tables.find((table) => table.name === 'ContactTag')!;
+		link.query = { all: 'contactTags', one: 'contactTag', create: 'createContactTag' };
+		const { junctions, resources } = buildMetaModel(tables);
+		assert.deepEqual(junctions, []);
+		assert.deepEqual(resource(resources, 'contact-tags').operations, { create: true, update: false, delete: false });
+		assert.deepEqual(resource(resources, 'contacts').manyToMany, []);
+	});
+
 	it('detects a two-key table as a junction even when no many-to-many relation names it', () => {
 		const tables = loadTables();
 		for (const table of tables) if (table.relations) table.relations.manyToMany = [];
@@ -321,7 +331,7 @@ describe('junction tables', () => {
 				name: 'Enrollment',
 				tableName: 'enrollments',
 				isJunction: true,
-				query: { all: 'enrollments', create: 'createEnrollment' },
+				query: { all: 'enrollments', create: 'createEnrollment', delete: 'deleteEnrollment' },
 				inflection: { tableType: 'Enrollment' },
 				fields: [id, column('studentId', 'UUID', 'uuid', { isForeignKey: true }), column('courseId', 'UUID', 'uuid', { isForeignKey: true }), ...extra],
 				relations: {
@@ -508,8 +518,42 @@ describe('naming', () => {
 	it('picks a title field and a newest-first default sort', () => {
 		const { resources } = buildMetaModel(loadTables());
 		assert.equal(resource(resources, 'companies').titleField, 'name');
-		assert.equal(resource(resources, 'contacts').titleField, 'firstName');
+		assert.equal(resource(resources, 'contacts').titleField, 'fullName');
+		assert.deepEqual(resource(resources, 'contacts').compositeTitle, { name: 'fullName', fields: ['firstName', 'lastName'] });
+		assert.deepEqual(resource(resources, 'contacts').columns.slice(0, 2), ['fullName', 'email']);
+		assert.ok(resource(resources, 'contacts').formFields.includes('firstName'));
+		assert.ok(resource(resources, 'contacts').formFields.includes('lastName'));
+		assert.ok(!resource(resources, 'contacts').formFields.includes('fullName'));
 		assert.deepEqual(resource(resources, 'contacts').defaultSort, { field: 'createdAt', direction: 'desc' });
+	});
+});
+
+describe('person titles', () => {
+	it('prefers a display name and honors an explicit AppSpec label field', () => {
+		const tables = loadTables();
+		const contact = tables.find((table) => table.name === 'Contact') as MetaTable;
+		contact.fields?.push(column('displayName', 'String', 'text', { isNotNull: false }));
+		const model = buildMetaModel(tables);
+		assert.equal(resource(model.resources, 'contacts').titleField, 'displayName');
+		const app = applySpec(model, {
+			version: 1,
+			name: 'Contacts',
+			backend: { kind: 'blueprint', slug: 'crm' },
+			ui: { resources: { contacts: { titleField: 'email' } } },
+		});
+		assert.equal(resource(app.resources, 'contacts').titleField, 'email');
+		assert.equal(resource(app.resources, 'contacts').compositeTitle, undefined);
+	});
+
+	it('uses the visible email when a name has no visible family part', () => {
+		const app = applySpec(buildMetaModel(loadTables()), {
+			version: 1,
+			name: 'Contacts',
+			backend: { kind: 'blueprint', slug: 'crm' },
+			ui: { resources: { contacts: { fields: { lastName: { hidden: true } } } } },
+		});
+		assert.equal(resource(app.resources, 'contacts').titleField, 'email');
+		assert.equal(resource(app.resources, 'contacts').compositeTitle, undefined);
 	});
 });
 

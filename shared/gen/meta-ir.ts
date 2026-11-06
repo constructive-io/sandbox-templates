@@ -115,6 +115,8 @@ export type FieldIR = {
 	required: boolean;
 	readOnly: boolean;
 	hidden: boolean;
+	/** A required date or timestamp whose create form starts at the current time. */
+	createDefault?: 'now';
 	/** Help text under the input. Only the AppSpec sets it: `_meta` descriptions are schema comments, not UX copy. */
 	description?: string;
 	options?: { value: string; label: string; tone?: OptionTone }[];
@@ -162,6 +164,7 @@ export type ResourceIR = {
 	icon?: string;
 	primaryKey: string;
 	titleField: string;
+	compositeTitle?: { name: string; fields: [string, string] };
 	fields: FieldIR[];
 	columns: string[];
 	formFields: string[];
@@ -215,8 +218,8 @@ const USERS_TABLE = new Set(['user', 'users']);
 
 // Generic vocabulary for choosing inputs and a title column. These are UX
 // hints that apply to any schema, never a reference to a particular table.
-const TITLE_NAMES = ['name', 'title', 'label', 'displayname', 'fullname', 'subject'];
-const TITLE_FALLBACK_NAMES = ['username', 'email', 'code'];
+const TITLE_NAMES = ['name', 'title', 'displayname', 'fullname', 'label', 'subject'];
+const TITLE_FALLBACK_NAMES = ['username', 'code'];
 // Fields that name a category rather than a row (a role, a status, a source); every row
 // in a category would share the title. A field with fixed options is one too.
 const LOW_INFORMATION_NAME = /(role|type|kind|status|state|source|mode|category|level|priority|stage|channel|format)$/i;
@@ -414,6 +417,8 @@ export function buildMetaModel(tables: MetaTable[]): MetaModel {
 	const junctionLinks = new Map<TableInfo, [{ key: string; target: TableInfo }, { key: string; target: TableInfo }]>();
 	for (const info of infos) {
 		if (info.kind !== 'entity' || info.meta.isJunction === false) continue;
+		// The link editor replaces a set, so it needs both mutations on the junction.
+		if (!info.meta.query?.create || !info.meta.query?.delete) continue;
 		const ownFields = (info.meta.fields ?? []).filter(
 			(field) => !info.systemHidden.has(field.name) && !info.systemReadOnly.has(field.name),
 		);
@@ -522,6 +527,9 @@ function buildResource(info: TableInfo): ResourceIR {
 		}
 		if (scalar.big && !isArray) bigNumbers.push(field.name);
 		const format = readOnlySystem && scalar.input === 'datetime' ? 'relative' : FORMAT_BY_INPUT[scalar.input];
+		const prefillDate =
+			base.required && !hasDefault && field.isWritableOnCreate !== false && !isArray &&
+			(scalar.input === 'date' || scalar.input === 'datetime');
 		fields.push({
 			...base,
 			label: fieldLabel(field.name, false),
@@ -529,6 +537,7 @@ function buildResource(info: TableInfo): ResourceIR {
 			input: isArray ? 'json' : scalar.input,
 			...(isArray ? { readOnly: true, required: false } : {}),
 			...(format && !isArray ? { format } : {}),
+			...(prefillDate ? { createDefault: 'now' } : {}),
 		});
 	}
 
@@ -603,37 +612,56 @@ const SEARCHABLE_INPUTS = new Set<FieldInput>(['text', 'textarea', 'email', 'url
 const TEXT_PG_TYPES = new Set(['text', 'varchar', 'character varying', 'citext', 'bpchar', 'char', 'character', 'name']);
 const MAX_COLUMNS = 5;
 
+function namedField(fields: readonly FieldIR[], names: readonly string[]): FieldIR | undefined {
+	return names.map((candidate) => fields.find((field) => normalizeKey(field.name) === candidate)).find(Boolean);
+}
+
+function personTitle(fields: FieldIR[], allFields: FieldIR[]): ResourceIR['compositeTitle'] {
+	const given = namedField(fields, ['firstname', 'givenname']);
+	const family = namedField(fields, ['lastname', 'familyname', 'surname']);
+	if (!given || !family) return undefined;
+	const keys = new Set(allFields.map((field) => normalizeKey(field.name)));
+	let name = 'fullName';
+	for (let i = 2; keys.has(normalizeKey(name)); i++) name = `fullName${i}`;
+	return { name, fields: [given.name, family.name] };
+}
+
 /** Picks title, columns, form order, search and sort from the fields. Re-run after spec overrides. */
 export function finishLayout(ir: ResourceIR, keep: { titleField?: boolean; columns?: boolean; formFields?: boolean } = {}) {
 	const visible = ir.fields.filter((field) => !field.hidden);
-	const textual = visible.filter((field) => field.input === 'text' || field.input === 'email');
+	const textual = visible.filter((field) => field.selectable && (field.input === 'text' || field.input === 'email'));
+	const personFields = textual.filter((field) => field.input === 'text' && !field.options?.length);
+	const namePair = personTitle(personFields, ir.fields);
+	const explicitTitle = keep.titleField && ir.fields.some((field) => field.name === ir.titleField);
+	// A one-part heading can be intentional, but a relation picker needs to distinguish people.
+	ir.compositeTitle = explicitTitle && namePair?.fields.includes(ir.titleField) ? namePair : undefined;
 
-	if (!keep.titleField || !ir.fields.some((field) => field.name === ir.titleField)) {
-		// A title must name every row, so fields that always hold a value come first; an optional
-		// field that is empty on some rows would leave those rows titled by their id.
-		const named = (fields: FieldIR[], names: string[]) =>
-			names.map((candidate) => fields.find((field) => normalizeKey(field.name) === candidate)).find(Boolean);
+	if (!explicitTitle) {
+		// Prefer a field that names the row, then a person's two name fields or email.
+		// For other schemas, use a required description or relation before an optional field.
 		const longText = visible.filter((field) => field.input === 'textarea' && field.selectable);
 		const belongsTo = visible.filter((field) => field.relation && !field.relation.many);
 		const required = (fields: FieldIR[]) => fields.filter((field) => field.required);
 		const lowInformation = (field: FieldIR) => Boolean(field.options?.length) || LOW_INFORMATION_NAME.test(field.name);
 		const informative = textual.filter((field) => !lowInformation(field));
+		const namedTitle = namedField(required(informative), TITLE_NAMES) ?? namedField(informative, TITLE_NAMES);
+		ir.compositeTitle = namedTitle ? undefined : namePair;
 		const title =
-			named(required(informative), TITLE_NAMES) ??
+			namedTitle ??
+			namedField(informative, ['email']) ??
 			required(informative).find((field) => field.input === 'text') ??
 			required(informative)[0] ??
 			required(longText)[0] ??
 			// No text to name a row: resource-kit titles it by the related record instead.
 			required(belongsTo)[0] ??
-			named(informative, TITLE_NAMES) ??
-			named(informative, TITLE_FALLBACK_NAMES) ??
+			namedField(informative, TITLE_FALLBACK_NAMES) ??
 			informative[0] ??
 			belongsTo[0] ??
 			longText[0] ??
 			required(textual)[0] ??
 			textual[0] ??
 			visible.find((field) => !field.readOnly && field.selectable);
-		ir.titleField = title?.name ?? ir.primaryKey;
+		ir.titleField = ir.compositeTitle?.name ?? title?.name ?? ir.primaryKey;
 	}
 
 	ir.searchFields = visible
@@ -641,15 +669,17 @@ export function finishLayout(ir: ResourceIR, keep: { titleField?: boolean; colum
 		.map((field) => field.name);
 
 	if (!keep.columns) {
+		const composite = ir.compositeTitle?.name === ir.titleField ? ir.compositeTitle : undefined;
 		const rest = visible.filter(
 			(field) =>
 				field.name !== ir.titleField &&
+				!composite?.fields.includes(field.name) &&
 				field.selectable &&
 				!field.readOnly &&
 				!NON_COLUMN_INPUTS.has(field.input),
 		);
 		const columns = [ir.titleField, ...rest.map((field) => field.name)].slice(0, MAX_COLUMNS);
-		ir.columns = visible.some((field) => field.name === ir.titleField) ? columns : columns.slice(1);
+		ir.columns = composite || visible.some((field) => field.name === ir.titleField) ? columns : columns.slice(1);
 	}
 
 	if (!keep.formFields) {
