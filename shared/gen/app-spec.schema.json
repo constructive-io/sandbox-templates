@@ -57,6 +57,7 @@
 			"anyOf": [{ "type": "string" }, { "type": "number" }, { "type": "boolean" }, { "type": "null" }]
 		},
 		"seedValue": {
+			"description": "A column value, or a foreign-key reference \"@<table>[<index>]\". An array or object is a value for a JSON or array column; the seed step does not create a nested related row.",
 			"anyOf": [
 				{ "$ref": "#/$defs/scalar" },
 				{ "type": "array" },
