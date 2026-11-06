@@ -42,7 +42,7 @@ function file(path: string, subject: FileSubject, body: string): EmittedFile {
 	return { path, subject, content: `${GENERATED_HEADER}\n${body.trimEnd()}\n` };
 }
 
-function fieldConfig(field: FieldIR): Record<string, unknown> {
+function fieldConfig(field: FieldIR, canCreate: boolean): Record<string, unknown> {
 	return {
 		name: field.name,
 		label: field.label,
@@ -58,6 +58,9 @@ function fieldConfig(field: FieldIR): Record<string, unknown> {
 			tone: option.tone === 'neutral' ? undefined : option.tone,
 		})),
 		relation: field.relation,
+		createDefault:
+			canCreate && field.required && !field.hidden && !field.readOnly &&
+			(field.input === 'date' || field.input === 'datetime') ? field.createDefault : undefined,
 	};
 }
 
@@ -81,7 +84,7 @@ function resourceModule(ir: ResourceIR): EmittedFile {
 				]),
 			)
 		: undefined;
-	const fieldConfigs = Object.fromEntries(fields.map((field) => [field.name, fieldConfig(field)]));
+	const fieldConfigs = Object.fromEntries(fields.map((field) => [field.name, fieldConfig(field, ir.operations.create)]));
 	if (ir.compositeTitle) {
 		const { name } = ir.compositeTitle;
 		fieldConfigs[name] = { name, label: 'Full name', input: 'text', readOnly: true };

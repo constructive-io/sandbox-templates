@@ -115,6 +115,8 @@ export type FieldIR = {
 	required: boolean;
 	readOnly: boolean;
 	hidden: boolean;
+	/** A required date or timestamp whose create form starts at the current time. */
+	createDefault?: 'now';
 	/** Help text under the input. Only the AppSpec sets it: `_meta` descriptions are schema comments, not UX copy. */
 	description?: string;
 	options?: { value: string; label: string; tone?: OptionTone }[];
@@ -525,6 +527,9 @@ function buildResource(info: TableInfo): ResourceIR {
 		}
 		if (scalar.big && !isArray) bigNumbers.push(field.name);
 		const format = readOnlySystem && scalar.input === 'datetime' ? 'relative' : FORMAT_BY_INPUT[scalar.input];
+		const prefillDate =
+			base.required && !hasDefault && field.isWritableOnCreate !== false && !isArray &&
+			(scalar.input === 'date' || scalar.input === 'datetime');
 		fields.push({
 			...base,
 			label: fieldLabel(field.name, false),
@@ -532,6 +537,7 @@ function buildResource(info: TableInfo): ResourceIR {
 			input: isArray ? 'json' : scalar.input,
 			...(isArray ? { readOnly: true, required: false } : {}),
 			...(format && !isArray ? { format } : {}),
+			...(prefillDate ? { createDefault: 'now' } : {}),
 		});
 	}
 

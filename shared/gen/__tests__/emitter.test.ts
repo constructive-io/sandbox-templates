@@ -9,7 +9,7 @@ import ts from 'typescript';
 import { applySpec as applyAppSpec, type AppSpec } from '../app-spec.ts';
 import { clearDerived, GENERATED_HEADER, stampGenerated } from '../emitter.ts';
 import { emitter } from '../emitters/nextjs.ts';
-import { buildMetaModel, parseMetaDocument, type MetaTable } from '../meta-ir.ts';
+import { buildMetaModel, parseMetaDocument, type MetaField, type MetaTable } from '../meta-ir.ts';
 import { runGen } from '../run.ts';
 
 const FIXTURE = join(import.meta.dirname, '__fixtures__', 'crm-meta.json');
@@ -189,6 +189,44 @@ export type QueryResult<T> =
 		} finally {
 			rmSync(root, { recursive: true, force: true });
 		}
+	});
+});
+
+describe('create form date defaults', () => {
+	it('prefills required writable dates and times, honoring database and AppSpec defaults', () => {
+		const temporal = (name: string, gqlType: 'Date' | 'Datetime', extra?: Partial<MetaField>): MetaField => ({
+			name,
+			isNotNull: true,
+			type: { gqlType, pgType: gqlType === 'Date' ? 'date' : 'timestamptz', isArray: false },
+			...extra,
+		});
+		const table: MetaTable = {
+			name: 'Interaction',
+			query: { all: 'interactions', create: 'createInteraction' },
+			fields: [
+				{ name: 'id', isPrimaryKey: true, type: { gqlType: 'UUID', pgType: 'uuid', isArray: false } },
+				temporal('occurredAt', 'Datetime'),
+				temporal('eventDate', 'Date'),
+				temporal('serverTime', 'Datetime', { hasDefault: true }),
+				temporal('optionalTime', 'Datetime', { isNotNull: false }),
+				temporal('frozenTime', 'Datetime', { isWritableOnCreate: false }),
+				temporal('fixedDate', 'Date'),
+			],
+		};
+		const spec: AppSpec = {
+			version: 1,
+			name: 'Interactions',
+			backend: { kind: 'blueprint', slug: 'crm' },
+			ui: { resources: { interactions: { fields: { fixedDate: { default: '2026-11-06' } } } } },
+		};
+		const emit = () => emitter.emit(applyAppSpec(buildMetaModel([table]), spec)).find((file) => file.path === 'src/resources/interactions.ts')!.content;
+		const contents = emit();
+		assert.match(contents, /occurredAt: \{[^}]*createDefault: 'now'/);
+		assert.match(contents, /eventDate: \{[^}]*createDefault: 'now'/);
+		assert.equal(contents.match(/createDefault: 'now'/g)?.length, 2);
+		assert.match(contents, /createDefaults: \{ fixedDate: '2026-11-06' \}/);
+		table.query = { all: 'interactions' };
+		assert.doesNotMatch(emit(), /createDefault: 'now'/);
 	});
 });
 

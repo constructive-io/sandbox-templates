@@ -63,6 +63,8 @@ What decides a field, highest first: the AppSpec's `ui.resources.<table>.fields.
 
 Generated lists and detail pages follow the write operations exposed by `_meta`. An append-only table offers create when its API supports it, and a table with no write operations still has a list and detail view. For row titles and relation labels, the generator prefers a name, title, or display name. If a person has separate given and family name columns, it displays them together before falling back to email. An explicit `titleField` in the AppSpec takes precedence.
 
+Create forms start required, writable date and timestamp fields at the current local day or time when the database and AppSpec supply no default. The value is set when the form opens and can be edited before saving.
+
 The values a column allows are the exception, because the live database enforces them. When `_meta` lists them (`allowedValues`, else `enumValues`), they beat an entity field's `enum` (the same set keeps the spec's order; a different one warns), and `options` hints keep only the allowed values, in the hint's order, with a warning for the rest. When the endpoint serves `allowedValues` and the column has none, a spec `enum` is ignored with a warning, while `options` hints still apply. An endpoint that doesn't serve `allowedValues` keeps the spec's values.
 
 ### Checks
