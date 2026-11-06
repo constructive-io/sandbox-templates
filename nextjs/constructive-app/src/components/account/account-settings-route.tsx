@@ -113,46 +113,44 @@ function ChangePasswordButton() {
 
 export function AccountSettingsRoute() {
 	return (
-		<div className='h-full overflow-y-auto'>
-			<div className='mx-auto max-w-4xl px-6 py-8 lg:px-8 lg:py-10'>
-				<PageHeaderWithIcon
-					title='Account Settings'
-					description='Manage your account preferences and security settings'
-					icon={Settings}
-				/>
+		<div className='mx-auto max-w-4xl px-6 py-8 lg:px-8 lg:py-10'>
+			<PageHeaderWithIcon
+				title='Account Settings'
+				description='Manage your account preferences and security settings'
+				icon={Settings}
+			/>
 
-				<div className='mt-12 space-y-16'>
-					{/* Security Section */}
-					<section
-						className='animate-in fade-in-0 slide-in-from-bottom-4 fill-mode-backwards duration-500'
-						style={{ animationDelay: '50ms' }}
-					>
-						<div className='mb-8'>
-							<h2 className='text-foreground text-lg font-semibold tracking-tight'>Security</h2>
-							<p className='text-muted-foreground mt-1 text-sm'>Manage your security preferences</p>
-						</div>
+			<div className='mt-12 space-y-16'>
+				{/* Security Section */}
+				<section
+					className='animate-in fade-in-0 slide-in-from-bottom-4 fill-mode-backwards duration-500'
+					style={{ animationDelay: '50ms' }}
+				>
+					<div className='mb-8'>
+						<h2 className='text-foreground text-lg font-semibold tracking-tight'>Security</h2>
+						<p className='text-muted-foreground mt-1 text-sm'>Manage your security preferences</p>
+					</div>
 
-						<div className='space-y-6'>
-							<ChangePasswordButton />
-						</div>
-					</section>
+					<div className='space-y-6'>
+						<ChangePasswordButton />
+					</div>
+				</section>
 
-					{/* Danger Zone Section */}
-					<section
-						className='animate-in fade-in-0 slide-in-from-bottom-4 fill-mode-backwards duration-500'
-						style={{ animationDelay: '100ms' }}
-					>
-						<div className='mb-8'>
-							<h2 className='text-destructive text-lg font-semibold tracking-tight'>Danger Zone</h2>
-							<p className='text-muted-foreground mt-1 text-sm'>Irreversible and destructive actions</p>
-						</div>
+				{/* Danger Zone Section */}
+				<section
+					className='animate-in fade-in-0 slide-in-from-bottom-4 fill-mode-backwards duration-500'
+					style={{ animationDelay: '100ms' }}
+				>
+					<div className='mb-8'>
+						<h2 className='text-destructive text-lg font-semibold tracking-tight'>Danger Zone</h2>
+						<p className='text-muted-foreground mt-1 text-sm'>Irreversible and destructive actions</p>
+					</div>
 
-						<DeleteAccountSection />
-					</section>
-				</div>
-
-				<div className='h-12' />
+					<DeleteAccountSection />
+				</section>
 			</div>
+
+			<div className='h-12' />
 		</div>
 	);
 }
