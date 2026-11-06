@@ -55,4 +55,18 @@ describe('AppSpec schema', () => {
 		);
 		assert.match(firstError({ ...foodBank, ui: { dashboard: { tiles: [{ kind: 'recent', resource: 'shifts', limit: 99 }] } } }), /^\/ui\/dashboard\/tiles\/0\/limit /);
 	});
+
+	it('accepts a foreign-key reference but refuses a nested row in a seed value', () => {
+		const ref = structuredClone(foodBank);
+		ref.seed.shifts[0].location_id = '@locations[0]';
+		assert.ok(validate(ref), JSON.stringify(validate.errors));
+
+		const nested = structuredClone(foodBank);
+		nested.seed.shifts[0].location_id = [{ name: 'Main pantry' }];
+		assert.equal(validate(nested), false);
+		assert.ok(
+			(validate.errors ?? []).some((error) => error.instancePath === '/seed/shifts/0/location_id'),
+			JSON.stringify(validate.errors),
+		);
+	});
 });

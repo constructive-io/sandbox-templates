@@ -57,11 +57,8 @@
 			"anyOf": [{ "type": "string" }, { "type": "number" }, { "type": "boolean" }, { "type": "null" }]
 		},
 		"seedValue": {
-			"anyOf": [
-				{ "$ref": "#/$defs/scalar" },
-				{ "type": "array" },
-				{ "type": "object" }
-			]
+			"description": "A scalar value. A foreign key names another seeded row with \"@<table>[<index>]\".",
+			"$ref": "#/$defs/scalar"
 		},
 		"blueprintBackend": {
 			"type": "object",
