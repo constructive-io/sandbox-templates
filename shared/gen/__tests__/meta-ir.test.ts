@@ -296,6 +296,16 @@ describe('junction tables', () => {
 		assert.deepEqual(field(resource(resources, 'tags'), 'contacts').relation, { resource: 'contacts', many: true });
 	});
 
+	it('keeps a two-key table without both link mutations as its own resource', () => {
+		const tables = loadTables();
+		const link = tables.find((table) => table.name === 'ContactTag')!;
+		link.query = { all: 'contactTags', one: 'contactTag', create: 'createContactTag' };
+		const { junctions, resources } = buildMetaModel(tables);
+		assert.deepEqual(junctions, []);
+		assert.deepEqual(resource(resources, 'contact-tags').operations, { create: true, update: false, delete: false });
+		assert.deepEqual(resource(resources, 'contacts').manyToMany, []);
+	});
+
 	it('detects a two-key table as a junction even when no many-to-many relation names it', () => {
 		const tables = loadTables();
 		for (const table of tables) if (table.relations) table.relations.manyToMany = [];
@@ -321,7 +331,7 @@ describe('junction tables', () => {
 				name: 'Enrollment',
 				tableName: 'enrollments',
 				isJunction: true,
-				query: { all: 'enrollments', create: 'createEnrollment' },
+				query: { all: 'enrollments', create: 'createEnrollment', delete: 'deleteEnrollment' },
 				inflection: { tableType: 'Enrollment' },
 				fields: [id, column('studentId', 'UUID', 'uuid', { isForeignKey: true }), column('courseId', 'UUID', 'uuid', { isForeignKey: true }), ...extra],
 				relations: {

@@ -414,6 +414,8 @@ export function buildMetaModel(tables: MetaTable[]): MetaModel {
 	const junctionLinks = new Map<TableInfo, [{ key: string; target: TableInfo }, { key: string; target: TableInfo }]>();
 	for (const info of infos) {
 		if (info.kind !== 'entity' || info.meta.isJunction === false) continue;
+		// The link editor replaces a set, so it needs both mutations on the junction.
+		if (!info.meta.query?.create || !info.meta.query?.delete) continue;
 		const ownFields = (info.meta.fields ?? []).filter(
 			(field) => !info.systemHidden.has(field.name) && !info.systemReadOnly.has(field.name),
 		);

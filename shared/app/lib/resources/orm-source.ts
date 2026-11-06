@@ -16,19 +16,19 @@ type Row = Record<string, unknown>;
 
 type Executable = { execute(): Promise<QueryResult<unknown>> };
 
-/** The CRUD surface every generated ORM model has. */
+/** Every exposed resource can list rows. Its write methods depend on the schema. */
 export type OrmModel = {
 	findMany(args: any): Executable;
-	create(args: any): Executable;
-	update(args: any): Executable;
-	delete(args: any): Executable;
+	create?(args: any): Executable;
+	update?(args: any): Executable;
+	delete?(args: any): Executable;
 };
 
 /** The model's select type, so a typo in a generated config fails type checking. */
 export type SelectOf<M> = M extends { findMany(args: infer A): unknown } ? (A extends { select: infer S } ? S : never) : never;
 
 export type ManyToManyLink = {
-	junction: OrmModel;
+	junction: OrmModel & Required<Pick<OrmModel, 'create' | 'delete'>>;
 	/** Primary key of the junction rows. */
 	primaryKey?: string;
 	/** Junction column pointing at this resource. */
@@ -261,6 +261,7 @@ export function ormSource<M extends OrmModel>(model: M, options: OrmSourceOption
 		},
 
 		async create(values) {
+			if (!model.create) throw new Error('This resource doesn’t allow new records.');
 			const input = writable(values, 'create');
 			for (const [key, value] of Object.entries(options.createDefaults ?? {})) {
 				if (input[key] == null || input[key] === '') input[key] = value;
@@ -274,6 +275,7 @@ export function ormSource<M extends OrmModel>(model: M, options: OrmSourceOption
 		},
 
 		async update(id, patch) {
+			if (!model.update) throw new Error('This resource doesn’t allow edits.');
 			const input = writable(patch, 'update');
 			for (const key of options.createOnly ?? []) delete input[key];
 			// The API rejects an empty patch; a change to links alone only touches the junction.
@@ -288,6 +290,7 @@ export function ormSource<M extends OrmModel>(model: M, options: OrmSourceOption
 		},
 
 		async remove(id) {
+			if (!model.delete) throw new Error('This resource doesn’t allow deletions.');
 			await run(model.delete({ where: { [primaryKey]: id }, select: { [primaryKey]: true } }));
 		},
 	};

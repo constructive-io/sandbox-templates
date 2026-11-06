@@ -88,6 +88,7 @@ function resourceModule(ir: ResourceIR): EmittedFile {
 		icon: ir.icon,
 		primaryKey: ir.primaryKey,
 		titleField: ir.titleField,
+		operations: Object.values(ir.operations).every(Boolean) ? undefined : ir.operations,
 		columns: ir.columns,
 		formFields: ir.formFields,
 		detailFields: ir.detailFields,

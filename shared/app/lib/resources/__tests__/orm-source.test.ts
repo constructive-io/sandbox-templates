@@ -49,14 +49,14 @@ describe('listArgs', () => {
 
 type Call = { method: string; args: Record<string, any> };
 
-function fakeModel(calls: Call[], data: (method: string, args: Record<string, any>) => unknown): OrmModel {
+function fakeModel(calls: Call[], data: (method: string, args: Record<string, any>) => unknown) {
 	const method = (name: string) => (args: Record<string, any>) => ({
 		execute: async () => {
 			calls.push({ method: name, args });
 			return { ok: true as const, data: data(name, args) };
 		},
 	});
-	return { findMany: method('findMany'), create: method('create'), update: method('update'), delete: method('delete') };
+	return { findMany: method('findMany'), create: method('create'), update: method('update'), delete: method('delete') } satisfies OrmModel;
 }
 
 describe('ormSource', () => {
@@ -72,6 +72,20 @@ describe('ormSource', () => {
 		assert.deepEqual(await source.list({ offset: 0, limit: 10 }), { rows: [{ id: 'd1', amount: 1200.5 }], totalCount: 7 });
 		assert.deepEqual(await source.create({ amount: 99, unknownField: 'x' }), { id: 'd2', amount: 99 });
 		assert.deepEqual(calls[1].args.data, { amount: '99' });
+	});
+
+	it('reads and creates through an insert-only ORM model, while rejecting unsupported writes', async () => {
+		const calls: Call[] = [];
+		const model = fakeModel(calls, (method) =>
+			method === 'findMany' ? { events: { nodes: [{ id: 'e1' }] } } : { createEvent: { event: { id: 'e2' } } },
+		);
+		const source = ormSource({ findMany: model.findMany, create: model.create }, { select: { id: true } as never });
+		assert.equal((await source.list({ offset: 0, limit: 10 })).rows[0]?.id, 'e1');
+		assert.equal((await source.get('e1'))?.id, 'e1');
+		assert.equal((await source.create({})).id, 'e2');
+		await assert.rejects(source.update('e1', { title: 'changed' }), /doesn.t allow edits/);
+		await assert.rejects(source.remove('e1'), /doesn.t allow deletions/);
+		assert.deepEqual(calls.map((call) => call.method), ['findMany', 'findMany', 'create']);
 	});
 
 	it('fills required owner keys with the signed-in user on create, keeping a value the form sent', async () => {
