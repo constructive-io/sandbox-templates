@@ -29,7 +29,7 @@ jobs:
       # The blocks commit whose registry items this template is built against.
       # The registry is built from it and served locally, so CI never depends
       # on what the public Pages registry serves today. Bump it with the kit.
-      BLOCKS_REF: da1ff8347818f3f099c88ae1eb230d2168f92779
+      BLOCKS_REF: 99a795518e1843b8038ef92215c876c556e59920
       # Not REGISTRY_URL: shadcn reads that name as the base URL of its own registry.
       BLOCKS_REGISTRY_URL: http://127.0.0.1:4005/r/{name}.json
     steps:
@@ -94,7 +94,15 @@ jobs:
             CODEGEN_APP_SCHEMA_FILE="$fixture/app.graphql" CODEGEN_AUTH_SCHEMA_FILE="$fixture/auth.graphql" pnpm codegen
             spec=()
             if [ -f "$fixture/app-spec.json" ]; then spec=(--spec "$fixture/app-spec.json"); fi
-            pnpm --silent gen:resources --meta "$fixture/meta.json" "${spec[@]}"
+            pnpm --silent gen:resources --meta "$fixture/meta.json" "${spec[@]}" > "$RUNNER_TEMP/gen-$name.json"
             pnpm lint:types
+            # Deploy publishes the static export: every list and record route must be in out/.
+            pnpm build
+            node -e '
+              const { existsSync } = require("node:fs");
+              const { resources } = require(process.argv[1]);
+              const missing = resources.flatMap(({ route }) => [`out${route}/index.html`, `out${route}/view/index.html`]).filter((path) => !existsSync(path));
+              if (missing.length) { console.error("missing from the static export:", missing); process.exit(1); }
+            ' "$RUNNER_TEMP/gen-$name.json"
             echo "::endgroup::"
           done

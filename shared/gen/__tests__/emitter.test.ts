@@ -54,7 +54,7 @@ describe('generated file ownership', () => {
 
 	it('removes generated files of a dropped table but keeps owned files beside them', () => {
 		generate(root);
-		const ownedPath = join(root, 'src/app/(app)/deals/[id]/page.tsx');
+		const ownedPath = join(root, 'src/app/(app)/deals/view/page.tsx');
 		writeFileSync(ownedPath, withoutHeader(readFileSync(ownedPath, 'utf8')));
 
 		const report = generate(
@@ -64,6 +64,22 @@ describe('generated file ownership', () => {
 		assert.deepEqual(report.removed, ['src/app/(app)/deals/page.tsx', 'src/resources/deals.ts']);
 		assert.ok(existsSync(ownedPath));
 		assert.ok(!readFileSync(join(root, 'src/resources/index.ts'), 'utf8').includes('deals'));
+	});
+
+	it('replaces the record pages an older generator wrote at [id] with static view routes', () => {
+		// What a run of the generator before the static export wrote: record pages at [id].
+		const dynamicRoutes = {
+			...emitter,
+			emit: (model: Parameters<typeof emitter.emit>[0]) =>
+				emitter.emit(model).map((file) => ({ ...file, path: file.path.replace('/view/page.tsx', '/[id]/page.tsx') })),
+		};
+		runGen({ root, tables: tables(), spec: { version: 1, name: 'CRM', backend: { kind: 'blueprint', slug: 'crm' } }, emitter: dynamicRoutes });
+		assert.ok(existsSync(join(root, 'src/app/(app)/deals/[id]/page.tsx')));
+
+		const report = generate(root);
+		assert.ok(report.removed.includes('src/app/(app)/deals/[id]/page.tsx'));
+		assert.ok(report.written.includes('src/app/(app)/deals/view/page.tsx'));
+		assert.ok(!existsSync(join(root, 'src/app/(app)/deals/[id]')), 'the emptied [id] folder goes too');
 	});
 
 	it('keeps a file edited with its header still in place, and reports it as modified', () => {
@@ -118,6 +134,30 @@ describe('the Next.js shell', () => {
 	});
 });
 
+describe('the static export', () => {
+	it('emits no dynamic route segment, and a record page that reads its id from the query', () => {
+		const files = emitter.emit(applyAppSpec(buildMetaModel(tables())));
+		const routes = files.filter((file) => file.path.startsWith('src/app/'));
+		assert.ok(routes.length > 0);
+		for (const file of routes) assert.doesNotMatch(file.path, /\[[^\]]+\]/, file.path);
+
+		const record = files.find((file) => file.path === 'src/app/(app)/deals/view/page.tsx');
+		assert.ok(record);
+		assert.match(record.content, /^'use client';$/m);
+		assert.match(record.content, /useSearchParams\(\)\.get\('id'\)/);
+		assert.match(record.content, /<Suspense>/);
+		assert.match(record.content, /redirect\('\/deals'\)/);
+	});
+
+	it('is the static export the shell builds', () => {
+		const config = readFileSync(join(NEXTJS_SHELL, 'next.config.ts'), 'utf8');
+		assert.match(config, /output: 'export'/);
+		assert.match(config, /trailingSlash: true/);
+		const router = readFileSync(join(NEXTJS_SHELL, 'src/components/resource-router.tsx'), 'utf8');
+		assert.match(router, /\$\{listHref\(resource\)\}\/view\/\?id=\$\{encodeURIComponent\(id\)\}/);
+	});
+});
+
 describe('search', () => {
 	it('writes an empty searchFields for a table with nothing to search, so the kit can hide the box', () => {
 		const metaTables = tables();
@@ -141,7 +181,7 @@ describe('resources with restricted operations', () => {
 		assert.ok(resource);
 		assert.match(resource.content, /operations: \{ create: true, update: false, delete: false \}/);
 		assert.ok(files.some((file) => file.path === 'src/app/(app)/audit-events/page.tsx'));
-		assert.ok(files.some((file) => file.path === 'src/app/(app)/audit-events/[id]/page.tsx'));
+		assert.ok(files.some((file) => file.path === 'src/app/(app)/audit-events/view/page.tsx'));
 
 		const root = mkdtempSync(join(tmpdir(), 'gen-insert-only-'));
 		try {
@@ -225,8 +265,59 @@ describe('create form date defaults', () => {
 		assert.match(contents, /eventDate: \{[^}]*createDefault: 'now'/);
 		assert.equal(contents.match(/createDefault: 'now'/g)?.length, 2);
 		assert.match(contents, /createDefaults: \{ fixedDate: '2026-11-06' \}/);
+		// The hint's default also starts the form on it, not only the create the source sends.
+		assert.match(contents, /fixedDate: \{[^}]*createDefault: \{ value: '2026-11-06' \}/);
 		table.query = { all: 'interactions' };
 		assert.doesNotMatch(emit(), /createDefault: 'now'/);
+	});
+});
+
+describe('create form value defaults', () => {
+	it("starts a create form on the AppSpec field's literal default, and a date keyword at the current time", () => {
+		const column = (name: string, gqlType: string, pgType: string, extra?: Partial<MetaField>): MetaField => ({
+			name,
+			type: { gqlType, pgType, isArray: false },
+			...extra,
+		});
+		const table: MetaTable = {
+			name: 'WishlistItem',
+			query: { all: 'wishlistItems', create: 'createWishlistItem' },
+			fields: [
+				column('id', 'UUID', 'uuid', { isPrimaryKey: true }),
+				column('title', 'String', 'text', { isNotNull: true }),
+				column('priority', 'String', 'text', { isNotNull: true, hasDefault: true }),
+				column('quantity', 'Int', 'int4', { hasDefault: true }),
+				column('wantedOn', 'Date', 'date', { isNotNull: true, hasDefault: true }),
+			],
+		};
+		const spec: AppSpec = {
+			version: 1,
+			name: 'Wishlist',
+			backend: {
+				kind: 'custom',
+				entities: [
+					{
+						name: 'wishlist_items',
+						fields: [
+							{ name: 'title', type: 'text', required: true },
+							{ name: 'priority', type: 'text', required: true, enum: ['Low', 'Medium', 'High'], default: 'Medium' },
+							{ name: 'quantity', type: 'integer', default: 1 },
+							{ name: 'wanted_on', type: 'date', required: true, default: 'today' },
+						],
+					},
+				],
+			},
+		} as AppSpec;
+		const contents = emitter
+			.emit(applyAppSpec(buildMetaModel([table]), spec))
+			.find((file) => file.path === 'src/resources/wishlist-items.ts')!.content;
+		// One field's config, from its key to the next field's.
+		const config = (name: string) => contents.slice(contents.indexOf(`\t\t${name}: {`)).split(/\n\t\t\w+: \{/)[0];
+		assert.match(config('priority'), /createDefault: \{ value: 'Medium' \}/);
+		assert.match(config('quantity'), /createDefault: \{ value: 1 \}/);
+		// The database fills a time default on insert; the form doesn't invent one for an optional column.
+		assert.doesNotMatch(config('wantedOn'), /createDefault/);
+		assert.doesNotMatch(config('title'), /createDefault/);
 	});
 });
 

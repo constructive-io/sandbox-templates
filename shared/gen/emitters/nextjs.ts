@@ -1,6 +1,9 @@
 // Next.js App Router emitter: resource configs, the registry, list/detail
 // routes, the dashboard and the app config. Everything else in the shell is
 // hand-written; these files are the part that follows the database.
+//
+// The app is a static export, so no route has a dynamic segment: a record page
+// is the static route `/<resource>/view/` and reads its id from `?id=`.
 
 import type { AppModel, DashboardTile } from '../app-spec.ts';
 import { GENERATED_HEADER, type EmittedFile, type Emitter, type FileSubject } from '../emitter.ts';
@@ -58,9 +61,11 @@ function fieldConfig(field: FieldIR, canCreate: boolean, relationLabels: Readonl
 			tone: option.tone === 'neutral' ? undefined : option.tone,
 		})),
 		relation: field.relation && { ...field.relation, labelField: relationLabels.get(field.relation.resource) },
-		createDefault:
-			canCreate && field.required && !field.hidden && !field.readOnly &&
-			(field.input === 'date' || field.input === 'datetime') ? field.createDefault : undefined,
+		createDefault: !canCreate || field.hidden || field.readOnly
+			? undefined
+			: typeof field.createDefault === 'object'
+				? field.createDefault
+				: field.required && (field.input === 'date' || field.input === 'datetime') ? field.createDefault : undefined,
 	};
 }
 
@@ -192,13 +197,27 @@ export default function ${componentName(ir, 'Page')}() {
 
 function detailPage(ir: ResourceIR): EmittedFile {
 	return file(
-		`src/app/(app)/${routeSegment(ir)}/[id]/page.tsx`,
+		`src/app/(app)/${routeSegment(ir)}/view/page.tsx`,
 		{ kind: 'page', resource: ir.name },
-		`import { RecordDetail } from '@/components/ui/resource-kit';
+		`'use client';
 
-export default async function ${componentName(ir, 'DetailPage')}({ params }: { params: Promise<{ id: string }> }) {
-	const { id } = await params;
+import { Suspense } from 'react';
+import { redirect, useSearchParams } from 'next/navigation';
+
+import { RecordDetail } from '@/components/ui/resource-kit';
+
+function ${componentName(ir, 'Record')}() {
+	const id = useSearchParams().get('id');
+	if (!id) redirect(${quote(`/${routeSegment(ir)}`)});
 	return <RecordDetail resource={${quote(ir.name)}} id={id} />;
+}
+
+export default function ${componentName(ir, 'DetailPage')}() {
+	return (
+		<Suspense>
+			<${componentName(ir, 'Record')} />
+		</Suspense>
+	);
 }
 `,
 	);

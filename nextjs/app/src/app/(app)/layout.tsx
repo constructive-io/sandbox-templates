@@ -18,7 +18,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
 	React.useEffect(() => {
 		if (session.status !== 'anonymous') return;
-		router.replace(pathname === '/' ? '/sign-in' : `/sign-in?next=${encodeURIComponent(pathname)}`);
+		// A record page's id is in the query, so the way back keeps it.
+		const back = `${pathname}${window.location.search}`;
+		router.replace(back === '/' ? '/sign-in' : `/sign-in?next=${encodeURIComponent(back)}`);
 	}, [session.status, pathname, router]);
 
 	if (session.status !== 'authenticated') return <div className='h-dvh bg-background' />;
