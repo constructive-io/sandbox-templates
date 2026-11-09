@@ -276,6 +276,27 @@ function applyFieldHints(ir: ResourceIR, field: FieldIR, hints: FieldUiSpec, war
 		field.required = false;
 		ir.createDefaults[field.name] = hints.default;
 		ir.userKeys = ir.userKeys.filter((name) => name !== field.name);
+		startCreateOn(field, hints.default);
+	}
+}
+
+// The time defaults the desktop accepts for a date or timestamp (`now`, `today`, …): the
+// form starts at the current time, as for any required date.
+const TIME_DEFAULT = /^(now(\(\))?|today|current_(date|timestamp))$/i;
+
+/**
+ * A literal default starts the create form on that value, so a select with a database default
+ * shows it rather than None. A time keyword on a date starts it at the current time; anything
+ * else (null, an object, a time keyword on another type) leaves the form as it was.
+ */
+function startCreateOn(field: FieldIR, value: unknown) {
+	const temporal = field.input === 'date' || field.input === 'datetime';
+	if (typeof value === 'string' && TIME_DEFAULT.test(value.trim())) {
+		if (temporal) field.createDefault = 'now';
+		return;
+	}
+	if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+		field.createDefault = { value };
 	}
 }
 
@@ -287,6 +308,7 @@ function applyFieldHints(ir: ResourceIR, field: FieldIR, hints: FieldUiSpec, war
 function refineField(field: FieldIR, spec: SpecField, warn: (message: string) => void) {
 	if (spec.label) field.label = spec.label;
 	if (field.input === 'relation' || field.hidden) return;
+	startCreateOn(field, spec.default);
 	if (spec.enum?.length && (field.input === 'text' || field.input === 'select')) {
 		const live = field.metaValues;
 		if (live === undefined) {

@@ -61,9 +61,11 @@ function fieldConfig(field: FieldIR, canCreate: boolean, relationLabels: Readonl
 			tone: option.tone === 'neutral' ? undefined : option.tone,
 		})),
 		relation: field.relation && { ...field.relation, labelField: relationLabels.get(field.relation.resource) },
-		createDefault:
-			canCreate && field.required && !field.hidden && !field.readOnly &&
-			(field.input === 'date' || field.input === 'datetime') ? field.createDefault : undefined,
+		createDefault: !canCreate || field.hidden || field.readOnly
+			? undefined
+			: typeof field.createDefault === 'object'
+				? field.createDefault
+				: field.required && (field.input === 'date' || field.input === 'datetime') ? field.createDefault : undefined,
 	};
 }
 

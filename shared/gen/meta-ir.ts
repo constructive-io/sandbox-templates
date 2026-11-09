@@ -115,8 +115,11 @@ export type FieldIR = {
 	required: boolean;
 	readOnly: boolean;
 	hidden: boolean;
-	/** A required date or timestamp whose create form starts at the current time. */
-	createDefault?: 'now';
+	/**
+	 * What the create form starts on: `'now'` for a required date or timestamp (the current
+	 * time), `{ value }` for a column the AppSpec gives a literal default.
+	 */
+	createDefault?: 'now' | { value: string | number | boolean };
 	/** Help text under the input. Only the AppSpec sets it: `_meta` descriptions are schema comments, not UX copy. */
 	description?: string;
 	options?: { value: string; label: string; tone?: OptionTone }[];

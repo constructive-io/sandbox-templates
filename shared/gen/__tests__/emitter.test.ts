@@ -265,8 +265,59 @@ describe('create form date defaults', () => {
 		assert.match(contents, /eventDate: \{[^}]*createDefault: 'now'/);
 		assert.equal(contents.match(/createDefault: 'now'/g)?.length, 2);
 		assert.match(contents, /createDefaults: \{ fixedDate: '2026-11-06' \}/);
+		// The hint's default also starts the form on it, not only the create the source sends.
+		assert.match(contents, /fixedDate: \{[^}]*createDefault: \{ value: '2026-11-06' \}/);
 		table.query = { all: 'interactions' };
 		assert.doesNotMatch(emit(), /createDefault: 'now'/);
+	});
+});
+
+describe('create form value defaults', () => {
+	it("starts a create form on the AppSpec field's literal default, and a date keyword at the current time", () => {
+		const column = (name: string, gqlType: string, pgType: string, extra?: Partial<MetaField>): MetaField => ({
+			name,
+			type: { gqlType, pgType, isArray: false },
+			...extra,
+		});
+		const table: MetaTable = {
+			name: 'WishlistItem',
+			query: { all: 'wishlistItems', create: 'createWishlistItem' },
+			fields: [
+				column('id', 'UUID', 'uuid', { isPrimaryKey: true }),
+				column('title', 'String', 'text', { isNotNull: true }),
+				column('priority', 'String', 'text', { isNotNull: true, hasDefault: true }),
+				column('quantity', 'Int', 'int4', { hasDefault: true }),
+				column('wantedOn', 'Date', 'date', { isNotNull: true, hasDefault: true }),
+			],
+		};
+		const spec: AppSpec = {
+			version: 1,
+			name: 'Wishlist',
+			backend: {
+				kind: 'custom',
+				entities: [
+					{
+						name: 'wishlist_items',
+						fields: [
+							{ name: 'title', type: 'text', required: true },
+							{ name: 'priority', type: 'text', required: true, enum: ['Low', 'Medium', 'High'], default: 'Medium' },
+							{ name: 'quantity', type: 'integer', default: 1 },
+							{ name: 'wanted_on', type: 'date', required: true, default: 'today' },
+						],
+					},
+				],
+			},
+		} as AppSpec;
+		const contents = emitter
+			.emit(applyAppSpec(buildMetaModel([table]), spec))
+			.find((file) => file.path === 'src/resources/wishlist-items.ts')!.content;
+		// One field's config, from its key to the next field's.
+		const config = (name: string) => contents.slice(contents.indexOf(`\t\t${name}: {`)).split(/\n\t\t\w+: \{/)[0];
+		assert.match(config('priority'), /createDefault: \{ value: 'Medium' \}/);
+		assert.match(config('quantity'), /createDefault: \{ value: 1 \}/);
+		// The database fills a time default on insert; the form doesn't invent one for an optional column.
+		assert.doesNotMatch(config('wantedOn'), /createDefault/);
+		assert.doesNotMatch(config('title'), /createDefault/);
 	});
 });
 
