@@ -26,7 +26,8 @@ export function useResourceRouter(): ResourceRouter {
 			Link: RouterLink,
 			navigate: (href: string) => router.push(href),
 			listHref,
-			detailHref: (resource: string, id: string) => `${listHref(resource)}/${encodeURIComponent(id)}`,
+			// A static export has no dynamic routes: the record page takes its id from the query.
+			detailHref: (resource: string, id: string) => `${listHref(resource)}/view/?id=${encodeURIComponent(id)}`,
 		}),
 		[router],
 	);

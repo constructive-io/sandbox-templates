@@ -69,7 +69,7 @@ describe('gen:resources on an evolved database', () => {
 		assert.equal(preview.hints.length, 1, 'a dry run hints too, and does not use the hint up');
 		const second = runGen(evolved);
 
-		for (const path of ['src/resources/donations.ts', 'src/app/(app)/donations/page.tsx', 'src/app/(app)/donations/[id]/page.tsx']) {
+		for (const path of ['src/resources/donations.ts', 'src/app/(app)/donations/page.tsx', 'src/app/(app)/donations/view/page.tsx']) {
 			assert.ok(second.files.written.includes(path), path);
 		}
 		assert.deepEqual(
@@ -112,18 +112,18 @@ describe('gen:resources on an evolved database', () => {
 		]);
 
 		// The app customised the donations detail page and edited its config, then the table went away.
-		takeOwnership(root, 'src/app/(app)/donations/[id]/page.tsx');
+		takeOwnership(root, 'src/app/(app)/donations/view/page.tsx');
 		const config = join(root, 'src/resources/donations.ts');
 		writeFileSync(config, readFileSync(config, 'utf8').replace("label: 'Donations'", "label: 'Gifts'"));
 		const dropped = runGen({ root, tables: tables('food-bank/meta.json'), spec: foodBankSpec, emitter });
 
 		assert.deepEqual(dropped.files.removed, ['src/app/(app)/donations/page.tsx']);
-		assert.ok(existsSync(join(root, 'src/app/(app)/donations/[id]/page.tsx')));
+		assert.ok(existsSync(join(root, 'src/app/(app)/donations/view/page.tsx')));
 		assert.match(readFileSync(config, 'utf8'), /label: 'Gifts'/);
 		assert.deepEqual(
 			dropped.hints.map((hint) => [hint.path, hint.state]),
 			[
-				['src/app/(app)/donations/[id]/page.tsx', 'owned'],
+				['src/app/(app)/donations/view/page.tsx', 'owned'],
 				['src/resources/donations.ts', 'modified'],
 				['src/resources/shifts.ts', 'owned'],
 			],

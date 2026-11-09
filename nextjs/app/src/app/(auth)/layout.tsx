@@ -15,7 +15,8 @@ const SIGNED_OUT_ONLY = new Set(['/sign-in', '/sign-up']);
 export default function AuthGroupLayout({ children }: { children: React.ReactNode }) {
 	const session = useSession();
 	const router = useRouter();
-	const pathname = usePathname() ?? '';
+	// Routes end in a slash in the static export (`trailingSlash`); compare without it.
+	const pathname = (usePathname() ?? '').replace(/(.)\/$/, '$1');
 
 	React.useEffect(() => {
 		if (session.status === 'authenticated' && SIGNED_OUT_ONLY.has(pathname)) {
