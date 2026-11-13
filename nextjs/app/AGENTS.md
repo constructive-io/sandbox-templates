@@ -7,7 +7,7 @@ A Next.js App Router app over a Constructive database. Most screens are generate
 - `src/resources/<resource>.ts`: one config per table: labels, fields, input types, select options, list columns, form order, search fields, default sort. **Edit this first** for any change to a list, form or detail view, and **delete its first line (`// @generated …`) before you edit**, so the file is yours and later generator runs leave it alone.
 - `src/resources/index.ts`: the resource registry and the sidebar order.
 - `src/app/(app)/<resource>/page.tsx` and `view/page.tsx`: the list and record routes. A record opens at `/<resource>/view/?id=<id>`. `src/app/(app)/page.tsx` is the dashboard; `src/config/app.ts` holds the app name and tagline.
-- `src/app/(auth)/`: sign-in, sign-up, check-email, verify-email, forgot-password, reset-password.
+- `src/app/(auth)/`: sign-in, sign-up, check-email, verify-email, forgot-password, reset-password. `src/app/login/` forwards to sign-in.
 - `src/components/ui/`: installed blocks source (`resource-kit`, `auth-pages`, `dashboard-tiles`, `workspace-kit`, primitives). It is yours to edit.
 - `src/lib/`: session and token (`lib/auth`), the ORM client `db`, `fetchAll` and `describeError` (`lib/graphql`), endpoints (`lib/runtime`), `ormSource` (`lib/resources`).
 - `src/app/(app)/error.tsx`, `src/app/error.tsx`, `src/app/global-error.tsx` and `src/app/not-found.tsx`: the error boundaries and the 404 page. A page that throws shows the error inside the shell with a "Try again" button (`src/components/app-error.tsx`), so you don't need a try/catch around a whole page.
@@ -195,3 +195,4 @@ pnpm dlx shadcn@4.13.1 search @constructive --query "<what you need>"
 - The token storage keys in `src/lib/auth/token-manager.ts`: the desktop signs the owner in through them.
 - The `data-app-error` attribute on the error states (`src/components/app-error.tsx`, `src/app/not-found.tsx`): the desktop's render check fails a page that shows one.
 - `NEXT_PUBLIC_*` endpoints come from `.env.local`, written by the desktop. Don't hard-code URLs.
+- The routes the database's emails link to, with the query parameters they read: `/verify-email` (`email_id`, `verification_token`), `/reset-password` (`role_id`, `reset_token`), `/forgot-password` and `/login`. Moving or deleting one breaks the link in that email.
