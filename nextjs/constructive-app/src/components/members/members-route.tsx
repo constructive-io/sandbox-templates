@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { RiUserAddLine } from '@remixicon/react';
 import { AlertCircle, AtSign, CheckCircle2, Clock, MoreVertical, Slash, Users, XCircle } from 'lucide-react';
-import type { Route } from 'next';
 import { useRouter } from 'next/navigation';
 
 import { PageHeaderWithIcon } from '@/components/shared/page-header-with-icon';
@@ -37,6 +36,7 @@ import {
 	useUpdateOrgMembershipMutation,
 } from '@/lib/gql/admin-compat';
 import { useAppStore } from '@/store/app-store';
+import { buildOrgRoute } from '@/app-routes';
 
 import { RoleBadge } from './role-badge';
 
@@ -211,7 +211,7 @@ export function MembersRoute({ orgId, orgName = 'Organization', organization }: 
 	};
 
 	const onInviteClick = () => {
-		router.push(`/orgs/${orgId}/invites` as Route);
+		router.push(buildOrgRoute('ORG_INVITES', orgId));
 	};
 
 	const onToggleAdmin = async (member: OrgMember) => {
@@ -247,109 +247,107 @@ export function MembersRoute({ orgId, orgName = 'Organization', organization }: 
 		: `${totalCount} member${totalCount !== 1 ? 's' : ''} in your organization`;
 
 	return (
-		<div className='h-full overflow-y-auto'>
-			<div className='mx-auto max-w-6xl px-6 py-8 lg:px-8 lg:py-10'>
-				<PageHeaderWithIcon
-					title='Members'
-					description={headerDescription}
-					icon={Users}
-					actions={
-						<Button className='gap-2' onClick={onInviteClick}>
-							<RiUserAddLine className='h-4 w-4' />
-							Invite Member
-						</Button>
-					}
-				/>
+		<div className='mx-auto max-w-6xl px-6 py-8 lg:px-8 lg:py-10'>
+			<PageHeaderWithIcon
+				title='Members'
+				description={headerDescription}
+				icon={Users}
+				actions={
+					<Button className='gap-2' onClick={onInviteClick}>
+						<RiUserAddLine className='h-4 w-4' />
+						Invite Member
+					</Button>
+				}
+			/>
 
-				{error && (
-					<section
-						className='animate-in fade-in-0 slide-in-from-bottom-4 fill-mode-backwards mb-6 duration-500'
-						style={{ animationDelay: '100ms' }}
-					>
-						<div className='bg-card border-destructive/40 text-destructive rounded-xl border p-4 text-sm'>
-							Failed to load members: {error.message}
-						</div>
-					</section>
-				)}
-
+			{error && (
 				<section
-					className='animate-in fade-in-0 slide-in-from-bottom-4 fill-mode-backwards duration-500'
+					className='animate-in fade-in-0 slide-in-from-bottom-4 fill-mode-backwards mb-6 duration-500'
 					style={{ animationDelay: '100ms' }}
 				>
-					<div className='bg-card border-border/60 overflow-x-auto rounded-xl border'>
-						<Table className='min-w-[800px]'>
-							<TableHeader>
-								<TableRow className='hover:bg-transparent'>
-									<TableHead className='w-[300px] pl-6'>Member</TableHead>
-									<TableHead className='w-[120px]'>Role</TableHead>
-									<TableHead className='w-[160px]'>Status</TableHead>
-									<TableHead className='w-[120px]'>Account</TableHead>
-									<TableHead className='w-[80px] pr-6 text-right'>Actions</TableHead>
+					<div className='bg-card border-destructive/40 text-destructive rounded-xl border p-4 text-sm'>
+						Failed to load members: {error.message}
+					</div>
+				</section>
+			)}
+
+			<section
+				className='animate-in fade-in-0 slide-in-from-bottom-4 fill-mode-backwards duration-500'
+				style={{ animationDelay: '100ms' }}
+			>
+				<div className='bg-card border-border/60 overflow-x-auto rounded-xl border'>
+					<Table className='min-w-[800px]'>
+						<TableHeader>
+							<TableRow className='hover:bg-transparent'>
+								<TableHead className='w-[300px] pl-6'>Member</TableHead>
+								<TableHead className='w-[120px]'>Role</TableHead>
+								<TableHead className='w-[160px]'>Status</TableHead>
+								<TableHead className='w-[120px]'>Account</TableHead>
+								<TableHead className='w-[80px] pr-6 text-right'>Actions</TableHead>
+							</TableRow>
+						</TableHeader>
+						<TableBody>
+							{isLoading ? (
+								<TableRow>
+									<TableCell colSpan={5} className='text-muted-foreground py-8 text-center'>
+										Loading members...
+									</TableCell>
 								</TableRow>
-							</TableHeader>
-							<TableBody>
-								{isLoading ? (
-									<TableRow>
-										<TableCell colSpan={5} className='text-muted-foreground py-8 text-center'>
-											Loading members...
-										</TableCell>
-									</TableRow>
-								) : members.length === 0 ? (
-									<TableRow>
-										<TableCell colSpan={5} className='text-muted-foreground py-8 text-center'>
-											No members found
-										</TableCell>
-									</TableRow>
-								) : (
-									members.map((member) => (
-										<TableRow key={member.membershipId}>
-											<TableCell className='pl-6'>
-												<div className='flex items-center gap-3'>
-													<Avatar className='size-9'>
-														<AvatarFallback className='bg-zinc-400 text-xs text-white'>
-															{getInitials(member.displayName || member.username)}
-														</AvatarFallback>
-													</Avatar>
-													<div className='min-w-0'>
-														<p className='truncate font-medium'>
-															{member.displayName || member.username || member.actorId}
-														</p>
-														<div className='text-muted-foreground flex items-center gap-1 text-sm'>
-															<AtSign className='size-3' />
-															<span className='truncate'>{member.username || '—'}</span>
-														</div>
+							) : members.length === 0 ? (
+								<TableRow>
+									<TableCell colSpan={5} className='text-muted-foreground py-8 text-center'>
+										No members found
+									</TableCell>
+								</TableRow>
+							) : (
+								members.map((member) => (
+									<TableRow key={member.membershipId}>
+										<TableCell className='pl-6'>
+											<div className='flex items-center gap-3'>
+												<Avatar className='size-9'>
+													<AvatarFallback className='bg-zinc-400 text-xs text-white'>
+														{getInitials(member.displayName || member.username)}
+													</AvatarFallback>
+												</Avatar>
+												<div className='min-w-0'>
+													<p className='truncate font-medium'>
+														{member.displayName || member.username || member.actorId}
+													</p>
+													<div className='text-muted-foreground flex items-center gap-1 text-sm'>
+														<AtSign className='size-3' />
+														<span className='truncate'>{member.username || '—'}</span>
 													</div>
 												</div>
-											</TableCell>
-											<TableCell>
-												<RoleBadge role={member.role} />
-											</TableCell>
-											<TableCell>
-												<StatusBadge status={member.status} />
-											</TableCell>
-											<TableCell className='text-muted-foreground'>
-												{member.actorId.slice(0, 8)}
-											</TableCell>
-											<TableCell className='pr-6 text-right'>
-												<MemberActions
-													member={member}
-													canManage={canManageMembers && !isBusy}
-													isCurrentUser={!!actorId && actorId === member.actorId}
-													onToggleAdmin={onToggleAdmin}
-													onRemove={onRemove}
-												/>
-											</TableCell>
-										</TableRow>
-									))
-								)}
-							</TableBody>
-						</Table>
-					</div>
-					<PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={goToPage} />
-				</section>
+											</div>
+										</TableCell>
+										<TableCell>
+											<RoleBadge role={member.role} />
+										</TableCell>
+										<TableCell>
+											<StatusBadge status={member.status} />
+										</TableCell>
+										<TableCell className='text-muted-foreground'>
+											{member.actorId.slice(0, 8)}
+										</TableCell>
+										<TableCell className='pr-6 text-right'>
+											<MemberActions
+												member={member}
+												canManage={canManageMembers && !isBusy}
+												isCurrentUser={!!actorId && actorId === member.actorId}
+												onToggleAdmin={onToggleAdmin}
+												onRemove={onRemove}
+											/>
+										</TableCell>
+									</TableRow>
+								))
+							)}
+						</TableBody>
+					</Table>
+				</div>
+				<PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={goToPage} />
+			</section>
 
-				<div className='h-10' />
-			</div>
+			<div className='h-10' />
 		</div>
 	);
 }

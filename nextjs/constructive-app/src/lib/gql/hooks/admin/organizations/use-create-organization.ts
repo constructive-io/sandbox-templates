@@ -75,7 +75,7 @@ export interface UseCreateOrganizationResult {
  * const { createOrganization, isCreating, error } = useCreateOrganization({
  *   onSuccess: (result) => {
  *     toast.success(`Created ${result.organization.displayName}`);
- *     router.push(`/orgs/${result.organization.id}/databases`);
+ *     router.push(buildOrgRoute('ORG_MEMBERS', result.organization.id));
  *   },
  * });
  *

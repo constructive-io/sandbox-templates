@@ -13,7 +13,7 @@ export default function OrgActivityPage() {
 	}
 
 	return (
-		<div className='h-full overflow-y-auto' data-testid='org-activity-route'>
+		<div data-testid='org-activity-route'>
 			<div className='mx-auto max-w-3xl px-6 py-12'>
 				<PageHeaderWithIcon
 					title='Activity'
