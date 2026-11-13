@@ -55,6 +55,21 @@ export type DashboardTileSpec =
 /** The signed-in user's id, filled in by the app on create. */
 export const CURRENT_USER_ID = '$currentUserId';
 
+/**
+ * `$scope:<scope>`: the id of the active entity of a membership scope, filled
+ * in by the app on create, e.g. `$scope:org` for a record that belongs to the
+ * selected organization. Without a workspace switcher it is the signed-in
+ * user's own id, which is also their personal organization.
+ */
+export const SCOPE_DEFAULT_PREFIX = '$scope:';
+
+/** The scope a `$scope:<scope>` default names; null for any other value. */
+export function scopeOfDefault(value: unknown): string | null {
+	if (typeof value !== 'string' || !value.startsWith(SCOPE_DEFAULT_PREFIX)) return null;
+	const scope = value.slice(SCOPE_DEFAULT_PREFIX.length);
+	return /^[a-z][a-z0-9]*(_[a-z0-9]+)*$/.test(scope) ? scope : null;
+}
+
 /** How a form edits a field. */
 export type FieldInput =
 	| 'text'
@@ -83,8 +98,18 @@ export type FieldUiSpec = {
 	input?: FieldInput;
 	/** Overrides `_meta`, e.g. false for a column a trigger fills. */
 	required?: boolean;
-	/** `$currentUserId` or a literal sent on create when the form has none. */
+	/** `$currentUserId`, `$scope:<scope>`, or a literal sent on create when the form has none. */
 	default?: FilterValue;
+};
+
+/** What an entity's record page shows of its membership scope. */
+export type PanelKind = 'members' | 'files';
+
+/** Panels on an entity table's record page: the entity's members and its files. */
+export type ResourcePanelsSpec = {
+	/** The membership scope whose entity this table holds, e.g. `data_room`. */
+	scope: string;
+	show: PanelKind[];
 };
 
 export type ResourceUiSpec = {
@@ -96,6 +121,8 @@ export type ResourceUiSpec = {
 	formFields?: string[];
 	hidden?: boolean;
 	fields?: Record<string, FieldUiSpec>;
+	/** Members and files on the record page, for an entity type's table. */
+	panels?: ResourcePanelsSpec;
 };
 
 export type AppSpec = {
@@ -110,6 +137,10 @@ export type AppSpec = {
 		nav?: string[];
 		resources?: Record<string, ResourceUiSpec>;
 		dashboard?: { tiles: DashboardTileSpec[] };
+		/** A switcher between the user's personal workspace and their organizations; `$scope:<scope>` keys follow it. */
+		workspace?: { scope: string };
+		/** Membership scopes that get an access page: members, invitations, profiles, capabilities. */
+		access?: string[];
 	};
 };
 

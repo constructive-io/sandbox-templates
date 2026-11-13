@@ -5,6 +5,7 @@
 
 import {
 	CURRENT_USER_ID,
+	scopeOfDefault,
 	type AppSpec,
 	type FieldUiSpec,
 	type FilterValue,
@@ -29,12 +30,23 @@ export type SpecGap = {
 	message: string;
 };
 
+/** The membership-scope features the AppSpec opts into (`ui.workspace`, `ui.access`, `ui.resources.*.panels`). */
+export type ScopeFeatures = {
+	/** The scope the workspace switcher picks an entity of; null without a switcher. */
+	workspace: string | null;
+	/** Scopes with an access page, in the spec's order. */
+	access: string[];
+	/** Resource name → the scope its rows are entities of, and what the record page shows. */
+	panels: Record<string, { scope: string; show: Array<'members' | 'files'> }>;
+};
+
 export type AppModel = {
 	app: { name: string; tagline?: string };
 	/** Registry order: nav resources first, in nav order. */
 	resources: ResourceIR[];
 	nav: string[];
 	dashboard: DashboardTile[];
+	scopes: ScopeFeatures;
 	junctions: MetaModel['junctions'];
 	skipped: MetaModel['skipped'];
 	/** Every gap is in `warnings` too. */
@@ -206,6 +218,7 @@ export function applySpec(model: MetaModel, spec?: AppSpec, options: ApplySpecOp
 		resources: registry,
 		nav: ordered.map((ir) => ir.name),
 		dashboard: buildDashboard(spec, ordered, findResource, findField, { gap, warnings }),
+		scopes: buildScopes(spec, findResource, gap),
 		junctions: model.junctions,
 		skipped: model.skipped,
 		gaps,
@@ -267,15 +280,24 @@ function applyFieldHints(ir: ResourceIR, field: FieldIR, hints: FieldUiSpec, war
 		field.required = hints.required && !field.hidden;
 		if (!hints.required && userKey) ir.userKeys = ir.userKeys.filter((name) => name !== field.name);
 	}
+	const scope = scopeOfDefault(hints.default);
 	if (hints.default === CURRENT_USER_ID) {
 		field.hidden = true;
 		field.required = false;
 		if (!ir.userKeys.includes(field.name)) ir.userKeys.push(field.name);
+		delete ir.scopeKeys[field.name];
+		delete ir.createDefaults[field.name];
+	} else if (scope) {
+		field.hidden = true;
+		field.required = false;
+		ir.scopeKeys[field.name] = scope;
+		ir.userKeys = ir.userKeys.filter((name) => name !== field.name);
 		delete ir.createDefaults[field.name];
 	} else if (hints.default !== undefined) {
 		field.required = false;
 		ir.createDefaults[field.name] = hints.default;
 		ir.userKeys = ir.userKeys.filter((name) => name !== field.name);
+		delete ir.scopeKeys[field.name];
 		startCreateOn(field, hints.default);
 	}
 }
@@ -398,4 +420,27 @@ function buildDashboard(
 		result.push({ kind: 'count', resource: ir.name, label: tile.label ?? ir.label, ...(filters ? { filters } : {}) });
 	}
 	return result;
+}
+
+/** The scope features of the spec; a panel on a table the database doesn't have is a gap. */
+function buildScopes(
+	spec: AppSpec | undefined,
+	findResource: (key: string) => ResourceIR | undefined,
+	gap: (path: string, name: string, message: string) => void,
+): ScopeFeatures {
+	const panels: ScopeFeatures['panels'] = {};
+	for (const [key, ui] of Object.entries(spec?.ui?.resources ?? {})) {
+		if (!ui.panels) continue;
+		const ir = findResource(key);
+		if (!ir) {
+			gap('ui.resources', key, `ui.resources.${key}.panels names a table _meta doesn't have.`);
+			continue;
+		}
+		panels[ir.name] = { scope: ui.panels.scope, show: [...new Set(ui.panels.show)] };
+	}
+	return {
+		workspace: spec?.ui?.workspace?.scope ?? null,
+		access: [...new Set(spec?.ui?.access ?? [])],
+		panels,
+	};
 }

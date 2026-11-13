@@ -4,7 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ChevronsUpDownIcon, LogOutIcon, UserRoundIcon } from 'lucide-react';
+import { ChevronsUpDownIcon, LogOutIcon, ShieldCheckIcon, UserRoundIcon } from 'lucide-react';
 import { useTheme } from 'next-themes';
 
 import { fetchCurrentUser, signOut } from '@/lib/auth/auth-api';
@@ -34,12 +34,17 @@ import {
 	type WorkspaceSidebarRenderProps,
 	type WorkspaceTheme,
 } from '@/components/ui/workspace-kit';
+import { ScopeWorkspaceSwitcher } from '@/components/scope-features';
 import { appConfig } from '@/config/app';
 import { customNav, homeNav } from '@/config/nav';
+import { scopeFeatures } from '@/config/scopes';
 import { nav } from '@/resources';
 
 const MONOGRAM_CLASS =
 	'grid size-5 shrink-0 place-items-center rounded-md bg-foreground text-[0.5625rem] font-semibold text-background';
+
+// The access page joins the hand-written pages when the AppSpec lists a scope in `ui.access`.
+const scopeNav = scopeFeatures.access.length ? [{ label: 'Access', href: '/access', icon: ShieldCheckIcon }] : [];
 
 function renderLink(props: NavRowLinkProps) {
 	return <Link {...props} />;
@@ -171,9 +176,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 				onClose={onNavigate}
 				footer={<AccountMenu collapsed={railCollapsed} onNavigate={onNavigate} />}
 			>
+				<ScopeWorkspaceSwitcher collapsed={railCollapsed} />
 				{/* The app's own screens first: home, then hand-written pages. Generated table pages follow. */}
 				<NavSection collapsed={railCollapsed}>
-					{[{ ...homeNav, href: '/' }, ...customNav].map((entry) => {
+					{[{ ...homeNav, href: '/' }, ...customNav, ...scopeNav].map((entry) => {
 						const active = isActive(pathname, entry.href);
 						return (
 							<NavRow

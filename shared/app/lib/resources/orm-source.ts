@@ -11,6 +11,7 @@ import type { ListQuery, ResourceSource } from '@/components/ui/resource-kit';
 // The extensions keep this importable by the node test runner.
 import { failureKind, failureMessage, type FailureKind } from '../graphql/errors.ts';
 import { fetchAll } from '../graphql/fetch-all.ts';
+import type { ActiveScope } from './scope.ts';
 
 type Row = Record<string, unknown>;
 
@@ -51,6 +52,10 @@ export type OrmSourceOptions<M extends OrmModel> = {
 	/** Required owner or entity keys a create fills with the signed-in user's id when the form has none. */
 	userKeys?: readonly string[];
 	currentUserId?: () => string | null;
+	/** Keys a create fills with the active entity of a membership scope: field → scope (`entityId` → `org`). */
+	scopeKeys?: Readonly<Record<string, string>>;
+	/** The active entity per scope; while it is switchable, lists keep to it. */
+	scope?: ActiveScope;
 	/** Values a create sends for fields the form left empty. */
 	createDefaults?: Record<string, unknown>;
 	/** Fields the API accepts on create only; updates leave them out. */
@@ -81,10 +86,19 @@ function filterFor(value: unknown): Record<string, unknown> {
 /** The findMany arguments for one page of the kit's list query. */
 export function listArgs(
 	query: ListQuery,
-	options: { select: unknown; primaryKey?: string; searchFields?: readonly string[]; bigNumbers?: readonly string[]; compositeTitle?: CompositeTitle },
+	options: {
+		select: unknown;
+		primaryKey?: string;
+		searchFields?: readonly string[];
+		bigNumbers?: readonly string[];
+		compositeTitle?: CompositeTitle;
+		/** Fields every row of the page must equal: the active workspace's keys. */
+		scoped?: Readonly<Record<string, string>>;
+	},
 ) {
 	const primaryKey = options.primaryKey ?? 'id';
 	const conditions: Record<string, unknown>[] = [];
+	for (const [field, value] of Object.entries(options.scoped ?? {})) conditions.push({ [field]: { equalTo: value } });
 	const search = query.search?.trim();
 	if (search && options.searchFields?.length) {
 		conditions.push({ or: options.searchFields.map((field) => ({ [field]: { includesInsensitive: search } })) });
@@ -262,9 +276,19 @@ export function ormSource<M extends OrmModel>(model: M, options: OrmSourceOption
 		}));
 	};
 
+	// The active workspace's id per scope key, while a switcher picks it; lists keep to it.
+	const scoped = (): Record<string, string> | undefined => {
+		if (!options.scope?.filtered()) return undefined;
+		const entries = Object.entries(options.scopeKeys ?? {}).flatMap(([field, scope]) => {
+			const id = options.scope?.id(scope);
+			return id ? [[field, id] as const] : [];
+		});
+		return entries.length ? Object.fromEntries(entries) : undefined;
+	};
+
 	const source: ResourceSource<Row> = {
 		async list(query) {
-			const data = await run(model.findMany(listArgs(query, { ...options, primaryKey })));
+			const data = await run(model.findMany(listArgs(query, { ...options, primaryKey, scoped: scoped() })));
 			const connection = unwrap(data, 1) as { nodes?: Row[]; totalCount?: number } | null;
 			const rows = (connection?.nodes ?? []).map(readRow);
 			return { rows, totalCount: connection?.totalCount ?? rows.length };
@@ -284,6 +308,10 @@ export function ormSource<M extends OrmModel>(model: M, options: OrmSourceOption
 			}
 			const userId = options.currentUserId?.();
 			for (const key of options.userKeys ?? []) if (input[key] == null && userId) input[key] = userId;
+			for (const [key, scope] of Object.entries(options.scopeKeys ?? {})) {
+				const entityId = options.scope?.id(scope);
+				if (input[key] == null && entityId) input[key] = entityId;
+			}
 			const data = await run(model.create({ data: input, select }), Object.keys(select));
 			const row = readRow((unwrap(data, 2) as Row | null) ?? {});
 			await linkFrom(String(row[primaryKey]), values);

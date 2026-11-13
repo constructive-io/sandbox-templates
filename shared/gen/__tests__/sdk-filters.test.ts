@@ -34,6 +34,7 @@ function model(): AppModel {
 		resources: [volunteers],
 		nav: ['volunteers'],
 		dashboard: [{ kind: 'count', resource: 'volunteers', label: 'Active', filters: { isActive: true, email: 'x' } }],
+		scopes: { workspace: null, access: [], panels: {} },
 		junctions: [],
 		skipped: [],
 		gaps: [],

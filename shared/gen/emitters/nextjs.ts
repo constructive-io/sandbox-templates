@@ -5,7 +5,7 @@
 // The app is a static export, so no route has a dynamic segment: a record page
 // is the static route `/<resource>/view/` and reads its id from `?id=`.
 
-import type { AppModel, DashboardTile } from '../app-spec.ts';
+import type { AppModel, DashboardTile, ScopeFeatures } from '../app-spec.ts';
 import { GENERATED_HEADER, type EmittedFile, type Emitter, type FileSubject } from '../emitter.ts';
 import type { FieldIR, ResourceIR } from '../meta-ir.ts';
 import { identifier, normalizeKey, pascalCase } from '../names.ts';
@@ -21,10 +21,12 @@ const RESERVED_SEGMENTS = new Set([
 	'forgot-password',
 	'reset-password',
 	'api',
+	'access',
+	'register',
 ]);
 
 // Bindings the generated modules import; a resource binding must not shadow them.
-const RESERVED_BINDINGS = new Set(['db', 'ormSource', 'defineResource', 'currentUserId', 'resources', 'resourcePaths', 'resourceIcons', 'nav']);
+const RESERVED_BINDINGS = new Set(['db', 'ormSource', 'defineResource', 'currentUserId', 'activeScope', 'resources', 'resourcePaths', 'resourceIcons', 'nav']);
 
 export function routeSegment(ir: ResourceIR): string {
 	return RESERVED_SEGMENTS.has(ir.name) ? `${ir.name}-records` : ir.name;
@@ -118,6 +120,8 @@ function resourceModule(ir: ResourceIR, relationLabels: ReadonlyMap<string, stri
 					compositeTitle: ir.compositeTitle,
 					userKeys: ir.userKeys.length ? ir.userKeys : undefined,
 					currentUserId: ir.userKeys.length ? code('currentUserId') : undefined,
+					scopeKeys: Object.keys(ir.scopeKeys).length ? ir.scopeKeys : undefined,
+					scope: Object.keys(ir.scopeKeys).length ? code('activeScope') : undefined,
 					createDefaults: Object.keys(ir.createDefaults).length ? ir.createDefaults : undefined,
 					createOnly: ir.createOnly.length ? ir.createOnly : undefined,
 					serverDefaults: ir.serverDefaults.length ? ir.serverDefaults : undefined,
@@ -134,7 +138,7 @@ function resourceModule(ir: ResourceIR, relationLabels: ReadonlyMap<string, stri
 		`import { defineResource } from '@/components/ui/resource-kit';
 ${ir.userKeys.length ? "import { currentUserId } from '@/lib/auth/token-manager';\n" : ''}import { db } from '@/lib/graphql/db';
 import { ormSource } from '@/lib/resources/orm-source';
-
+${Object.keys(ir.scopeKeys).length ? "import { activeScope } from '@/lib/resources/scope';\n" : ''}
 export const ${binding(ir)} = defineResource(${tsLiteral(definition)});
 `,
 	);
@@ -195,7 +199,13 @@ export default function ${componentName(ir, 'Page')}() {
 	);
 }
 
-function detailPage(ir: ResourceIR): EmittedFile {
+function detailPage(ir: ResourceIR, panels: ScopeFeatures['panels'][string] | undefined): EmittedFile {
+	// An entity's record page also shows its members and files, inside the page's frame.
+	const record = panels
+		? `<RecordDetail resource={${quote(ir.name)}} id={id}>
+			<EntityPanels scope={${quote(panels.scope)}} entityId={id} show={${tsLiteral(panels.show)}} />
+		</RecordDetail>`
+		: `<RecordDetail resource={${quote(ir.name)}} id={id} />`;
 	return file(
 		`src/app/(app)/${routeSegment(ir)}/view/page.tsx`,
 		{ kind: 'page', resource: ir.name },
@@ -204,12 +214,12 @@ function detailPage(ir: ResourceIR): EmittedFile {
 import { Suspense } from 'react';
 import { redirect, useSearchParams } from 'next/navigation';
 
-import { RecordDetail } from '@/components/ui/resource-kit';
+${panels ? "import { EntityPanels } from '@/components/entity-panels';\n" : ''}import { RecordDetail } from '@/components/ui/resource-kit';
 
 function ${componentName(ir, 'Record')}() {
 	const id = useSearchParams().get('id');
 	if (!id) redirect(${quote(`/${routeSegment(ir)}`)});
-	return <RecordDetail resource={${quote(ir.name)}} id={id} />;
+	return ${record};
 }
 
 export default function ${componentName(ir, 'DetailPage')}() {
@@ -237,7 +247,13 @@ function tileElement(tile: DashboardTile, model: AppModel): string {
 	return `<ResourceCountTile resource={${quote(tile.resource)}} label={${quote(tile.label)}}${filters} />`;
 }
 
+/** Whether the app uses any membership-scope feature, so it shows the user's pending invitations. */
+export function usesScopes(scopes: ScopeFeatures): boolean {
+	return Boolean(scopes.workspace) || scopes.access.length > 0 || Object.keys(scopes.panels).length > 0;
+}
+
 function dashboardPage(model: AppModel): EmittedFile {
+	const invitations = usesScopes(model.scopes);
 	const hasCounts = model.dashboard.some((tile) => tile.kind === 'count');
 	const hasRecents = model.dashboard.some((tile) => tile.kind === 'recent');
 	const empty = model.dashboard.length === 0;
@@ -251,6 +267,7 @@ function dashboardPage(model: AppModel): EmittedFile {
 			? null
 			: `import { ${['DashboardGrid', hasRecents && 'RecentRecords', hasCounts && 'ResourceCountTile'].filter(Boolean).join(', ')} } from '@/components/ui/dashboard-tiles';`,
 		`import { ${empty ? 'EmptyState, ' : ''}ViewFrame } from '@/components/ui/workspace-kit';`,
+		invitations ? `import { ScopeInvitations } from '@/components/scope-features';` : null,
 		`import { appConfig } from '@/config/app';`,
 	].filter((line) => line !== null);
 	const body = empty
@@ -270,10 +287,22 @@ function dashboardPage(model: AppModel): EmittedFile {
 export default function DashboardPage() {
 	return (
 		<ViewFrame icon={LayoutDashboardIcon} title={appConfig.name}>
-			${body}
+			${invitations ? '<ScopeInvitations />\n\t\t\t' : ''}${body}
 		</ViewFrame>
 	);
 }
+`,
+	);
+}
+
+function scopesModule(model: AppModel): EmittedFile {
+	return file(
+		'src/config/scopes.ts',
+		{ kind: 'app' },
+		`import type { ScopeFeatureConfig } from '@/lib/resources/scope';
+
+/** The membership-scope features the AppSpec opts into; the shell and pages read them. */
+export const scopeFeatures: ScopeFeatureConfig = ${tsLiteral({ workspace: model.scopes.workspace, access: model.scopes.access, invitations: usesScopes(model.scopes) })};
 `,
 	);
 }
@@ -302,9 +331,14 @@ export const emitter: Emitter = {
 		}
 		return [
 			appConfigModule(model),
+			scopesModule(model),
 			registryModule(model),
 			dashboardPage(model),
-			...model.resources.flatMap((ir) => [resourceModule(ir, relationLabels), listPage(ir), detailPage(ir)]),
+			...model.resources.flatMap((ir) => [
+				resourceModule(ir, relationLabels),
+				listPage(ir),
+				detailPage(ir, model.scopes.panels[ir.name]),
+			]),
 		];
 	},
 };
