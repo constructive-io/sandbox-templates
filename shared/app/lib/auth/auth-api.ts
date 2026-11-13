@@ -74,7 +74,10 @@ export async function signUp(input: { email: string; password: string }): Promis
 
 const VERIFY_EMAIL = `mutation VerifyEmail($input: VerifyEmailInput!) { verifyEmail(input: $input) { result } }`;
 
-export async function verifyEmail(input: { emailId: string; token: string }): Promise<AuthResult> {
+// The link proves the inbox; the password chosen at sign-up proves the person.
+// The backend turns a sign-up's pending password on only when both match, and
+// answers a wrong password the same false as a dead link.
+export async function verifyEmail(input: { emailId: string; token: string; password: string }): Promise<AuthResult> {
 	const result = await authRequest<{ verifyEmail: { result: boolean | null } | null }>(VERIFY_EMAIL, { input });
 	if (!result.ok) return failed(result.errors, 'Verification failed.');
 	return result.data.verifyEmail?.result
