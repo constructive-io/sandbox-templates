@@ -15,9 +15,9 @@ function VerifyEmail() {
 	return (
 		<VerifyEmailPanel
 			links={{ signIn: '/sign-in', continue: session.status === 'authenticated' ? '/' : '/sign-in' }}
-			onVerify={() =>
+			onVerify={({ password }) =>
 				emailId && token
-					? verifyEmail({ emailId, token })
+					? verifyEmail({ emailId, token, password })
 					: { ok: false, message: 'This verification link is incomplete. Open the link from the email again.' }
 			}
 		/>
