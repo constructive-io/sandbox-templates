@@ -11,7 +11,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { PendingInvites } from '@/blocks/scope-access/pending-invites';
 import { ScopeAccessProvider } from '@/blocks/scope-access/scope-access-provider';
 import { useWorkspaceOrNull, WorkspaceProvider, WorkspaceSwitcher } from '@/blocks/scope-access/workspace';
-import { activeWorkspaceId, subscribeWorkspace } from '@/blocks/scope-access/workspace-store';
+import { activeWorkspaceId, setWorkspaceUser, subscribeWorkspace } from '@/blocks/scope-access/workspace-store';
 import { scopeFeatures } from '@/config/scopes';
 import { TokenManager } from '@/lib/auth/token-manager';
 import { useSession } from '@/lib/auth/session';
@@ -22,20 +22,51 @@ const usesScopes = Boolean(scopeFeatures.workspace) || scopeFeatures.access.leng
 
 const accessToken = () => TokenManager.read().token?.accessToken ?? null;
 
-/** Records keyed to the workspace scope follow the switcher, and every list refetches when it moves. */
-function WorkspaceBinding({ scope, children }: { scope: string; children: React.ReactNode }) {
+/**
+ * Records keyed to the workspace scope follow the switcher. The store's user
+ * and the resolver go in before the pages under it mount: React runs a child's
+ * effects before its parent's, so a page's first list would otherwise load
+ * with no workspace applied. When the workspace moves, the pages mount again
+ * and every query refetches, so a page that read the workspace once while it
+ * rendered (a custom page's query key) reads the new one.
+ */
+function WorkspaceBinding({
+	scope,
+	userId,
+	children,
+}: {
+	scope: string;
+	userId: string | null;
+	children: React.ReactNode;
+}) {
 	const queryClient = useQueryClient();
+	const [bound, setBound] = React.useState(false);
+	const activeId = React.useSyncExternalStore(
+		subscribeWorkspace,
+		() => activeWorkspaceId(scope),
+		() => null,
+	);
 	React.useEffect(() => {
+		setWorkspaceUser(userId);
 		setScopeResolver((wanted) => (wanted === scope ? activeWorkspaceId(scope) : null));
+		setBound(true);
+		let active = activeWorkspaceId(scope);
 		const unsubscribe = subscribeWorkspace(() => {
-			void queryClient.invalidateQueries({ queryKey: ['resource-kit'] });
+			const next = activeWorkspaceId(scope);
+			if (next === active) return;
+			active = next;
+			void queryClient.invalidateQueries();
 		});
 		return () => {
 			unsubscribe();
 			setScopeResolver(null);
 		};
-	}, [scope, queryClient]);
-	return <WorkspaceProvider scope={scope}>{children}</WorkspaceProvider>;
+	}, [scope, userId, queryClient]);
+	return (
+		<WorkspaceProvider scope={scope}>
+			{bound ? <React.Fragment key={activeId ?? 'none'}>{children}</React.Fragment> : null}
+		</WorkspaceProvider>
+	);
 }
 
 /** Gives the scope blocks the app's endpoints and session, when the AppSpec uses any of them. */
@@ -54,7 +85,9 @@ export function ScopeFeaturesProvider({ children }: { children: React.ReactNode 
 	return (
 		<ScopeAccessProvider host={host}>
 			{scopeFeatures.workspace ? (
-				<WorkspaceBinding scope={scopeFeatures.workspace}>{children}</WorkspaceBinding>
+				<WorkspaceBinding scope={scopeFeatures.workspace} userId={session.userId}>
+					{children}
+				</WorkspaceBinding>
 			) : (
 				children
 			)}
