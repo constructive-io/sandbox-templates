@@ -5,7 +5,7 @@
 ## Stack
 
 - Prisma-like ORM client for a GraphQL API (TypeScript)
-- 12 models, 65 custom operations
+- 12 models, 66 custom operations
 - All methods return a QueryBuilder; call `.execute()` to run, or `.unwrap()` to throw on error
 
 ## Quick Start

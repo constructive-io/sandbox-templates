@@ -142,7 +142,7 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
 			return;
 		}
 
-		// Sign-out is a handoff to the gateway's /logout. The auth store is
+		// Sign-out is a handoff to the gateway's sign-in page. The auth store is
 		// already unauthenticated for that handoff; redirecting now would race
 		// the hard navigation (protected route -> '/', redirect route -> its
 		// target) and strand the browser in the app instead of the gateway.

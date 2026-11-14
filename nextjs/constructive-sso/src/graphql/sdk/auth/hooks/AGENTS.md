@@ -5,7 +5,7 @@
 ## Stack
 
 - React Query hooks wrapping ORM operations (TypeScript)
-- 12 tables, 65 custom operations
+- 12 tables, 66 custom operations
 - Query hooks return `UseQueryResult`, mutation hooks return `UseMutationResult`
 
 ## Quick Start

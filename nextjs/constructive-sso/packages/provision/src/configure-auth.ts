@@ -25,9 +25,19 @@
  *                                   interval): how recently a session must have
  *                                   signed in or verified a code before a
  *                                   step-up-guarded write (deleting an
- *                                   organization, adding a phone). Unset keeps
+ *                                   organization, adding a phone, changing the
+ *                                   password, an API key, a second factor). Unset keeps
  *                                   the tenant default, 30 minutes; shorten it
  *                                   to see the step-up prompt without waiting.
+ *   NATIVE_REDIRECT_URIS='myapp://auth'
+ *                                   optional, comma-separated: the deep links a
+ *                                   native (desktop, mobile) app may have the
+ *                                   hosted sign-in pages hand a Google or
+ *                                   magic-link sign-in back to. Once any is
+ *                                   listed, loopback (http://127.0.0.1 on any
+ *                                   port) is accepted too. Unset keeps the
+ *                                   tenant's list, empty by default: no native
+ *                                   hand-off. Set but empty clears the list.
  */
 
 import { Client } from 'pg';
@@ -67,6 +77,12 @@ const POLICY: Record<string, boolean | string | null> = {
   require_mfa: switchOf(env.TWO_FACTOR)
 };
 const STEP_UP_WINDOW = env.STEP_UP_WINDOW?.trim() || null;
+const NATIVE_REDIRECT_URIS =
+  env.NATIVE_REDIRECT_URIS === undefined
+    ? null
+    : env.NATIVE_REDIRECT_URIS.split(',')
+        .map((uri) => uri.trim())
+        .filter(Boolean);
 
 async function main(): Promise<void> {
   const client = new Client(pgConfig);
@@ -89,7 +105,8 @@ async function main(): Promise<void> {
       throw new Error(`tenant ${DATABASE_ID} has ${current.rowCount} auth settings rows, not one`);
     }
     const row = current.rows[0] as Record<string, unknown>;
-    const changed = Object.keys(POLICY)
+    type Change = { column: string; value: boolean | string | string[] | null; cast: string };
+    const changed: Change[] = Object.keys(POLICY)
       .filter((column) => row[column] !== POLICY[column])
       .map((column) => ({ column, value: POLICY[column], cast: '' }));
     if (STEP_UP_WINDOW) {
@@ -102,6 +119,13 @@ async function main(): Promise<void> {
       ).rows[0] as { current: string; wanted: string };
       if (window.current !== window.wanted) {
         changed.push({ column: 'step_up_window', value: STEP_UP_WINDOW, cast: '::interval' });
+      }
+    }
+    if (NATIVE_REDIRECT_URIS) {
+      const { rows } = await client.query(`SELECT native_redirect_uris FROM ${settings}`);
+      const listed = (rows[0] as { native_redirect_uris: string[] | null }).native_redirect_uris ?? [];
+      if (JSON.stringify(listed) !== JSON.stringify(NATIVE_REDIRECT_URIS)) {
+        changed.push({ column: 'native_redirect_uris', value: NATIVE_REDIRECT_URIS, cast: '::text[]' });
       }
     }
     if (changed.length === 0) {
