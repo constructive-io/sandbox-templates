@@ -293,7 +293,7 @@ function applyFieldHints(ir: ResourceIR, field: FieldIR, hints: FieldUiSpec, war
 }
 
 /** What a create puts in a field the form leaves empty: the signed-in user, the active entity of a scope, or a value. */
-type CreateFill = { user: true } | { scope: string } | { value: unknown };
+type CreateFill = { user: true } | { scope: string } | { value: ResourceIR['createDefaults'][string] };
 
 // A field has one fill: setting it drops the field from the other two.
 function fillOnCreate(ir: ResourceIR, name: string, fill: CreateFill) {
