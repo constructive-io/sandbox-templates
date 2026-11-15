@@ -19,6 +19,7 @@ const MESSAGES: Record<string, string> = {
 	INVALID_CREDENTIALS: 'Invalid email or password.',
 	ACCOUNT_LOCKED_EXCEED_ATTEMPTS: 'Too many failed attempts. Try again later or reset your password.',
 	ACCOUNT_DISABLED: 'This account is disabled.',
+	EMAIL_NOT_VERIFIED: 'Confirm your email first: open the link we emailed you, then sign in.',
 	ACCOUNT_EXISTS: 'An account with this email already exists. Sign in instead.',
 	PASSWORD_INSECURE: 'Choose a stronger password.',
 	PASSWORD_LEN: 'Passwords must be 8 to 63 characters long.',
