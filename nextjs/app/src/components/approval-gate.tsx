@@ -25,14 +25,17 @@ const MY_MEMBERSHIP = `query AppMembershipOfUser($actorId: UUID!) {
 	}
 }`;
 
-// The membership, or null when there is nothing to judge by: no admin endpoint, or the read failed.
+// The membership, or null when there is nothing to judge by (no admin endpoint,
+// or no row). A failed read throws, so the query retries it and checks again.
 async function fetchMembership(actorId: string): Promise<Membership | null> {
+	if (!runtimeConfig.adminEndpoint) return null;
 	const result = await graphqlRequest<{ appMemberships?: { nodes?: Membership[] } }>(
 		runtimeConfig.adminEndpoint,
 		MY_MEMBERSHIP,
 		{ actorId },
 	);
-	return result.ok ? (result.data.appMemberships?.nodes?.[0] ?? null) : null;
+	if (!result.ok) throw new Error(result.errors[0]?.message ?? 'The app membership could not be read.');
+	return result.data.appMemberships?.nodes?.[0] ?? null;
 }
 
 function reason(membership: Membership): { title: string; description: string } {
@@ -60,9 +63,13 @@ export function ApprovalGate({ children }: { children: React.ReactNode }) {
 		queryFn: () => fetchMembership(session.userId as string),
 		enabled: Boolean(session.userId),
 		// An admin may approve while the page is open.
-		refetchInterval: (query) => (query.state.data && !query.state.data.isActive ? 15_000 : false),
+		refetchInterval: (query) =>
+			query.state.status === 'error' || (query.state.data && !query.state.data.isActive) ? 15_000 : false,
 	});
 
+	// The gate explains a membership that isn't active; the database's RLS is what
+	// enforces it. So while the state is unknown (loading, or a read that failed),
+	// the app shows rather than locking out every member over a backend blip.
 	if (!membership || membership.isActive) return <>{children}</>;
 	const { title, description } = reason(membership);
 	return (
