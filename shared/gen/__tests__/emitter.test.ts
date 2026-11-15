@@ -410,6 +410,20 @@ describe('membership-scope features', () => {
 	const AGENT = join(import.meta.dirname, '__fixtures__', 'agent');
 	const agentTables = () => parseMetaDocument(JSON.parse(readFileSync(join(AGENT, 'meta.json'), 'utf8')));
 
+	it('leaves out a "$scope:" default that names no scope, with a warning', () => {
+		const spec: AppSpec = {
+			version: 1,
+			name: 'Agents',
+			backend: { kind: 'blueprint', slug: 'agent' },
+			ui: { resources: { agent_threads: { fields: { entity_id: { default: '$scope:Org' } } } } },
+		};
+		const model = applyAppSpec(buildMetaModel(agentTables()), spec);
+		const threads = model.resources.find((ir) => ir.name === 'agent-threads');
+		assert.deepEqual(threads?.scopeKeys, {});
+		assert.equal(threads?.createDefaults.entityId, undefined, 'the malformed default is not sent as a value');
+		assert.ok(model.warnings.some((warning) => warning.includes('"$scope:Org" names no membership scope')));
+	});
+
 	it('fills scope keys from the active workspace, puts panels on entity pages and invitations on the dashboard', () => {
 		const spec: AppSpec = {
 			version: 1,

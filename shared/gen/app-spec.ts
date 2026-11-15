@@ -5,6 +5,7 @@
 
 import {
 	CURRENT_USER_ID,
+	SCOPE_DEFAULT_PREFIX,
 	scopeOfDefault,
 	type AppSpec,
 	type FieldUiSpec,
@@ -281,7 +282,10 @@ function applyFieldHints(ir: ResourceIR, field: FieldIR, hints: FieldUiSpec, war
 		if (!hints.required && userKey) ir.userKeys = ir.userKeys.filter((name) => name !== field.name);
 	}
 	const scope = scopeOfDefault(hints.default);
-	if (hints.default === CURRENT_USER_ID || scope) {
+	if (!scope && typeof hints.default === 'string' && hints.default.startsWith(SCOPE_DEFAULT_PREFIX)) {
+		// A "$scope:" default that names no scope must not reach the database as a value.
+		warn(`the default "${hints.default}" names no membership scope ("$scope:org" does), so it is left out.`);
+	} else if (hints.default === CURRENT_USER_ID || scope) {
 		field.hidden = true;
 		field.required = false;
 		fillOnCreate(ir, field.name, scope ? { scope } : { user: true });
