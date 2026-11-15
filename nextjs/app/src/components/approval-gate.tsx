@@ -12,7 +12,7 @@ import { useRouter } from 'next/navigation';
 
 import { signOut } from '@/lib/auth/auth-api';
 import { useSession } from '@/lib/auth/session';
-import { TokenManager } from '@/lib/auth/token-manager';
+import { graphqlRequest } from '@/lib/graphql/request';
 import { runtimeConfig } from '@/lib/runtime/config';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/workspace-kit';
@@ -27,18 +27,12 @@ const MY_MEMBERSHIP = `query AppMembershipOfUser($actorId: UUID!) {
 
 // The membership, or null when there is nothing to judge by: no admin endpoint, or the read failed.
 async function fetchMembership(actorId: string): Promise<Membership | null> {
-	if (!runtimeConfig.adminEndpoint) return null;
-	try {
-		const response = await fetch(runtimeConfig.adminEndpoint, {
-			method: 'POST',
-			headers: { 'content-type': 'application/json', ...TokenManager.authorization() },
-			body: JSON.stringify({ query: MY_MEMBERSHIP, variables: { actorId } }),
-		});
-		const body = (await response.json()) as { data?: { appMemberships?: { nodes?: Membership[] } } };
-		return body.data?.appMemberships?.nodes?.[0] ?? null;
-	} catch {
-		return null;
-	}
+	const result = await graphqlRequest<{ appMemberships?: { nodes?: Membership[] } }>(
+		runtimeConfig.adminEndpoint,
+		MY_MEMBERSHIP,
+		{ actorId },
+	);
+	return result.ok ? (result.data.appMemberships?.nodes?.[0] ?? null) : null;
 }
 
 function reason(membership: Membership): { title: string; description: string } {

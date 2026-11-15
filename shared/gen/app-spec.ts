@@ -281,24 +281,31 @@ function applyFieldHints(ir: ResourceIR, field: FieldIR, hints: FieldUiSpec, war
 		if (!hints.required && userKey) ir.userKeys = ir.userKeys.filter((name) => name !== field.name);
 	}
 	const scope = scopeOfDefault(hints.default);
-	if (hints.default === CURRENT_USER_ID) {
+	if (hints.default === CURRENT_USER_ID || scope) {
 		field.hidden = true;
 		field.required = false;
-		if (!ir.userKeys.includes(field.name)) ir.userKeys.push(field.name);
-		delete ir.scopeKeys[field.name];
-		delete ir.createDefaults[field.name];
-	} else if (scope) {
-		field.hidden = true;
-		field.required = false;
-		ir.scopeKeys[field.name] = scope;
-		ir.userKeys = ir.userKeys.filter((name) => name !== field.name);
-		delete ir.createDefaults[field.name];
+		fillOnCreate(ir, field.name, scope ? { scope } : { user: true });
 	} else if (hints.default !== undefined) {
 		field.required = false;
-		ir.createDefaults[field.name] = hints.default;
-		ir.userKeys = ir.userKeys.filter((name) => name !== field.name);
-		delete ir.scopeKeys[field.name];
+		fillOnCreate(ir, field.name, { value: hints.default });
 		startCreateOn(field, hints.default);
+	}
+}
+
+/** What a create puts in a field the form leaves empty: the signed-in user, the active entity of a scope, or a value. */
+type CreateFill = { user: true } | { scope: string } | { value: unknown };
+
+// A field has one fill: setting it drops the field from the other two.
+function fillOnCreate(ir: ResourceIR, name: string, fill: CreateFill) {
+	if (!('user' in fill)) ir.userKeys = ir.userKeys.filter((key) => key !== name);
+	if (!('scope' in fill)) delete ir.scopeKeys[name];
+	if (!('value' in fill)) delete ir.createDefaults[name];
+	if ('user' in fill) {
+		if (!ir.userKeys.includes(name)) ir.userKeys.push(name);
+	} else if ('scope' in fill) {
+		ir.scopeKeys[name] = fill.scope;
+	} else {
+		ir.createDefaults[name] = fill.value;
 	}
 }
 

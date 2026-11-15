@@ -15,7 +15,7 @@ import { scopeFeatures } from '@/config/scopes';
 const LABELS: Record<string, string> = { app: 'App', org: 'Organization' };
 const label = (scope: string) => LABELS[scope] ?? scope.replace(/_/g, ' ').replace(/^./, (first) => first.toUpperCase());
 
-function OrganizationAccess() {
+function OrganizationAccess({ scope }: { scope: string }) {
 	const workspace = useWorkspaceOrNull();
 	const active = workspace?.active;
 	if (!active || active.personal) {
@@ -27,7 +27,7 @@ function OrganizationAccess() {
 			/>
 		);
 	}
-	return <ScopeAccessPanel entityId={active.id} key={active.id} scope='org' title={`${active.name} access`} />;
+	return <ScopeAccessPanel entityId={active.id} key={active.id} scope={scope} title={`${active.name} access`} />;
 }
 
 export default function AccessPage() {
@@ -55,7 +55,7 @@ export default function AccessPage() {
 				) : null
 			}
 		>
-			{scope === 'org' ? <OrganizationAccess /> : <ScopeAccessPanel scope='app' />}
+			{scope === 'app' ? <ScopeAccessPanel scope='app' /> : <OrganizationAccess scope={scope} />}
 		</ViewFrame>
 	);
 }
