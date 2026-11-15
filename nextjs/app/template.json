@@ -4,5 +4,5 @@
 	"layers": ["shared/app", "nextjs/app"],
 	"gen": { "emitter": "nextjs" },
 	"registry": { "@constructive": "https://constructive-io.github.io/blocks/r/{name}.json" },
-	"blocks": ["constructive-theme", "workspace-kit", "resource-kit", "auth-pages", "dashboard-tiles"]
+	"blocks": ["constructive-theme", "workspace-kit", "resource-kit", "auth-pages", "dashboard-tiles", "scope-panels", "workspace-switcher"]
 }

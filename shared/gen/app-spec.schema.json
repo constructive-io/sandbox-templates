@@ -40,6 +40,12 @@
 			"pattern": "^[a-z][a-z0-9_]*$",
 			"maxLength": 63
 		},
+		"scopeName": {
+			"description": "A membership scope as membershipTypes.scope names it: app, org, or an entity type such as data_room.",
+			"type": "string",
+			"pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$",
+			"maxLength": 63
+		},
 		"resourceKey": {
 			"description": "A table: its snake_case name or its resource (route) name.",
 			"type": "string",
@@ -240,6 +246,19 @@
 							"items": { "$ref": "#/$defs/tile" }
 						}
 					}
+				},
+				"workspace": {
+					"description": "A switcher between the user's personal workspace and their organizations. Records whose key defaults to \"$scope:<scope>\" are created in, and listed from, the active one.",
+					"type": "object",
+					"additionalProperties": false,
+					"required": ["scope"],
+					"properties": { "scope": { "$ref": "#/$defs/scopeName" } }
+				},
+				"access": {
+					"description": "Membership scopes that get an access page (members, invitations, profiles, capabilities). \"app\" manages the app's members; \"org\" the active organization's.",
+					"type": "array",
+					"uniqueItems": true,
+					"items": { "$ref": "#/$defs/scopeName" }
 				}
 			}
 		},
@@ -276,6 +295,21 @@
 					"type": "object",
 					"propertyNames": { "$ref": "#/$defs/fieldKey" },
 					"additionalProperties": { "$ref": "#/$defs/fieldUi" }
+				},
+				"panels": {
+					"description": "For an entity type's table: what its record page shows of the entity's membership scope.",
+					"type": "object",
+					"additionalProperties": false,
+					"required": ["scope", "show"],
+					"properties": {
+						"scope": { "$ref": "#/$defs/scopeName" },
+						"show": {
+							"type": "array",
+							"minItems": 1,
+							"uniqueItems": true,
+							"items": { "enum": ["members", "files"] }
+						}
+					}
 				}
 			}
 		},
@@ -325,7 +359,7 @@
 					"type": "boolean"
 				},
 				"default": {
-					"description": "Sent on create when the form has no value. \"$currentUserId\" is the signed-in user's id and also hides the field.",
+					"description": "Sent on create when the form has no value. \"$currentUserId\" is the signed-in user's id; \"$scope:<scope>\" is the id of the active entity of that membership scope (\"$scope:org\": the selected organization, else the user's own id). Both hide the field.",
 					"$ref": "#/$defs/scalar"
 				}
 			}

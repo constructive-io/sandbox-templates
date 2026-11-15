@@ -187,6 +187,12 @@ export type ResourceIR = {
 	 * users table or at no table `_meta` shows) that are NOT NULL with no default.
 	 */
 	userKeys: string[];
+	/**
+	 * Keys a create fills with the active entity of a membership scope, by the
+	 * AppSpec hint `default: "$scope:<scope>"`: field → scope, e.g.
+	 * `{ entityId: 'org' }` for a record of the selected organization.
+	 */
+	scopeKeys: Record<string, string>;
 	/** Writable on create only: left out of updates. */
 	createOnly: string[];
 	/**
@@ -570,6 +576,7 @@ function buildResource(info: TableInfo): ResourceIR {
 		manyToMany: [],
 		bigNumbers,
 		userKeys,
+		scopeKeys: {},
 		createOnly,
 		serverDefaults,
 		keepWhenEmpty,

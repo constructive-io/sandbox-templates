@@ -122,6 +122,31 @@ describe('ormSource', () => {
 		assert.equal(calls[1].args.data.entityId, 'org-9');
 	});
 
+	it('creates in the active workspace and lists only its records while a switcher picks it', async () => {
+		const calls: Call[] = [];
+		const model = fakeModel(calls, (method) =>
+			method === 'create' ? { createContact: { contact: { id: 'c1' } } } : { contacts: { nodes: [], totalCount: 0 } },
+		);
+		let switchable = false;
+		const source = ormSource(model, {
+			select: { id: true, name: true, entityId: true } as never,
+			scopeKeys: { entityId: 'org' },
+			scope: { id: (scope) => (scope === 'org' ? (switchable ? 'org-7' : 'user-1') : null), filtered: () => switchable },
+		});
+		// No switcher: the record goes to the user's personal organization, and lists stay as RLS returns them.
+		await source.create({ name: 'Ada' });
+		await source.list({ limit: 10, offset: 0 });
+		switchable = true;
+		await source.create({ name: 'Bo' });
+		await source.list({ limit: 10, offset: 0 });
+		await source.create({ name: 'Cy', entityId: 'org-9' });
+		assert.deepEqual(calls[0].args.data, { name: 'Ada', entityId: 'user-1' });
+		assert.equal(calls[1].args.where, undefined);
+		assert.deepEqual(calls[2].args.data, { name: 'Bo', entityId: 'org-7' });
+		assert.deepEqual(calls[3].args.where, { entityId: { equalTo: 'org-7' } });
+		assert.equal(calls[4].args.data.entityId, 'org-9');
+	});
+
 	it('sends create defaults for empty fields and keeps create-only fields out of updates', async () => {
 		const calls: Call[] = [];
 		const model = fakeModel(calls, (method) => (method === 'create' ? { createThread: { thread: { id: 't1' } } } : { updateThread: { thread: { id: 't1' } } }));

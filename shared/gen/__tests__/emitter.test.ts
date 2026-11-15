@@ -405,3 +405,66 @@ describe('AppSpec text in generated code', () => {
 		assert.ok(literals('src/resources/deals.ts').includes(`it's`), 'options');
 	});
 });
+
+describe('membership-scope features', () => {
+	const AGENT = join(import.meta.dirname, '__fixtures__', 'agent');
+	const agentTables = () => parseMetaDocument(JSON.parse(readFileSync(join(AGENT, 'meta.json'), 'utf8')));
+
+	it('leaves out a "$scope:" default that names no scope, with a warning', () => {
+		const spec: AppSpec = {
+			version: 1,
+			name: 'Agents',
+			backend: { kind: 'blueprint', slug: 'agent' },
+			ui: { resources: { agent_threads: { fields: { entity_id: { default: '$scope:Org' } } } } },
+		};
+		const model = applyAppSpec(buildMetaModel(agentTables()), spec);
+		const threads = model.resources.find((ir) => ir.name === 'agent-threads');
+		assert.deepEqual(threads?.scopeKeys, {});
+		assert.equal(threads?.createDefaults.entityId, undefined, 'the malformed default is not sent as a value');
+		assert.ok(model.warnings.some((warning) => warning.includes('"$scope:Org" names no membership scope')));
+	});
+
+	it('fills scope keys from the active workspace, puts panels on entity pages and invitations on the dashboard', () => {
+		const spec: AppSpec = {
+			version: 1,
+			name: 'Agents',
+			backend: { kind: 'blueprint', slug: 'agent' },
+			ui: {
+				workspace: { scope: 'org' },
+				access: ['app', 'org'],
+				resources: {
+					agent_threads: {
+						fields: { entity_id: { default: '$scope:org' } },
+						panels: { scope: 'data_room', show: ['members', 'files'] },
+					},
+				},
+			},
+		};
+		const model = applyAppSpec(buildMetaModel(agentTables()), spec);
+		const threads = model.resources.find((ir) => ir.name === 'agent-threads');
+		assert.deepEqual(threads?.scopeKeys, { entityId: 'org' });
+		assert.deepEqual(threads?.userKeys, [], 'a scope key is no longer filled with the user id');
+
+		const files = new Map(emitter.emit(model).map((file) => [file.path, file.content]));
+		const resource = files.get('src/resources/agent-threads.ts') ?? '';
+		assert.match(resource, /import \{ activeScope \} from '@\/lib\/resources\/scope';/);
+		assert.match(resource, /scopeKeys: \{ entityId: 'org' \}/);
+		assert.match(resource, /scope: activeScope/);
+
+		const detail = files.get('src/app/(app)/agent-threads/view/page.tsx') ?? '';
+		assert.match(detail, /<EntityPanels scope=\{'data_room'\} entityId=\{id\} show=\{\['members', 'files'\]\} \/>/);
+		assert.doesNotMatch(files.get('src/app/(app)/agent-tasks/view/page.tsx') ?? '', /EntityPanels/);
+
+		assert.match(files.get('src/app/(app)/page.tsx') ?? '', /<ScopeInvitations \/>/);
+		assert.match(
+			files.get('src/config/scopes.ts') ?? '',
+			/scopeFeatures: ScopeFeatureConfig = \{ workspace: 'org', access: \['app', 'org'\], invitations: true \}/,
+		);
+
+		// Every emitted module must still parse.
+		for (const [path, content] of files) {
+			const out = ts.transpileModule(content, { fileName: path, reportDiagnostics: true, compilerOptions: { jsx: ts.JsxEmit.Preserve } });
+			assert.deepEqual(out.diagnostics ?? [], [], path);
+		}
+	});
+});

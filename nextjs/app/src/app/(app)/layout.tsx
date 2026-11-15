@@ -6,6 +6,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useSession } from '@/lib/auth/session';
 import { ResourceKitProvider } from '@/components/ui/resource-kit';
 import { AppShell } from '@/components/app-shell';
+import { ApprovalGate } from '@/components/approval-gate';
+import { ScopeFeaturesProvider } from '@/components/scope-features';
 import { useResourceRouter } from '@/components/resource-router';
 import { resourceIcons, resources } from '@/resources';
 
@@ -26,8 +28,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 	if (session.status !== 'authenticated') return <div className='h-dvh bg-background' />;
 
 	return (
-		<ResourceKitProvider router={resourceRouter} resources={resources} icons={resourceIcons}>
-			<AppShell>{children}</AppShell>
-		</ResourceKitProvider>
+		<ApprovalGate>
+			<ScopeFeaturesProvider>
+				<ResourceKitProvider router={resourceRouter} resources={resources} icons={resourceIcons}>
+					<AppShell>{children}</AppShell>
+				</ResourceKitProvider>
+			</ScopeFeaturesProvider>
+		</ApprovalGate>
 	);
 }
