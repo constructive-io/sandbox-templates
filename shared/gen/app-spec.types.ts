@@ -28,10 +28,17 @@ export type SpecField = {
 
 export type SpecBelongsTo = { field: string; to: string; onDelete?: 'cascade' | 'set_null' | 'restrict'; label?: string };
 
+/**
+ * Who sees an entity's rows: every app member, only the user who made each
+ * row, or the members of the one entity of a membership scope each row
+ * belongs to (an organization for `org`, or an entity type's entity).
+ */
+export type SpecAccess = 'shared' | 'private' | { scope: string };
+
 export type SpecEntity = {
 	name: string;
 	label?: string;
-	access?: 'shared' | 'private';
+	access?: SpecAccess;
 	fields: SpecField[];
 	belongsTo?: SpecBelongsTo[];
 };

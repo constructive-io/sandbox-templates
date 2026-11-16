@@ -153,9 +153,17 @@
 				},
 				"label": { "$ref": "#/$defs/label" },
 				"access": {
-					"description": "shared: every signed-in user sees every row. private: each user sees only their own rows.",
-					"enum": ["shared", "private"],
-					"default": "shared"
+					"description": "shared: every signed-in user sees every row. private: each user sees only their own rows. { \"scope\": \"<scope>\" }: each row belongs to one entity of that membership scope, and only its members see it. \"org\" puts a row in an organization (the active workspace); an entity type such as \"properties\" needs a key to its table, or to a table with the same access, which the row's entity is copied from.",
+					"default": "shared",
+					"oneOf": [
+						{ "enum": ["shared", "private"] },
+						{
+							"type": "object",
+							"required": ["scope"],
+							"additionalProperties": false,
+							"properties": { "scope": { "$ref": "#/$defs/scopeName" } }
+						}
+					]
 				},
 				"fields": {
 					"type": "array",
