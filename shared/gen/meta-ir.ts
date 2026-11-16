@@ -422,14 +422,19 @@ export function buildMetaModel(tables: MetaTable[]): MetaModel {
 	// else but system fields. A table with a value of its own (an optional or
 	// defaulted grade on an enrollment) stays an entity, even when `_meta` flags
 	// it or a many-to-many relation names it: linking can't show or edit that
-	// value. `_meta` can still rule a junction out (`isJunction: false`).
+	// value. A column the API never takes on create is the database's to fill
+	// (a trigger copies a parent's), so it isn't such a value. `_meta` can
+	// still rule a junction out (`isJunction: false`).
 	const junctionLinks = new Map<TableInfo, [{ key: string; target: TableInfo }, { key: string; target: TableInfo }]>();
 	for (const info of infos) {
 		if (info.kind !== 'entity' || info.meta.isJunction === false) continue;
 		// The link editor replaces a set, so it needs both mutations on the junction.
 		if (!info.meta.query?.create || !info.meta.query?.delete) continue;
 		const ownFields = (info.meta.fields ?? []).filter(
-			(field) => !info.systemHidden.has(field.name) && !info.systemReadOnly.has(field.name),
+			(field) =>
+				!info.systemHidden.has(field.name) &&
+				!info.systemReadOnly.has(field.name) &&
+				field.isWritableOnCreate !== false,
 		);
 		const keys = info.foreignKeys.filter(
 			(fk) => fk.target && fk.target.kind === 'entity' && ownFields.some((field) => field.name === fk.key),

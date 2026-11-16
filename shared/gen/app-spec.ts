@@ -80,9 +80,13 @@ export function applySpec(model: MetaModel, spec?: AppSpec, options: ApplySpecOp
 		warnings.push(message);
 	};
 	const resources = model.resources;
+	// The spec names a table by SQL name, which `_meta` serves as tableName; the
+	// others match a name the API inflects from it (`propertys` is `properties` there).
 	const findResource = (key: string) =>
 		resources.find((ir) =>
-			[ir.name, ir.queryAll, ir.table, ir.typeName].some((name) => normalizeKey(name) === normalizeKey(key)),
+			[ir.name, ir.queryAll, ir.table, ir.typeName, ir.tableName].some(
+				(name) => name !== undefined && normalizeKey(name) === normalizeKey(key),
+			),
 		);
 	const findField = (ir: ResourceIR, key: string) =>
 		ir.fields.find(
