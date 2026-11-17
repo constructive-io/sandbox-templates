@@ -158,6 +158,30 @@ describe('a curated blueprint (agent) with per-field AppSpec hints', () => {
 	});
 });
 
+describe("an entity type's table the API names by another plural", () => {
+	it('finds the spec table by its SQL name, so its label, nav and panels apply', () => {
+		// manage_entity_types makes the prefix plus "s" (`propertys`); the API inflects it as `properties`.
+		const tables: MetaTable[] = [
+			{
+				name: 'Property',
+				tableName: 'propertys',
+				query: { all: 'properties', create: 'createProperty' },
+				inflection: { tableType: 'Property' },
+				fields: [column('id', 'UUID', 'uuid', { hasDefault: true, isPrimaryKey: true }), column('name', 'String', 'text')],
+			},
+		];
+		const spec = {
+			version: 1,
+			name: 'Brickline',
+			backend: { kind: 'custom', entities: [{ name: 'propertys', label: 'Property', fields: [{ name: 'name', type: 'text' }] }] },
+			ui: { nav: ['propertys'] },
+		} as unknown as AppSpec;
+		const app = applySpec(buildMetaModel(tables), spec);
+		assert.deepEqual(app.gaps, []);
+		assert.equal(app.resources[0]?.label, 'Property');
+	});
+});
+
 describe('an AppSpec the database no longer matches', () => {
 	const foodBank = () => parseMetaDocument(readJson(join(FOOD_BANK, 'meta.json')));
 	const foodBankSpec = () => readJson(join(FOOD_BANK, 'app-spec.json')) as AppSpec;
@@ -359,6 +383,13 @@ describe('junction tables', () => {
 		const link = buildMetaModel(enrollments([]));
 		assert.deepEqual(link.junctions, [{ table: 'Enrollment', between: ['students', 'courses'] }], 'a pure link table is still chips');
 		assert.deepEqual(field(resource(link.resources, 'students'), 'courses').relation, { resource: 'courses', many: true });
+	});
+
+	it("keeps a link a junction when its extra column is the database's to fill", () => {
+		// A trigger copies the student's school onto each enrollment; the API takes no value for it.
+		const school = column('schoolId', 'UUID', 'uuid', { isWritableOnCreate: false, isWritableOnUpdate: true });
+		const { junctions } = buildMetaModel(enrollments([school]));
+		assert.deepEqual(junctions, [{ table: 'Enrollment', between: ['students', 'courses'] }]);
 	});
 
 	it('keeps a named junction that needs its own value as an entity', () => {
