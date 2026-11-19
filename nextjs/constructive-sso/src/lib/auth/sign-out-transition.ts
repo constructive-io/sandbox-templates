@@ -2,10 +2,10 @@
  * The in-memory sign-out transition.
  *
  * `useLogout` flips the auth store to unauthenticated before it hands the
- * browser to the gateway's `/logout` page. The app's auth-reactive redirects
+ * browser to the gateway's sign-in page. The app's auth-reactive redirects
  * must not act on that intermediate state: the home page's login-loop guard
- * would race `/logout` with `/login`, and the route guards would replace the
- * current route with `/` while the browser is already leaving.
+ * would race that navigation with its own `/login` trip, and the route guards
+ * would replace the current route with `/` while the browser is already leaving.
  *
  * This is module state, not React state: the flag has to be visible to the
  * hook and to every guard in the same render, before React can paint the
@@ -21,7 +21,7 @@ if (typeof window !== 'undefined') {
 	});
 }
 
-/** Mark the current document as leaving for the gateway's `/logout`. */
+/** Mark the current document as leaving for the gateway's sign-in page. */
 export function beginSignOut(): void {
 	signingOut = true;
 }
