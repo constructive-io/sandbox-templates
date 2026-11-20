@@ -5,6 +5,9 @@ Next.js + Constructive per-tenant-database boilerplate. Ships the base
 passkeys, SSO infrastructure) with no org/B2B surface — see
 [docs/B2B.md](./docs/B2B.md) for the org opt-in.
 
+App code follows the rules in [docs/CONVENTIONS.md](./docs/CONVENTIONS.md)
+(static-export routing, stack cards, query error states, scrolling).
+
 > **Architecture note:** `constructive` is the ONE physical database (platform
 > + every tenant's `{tenant}_*` schemas). `myapp` is the logical per-tenant DB
 > name used for schema prefixes and subdomain routing

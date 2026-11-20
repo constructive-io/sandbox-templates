@@ -76,69 +76,67 @@ export default function AppInvitesPage() {
 	const headerDescription = `${activeTotalCount} active invite${activeTotalCount !== 1 ? 's' : ''}, ${claimedTotalCount} claimed`;
 
 	return (
-		<div className='h-full overflow-y-auto'>
-			<div className='mx-auto max-w-6xl px-6 py-8 lg:px-8 lg:py-10'>
-				<PageHeaderWithIcon
-					title='App Invites'
-					description={headerDescription}
-					icon={Mail}
-					actions={
-						<Button
-							className='gap-2'
-							onClick={() => {
-								stack.push({
-									id: 'send-app-invite',
-									title: 'Send Invite',
-									description: 'Send an invitation to join your organization',
-									Component: SendInviteCard,
-									props: {
-										enabled: true,
-										isSending,
-										onSendInvite: async ({ email, role, expiresAt, message }) => {
-											await sendInvite({ email, role, expiresAt, message });
-											setActivePage(1);
-										},
+		<div className='mx-auto max-w-6xl px-6 py-8 lg:px-8 lg:py-10'>
+			<PageHeaderWithIcon
+				title='App Invites'
+				description={headerDescription}
+				icon={Mail}
+				actions={
+					<Button
+						className='gap-2'
+						onClick={() => {
+							stack.push({
+								id: 'send-app-invite',
+								title: 'Send Invite',
+								description: 'Send an invitation to join your organization',
+								Component: SendInviteCard,
+								props: {
+									enabled: true,
+									isSending,
+									onSendInvite: async ({ email, role, expiresAt, message }) => {
+										await sendInvite({ email, role, expiresAt, message });
+										setActivePage(1);
 									},
-									width: 480,
-								});
-							}}
-						>
-							<Send className='h-4 w-4' />
-							Send Invite
-						</Button>
-					}
-				/>
-
-				<div className='space-y-10'>
-					<section
-						className='animate-in fade-in-0 slide-in-from-bottom-4 fill-mode-backwards space-y-4 duration-500'
-						style={{ animationDelay: '100ms' }}
+								},
+								width: 480,
+							});
+						}}
 					>
-						<h2 className='text-foreground text-base font-semibold'>Active Invites</h2>
-						<ActiveInvitesTable
-							invites={activeInvites}
-							isLoading={isActiveLoading}
-							error={activeError}
-							canManageInvites={true}
-							isBusy={isBusy}
-							onExtend={handleExtend}
-							onCancel={handleCancel}
-						/>
-						<InvitesPagination currentPage={activePage} totalPages={activeTotalPages} onPageChange={setActivePage} />
-					</section>
+						<Send className='h-4 w-4' />
+						Send Invite
+					</Button>
+				}
+			/>
 
-					<section
-						className='animate-in fade-in-0 slide-in-from-bottom-4 fill-mode-backwards space-y-4 duration-500'
-						style={{ animationDelay: '150ms' }}
-					>
-						<h2 className='text-foreground text-base font-semibold'>Claimed Invites</h2>
-						<ClaimedInvitesTable claimedInvites={claimedInvites} isLoading={isClaimedLoading} error={claimedError} />
-						<InvitesPagination currentPage={claimedPage} totalPages={claimedTotalPages} onPageChange={setClaimedPage} />
-					</section>
-				</div>
+			<div className='space-y-10'>
+				<section
+					className='animate-in fade-in-0 slide-in-from-bottom-4 fill-mode-backwards space-y-4 duration-500'
+					style={{ animationDelay: '100ms' }}
+				>
+					<h2 className='text-foreground text-base font-semibold'>Active Invites</h2>
+					<ActiveInvitesTable
+						invites={activeInvites}
+						isLoading={isActiveLoading}
+						error={activeError}
+						canManageInvites={true}
+						isBusy={isBusy}
+						onExtend={handleExtend}
+						onCancel={handleCancel}
+					/>
+					<InvitesPagination currentPage={activePage} totalPages={activeTotalPages} onPageChange={setActivePage} />
+				</section>
 
-				<div className='h-10' />
+				<section
+					className='animate-in fade-in-0 slide-in-from-bottom-4 fill-mode-backwards space-y-4 duration-500'
+					style={{ animationDelay: '150ms' }}
+				>
+					<h2 className='text-foreground text-base font-semibold'>Claimed Invites</h2>
+					<ClaimedInvitesTable claimedInvites={claimedInvites} isLoading={isClaimedLoading} error={claimedError} />
+					<InvitesPagination currentPage={claimedPage} totalPages={claimedTotalPages} onPageChange={setClaimedPage} />
+				</section>
 			</div>
+
+			<div className='h-10' />
 		</div>
 	);
 }

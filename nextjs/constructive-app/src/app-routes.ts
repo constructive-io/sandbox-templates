@@ -1,5 +1,5 @@
 import type { Route } from 'next';
-import { parseAsArrayOf, parseAsInteger, parseAsString } from 'nuqs';
+import { parseAsInteger, parseAsString } from 'nuqs';
 
 import type { SchemaContext } from '@/lib/runtime/config-core';
 
@@ -39,7 +39,10 @@ export interface RouteConfig {
 // ROUTE CONFIGURATION - Single source of truth for all routes
 // =============================================================================
 // Entity Hierarchy: Organizations
-// Organization management is scoped under /orgs/[orgId]
+// Organization management lives under /orgs/* with the org ID in the orgId
+// search param. The app is a static export, so path params ([orgId]) are not
+// available: a dynamic route needs generateStaticParams, and org IDs are
+// runtime data.
 // =============================================================================
 
 export const APP_ROUTES = {
@@ -54,13 +57,15 @@ export const APP_ROUTES = {
 	},
 
 	// ==========================================================================
-	// ORGANIZATION-SCOPED ROUTES - Organization management under /orgs/[orgId]
+	// ORGANIZATION-SCOPED ROUTES - Organization management under /orgs/*
+	// The active org travels in the orgId search param (static export safe).
 	// ==========================================================================
 
 	/** Organization members */
 	ORG_MEMBERS: {
-		path: '/orgs/[orgId]/members' as Route,
+		path: '/orgs/members' as Route,
 		searchParams: {
+			orgId: parseAsString,
 			search: parseAsString,
 			page: parseAsInteger.withDefault(1),
 			limit: parseAsInteger.withDefault(20),
@@ -71,17 +76,30 @@ export const APP_ROUTES = {
 
 	/** Organization invites */
 	ORG_INVITES: {
-		path: '/orgs/[orgId]/invites' as Route,
-		searchParams: {},
+		path: '/orgs/invites' as Route,
+		searchParams: {
+			orgId: parseAsString,
+		},
 		access: 'protected' as RouteAccessType,
 		context: 'admin' as SchemaContext,
 	},
 
 	/** Organization settings */
 	ORG_SETTINGS: {
-		path: '/orgs/[orgId]/settings' as Route,
+		path: '/orgs/settings' as Route,
 		searchParams: {
+			orgId: parseAsString,
 			tab: parseAsString.withDefault('general'),
+		},
+		access: 'protected' as RouteAccessType,
+		context: 'admin' as SchemaContext,
+	},
+
+	/** Organization activity */
+	ORG_ACTIVITY: {
+		path: '/orgs/activity' as Route,
+		searchParams: {
+			orgId: parseAsString,
 		},
 		access: 'protected' as RouteAccessType,
 		context: 'admin' as SchemaContext,
@@ -236,26 +254,26 @@ export function buildRoute<TRoute extends AppRouteKey>(
 
 /**
  * Build an organization-scoped route URL with the given org ID.
- * Replaces [orgId] placeholder with the actual org ID.
+ * Puts the org ID in the orgId search param.
  *
  * @param routeKey - The organization route key from APP_ROUTES
  * @param orgId - The organization ID
- * @param searchParams - Optional query parameters
+ * @param searchParams - Optional additional query parameters
  * @returns A typed Route string
  *
  * @example
- * buildOrgRoute('ORG_MEMBERS', 'org-123') // '/orgs/org-123/members'
+ * buildOrgRoute('ORG_MEMBERS', 'org-123') // '/orgs/members?orgId=org-123'
  */
 export function buildOrgRoute(
-	routeKey: 'ORG_MEMBERS' | 'ORG_INVITES' | 'ORG_SETTINGS',
+	routeKey: 'ORG_MEMBERS' | 'ORG_INVITES' | 'ORG_SETTINGS' | 'ORG_ACTIVITY',
 	orgId: string,
 	searchParams?: Record<string, string | string[] | number | boolean | null>,
 ): Route {
 	const route = APP_ROUTES[routeKey];
-	let path = route.path.replace('[orgId]', orgId);
+	const url = new URL(route.path, 'http://localhost');
+	url.searchParams.set('orgId', orgId);
 
 	if (searchParams) {
-		const url = new URL(path, 'http://localhost');
 		Object.entries(searchParams).forEach(([key, value]) => {
 			if (value !== null && value !== undefined) {
 				if (Array.isArray(value)) {
@@ -265,10 +283,9 @@ export function buildOrgRoute(
 				}
 			}
 		});
-		path = url.pathname + url.search;
 	}
 
-	return path as Route;
+	return (url.pathname + url.search) as Route;
 }
 
 // Cache for compiled route patterns - avoids recreating RegExp on every call
@@ -429,6 +446,7 @@ export const ROUTE_PATHS = {
 	ORG_MEMBERS: APP_ROUTES.ORG_MEMBERS.path,
 	ORG_INVITES: APP_ROUTES.ORG_INVITES.path,
 	ORG_SETTINGS: APP_ROUTES.ORG_SETTINGS.path,
+	ORG_ACTIVITY: APP_ROUTES.ORG_ACTIVITY.path,
 	// Organizations routes
 	ORGANIZATIONS: APP_ROUTES.ORGANIZATIONS.path,
 	// Account routes
