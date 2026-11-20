@@ -42,20 +42,69 @@ function authRequest<T>(query: string, variables?: Record<string, unknown>, auth
 }
 
 const SIGN_IN = `mutation SignIn($input: SignInInput!) {
-	signIn(input: $input) { result { id userId accessToken accessTokenExpiresAt } }
+	signIn(input: $input) {
+		result { id userId accessToken accessTokenExpiresAt mfaRequired deviceApprovalRequired outDeviceToken }
+	}
 }`;
 
+const REQUEST_DEVICE_APPROVAL = `mutation RequestDeviceApproval($input: RequestDeviceApprovalInput!) {
+	requestDeviceApproval(input: $input) { result }
+}`;
+
+type SignInRecord = {
+	id: string | null;
+	userId: string | null;
+	accessToken: string | null;
+	accessTokenExpiresAt: string | null;
+	mfaRequired: boolean | null;
+	deviceApprovalRequired: boolean | null;
+	outDeviceToken: string | null;
+};
+
+export const MFA_REQUIRED_MESSAGE =
+	'Your password is correct, but this account needs a second sign-in step that this app does not support yet. You are not signed in.';
+export const DEVICE_APPROVAL_MESSAGE =
+	'Your password is correct, but this device must be approved first. We emailed you a link: open it on this device, approve it, then sign in again.';
+
+// The tenant recognizes this browser by the token it handed out on an earlier sign-in, so an
+// approved device stays approved. Without it every sign-in looks like a new device.
+export const DEVICE_TOKEN_KEY = 'constructive-device-token:admin';
+
+function deviceStorage(): Pick<Storage, 'getItem' | 'setItem'> | null {
+	if (typeof window === 'undefined') return null;
+	try {
+		return window.localStorage;
+	} catch {
+		return null;
+	}
+}
+
 export async function signIn(input: { email: string; password: string; rememberMe: boolean }): Promise<AuthResult> {
-	const result = await authRequest<{
-		signIn: { result: { id: string; userId: string; accessToken: string; accessTokenExpiresAt: string } | null } | null;
-	}>(SIGN_IN, { input });
+	const storage = deviceStorage();
+	const deviceToken = storage?.getItem(DEVICE_TOKEN_KEY) || undefined;
+	const result = await authRequest<{ signIn: { result: SignInRecord | null } | null }>(SIGN_IN, {
+		input: { ...input, deviceToken },
+	});
 	if (!result.ok) return failed(result.errors, 'Sign-in failed.');
 	const record = result.data.signIn?.result;
+	if (record?.outDeviceToken) storage?.setItem(DEVICE_TOKEN_KEY, record.outDeviceToken);
+	// A challenge answers a correct password with no token; nothing is stored until it is met.
+	if (record?.mfaRequired) return { ok: false, message: MFA_REQUIRED_MESSAGE };
+	if (record?.deviceApprovalRequired) {
+		const device = record.outDeviceToken ?? deviceToken;
+		if (!record.userId || !device) return failed([], 'Sign-in failed.');
+		const next = typeof window === 'undefined' ? undefined : window.location.pathname + window.location.search;
+		const requested = await authRequest(REQUEST_DEVICE_APPROVAL, {
+			input: { userId: record.userId, deviceToken: device, next },
+		});
+		if (!requested.ok) return failed(requested.errors, 'Could not send the device approval email.');
+		return { ok: false, message: DEVICE_APPROVAL_MESSAGE };
+	}
 	if (!record?.accessToken || !record.accessTokenExpiresAt) return { ok: false, message: MESSAGES.INVALID_CREDENTIALS };
 	TokenManager.write(
 		{
-			id: record.id,
-			userId: record.userId ?? record.id,
+			id: record.id ?? '',
+			userId: record.userId ?? record.id ?? '',
 			accessToken: record.accessToken,
 			accessTokenExpiresAt: record.accessTokenExpiresAt,
 		},
