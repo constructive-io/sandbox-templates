@@ -65,21 +65,19 @@ export default function AppSettingsPage() {
 
 	if (error) {
 		return (
-			<div className='h-full overflow-y-auto'>
-				<div className='mx-auto max-w-6xl px-6 py-8 lg:px-8 lg:py-10'>
-					<div
-						className={cn(
-							'border-destructive/30 bg-destructive/5 flex items-start gap-4 rounded-xl border p-5',
-							'animate-in fade-in-0 slide-in-from-bottom-4 duration-500',
-						)}
-					>
-						<div className='bg-destructive/15 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg'>
-							<AlertCircle className='text-destructive h-5 w-5' />
-						</div>
-						<div>
-							<h3 className='text-destructive text-sm font-semibold'>Failed to load settings</h3>
-							<p className='text-muted-foreground mt-1 text-sm'>{error.message}</p>
-						</div>
+			<div className='mx-auto max-w-6xl px-6 py-8 lg:px-8 lg:py-10'>
+				<div
+					className={cn(
+						'border-destructive/30 bg-destructive/5 flex items-start gap-4 rounded-xl border p-5',
+						'animate-in fade-in-0 slide-in-from-bottom-4 duration-500',
+					)}
+				>
+					<div className='bg-destructive/15 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg'>
+						<AlertCircle className='text-destructive h-5 w-5' />
+					</div>
+					<div>
+						<h3 className='text-destructive text-sm font-semibold'>Failed to load settings</h3>
+						<p className='text-muted-foreground mt-1 text-sm'>{error.message}</p>
 					</div>
 				</div>
 			</div>
@@ -87,88 +85,86 @@ export default function AppSettingsPage() {
 	}
 
 	return (
-		<div className='h-full overflow-y-auto'>
-			<div className='mx-auto max-w-6xl px-6 py-8 lg:px-8 lg:py-10'>
-				<PageHeaderWithIcon
-					title='App Settings'
-					description='Configure platform-wide settings that apply to all users and organizations'
-					icon={Settings2}
-				/>
+		<div className='mx-auto max-w-6xl px-6 py-8 lg:px-8 lg:py-10'>
+			<PageHeaderWithIcon
+				title='App Settings'
+				description='Configure platform-wide settings that apply to all users and organizations'
+				icon={Settings2}
+			/>
 
-				{/* Member Permissions Section */}
-				<section
-					className='animate-in fade-in-0 slide-in-from-bottom-4 fill-mode-backwards duration-500'
-					style={{ animationDelay: '100ms' }}
-				>
-					{/* Section header */}
-					<div className='mb-5 flex items-baseline justify-between'>
-						<div className='flex items-center gap-3'>
-							<div className='bg-muted/60 flex h-8 w-8 items-center justify-center rounded-lg'>
-								<Shield className='text-muted-foreground h-4 w-4' />
-							</div>
-							<div>
-								<h2 className='text-foreground text-base font-semibold tracking-tight'>Member Permissions</h2>
-								<p className='text-muted-foreground text-xs'>
-									Default security settings for new members joining the platform
-								</p>
-							</div>
+			{/* Member Permissions Section */}
+			<section
+				className='animate-in fade-in-0 slide-in-from-bottom-4 fill-mode-backwards duration-500'
+				style={{ animationDelay: '100ms' }}
+			>
+				{/* Section header */}
+				<div className='mb-5 flex items-baseline justify-between'>
+					<div className='flex items-center gap-3'>
+						<div className='bg-muted/60 flex h-8 w-8 items-center justify-center rounded-lg'>
+							<Shield className='text-muted-foreground h-4 w-4' />
+						</div>
+						<div>
+							<h2 className='text-foreground text-base font-semibold tracking-tight'>Member Permissions</h2>
+							<p className='text-muted-foreground text-xs'>
+								Default security settings for new members joining the platform
+							</p>
 						</div>
 					</div>
-
-					{/* Settings grid */}
-					<div className='grid gap-4'>
-						{isLoading
-							? Array.from({ length: 1 }).map((_, index) => <LoadingSkeleton key={index} index={index} />)
-							: settingsConfig.map((setting, index) => (
-									<SettingCard key={setting.id} {...setting} disabled={isUpdating} index={index} />
-								))}
-					</div>
-				</section>
-
-				{/* Save button */}
-				<div
-					className={cn(
-						'border-border/50 bg-muted/30 mt-8 flex items-center justify-between rounded-xl border p-4',
-						'animate-in fade-in-0 slide-in-from-bottom-4 fill-mode-backwards duration-500',
-					)}
-					style={{ animationDelay: '200ms' }}
-				>
-					<div className='flex items-center gap-2'>
-						{hasChanges && !isLoading ? (
-							<>
-								<div className='h-2 w-2 animate-pulse rounded-full bg-amber-500' />
-								<span className='text-muted-foreground text-xs'>Unsaved changes</span>
-							</>
-						) : (
-							<>
-								<Check className='text-muted-foreground/50 h-3.5 w-3.5' />
-								<span className='text-muted-foreground/70 text-xs'>All changes saved</span>
-							</>
-						)}
-					</div>
-					<Button
-						onClick={handleSave}
-						disabled={isUpdating || isLoading || !hasChanges}
-						size='sm'
-						className='group gap-2'
-					>
-						{isUpdating ? (
-							<>
-								<Loader2 className='h-4 w-4 animate-spin' />
-								Saving...
-							</>
-						) : (
-							<>
-								Save Changes
-								<ArrowRight className='h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5' />
-							</>
-						)}
-					</Button>
 				</div>
 
-				{/* Bottom spacing */}
-				<div className='h-10' />
+				{/* Settings grid */}
+				<div className='grid gap-4'>
+					{isLoading
+						? Array.from({ length: 1 }).map((_, index) => <LoadingSkeleton key={index} index={index} />)
+						: settingsConfig.map((setting, index) => (
+								<SettingCard key={setting.id} {...setting} disabled={isUpdating} index={index} />
+							))}
+				</div>
+			</section>
+
+			{/* Save button */}
+			<div
+				className={cn(
+					'border-border/50 bg-muted/30 mt-8 flex items-center justify-between rounded-xl border p-4',
+					'animate-in fade-in-0 slide-in-from-bottom-4 fill-mode-backwards duration-500',
+				)}
+				style={{ animationDelay: '200ms' }}
+			>
+				<div className='flex items-center gap-2'>
+					{hasChanges && !isLoading ? (
+						<>
+							<div className='h-2 w-2 animate-pulse rounded-full bg-amber-500' />
+							<span className='text-muted-foreground text-xs'>Unsaved changes</span>
+						</>
+					) : (
+						<>
+							<Check className='text-muted-foreground/50 h-3.5 w-3.5' />
+							<span className='text-muted-foreground/70 text-xs'>All changes saved</span>
+						</>
+					)}
+				</div>
+				<Button
+					onClick={handleSave}
+					disabled={isUpdating || isLoading || !hasChanges}
+					size='sm'
+					className='group gap-2'
+				>
+					{isUpdating ? (
+						<>
+							<Loader2 className='h-4 w-4 animate-spin' />
+							Saving...
+						</>
+					) : (
+						<>
+							Save Changes
+							<ArrowRight className='h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5' />
+						</>
+					)}
+				</Button>
 			</div>
+
+			{/* Bottom spacing */}
+			<div className='h-10' />
 		</div>
 	);
 }

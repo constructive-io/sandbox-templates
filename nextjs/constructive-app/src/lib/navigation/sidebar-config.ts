@@ -10,7 +10,7 @@ import {
 } from '@remixicon/react';
 
 import type { NavGroup, NavItem } from '@/components/app-shell/app-shell.types';
-import { APP_ROUTES } from '@/app-routes';
+import { APP_ROUTES, buildOrgRoute } from '@/app-routes';
 
 /**
  * Navigation level based on entity context
@@ -127,29 +127,30 @@ function getRootNavigation(options: SidebarConfigOptions): NavGroup[] {
 function getOrgNavigation(options: SidebarConfigOptions): NavGroup[] {
 	const { activeOrgId, isRouteActive } = options;
 
-	// Build org-specific paths
-	const orgBasePath = activeOrgId ? `/orgs/${activeOrgId}` : '/orgs';
+	// Build org-specific paths with the org ID in the orgId search param
+	const orgHref = (key: 'ORG_MEMBERS' | 'ORG_INVITES' | 'ORG_SETTINGS') =>
+		activeOrgId ? buildOrgRoute(key, activeOrgId) : APP_ROUTES[key].path;
 
 	const mainItems: NavItem[] = [
 		{
 			id: 'members',
 			label: 'Members',
 			icon: RiTeamLine,
-			href: `${orgBasePath}/members`,
+			href: orgHref('ORG_MEMBERS'),
 			isActive: isRouteActive?.('ORG_MEMBERS'),
 		},
 		{
 			id: 'invites',
 			label: 'Invites',
 			icon: RiMailLine,
-			href: `${orgBasePath}/invites`,
+			href: orgHref('ORG_INVITES'),
 			isActive: isRouteActive?.('ORG_INVITES'),
 		},
 		{
 			id: 'settings',
 			label: 'Settings',
 			icon: RiSettings3Line,
-			href: `${orgBasePath}/settings`,
+			href: orgHref('ORG_SETTINGS'),
 			isActive: isRouteActive?.('ORG_SETTINGS'),
 		},
 	];

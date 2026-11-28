@@ -10,6 +10,7 @@ import {
 } from '@remixicon/react';
 
 import type { NavGroup } from '@/components/app-shell/app-shell.types';
+import { APP_ROUTES, buildOrgRoute } from '@/app-routes';
 
 export type NavigationContextType = 'app' | 'org' | 'account';
 
@@ -113,22 +114,22 @@ export function getSidebarNavigation(params: SidebarConfigParams): NavGroup[] {
 						id: 'members',
 						label: 'Members',
 						icon: RiGroupLine,
-						href: `/orgs/${orgId}/members`,
-						isActive: isActive(pathname, `/orgs/${orgId}/members`),
+						href: buildOrgRoute('ORG_MEMBERS', orgId),
+						isActive: isActive(pathname, APP_ROUTES.ORG_MEMBERS.path),
 					},
 					{
 						id: 'invites',
 						label: 'Invites',
 						icon: RiMailLine,
-						href: `/orgs/${orgId}/invites`,
-						isActive: isActive(pathname, `/orgs/${orgId}/invites`),
+						href: buildOrgRoute('ORG_INVITES', orgId),
+						isActive: isActive(pathname, APP_ROUTES.ORG_INVITES.path),
 					},
 					{
 						id: 'settings',
 						label: 'Settings',
 						icon: RiSettings3Line,
-						href: `/orgs/${orgId}/settings`,
-						isActive: isActive(pathname, `/orgs/${orgId}/settings`),
+						href: buildOrgRoute('ORG_SETTINGS', orgId),
+						isActive: isActive(pathname, APP_ROUTES.ORG_SETTINGS.path),
 					},
 				],
 			},
