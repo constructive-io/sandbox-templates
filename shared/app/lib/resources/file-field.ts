@@ -13,7 +13,7 @@ type FileBinding = {
 };
 
 type StorageTable = {
-	query: { one: string | null } | null;
+	query: { all: string | null } | null;
 	storage: {
 		isFilesTable: boolean;
 		filesType: string;
@@ -32,7 +32,7 @@ type Ticket = {
 const STORAGE_META = `{
 	_meta {
 		tables {
-			query { one }
+			query { all }
 			storage { isFilesTable filesType downloadUrlField upload { mutation inputType requiresOwnerId } }
 		}
 	}
@@ -54,8 +54,8 @@ async function findPlane(binding: FileBinding, signal: AbortSignal) {
 		const tables = data._meta.tables.filter(({ storage }) => storage?.isFilesTable && (!binding.filesType || storage.filesType === binding.filesType));
 		if (tables.length !== 1) continue;
 		const { query, storage } = tables[0]!;
-		if (!query?.one || !storage?.downloadUrlField) continue;
-		return { endpoint, one: query.one, downloadUrlField: storage.downloadUrlField, upload: storage.upload };
+		if (!query?.all || !storage?.downloadUrlField) continue;
+		return { endpoint, all: query.all, downloadUrlField: storage.downloadUrlField, upload: storage.upload };
 	}
 	throw new Error('No unambiguous tenant storage is available for this field.');
 }
@@ -63,14 +63,16 @@ async function findPlane(binding: FileBinding, signal: AbortSignal) {
 type Plane = Awaited<ReturnType<typeof findPlane>>;
 
 async function downloadUrl(plane: Plane, file: FileProjection, signal: AbortSignal): Promise<string | null> {
-	const { endpoint, one, downloadUrlField } = plane;
-	const data = await request<{ file: { url: string | null } | null }>(
+	const { endpoint, all, downloadUrlField } = plane;
+	const data = await request<{ files: { nodes: { url: string | null }[] } }>(
 		endpoint,
-		`query FileDownload($id: UUID!) { file: ${one}(id: $id) { url: ${downloadUrlField} } }`,
+		`query FileDownload($id: UUID!) {
+			files: ${all}(where: { id: { equalTo: $id } }) { nodes { url: ${downloadUrlField} } }
+		}`,
 		{ id: file.id },
 		signal,
 	);
-	return data.file?.url ?? null;
+	return data.files.nodes[0]?.url ?? null;
 }
 
 function wait(ms: number, signal: AbortSignal): Promise<void> {
