@@ -32,6 +32,8 @@ it('generates storage-backed controls from database file metadata, not URL names
 	contacts.fields!.push(
 		{
 			name: 'photo',
+			isWritableOnCreate: true,
+			isWritableOnUpdate: false,
 			type: { pgType: 'image', gqlType: 'JSON', isArray: false },
 			file: { kind: 'image', isMultiple: false, filesType: 'AppFile', bucketKey: 'portraits', isPublic: false },
 		},
@@ -47,6 +49,7 @@ it('generates storage-backed controls from database file metadata, not URL names
 		generate(root, meta);
 		const resource = readFileSync(join(root, 'src/resources/contacts.ts'), 'utf8');
 		assert.match(resource, /photo: \{[^}]*input: 'image'[^}]*file: fileField\(\{[^}]*filesType: 'AppFile'[^}]*bucketKey: 'portraits'[^}]*isPublic: false/s);
+		assert.match(resource, /photo: \{[^}]*readOnlyOnEdit: true/s);
 		assert.match(resource, /invitation: \{[^}]*input: 'file'[^}]*file: fileField\(\{[^}]*isPublic: true/s);
 		assert.match(resource, /websiteUrl: \{[^}]*input: 'url'[^}]*\}/s);
 	} finally {

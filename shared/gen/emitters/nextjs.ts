@@ -56,6 +56,7 @@ function fieldConfig(field: FieldIR, ir: ResourceIR, relationLabels: ReadonlyMap
 		format: field.format,
 		required: field.required || undefined,
 		readOnly: field.readOnly || undefined,
+		readOnlyOnEdit: field.file && ir.createOnly.includes(field.name) ? true : undefined,
 		hidden: field.hidden || undefined,
 		description: field.description,
 		options: field.options?.map((option) => ({
