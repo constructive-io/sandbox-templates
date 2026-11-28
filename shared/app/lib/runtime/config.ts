@@ -14,7 +14,19 @@ export type RuntimeConfig = {
 	authEndpoint: string;
 	appEndpoint: string;
 	adminEndpoint: string;
+	storageEndpoint: string;
 };
+
+function siblingStorageEndpoint(appEndpoint: string): string {
+	try {
+		const endpoint = new URL(appEndpoint);
+		if (!endpoint.hostname.startsWith('api-')) return '';
+		endpoint.hostname = endpoint.hostname.replace(/^api-/, 'storage-');
+		return endpoint.href;
+	} catch {
+		return '';
+	}
+}
 
 function localEndpoint(plane: 'auth' | 'api' | 'admin', env: PublicEnv): string {
 	if (!env.dbName) return '';
@@ -24,11 +36,13 @@ function localEndpoint(plane: 'auth' | 'api' | 'admin', env: PublicEnv): string 
 }
 
 export function resolveRuntimeConfig(env: PublicEnv): RuntimeConfig {
+	const appEndpoint = env.appEndpoint || localEndpoint('api', env);
 	return {
 		dbName: env.dbName || null,
 		authEndpoint: env.authEndpoint || localEndpoint('auth', env),
-		appEndpoint: env.appEndpoint || localEndpoint('api', env),
+		appEndpoint,
 		adminEndpoint: env.adminEndpoint || localEndpoint('admin', env),
+		storageEndpoint: env.storageEndpoint || siblingStorageEndpoint(appEndpoint),
 	};
 }
 

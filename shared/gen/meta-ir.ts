@@ -15,6 +15,8 @@ import { camelCase, humanize, kebabCase, lcFirst, normalizeKey, optionLabels } f
 
 export type MetaRef = { name: string };
 
+type FileBinding = { filesType: string | null; bucketKey: string | null; isPublic: boolean | null };
+
 export type MetaField = {
 	name: string;
 	/** snake_case column. */
@@ -31,6 +33,7 @@ export type MetaField = {
 	isRequiredOnCreate?: boolean | null;
 	isWritableOnCreate?: boolean | null;
 	isWritableOnUpdate?: boolean | null;
+	file?: (FileBinding & { kind: 'image' | 'upload' | 'attachment'; isMultiple: boolean }) | null;
 	type?: {
 		gqlType: string;
 		isArray: boolean;
@@ -111,6 +114,7 @@ export type FieldIR = {
 	columnName?: string;
 	label: string;
 	input: FieldInput;
+	file?: FileBinding;
 	format?: FieldFormat;
 	required: boolean;
 	readOnly: boolean;
@@ -291,6 +295,8 @@ function fieldLabel(name: string, isForeignKey: boolean): string {
 
 /** Input for a plain column (not a relation, not an enum); `null` when the UI can't edit or show it. */
 function scalarInput(field: MetaField): { input: FieldInput; big?: boolean } | null {
+	if (field.file?.kind === 'image') return { input: 'image' };
+	if (field.file?.kind === 'upload') return { input: 'file' };
 	const gqlType = field.type?.gqlType ?? 'String';
 	const pgType = (field.type?.pgType ?? '').toLowerCase();
 	switch (gqlType) {
@@ -548,8 +554,11 @@ function buildResource(info: TableInfo): ResourceIR {
 			...base,
 			label: fieldLabel(field.name, false),
 			// Arrays have no editor in the kit: show them, never write them.
-			input: isArray ? 'json' : scalar.input,
-			...(isArray ? { readOnly: true, required: false } : {}),
+			input: isArray || field.file?.isMultiple ? 'json' : scalar.input,
+			...(isArray || field.file?.isMultiple ? { readOnly: true, required: false } : {}),
+			...(!isArray && field.file && !field.file.isMultiple && (scalar.input === 'image' || scalar.input === 'file') ? {
+				file: { filesType: field.file.filesType, bucketKey: field.file.bucketKey, isPublic: field.file.isPublic },
+			} : {}),
 			...(format && !isArray ? { format } : {}),
 			...(prefillDate ? { createDefault: 'now' } : {}),
 		});
@@ -618,7 +627,7 @@ function addManyToMany(owner: ResourceIR, target: ResourceIR, junction: TableInf
 	});
 }
 
-const NON_COLUMN_INPUTS = new Set<FieldInput>(['textarea', 'json']);
+const NON_COLUMN_INPUTS = new Set<FieldInput>(['textarea', 'json', 'image', 'file']);
 const SEARCHABLE_INPUTS = new Set<FieldInput>(['text', 'textarea', 'email', 'url']);
 // Text columns the filter plugin gives string operators. A domain over text
 // (`email`, `url`, ...) is its own type, which the filter input leaves out, so
@@ -675,7 +684,7 @@ export function finishLayout(ir: ResourceIR, keep: { titleField?: boolean; colum
 			longText[0] ??
 			required(textual)[0] ??
 			textual[0] ??
-			visible.find((field) => !field.readOnly && field.selectable);
+			visible.find((field) => !field.readOnly && field.selectable && !field.file);
 		ir.titleField = ir.compositeTitle?.name ?? title?.name ?? ir.primaryKey;
 	}
 
@@ -704,7 +713,7 @@ export function finishLayout(ir: ResourceIR, keep: { titleField?: boolean; colum
 	const createdAt = ir.fields.find((field) => normalizeKey(field.name) === 'createdat');
 	ir.defaultSort = createdAt
 		? { field: createdAt.name, direction: 'desc' }
-		: ir.titleField !== ir.primaryKey
+		: ir.titleField !== ir.primaryKey && !ir.fields.find((field) => field.name === ir.titleField)?.file
 			? { field: ir.titleField, direction: 'asc' }
 			: undefined;
 }

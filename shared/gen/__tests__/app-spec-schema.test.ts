@@ -19,6 +19,18 @@ function firstError(spec: unknown): string {
 }
 
 describe('AppSpec schema', () => {
+	it('accepts image and file columns for a guest list', () => {
+		const spec = {
+			version: 1,
+			name: 'Guest List',
+			backend: { kind: 'custom', entities: [{ name: 'guests', fields: [
+				{ name: 'photo', type: 'image' },
+				{ name: 'invitation', type: 'file' },
+			] }] },
+		};
+		assert.ok(validate(spec), JSON.stringify(validate.errors));
+	});
+
 	it('accepts a custom backend with links, seed and ui, and a blueprint with resource names', () => {
 		assert.ok(validate(foodBank), JSON.stringify(validate.errors));
 		const blueprint = {

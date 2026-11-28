@@ -14,6 +14,8 @@ export type SpecFieldType =
 	| 'timestamp'
 	| 'email'
 	| 'url'
+	| 'image'
+	| 'file'
 	| 'uuid'
 	| 'json';
 
@@ -83,6 +85,8 @@ export type FieldInput =
 	| 'textarea'
 	| 'email'
 	| 'url'
+	| 'image'
+	| 'file'
 	| 'number'
 	| 'integer'
 	| 'currency'

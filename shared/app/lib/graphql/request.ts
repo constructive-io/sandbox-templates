@@ -17,7 +17,7 @@ export async function graphqlRequest<T>(
 	endpoint: string,
 	query: string,
 	variables?: Record<string, unknown>,
-	options: { auth?: boolean } = {},
+	options: { auth?: boolean; signal?: AbortSignal } = {},
 ): Promise<QueryResult<T>> {
 	if (!endpoint) {
 		return failure('No GraphQL endpoint is configured. Set NEXT_PUBLIC_DB_NAME or the endpoint variables in .env.local.');
@@ -32,6 +32,7 @@ export async function graphqlRequest<T>(
 	try {
 		response = await fetch(endpoint, {
 			method: 'POST',
+			signal: options.signal,
 			headers: {
 				'Content-Type': 'application/json',
 				Accept: 'application/json',

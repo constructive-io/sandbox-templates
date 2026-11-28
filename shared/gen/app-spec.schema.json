@@ -195,6 +195,8 @@
 						"timestamp",
 						"email",
 						"url",
+						"image",
+						"file",
 						"uuid",
 						"json"
 					]
@@ -349,6 +351,8 @@
 						"textarea",
 						"email",
 						"url",
+						"image",
+						"file",
 						"number",
 						"integer",
 						"currency",
