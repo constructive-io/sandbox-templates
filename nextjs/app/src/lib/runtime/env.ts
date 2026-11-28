@@ -5,6 +5,7 @@ export type PublicEnv = {
 	authEndpoint?: string;
 	appEndpoint?: string;
 	adminEndpoint?: string;
+	storageEndpoint?: string;
 	apiPort?: string;
 };
 
@@ -13,5 +14,6 @@ export const publicEnv: PublicEnv = {
 	authEndpoint: process.env.NEXT_PUBLIC_AUTH_ENDPOINT,
 	appEndpoint: process.env.NEXT_PUBLIC_APP_ENDPOINT,
 	adminEndpoint: process.env.NEXT_PUBLIC_ADMIN_ENDPOINT,
+	storageEndpoint: process.env.NEXT_PUBLIC_STORAGE_ENDPOINT,
 	apiPort: process.env.NEXT_PUBLIC_API_PORT,
 };

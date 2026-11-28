@@ -266,7 +266,11 @@ const quoted = (values: string[]) => values.map((value) => `"${value}"`).join(',
 function applyFieldHints(ir: ResourceIR, field: FieldIR, hints: FieldUiSpec, warn: (message: string) => void) {
 	if (hints.label) field.label = hints.label;
 	if (hints.description) field.description = hints.description;
-	if (hints.input) field.input = hints.input;
+	if (hints.input) {
+		const fileInput = hints.input === 'image' || hints.input === 'file';
+		if (fileInput !== Boolean(field.file)) warn('the input must match the column’s file storage type.');
+		else field.input = hints.input;
+	}
 	if (hints.options?.length) {
 		const allowed = field.metaValues;
 		const kept = allowed?.length ? hints.options.filter((value) => allowed.includes(value)) : hints.options;

@@ -26,7 +26,7 @@ const RESERVED_SEGMENTS = new Set([
 ]);
 
 // Bindings the generated modules import; a resource binding must not shadow them.
-const RESERVED_BINDINGS = new Set(['db', 'ormSource', 'defineResource', 'currentUserId', 'activeScope', 'resources', 'resourcePaths', 'resourceIcons', 'nav']);
+const RESERVED_BINDINGS = new Set(['db', 'ormSource', 'defineResource', 'fileField', 'currentUserId', 'activeScope', 'resources', 'resourcePaths', 'resourceIcons', 'nav']);
 
 export function routeSegment(ir: ResourceIR): string {
 	return RESERVED_SEGMENTS.has(ir.name) ? `${ir.name}-records` : ir.name;
@@ -47,7 +47,8 @@ function file(path: string, subject: FileSubject, body: string): EmittedFile {
 	return { path, subject, content: `${GENERATED_HEADER}\n${body.trimEnd()}\n` };
 }
 
-function fieldConfig(field: FieldIR, canCreate: boolean, relationLabels: ReadonlyMap<string, string>): Record<string, unknown> {
+function fieldConfig(field: FieldIR, ir: ResourceIR, relationLabels: ReadonlyMap<string, string>): Record<string, unknown> {
+	const scopeFields = Object.entries(ir.scopeKeys);
 	return {
 		name: field.name,
 		label: field.label,
@@ -63,7 +64,14 @@ function fieldConfig(field: FieldIR, canCreate: boolean, relationLabels: Readonl
 			tone: option.tone === 'neutral' ? undefined : option.tone,
 		})),
 		relation: field.relation && { ...field.relation, labelField: relationLabels.get(field.relation.resource) },
-		createDefault: !canCreate || field.hidden || field.readOnly
+		file: field.file && code(`fileField(${tsLiteral({
+			filesType: field.file.filesType ?? undefined,
+			bucketKey: field.file.bucketKey ?? undefined,
+			isPublic: field.file.isPublic ?? undefined,
+			readOnly: field.readOnly || undefined,
+			ownerId: scopeFields.length === 1 ? code(`({ record, values }) => record?.[${quote(scopeFields[0]![0])}] ?? values[${quote(scopeFields[0]![0])}] ?? activeScope.id(${quote(scopeFields[0]![1])})`) : undefined,
+		})})`),
+		createDefault: !ir.operations.create || field.hidden || field.readOnly
 			? undefined
 			: typeof field.createDefault === 'object'
 				? field.createDefault
@@ -91,7 +99,8 @@ function resourceModule(ir: ResourceIR, relationLabels: ReadonlyMap<string, stri
 				]),
 			)
 		: undefined;
-	const fieldConfigs = Object.fromEntries(fields.map((field) => [field.name, fieldConfig(field, ir.operations.create, relationLabels)]));
+	const hasFiles = fields.some((field) => field.file);
+	const fieldConfigs = Object.fromEntries(fields.map((field) => [field.name, fieldConfig(field, ir, relationLabels)]));
 	if (ir.compositeTitle) {
 		const { name } = ir.compositeTitle;
 		fieldConfigs[name] = { name, label: 'Full name', input: 'text', readOnly: true };
@@ -137,7 +146,7 @@ function resourceModule(ir: ResourceIR, relationLabels: ReadonlyMap<string, stri
 		{ kind: 'resource', resource: ir.name },
 		`import { defineResource } from '@/components/ui/resource-kit';
 ${ir.userKeys.length ? "import { currentUserId } from '@/lib/auth/token-manager';\n" : ''}import { db } from '@/lib/graphql/db';
-import { ormSource } from '@/lib/resources/orm-source';
+${hasFiles ? "import { fileField } from '@/lib/resources/file-field';\n" : ''}import { ormSource } from '@/lib/resources/orm-source';
 ${Object.keys(ir.scopeKeys).length ? "import { activeScope } from '@/lib/resources/scope';\n" : ''}
 export const ${binding(ir)} = defineResource(${tsLiteral(definition)});
 `,

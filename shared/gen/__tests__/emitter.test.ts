@@ -26,6 +26,34 @@ function generate(root: string, metaTables = tables(), name = 'CRM') {
 	return runGen({ root, tables: metaTables, spec: { version: 1, name, backend: { kind: 'blueprint', slug: 'crm' } }, emitter }).files;
 }
 
+it('generates storage-backed controls from database file metadata, not URL names', () => {
+	const meta = tables();
+	const contacts = meta.find((table) => table.name === 'Contact')!;
+	contacts.fields!.push(
+		{
+			name: 'photo',
+			type: { pgType: 'image', gqlType: 'JSON', isArray: false },
+			file: { kind: 'image', isMultiple: false, filesType: 'AppFile', bucketKey: 'portraits', isPublic: false },
+		},
+		{
+			name: 'invitation',
+			type: { pgType: 'upload', gqlType: 'JSON', isArray: false },
+			file: { kind: 'upload', isMultiple: false, filesType: null, bucketKey: null, isPublic: true },
+		},
+		{ name: 'websiteUrl', type: { pgType: 'url', gqlType: 'String', isArray: false } },
+	);
+	const root = mkdtempSync(join(tmpdir(), 'gen-files-'));
+	try {
+		generate(root, meta);
+		const resource = readFileSync(join(root, 'src/resources/contacts.ts'), 'utf8');
+		assert.match(resource, /photo: \{[^}]*input: 'image'[^}]*file: fileField\(\{[^}]*filesType: 'AppFile'[^}]*bucketKey: 'portraits'[^}]*isPublic: false/s);
+		assert.match(resource, /invitation: \{[^}]*input: 'file'[^}]*file: fileField\(\{[^}]*isPublic: true/s);
+		assert.match(resource, /websiteUrl: \{[^}]*input: 'url'[^}]*\}/s);
+	} finally {
+		rmSync(root, { recursive: true, force: true });
+	}
+});
+
 describe('generated file ownership', () => {
 	let root: string;
 	beforeEach(() => {
